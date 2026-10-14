@@ -1,14 +1,12 @@
 package com.maxrave.simpmusic.extension
 
 import androidx.compose.runtime.Composable
-import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import kotlin.math.roundToLong
-import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -21,22 +19,13 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.custom_order
 import simpmusic.composeapp.generated.resources.day_s_ago
-import simpmusic.composeapp.generated.resources.filler
 import simpmusic.composeapp.generated.resources.hour_s_ago
-import simpmusic.composeapp.generated.resources.interaction
-import simpmusic.composeapp.generated.resources.intro
 import simpmusic.composeapp.generated.resources.month_s_ago
-import simpmusic.composeapp.generated.resources.music_off_topic
 import simpmusic.composeapp.generated.resources.live_badge
 import simpmusic.composeapp.generated.resources.na_na
 import simpmusic.composeapp.generated.resources.newer_first
 import simpmusic.composeapp.generated.resources.older_first
-import simpmusic.composeapp.generated.resources.outro
-import simpmusic.composeapp.generated.resources.poi_highlight
-import simpmusic.composeapp.generated.resources.preview
 import simpmusic.composeapp.generated.resources.recently
-import simpmusic.composeapp.generated.resources.self_promotion
-import simpmusic.composeapp.generated.resources.sponsor
 import simpmusic.composeapp.generated.resources.title
 import java.io.File
 import java.io.InputStream
@@ -273,20 +262,3 @@ fun FilterState.displayNameRes(): StringResource =
 
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
-
-@Composable
-fun SponsorBlockType.displayString(): String = stringResource(displayRes())
-
-/** The resource behind [displayString], for callers outside composition (the skip toast). */
-fun SponsorBlockType.displayRes(): StringResource =
-    when (this) {
-        SponsorBlockType.FILLER -> Res.string.filler
-        SponsorBlockType.INTERACTION -> Res.string.interaction
-        SponsorBlockType.INTRO -> Res.string.intro
-        SponsorBlockType.MUSIC_OFF_TOPIC -> Res.string.music_off_topic
-        SponsorBlockType.OUTRO -> Res.string.outro
-        SponsorBlockType.POI_HIGHLIGHT -> Res.string.poi_highlight
-        SponsorBlockType.PREVIEW -> Res.string.preview
-        SponsorBlockType.SELF_PROMOTION -> Res.string.self_promotion
-        SponsorBlockType.SPONSOR -> Res.string.sponsor
-    }

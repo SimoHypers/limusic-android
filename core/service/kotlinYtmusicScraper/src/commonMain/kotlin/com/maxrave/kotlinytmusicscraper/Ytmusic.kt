@@ -289,7 +289,6 @@ class Ytmusic {
         parameter("ctoken", continuation)
     }
 
-
     /**
      * The player request a live broadcast is resolved with, made as the YouTube Android app: its HLS
      * playlist plays on without a PoToken. Measured 2026-10-01 on two live stations — every other
@@ -556,27 +555,6 @@ class Ytmusic {
             ),
         )
     }
-
-    /***
-     * SponsorBlock testing
-     * @author maxrave-dev
-     */
-
-    suspend fun getSkipSegments(videoId: String) =
-        httpClient.get("https://sponsor.ajay.app/api/skipSegments/") {
-            contentType(ContentType.Application.Json)
-            parameter("videoID", videoId)
-            parameter("category", "sponsor")
-            parameter("category", "selfpromo")
-            parameter("category", "interaction")
-            parameter("category", "intro")
-            parameter("category", "outro")
-            parameter("category", "preview")
-            parameter("category", "music_offtopic")
-            parameter("category", "poi_highlight")
-            parameter("category", "filler")
-            parameter("service", "YouTube")
-        }
 
     suspend fun playlist(playlistId: String) =
         httpClient.post("browse") {

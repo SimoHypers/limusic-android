@@ -265,9 +265,6 @@ class MainActivity : AppCompatActivity() {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR, type.error) }
                     }
 
-                    is ToastType.SponsorBlockSkip -> {
-                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.SPONSOR_BLOCK_SKIP, type.category) }
-                    }
                 },
             )
         }

@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LANGUAGE
-import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.network.ProxyConfiguration
 import com.maxrave.domain.data.player.ReverbPreset
 import com.maxrave.domain.manager.DataStoreManager
@@ -407,54 +406,6 @@ internal class DataStoreManagerImpl(
             } else {
                 settingsDataStore.edit { settings ->
                     settings[SEND_BACK_TO_GOOGLE] = FALSE
-                }
-            }
-        }
-    }
-
-    override val sponsorBlockEnabled =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPONSOR_BLOCK_ENABLED] ?: FALSE
-        }
-
-    override suspend fun setSponsorBlockEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (enabled) {
-                settingsDataStore.edit { settings ->
-                    settings[SPONSOR_BLOCK_ENABLED] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[SPONSOR_BLOCK_ENABLED] = FALSE
-                }
-            }
-        }
-    }
-
-    override suspend fun getSponsorBlockCategories(): ArrayList<String> {
-        val list: ArrayList<String> = arrayListOf()
-        for (category in SponsorBlockType.toList()) {
-            if (getString(category.value).first() == TRUE) list.add(category.value)
-        }
-        return list
-    }
-
-    override suspend fun setSponsorBlockCategories(categories: ArrayList<String>) {
-        withContext(Dispatchers.IO) {
-            Logger.w("setSponsorBlockCategories", categories.toString())
-            // Every category is written in ONE edit, keyed by `value` on both branches.
-            //
-            // The clearing branch used to key on `category.toString()`. SponsorBlockType is a sealed
-            // class of data objects, so that is the object's NAME — "SPONSOR" — while the enabled
-            // branch and [getSponsorBlockCategories] both use `value`, "sponsor". Unticking a
-            // category therefore wrote FALSE to a key nobody reads and left the real one at TRUE:
-            // the choice came back unchanged every time the dialog was reopened, and all nine
-            // categories stayed on forever. Confirmed against a real settings store where every one
-            // of the nine read TRUE.
-            settingsDataStore.edit { settings ->
-                SponsorBlockType.toList().forEach { category ->
-                    settings[stringPreferencesKey(category.value)] =
-                        if (categories.contains(category.value)) TRUE else FALSE
                 }
             }
         }
@@ -1742,7 +1693,6 @@ internal class DataStoreManagerImpl(
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
 
-        val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =
             stringPreferencesKey("watch_video_instead_of_playing_audio")

@@ -2,7 +2,6 @@ package com.maxrave.domain.repository
 
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +44,6 @@ interface StreamRepository {
         playlistId: String?,
     ): Flow<Int>
 
-    fun getSkipSegments(videoId: String): Flow<Resource<List<SponsorSkipSegments>>>
 
     fun getFullMetadata(videoId: String): Flow<Resource<Track>>
 

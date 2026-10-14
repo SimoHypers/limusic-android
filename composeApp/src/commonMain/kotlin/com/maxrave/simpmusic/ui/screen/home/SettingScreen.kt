@@ -98,7 +98,6 @@ import com.maxrave.common.LIMIT_CACHE_SIZE
 import com.maxrave.common.QUALITY
 import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LOCATION
-import com.maxrave.common.SponsorBlockType
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
@@ -116,7 +115,6 @@ import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.bytesToMB
-import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.getPlatform
@@ -212,7 +210,6 @@ import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.animated_artwork_info
 import simpmusic.composeapp.generated.resources.canvas_info
-import simpmusic.composeapp.generated.resources.categories_sponsor_block
 import simpmusic.composeapp.generated.resources.change
 import simpmusic.composeapp.generated.resources.change_language_warning
 import simpmusic.composeapp.generated.resources.clear
@@ -251,7 +248,6 @@ import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_scrobbling
-import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
 import simpmusic.composeapp.generated.resources.equalizer
 import simpmusic.composeapp.generated.resources.equalizer_description
@@ -383,10 +379,7 @@ import simpmusic.composeapp.generated.resources.signed_in
 import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.skip_no_music_part
 import simpmusic.composeapp.generated.resources.skip_silent
-import simpmusic.composeapp.generated.resources.skip_sponsor_part_of_video
 import simpmusic.composeapp.generated.resources.socks
-import simpmusic.composeapp.generated.resources.sponsorBlock
-import simpmusic.composeapp.generated.resources.sponsor_block_intro
 import simpmusic.composeapp.generated.resources.spotify
 import simpmusic.composeapp.generated.resources.spotify_canvas_cache
 import simpmusic.composeapp.generated.resources.spotify_lyrícs_info
@@ -418,7 +411,6 @@ import simpmusic.composeapp.generated.resources.video_download_quality
 import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
-import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
@@ -514,8 +506,6 @@ fun SettingScreen(
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
     val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
-    val enableSponsorBlock by remember { viewModel.sponsorBlockEnabled.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
-    val skipSegments by viewModel.sponsorBlockCategories.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
     val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
     val thumbnailCache by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
@@ -2048,81 +2038,6 @@ fun SettingScreen(
                         isEnable = lastfmLoggedIn,
                     )
                 }
-            }
-        }
-        item(key = "sponsor_block") {
-            SettingGroup(
-                title = stringResource(Res.string.sponsorBlock),
-                // The project's note sits under the card, where a grouped list keeps its explanations.
-                footer = {
-                    val beforeUrl = stringResource(Res.string.sponsor_block_intro).substringBefore("https://sponsor.ajay.app/")
-                    val afterUrl = stringResource(Res.string.sponsor_block_intro).substringAfter("https://sponsor.ajay.app/")
-                    Text(
-                        buildAnnotatedString {
-                            append(beforeUrl)
-                            withLink(
-                                LinkAnnotation.Url(
-                                    "https://sponsor.ajay.app/",
-                                    TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-                                ),
-                            ) {
-                                append("https://sponsor.ajay.app/")
-                            }
-                            append(afterUrl)
-                        },
-                        style = typo().bodySmall,
-                    )
-                },
-            ) {
-                SettingItem(
-                    title = stringResource(Res.string.enable_sponsor_block),
-                    subtitle = stringResource(Res.string.skip_sponsor_part_of_video),
-                    switch = (enableSponsorBlock to { viewModel.setSponsorBlockEnabled(it) }),
-                )
-                val listName =
-                    SponsorBlockType.toList().map { it.displayString() }
-                SettingItem(
-                    title = stringResource(Res.string.categories_sponsor_block),
-                    subtitle = stringResource(Res.string.what_segments_will_be_skipped),
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.categories_sponsor_block) },
-                                multipleSelect =
-                                    SettingAlertState.SelectData(
-                                        listSelect =
-                                            listName
-                                                .mapIndexed { index, item ->
-                                                    (
-                                                        skipSegments?.contains(
-                                                            SponsorBlockType.toList().getOrNull(index)?.value,
-                                                        ) == true
-                                                    ) to item
-                                                }.also {
-                                                    Logger.w("SettingScreen", "SettingAlertState: $skipSegments")
-                                                    Logger.w("SettingScreen", "SettingAlertState: $it")
-                                                },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.save) } to { state ->
-                                        viewModel.setSponsorBlockCategories(
-                                            state.multipleSelect
-                                                ?.getListSelected()
-                                                ?.map { selected ->
-                                                    listName.indexOf(selected)
-                                                }?.mapNotNull { s ->
-                                                    SponsorBlockType.toList().getOrNull(s).let {
-                                                        it?.value
-                                                    }
-                                                }?.toCollection(ArrayList()) ?: arrayListOf(),
-                                        )
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                    isEnable = enableSponsorBlock,
-                )
             }
         }
         if (getPlatform() == Platform.Android) {

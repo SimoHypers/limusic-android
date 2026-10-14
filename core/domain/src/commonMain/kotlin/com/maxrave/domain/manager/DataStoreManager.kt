@@ -121,13 +121,6 @@ interface DataStoreManager {
 
     suspend fun setSendBackToGoogle(send: Boolean)
 
-    val sponsorBlockEnabled: Flow<String>
-
-    suspend fun setSponsorBlockEnabled(enabled: Boolean)
-
-    suspend fun getSponsorBlockCategories(): ArrayList<String>
-
-    suspend fun setSponsorBlockCategories(categories: ArrayList<String>)
 
     val enableTranslateLyric: Flow<String>
 

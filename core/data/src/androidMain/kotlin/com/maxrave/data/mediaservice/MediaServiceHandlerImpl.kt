@@ -20,16 +20,12 @@ import com.maxrave.common.DESC
 import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
 import com.maxrave.common.MERGING_DATA_TYPE
-import com.maxrave.common.SPONSOR_BLOCK_MIN_SEGMENT_SECONDS
-import com.maxrave.common.SPONSOR_BLOCK_SKIP_MARGIN_MS
-import com.maxrave.common.SponsorBlockType
 import com.maxrave.common.TITLE
 import com.maxrave.data.db.Converters
 import com.maxrave.data.lastfm.LastfmScrobbler
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.data.player.AudioEffects
@@ -196,15 +192,6 @@ internal class MediaServiceHandlerImpl(
     private val _sleepTimerState = MutableStateFlow<SleepTimerState>(SleepTimerState(false, 0))
     override val sleepTimerState: StateFlow<SleepTimerState> = _sleepTimerState.asStateFlow()
 
-    // SponsorBlock skip segments
-    private val _skipSegments: MutableStateFlow<List<SponsorSkipSegments>?> = MutableStateFlow<List<SponsorSkipSegments>?>(null)
-    override val skipSegments: StateFlow<List<SponsorSkipSegments>?> = _skipSegments.asStateFlow()
-
-    // SponsorBlock's ticked categories, kept current by a collector in init; null while SponsorBlock is
-    // off or not loaded yet. The per-tick skip check reads this instead of asking DataStore on every progress tick (one
-    // read for the switch plus one per category). Kept identical to JvmMediaPlayerHandlerImpl.
-    private val sponsorBlockCategories = MutableStateFlow<Set<String>?>(null)
-
     private val _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow<NewFormatEntity?>(null)
     override val format: StateFlow<NewFormatEntity?> = _format.asStateFlow()
 
@@ -249,7 +236,6 @@ internal class MediaServiceHandlerImpl(
      */
     private val sleepFadeTailMs = 800L
 
-    private var getSkipSegmentsJob: Job? = null
 
     private var getFormatJob: Job? = null
 
@@ -337,7 +323,6 @@ internal class MediaServiceHandlerImpl(
         toggleLikeJob = Job()
         loadJob = Job()
         songEntityJob = Job()
-        getSkipSegmentsJob = Job()
         getFormatJob = Job()
         jobWatchtime = Job()
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() == TRUE }
@@ -457,55 +442,6 @@ internal class MediaServiceHandlerImpl(
                         updateNotification()
                     }
                 }
-            val sponsorBlockCategoriesJob =
-                launch {
-                    combine(
-                        SponsorBlockType.toList().map { type ->
-                            dataStoreManager.getString(type.value).map { if (it == TRUE) type.value else null }
-                        },
-                    ) { ticked -> ticked.filterNotNull().toSet() }
-                        .combine(dataStoreManager.sponsorBlockEnabled) { ticked, enabled -> ticked.takeIf { enabled == TRUE } }
-                        .collect { sponsorBlockCategories.value = it }
-                }
-            val skipSegmentsJob =
-                launch {
-                    simpleMediaState
-                        .filter { it is SimpleMediaState.Progress }
-                        .map {
-                            val current = (it as SimpleMediaState.Progress).progress
-                            val duration = player.duration
-                            if (duration > 0L) {
-                                (current.toFloat() / player.duration) * 100
-                            } else {
-                                -1f
-                            }
-                        }.filter { it >= 0f }
-                        .distinctUntilChanged()
-                        .collect { current ->
-                            val categories = sponsorBlockCategories.value
-                            val skipSegments = skipSegments.value
-                            if (categories != null && player.duration > 0L && skipSegments != null) {
-                                for (skip in skipSegments) {
-                                    if (categories.contains(skip.category)) {
-                                        if (skip.segment[1] - skip.segment[0] < SPONSOR_BLOCK_MIN_SEGMENT_SECONDS) {
-                                            continue
-                                        }
-                                        val firstPart = ((skip.segment[0] / skip.videoDuration) * 100).toFloat()
-                                        val secondPart =
-                                            ((skip.segment[1] / skip.videoDuration) * 100).toFloat()
-                                        if (current in firstPart..secondPart) {
-                                            Logger.w(TAG, "Seek to $secondPart")
-                                            Logger.d(TAG, "Seek to Cr: $current, First: $firstPart, Second: $secondPart")
-                                            skipSegment(
-                                                (secondPart * player.duration).toLong() / 100 + SPONSOR_BLOCK_SKIP_MARGIN_MS,
-                                            )
-                                            showToast(ToastType.SponsorBlockSkip(skip.category))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                }
             val playbackJob =
                 launch {
                     format.collectLatest { formatTemp ->
@@ -611,8 +547,6 @@ internal class MediaServiceHandlerImpl(
                     }
                 }
             controlStateJob.join()
-            sponsorBlockCategoriesJob.join()
-            skipSegmentsJob.join()
             playbackJob.join()
             playbackSpeedPitchJob.join()
             discordRPCEnabledJob.join()
@@ -636,7 +570,6 @@ internal class MediaServiceHandlerImpl(
             )
         }
         _format.value = null
-        _skipSegments.value = null
         getDataOfNowPlayingTrackStateJob?.cancel()
         getDataOfNowPlayingTrackStateJob =
             coroutineScope.launch {
@@ -739,31 +672,10 @@ internal class MediaServiceHandlerImpl(
                             }
                         }
                     }
-                if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
-                    getSkipSegments(videoId)
-                }
                 if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
                     getFormat(videoId)
                 }
             }
-    }
-
-    private fun getSkipSegments(videoId: String) {
-        _skipSegments.value = null
-        coroutineScope.launch {
-            streamRepository.getSkipSegments(videoId).collect { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        _skipSegments.value = response.data
-                    }
-
-                    is Resource.Error -> {
-                        Logger.e(TAG, "getSkipSegments: ${response.message}")
-                        _skipSegments.value = null
-                    }
-                }
-            }
-        }
     }
 
     private fun getFormat(mediaId: String?) {
@@ -889,14 +801,6 @@ internal class MediaServiceHandlerImpl(
     ) {
         player.moveMediaItem(fromIndex, newIndex)
         _currentSongIndex.value = player.currentMediaItemIndex
-    }
-
-    private fun skipSegment(position: Long) {
-        if (position in 0..player.duration) {
-            player.seekTo(position)
-        } else if (position > player.duration) {
-            player.seekToNext()
-        }
     }
 
     private fun sendOpenEqualizerIntent() {
@@ -2677,8 +2581,6 @@ internal class MediaServiceHandlerImpl(
             loadJob = null
             songEntityJob?.cancel()
             songEntityJob = null
-            getSkipSegmentsJob?.cancel()
-            getSkipSegmentsJob = null
             getFormatJob?.cancel()
             getFormatJob = null
             jobWatchtime?.cancel()

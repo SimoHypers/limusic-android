@@ -49,7 +49,6 @@ import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SimpMusicChartResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
-import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.models.youtube.tryDecodeText
@@ -822,16 +821,6 @@ class YouTube {
     suspend fun nextCustom(videoId: String) =
         runCatching {
             ytMusic.nextCustom(WEB_REMIX, videoId).body<NextResponse>()
-        }
-
-    /**
-     * Get Skip Segments from SponsorBlock
-     * @param videoId the videoId of song
-     * @return a [Result]<[List]<[SkipSegments]>> object
-     */
-    suspend fun getSkipSegments(videoId: String): Result<List<SkipSegments>> =
-        runCatching {
-            ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
         }
 
     suspend fun newRelease(): Result<ExplorePage> =

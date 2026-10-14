@@ -5,11 +5,9 @@ import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.common.QUALITY
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.data.db.datasource.LocalDataSource
-import com.maxrave.data.mapping.toSponsorSkipSegments
 import com.maxrave.data.mapping.toTrack
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
 import com.maxrave.domain.data.player.LiveStreamRegistry
 import com.maxrave.domain.extension.isBefore
 import com.maxrave.domain.extension.now
@@ -328,16 +326,6 @@ internal class StreamRepositoryImpl(
             }
         }.flowOn(Dispatchers.IO)
 
-    override fun getSkipSegments(videoId: String): Flow<Resource<List<SponsorSkipSegments>>> =
-        flow {
-            youTube
-                .getSkipSegments(videoId)
-                .onSuccess { data ->
-                    emit(Resource.Success(data.map { it.toSponsorSkipSegments() }))
-                }.onFailure {
-                    emit(Resource.Error(it.message ?: "Unknown error"))
-                }
-        }.flowOn(Dispatchers.IO)
 
     override fun getFullMetadata(videoId: String): Flow<Resource<Track>> =
         flow {

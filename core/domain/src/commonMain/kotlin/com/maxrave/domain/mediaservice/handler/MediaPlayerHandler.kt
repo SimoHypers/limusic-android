@@ -3,7 +3,6 @@ package com.maxrave.domain.mediaservice.handler
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
 import com.maxrave.domain.data.player.GenericCastState
 import com.maxrave.domain.data.player.GenericCommandButton
 import com.maxrave.domain.data.player.GenericMediaItem
@@ -26,7 +25,6 @@ interface MediaPlayerHandler {
     val controlState: StateFlow<ControlState>
     val nowPlayingState: StateFlow<NowPlayingTrackState>
     val sleepTimerState: StateFlow<SleepTimerState>
-    val skipSegments: StateFlow<List<SponsorSkipSegments>?>
     val format: StateFlow<NewFormatEntity?>
     val currentSongIndex: StateFlow<Int>
     val castState: StateFlow<GenericCastState>
@@ -405,7 +403,4 @@ sealed class ToastType(
         val error: String,
     ) : ToastType(error)
 
-    data class SponsorBlockSkip(
-        val category: String,
-    ) : ToastType(category)
 }
