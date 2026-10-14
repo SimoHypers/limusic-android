@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
@@ -84,35 +89,92 @@ fun parseThemeColorHex(hex: String): Color? {
     return argb.toLongOrNull(16)?.let { Color(it) }
 }
 
-/**
- * Neutral surfaces for the light theme, on a pure neutral-grey ramp (R=G=B, no seed tint);
- * primary/secondary/tertiary stay seed-derived. The page background is #FAFAFA (neutral tone 98,
- * the Material 3 stance) rather than pure white: a full-bleed #FFFFFF expanse glares on a large
- * desktop window, and even Apple — who pins systemBackground to white — puts #F2F2F7 behind
- * list pages. Pure white is kept for surfaceBright/surfaceContainerLowest so cards and sheets
- * still have a brighter-than-page tier to lift onto. Dark stays pure-black AMOLED: black does
- * not glare and saves OLED.
- */
-private fun ColorScheme.withNeutralLightSurfaces(): ColorScheme =
-    copy(
-        background = Color(0xFFFAFAFA),
-        onBackground = Color(0xFF1B1B1B),
-        surface = Color(0xFFFAFAFA),
-        onSurface = Color(0xFF1B1B1B),
-        surfaceVariant = Color(0xFFE2E2E2),
-        onSurfaceVariant = Color(0xFF474747),
-        surfaceTint = primary,
-        surfaceBright = Color(0xFFFFFFFF),
-        surfaceDim = Color(0xFFDADADA),
-        surfaceContainerLowest = Color(0xFFFFFFFF),
-        surfaceContainerLow = Color(0xFFF7F7F7),
-        surfaceContainer = Color(0xFFF1F1F1),
-        surfaceContainerHigh = Color(0xFFECECEC),
-        surfaceContainerHighest = Color(0xFFE6E6E6),
-        outline = Color(0xFF777777),
-        outlineVariant = Color(0xFFC7C7C7),
-        inverseSurface = Color(0xFF303030),
-        inverseOnSurface = Color(0xFFF1F1F1),
+/** Limusic's dark palette as a Material 3 scheme: tinted near-black neutrals and a crimson accent. */
+internal val LimusicDarkColorScheme: ColorScheme =
+    darkColorScheme(
+        primary = LimusicDark.primary,
+        onPrimary = LimusicDark.onPrimary,
+        primaryContainer = LimusicDark.primaryContainer,
+        onPrimaryContainer = LimusicDark.onPrimaryContainer,
+        inversePrimary = LimusicLight.primary,
+        secondary = LimusicDark.mutedForeground,
+        onSecondary = LimusicDark.background,
+        secondaryContainer = LimusicDark.secondary,
+        onSecondaryContainer = LimusicDark.foreground,
+        tertiary = LimusicDark.primary,
+        onTertiary = LimusicDark.onPrimary,
+        tertiaryContainer = LimusicDark.primaryContainer,
+        onTertiaryContainer = LimusicDark.onPrimaryContainer,
+        background = LimusicDark.background,
+        onBackground = LimusicDark.foreground,
+        surface = LimusicDark.background,
+        onSurface = LimusicDark.foreground,
+        surfaceVariant = LimusicDark.muted,
+        onSurfaceVariant = LimusicDark.mutedForeground,
+        surfaceTint = LimusicDark.primary,
+        inverseSurface = LimusicDark.foreground,
+        inverseOnSurface = LimusicDark.background,
+        error = LimusicDark.destructive,
+        onError = LimusicDark.background,
+        outline = LimusicDark.ring,
+        outlineVariant = LimusicDark.secondary,
+        scrim = Color.Black,
+        surfaceBright = LimusicDark.surfaceHighest,
+        surfaceDim = LimusicDark.background,
+        surfaceContainerLowest = LimusicDark.surfaceLowest,
+        surfaceContainerLow = LimusicDark.surfaceLow,
+        surfaceContainer = LimusicDark.surface,
+        surfaceContainerHigh = LimusicDark.card,
+        surfaceContainerHighest = LimusicDark.surfaceHighest,
+    )
+
+/** Limusic's light palette: white, faintly tinted greys and the same crimson. */
+internal val LimusicLightColorScheme: ColorScheme =
+    lightColorScheme(
+        primary = LimusicLight.primary,
+        onPrimary = LimusicLight.onPrimary,
+        primaryContainer = LimusicLight.primaryContainer,
+        onPrimaryContainer = LimusicLight.onPrimaryContainer,
+        inversePrimary = LimusicDark.primary,
+        secondary = LimusicLight.mutedForeground,
+        onSecondary = LimusicLight.background,
+        secondaryContainer = LimusicLight.secondary,
+        onSecondaryContainer = LimusicLight.onSecondary,
+        tertiary = LimusicLight.primary,
+        onTertiary = LimusicLight.onPrimary,
+        tertiaryContainer = LimusicLight.primaryContainer,
+        onTertiaryContainer = LimusicLight.onPrimaryContainer,
+        background = LimusicLight.background,
+        onBackground = LimusicLight.foreground,
+        surface = LimusicLight.background,
+        onSurface = LimusicLight.foreground,
+        surfaceVariant = LimusicLight.muted,
+        onSurfaceVariant = LimusicLight.mutedForeground,
+        surfaceTint = LimusicLight.primary,
+        inverseSurface = LimusicLight.foreground,
+        inverseOnSurface = LimusicLight.background,
+        error = LimusicLight.destructive,
+        onError = LimusicLight.background,
+        outline = LimusicLight.ring,
+        outlineVariant = LimusicLight.border,
+        scrim = Color.Black,
+        surfaceBright = LimusicLight.background,
+        surfaceDim = LimusicLight.border,
+        surfaceContainerLowest = LimusicLight.background,
+        surfaceContainerLow = LimusicLight.muted,
+        surfaceContainer = LimusicLight.secondary,
+        surfaceContainerHigh = LimusicLight.muted,
+        surfaceContainerHighest = LimusicLight.border,
+    )
+
+/** Limusic's corner radii: the desktop's 0.45rem for small parts, growing for cards and sheets. */
+internal val LimusicShapes =
+    Shapes(
+        extraSmall = RoundedCornerShape(4.dp),
+        small = RoundedCornerShape(7.dp),
+        medium = RoundedCornerShape(10.dp),
+        large = RoundedCornerShape(14.dp),
+        extraLarge = RoundedCornerShape(20.dp),
     )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -139,33 +201,39 @@ fun AppTheme(
         } else {
             seed
         }
-    // Symmetric base: dark pins background/surface to pure black via isAmoled; light pins them to
-    // pure white with a neutral-grey ramp (the seed otherwise tints the light neutrals warm/cream).
+    // The default is Limusic's own palette. A wallpaper or custom colour generates a scheme from
+    // that seed instead, on Limusic's neutrals so the app keeps its ground either way.
+    val limusicScheme = if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme
     val colorScheme =
-        wallpaperScheme
-            ?: rememberDynamicColorScheme(
-                seedColor = seedColor,
-                isDark = isDark,
-                isAmoled = isDark,
-                style = PaletteStyle.TonalSpot,
-                modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
-            )
-    // Immersive screens stay dark even at light theme (see [ForceDarkContent]). Resolve their scheme
-    // once here instead of letting every such subtree build a palette of its own.
+        when {
+            wallpaperScheme != null -> wallpaperScheme.withLimusicNeutrals(isDark)
+            themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM ->
+                rememberDynamicColorScheme(
+                    seedColor = seedColor,
+                    isDark = isDark,
+                    style = PaletteStyle.TonalSpot,
+                    modifyColorScheme = { it.withLimusicNeutrals(isDark) },
+                )
+            else -> limusicScheme
+        }
+    // Immersive screens stay dark even at light theme (see [ForceDarkContent]).
     val forcedDarkScheme =
         if (isDark) {
             colorScheme
+        } else if (themeColorSource == DataStoreManager.THEME_COLOR_DEFAULT) {
+            LimusicDarkColorScheme
         } else {
             rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = true,
-                isAmoled = true,
                 style = PaletteStyle.TonalSpot,
+                modifyColorScheme = { it.withLimusicNeutrals(true) },
             )
         }
     SystemBarAppearanceEffect(isDark)
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
+        shapes = LimusicShapes,
         content = {
             CompositionLocalProvider(
                 LocalRippleConfiguration provides SoftRippleConfiguration,
@@ -234,6 +302,7 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
     val darkScheme = LocalForcedDarkColorScheme.current ?: MaterialTheme.colorScheme
     MaterialExpressiveTheme(
         colorScheme = darkScheme,
+        shapes = LimusicShapes,
         content = {
             CompositionLocalProvider(
                 LocalForceDarkText provides true,
@@ -244,6 +313,30 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
             )
         },
         typography = typo(darkScheme, forceDark = true),
+    )
+}
+
+/** Keeps a generated scheme's accents but puts it on Limusic's background and surface ramp. */
+private fun ColorScheme.withLimusicNeutrals(isDark: Boolean): ColorScheme {
+    val base = if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme
+    return copy(
+        background = base.background,
+        onBackground = base.onBackground,
+        surface = base.surface,
+        onSurface = base.onSurface,
+        surfaceVariant = base.surfaceVariant,
+        onSurfaceVariant = base.onSurfaceVariant,
+        surfaceBright = base.surfaceBright,
+        surfaceDim = base.surfaceDim,
+        surfaceContainerLowest = base.surfaceContainerLowest,
+        surfaceContainerLow = base.surfaceContainerLow,
+        surfaceContainer = base.surfaceContainer,
+        surfaceContainerHigh = base.surfaceContainerHigh,
+        surfaceContainerHighest = base.surfaceContainerHighest,
+        outline = base.outline,
+        outlineVariant = base.outlineVariant,
+        inverseSurface = base.inverseSurface,
+        inverseOnSurface = base.inverseOnSurface,
     )
 }
 

@@ -5,18 +5,61 @@ import androidx.compose.ui.graphics.Color
 // ===== Brand =====
 
 /**
- * Brand seed color. The whole Material 3 ColorScheme is generated from this
- * color at runtime — see [AppTheme].
+ * Seed for the generated schemes (a custom colour the user has not picked yet). Limusic's crimson,
+ * the desktop app's `--primary` in its dark palette.
  */
-val seed = Color(0xFF8ECAE6)
+val seed = Color(0xFFA50036)
+
+// ===== Limusic palette =====
+// Converted from the desktop app's default theme tokens (ui/src/routes/layout.css, oklch with the
+// neutral hue 326). The neutrals carry a faint magenta tint; the accent is a crimson.
+
+internal object LimusicDark {
+    val background = Color(0xFF0C090C)
+    val foreground = Color(0xFFFAFAFA)
+    val card = Color(0xFF1D161D)
+    val primary = Color(0xFFFF2056) // the desktop's sidebar-primary: bright enough for text and icons
+    val onPrimary = Color(0xFFFFFFFF)
+    val primaryContainer = Color(0xFFA50036) // the desktop's --primary, used as a fill
+    val onPrimaryContainer = Color(0xFFFFF1F2)
+    val secondary = Color(0xFF292629)
+    val muted = Color(0xFF2B212B)
+    val mutedForeground = Color(0xFFA89EA8)
+    val ring = Color(0xFF7A697A)
+    val border = Color(0x1AFFFFFF)
+    val destructive = Color(0xFFFF6467)
+
+    // Surface ramp at the card's hue, darkest to lightest.
+    val surfaceLowest = Color(0xFF080408)
+    val surfaceLow = Color(0xFF120C12)
+    val surface = Color(0xFF161116)
+    val surfaceHigh = Color(0xFF1C171C)
+    val surfaceHighest = Color(0xFF262126)
+}
+
+internal object LimusicLight {
+    val background = Color(0xFFFFFFFF)
+    val foreground = Color(0xFF0C090C)
+    val primary = Color(0xFFC70036)
+    val onPrimary = Color(0xFFFFF1F2)
+    val primaryContainer = Color(0xFFFFE1E6)
+    val onPrimaryContainer = Color(0xFFA50036)
+    val secondary = Color(0xFFF4F4F4)
+    val onSecondary = Color(0xFF1A171A)
+    val muted = Color(0xFFF3F1F3)
+    val mutedForeground = Color(0xFF7A697A)
+    val border = Color(0xFFE7E4E7)
+    val ring = Color(0xFFA89EA8)
+    val destructive = Color(0xFFE7000B)
+}
 
 // ===== Semantic colors (not derivable from the color scheme) =====
 
 /** Liked/favorite state (heart buttons, favorite tiles). */
-val favoriteColor = Color(0xFFFF4081)
+val favoriteColor = Color(0xFFFF2056)
 
-/** Currently playing lyric line. */
-val lyricActiveColor = Color(0xFFFFFF00)
+/** Currently playing lyric line: plain white, as on the desktop app. */
+val lyricActiveColor = Color(0xFFFFFFFF)
 
 val shimmerBackground = Color(0x7E383737)
 val shimmerLine = Color(0xFF4D4848)

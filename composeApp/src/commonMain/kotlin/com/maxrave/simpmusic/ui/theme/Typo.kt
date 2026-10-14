@@ -9,16 +9,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.poppins_medium
+import simpmusic.composeapp.generated.resources.ibm_plex_sans
+import simpmusic.composeapp.generated.resources.oxanium
 
+/**
+ * Limusic's text face, Oxanium (OFL), as on the desktop app. One variable font file; each weight is
+ * an instance of its `wght` axis.
+ */
+@OptIn(ExperimentalTextApi::class)
 @Composable
 fun fontFamily(): FontFamily =
     FontFamily(
-        Font(Res.font.poppins_medium, FontWeight.Normal, FontStyle.Normal),
+        listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold).map { weight ->
+            Font(
+                Res.font.oxanium,
+                weight,
+                FontStyle.Normal,
+                variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+            )
+        },
+    )
+
+/** Limusic's heading face, IBM Plex Sans (OFL), for the large titles. */
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun headingFontFamily(): FontFamily =
+    FontFamily(
+        listOf(FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold).map { weight ->
+            Font(
+                Res.font.ibm_plex_sans,
+                weight,
+                FontStyle.Normal,
+                variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+            )
+        },
     )
 
 /**
@@ -34,6 +64,7 @@ fun typo(
     forceDark: Boolean = LocalForceDarkText.current,
 ): Typography {
     val fontFamily = fontFamily()
+    val headingFamily = headingFontFamily()
 
     // Titles were pure white, everything else muted gray (#A8A8A8) in the old dark-only palette.
     // forceDark keeps that; otherwise both come from the scheme (theme-aware light/dark).
@@ -63,7 +94,7 @@ fun typo(
                 TextStyle(
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
+                    fontFamily = headingFamily,
                     color = titleColor,
                 ),
             bodySmall =
@@ -98,14 +129,14 @@ fun typo(
                 TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
+                    fontFamily = headingFamily,
                     color = bodyColor,
                 ),
             headlineLarge =
                 TextStyle(
                     fontSize = 23.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
+                    fontFamily = headingFamily,
                     color = bodyColor,
                 ),
             labelMedium =

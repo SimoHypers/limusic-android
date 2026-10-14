@@ -537,7 +537,7 @@ interface DataStoreManager {
         const val THEME_COLOR_WALLPAPER = "WALLPAPER"
         const val THEME_COLOR_CUSTOM = "CUSTOM"
 
-        const val DEFAULT_THEME_COLOR_HEX = "FF8ECAE6"
+        const val DEFAULT_THEME_COLOR_HEX = "FFA50036"
 
         const val NOW_PLAYING_STYLE_SPOTIFY = "SPOTIFY"
         const val NOW_PLAYING_STYLE_M3_EXPRESSIVE = "M3_EXPRESSIVE"
