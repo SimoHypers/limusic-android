@@ -18,7 +18,6 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
@@ -188,38 +187,6 @@ internal class StreamRepositoryImpl(
                             (if (muxed) ", HLS" else "") +
                             ", expires in ${response.streamingData?.expiresInSeconds}s",
                     )
-                    val durationSecond = response.videoDetails?.lengthSeconds?.toIntOrNull()
-                    // AutoMix metadata from Tidal official API
-                    var tidalBpm: Int? = null
-                    var tidalMusicKey: String? = null
-                    var tidalKeyScale: String? = null
-                    if (!isVideo && durationSecond != null && data.third == MediaType.Song) {
-                        val title = response.videoDetails?.title ?: ""
-                        val author = response.videoDetails?.author ?: ""
-                        val q =
-                            "$title $author"
-                                .replace(
-                                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                                    " ",
-                                ).replace(
-                                    Regex("( và | & | и | e | und |, |和| dan)"),
-                                    " ",
-                                ).replace("  ", " ")
-                                .replace(Regex("([()])"), "")
-                                .replace(".", " ")
-                                .replace("  ", " ")
-                        Logger.d("Stream", "Search Tidal metadata for: $q")
-                        youTube
-                            .searchTidalMetadata(q, durationSecond)
-                            .onSuccess { metadata ->
-                                Logger.d("Stream", "Tidal metadata: $metadata")
-                                tidalBpm = metadata.bpm
-                                tidalMusicKey = metadata.musicKey
-                                tidalKeyScale = metadata.keyScale
-                            }.onFailure {
-                                Logger.e("Stream", "Tidal metadata error: ${it.message}", it)
-                            }
-                    }
                     insertNewFormat(
                         NewFormatEntity(
                             videoId = if (VIDEO_QUALITY.itags.contains(format?.itag)) "${MERGING_DATA_TYPE.VIDEO}$videoId" else videoId,
@@ -264,9 +231,6 @@ internal class StreamRepositoryImpl(
                             expiredTime = now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                             audioUrl = if (muxed) response.streamingData?.hlsManifestUrl else format?.url,
                             videoUrl = if (muxed) response.streamingData?.hlsManifestUrl else videoFormat?.url,
-                            bpm = tidalBpm,
-                            musicKey = tidalMusicKey,
-                            keyScale = tidalKeyScale,
                         ),
                     )
                     if (data.first != null) {

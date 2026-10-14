@@ -166,21 +166,6 @@ internal class CommonRepositoryImpl(
                         youTube.visitorData = visitorData
                     }
                 }
-            // Observe job: push cached TIDAL credentials from DataStore into YouTube.
-            // Only override when non-blank — credentials are not hard-coded, so an empty cache
-            // just leaves TIDAL disabled until the remote config is fetched.
-            val tidalCredentialJob =
-                launch {
-                    combine(
-                        dataStoreManager.tidalClientId,
-                        dataStoreManager.tidalClientSecret,
-                    ) { id, secret -> id to secret }
-                        .distinctUntilChanged()
-                        .collectLatest { (id, secret) ->
-                            if (id.isNotBlank()) youTube.tidalClientId = id
-                            if (secret.isNotBlank()) youTube.tidalClientSecret = secret
-                        }
-                }
             val aiClientProviderJob =
                 launch {
                     dataStoreManager.aiProvider.collectLatest { provider ->

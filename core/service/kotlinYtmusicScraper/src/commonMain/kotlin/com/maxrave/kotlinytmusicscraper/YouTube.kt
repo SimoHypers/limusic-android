@@ -24,7 +24,6 @@ import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongInfo
 import com.maxrave.kotlinytmusicscraper.models.SongItem
-import com.maxrave.kotlinytmusicscraper.models.TidalMetadataResult
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItem
@@ -50,8 +49,6 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SimpMusicChartResponse
-import com.maxrave.kotlinytmusicscraper.models.response.TidalSearchResponse
-import com.maxrave.kotlinytmusicscraper.models.response.TidalOAuthResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -99,8 +96,6 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
@@ -114,7 +109,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okio.Path
 import kotlin.jvm.JvmInline
-import kotlin.math.abs
 import kotlin.math.round
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -134,10 +128,6 @@ private const val TAG = "YouTubeScraper"
 
 class YouTube {
     private val ytMusic = Ytmusic()
-
-    private val tidalTokenMutex = Mutex()
-    private var tidalAccessToken: String? = null
-    private var tidalTokenExpiresAt: Long = 0L
 
     var cookiePath: Path?
         get() = ytMusic.cookiePath
@@ -188,21 +178,6 @@ class YouTube {
         get() = ytMusic.authUser
         set(value) {
             ytMusic.authUser = value
-        }
-
-    /**
-     * TIDAL credentials, backed by [Ytmusic]. Set by the data layer from cached remote config.
-     */
-    var tidalClientId: String
-        get() = ytMusic.tidalClientId
-        set(value) {
-            ytMusic.tidalClientId = value
-        }
-
-    var tidalClientSecret: String
-        get() = ytMusic.tidalClientSecret
-        set(value) {
-            ytMusic.tidalClientSecret = value
         }
 
     /**
@@ -2124,48 +2099,6 @@ class YouTube {
         runCatching {
             ytMusic.getSimpMusicChart().body<SimpMusicChartResponse>()
         }
-
-    /**
-     * Ensure a valid Tidal OAuth token is available, refreshing if expired.
-     * In-memory only — token is re-fetched on each app launch (follows Spotify auth pattern).
-     */
-    private suspend fun ensureTidalToken(): String =
-        tidalTokenMutex.withLock {
-            val now = Clock.System.now().toEpochMilliseconds()
-            val cached = tidalAccessToken
-            if (cached != null && now < tidalTokenExpiresAt) return@withLock cached
-
-            val response = ytMusic.getTidalOAuthToken().body<TidalOAuthResponse>()
-            tidalAccessToken = response.accessToken
-            tidalTokenExpiresAt = now + (response.expiresIn * 1000L) - 60_000L
-            Logger.d("Stream", "Tidal OAuth token refreshed, expires in ${response.expiresIn}s")
-            response.accessToken
-        }
-
-    /**
-     * Search Tidal official API for metadata (bpm, key, keyScale).
-     * Token is managed in-memory and auto-refreshed when expired.
-     */
-    suspend fun searchTidalMetadata(
-        query: String,
-        durationSeconds: Int,
-    ) = runCatching {
-        val token = ensureTidalToken()
-        val searchRes = ytMusic.searchTidalId(token, query).body<TidalSearchResponse>()
-        val matchedItem =
-            searchRes.tracks
-                ?.items
-                ?.filterNotNull()
-                ?.filter { it.duration?.let { dur -> abs(dur - durationSeconds) <= 1 } ?: false }
-                ?.minByOrNull { abs((it.duration ?: 0) - durationSeconds) }
-                ?: throw Exception("No matching track found")
-        val attrs = matchedItem.audioAnalysisAttributes
-        TidalMetadataResult(
-            bpm = attrs?.bpm?.toDoubleOrNull()?.toInt(),
-            musicKey = attrs?.key,
-            keyScale = attrs?.keyScale,
-        )
-    }
 
     // Any format carrying a signatureCipher would do; medium Opus is the one YouTube returns for
     // every video, logged in or not, which is why the lookup pins that itag rather than scanning.

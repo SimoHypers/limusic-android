@@ -310,13 +310,6 @@ interface DataStoreManager {
 
     suspend fun setSpotifyClientTokenExpires(expires: Long)
 
-    val tidalClientId: Flow<String>
-
-    suspend fun setTidalClientId(value: String)
-
-    val tidalClientSecret: Flow<String>
-
-    suspend fun setTidalClientSecret(value: String)
 
     val spotifyPersonalToken: Flow<String>
 

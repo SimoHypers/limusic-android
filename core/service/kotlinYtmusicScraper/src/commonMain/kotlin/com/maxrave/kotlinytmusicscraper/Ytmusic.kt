@@ -50,14 +50,12 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.prepareRequest
-import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Parameters
 import io.ktor.http.contentType
 import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.json.json
@@ -137,12 +135,6 @@ class Ytmusic {
     // valid together with the authuser that owns it; sending 0 for a channel of the
     // second signed-in account makes YouTube answer as if not logged in.
     var authUser: Int = 0
-
-    // TIDAL credentials. Empty until CommonRepositoryImpl pushes the values fetched from the
-    // remote config (cached in DataStore). Deliberately NOT hard-coded in source — while
-    // empty, TIDAL metadata lookups fail silently until the first successful fetch.
-    var tidalClientId: String = ""
-    var tidalClientSecret: String = ""
 
     private var cookieMap = emptyMap<String, String>()
 
@@ -1292,39 +1284,6 @@ class Ytmusic {
         }
     }
 
-    suspend fun getTidalOAuthToken() =
-        httpClient.submitForm(
-            url = TIDAL_AUTH_URL,
-            formParameters =
-                Parameters.build {
-                    append("client_id", tidalClientId)
-                    append("client_secret", tidalClientSecret)
-                    append("grant_type", "client_credentials")
-                },
-        )
-
-    suspend fun searchTidalId(
-        token: String,
-        query: String,
-    ) = httpClient.get(TIDAL_SEARCH_URL) {
-        header("Authorization", "Bearer $token")
-        header("Accept", "application/json")
-        header("Referer", "https://tidal.com/")
-        userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0")
-        parameter("query", query)
-        parameter("types", "TRACKS")
-        parameter("limit", 5)
-        parameter("countryCode", "US")
-        parameter("locale", "en_US")
-        parameter("deviceType", "BROWSER")
-        parameter("includeContributors", true)
-        parameter("supportsUserData", true)
-    }
-
-    companion object {
-        private const val TIDAL_AUTH_URL = "https://auth.tidal.com/v1/oauth2/token"
-        private const val TIDAL_SEARCH_URL = "https://tidal.com/v2/client-search/"
-    }
 }
 
 expect fun getCountry(): String
