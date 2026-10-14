@@ -136,10 +136,6 @@ interface DataStoreManager {
 
     suspend fun setVideoQuality(quality: String)
 
-    val spdc: Flow<String>
-
-    suspend fun setSpdc(spdc: String)
-
     /**
      * Whether following an artist in the app also subscribes to their YouTube channel.
      *
@@ -197,38 +193,14 @@ interface DataStoreManager {
 
     suspend fun setSyncFollowToYouTube(enabled: Boolean)
 
-    val spotifyLyrics: Flow<String>
-
-    suspend fun setSpotifyLyrics(spotifyLyrics: Boolean)
-
-    val spotifyCanvas: Flow<String>
-
-    suspend fun setSpotifyCanvas(spotifyCanvas: Boolean)
-
     /**
-     * Animated album artwork from the hidden AM catalog, used in place of a Spotify canvas. It
-     * needs no account of any kind, so unlike [spotifyCanvas] it is never gated on a login.
+     * Animated album artwork from the hidden AM catalog. Needs no account. Also gates the AM
+     * artist logo and motion header on artist pages, so with it off nothing is sent to AM.
      */
     val amAnimatedArtwork: Flow<String>
 
     suspend fun setAMAnimatedArtwork(enabled: Boolean)
 
-    val spotifyClientToken: Flow<String>
-
-    suspend fun setSpotifyClientToken(token: String)
-
-    val spotifyClientTokenExpires: Flow<Long>
-
-    suspend fun setSpotifyClientTokenExpires(expires: Long)
-
-
-    val spotifyPersonalToken: Flow<String>
-
-    suspend fun setSpotifyPersonalToken(token: String)
-
-    val spotifyPersonalTokenExpires: Flow<Long>
-
-    suspend fun setSpotifyPersonalTokenExpires(expires: Long)
 
     val homeLimit: Flow<Int>
 

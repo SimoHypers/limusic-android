@@ -48,9 +48,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
-import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
-import com.maxrave.kotlinytmusicscraper.models.youtube.tryDecodeText
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistSection
@@ -116,7 +114,7 @@ private const val TAG = "YouTubeScraper"
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
  * This library is from [z-huang/InnerTune] and I just modified it to comply with SimpMusic
  *
- * Here is the object that can create all request to YouTube Music and Spotify in SimpMusic
+ * Here is the object that can create all request to YouTube Music in SimpMusic
  * Using YouTube Internal API
  * @author maxrave-dev
  */
@@ -1860,39 +1858,6 @@ class YouTube {
                         }.orEmpty(),
             )
         }
-
-    suspend fun getYouTubeCaption(
-        videoId: String,
-        preferLang: String,
-    ) = runCatching {
-        val ytWeb = ytMusic.player(WEB, videoId, null, null).body<YouTubeInitialPage>()
-        val baseCaption =
-            ytMusic
-                .getYouTubeCaption(
-                    ytWeb.captions?.playerCaptionsTracklistRenderer?.captionTracks?.firstOrNull()?.baseUrl?.replace(
-                        "&fmt=srv3",
-                        "",
-                    ) ?: "",
-                ).body<Transcript>()
-                .tryDecodeText()
-        val translateCaption =
-            try {
-                ytMusic
-                    .getYouTubeCaption(
-                        "${
-                            ytWeb.captions?.playerCaptionsTracklistRenderer?.captionTracks?.firstOrNull()?.baseUrl?.replace(
-                                "&fmt=srv3",
-                                "",
-                            )
-                        }&tlang=$preferLang",
-                    ).body<Transcript>()
-                    .tryDecodeText()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        return@runCatching baseCaption to translateCaption
-    }
 
     suspend fun scrapeYouTube(videoId: String) =
         runCatching {

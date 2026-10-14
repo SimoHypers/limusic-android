@@ -13,7 +13,6 @@ import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.logger.Logger
-import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -30,7 +29,6 @@ import okio.IOException
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 internal class CommonRepositoryImpl(
@@ -38,7 +36,6 @@ internal class CommonRepositoryImpl(
     private val database: MusicDatabase,
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
-    private val spotify: Spotify,
 ) : CommonRepository {
     @OptIn(ExperimentalTime::class)
     override fun init(
@@ -48,13 +45,6 @@ internal class CommonRepositoryImpl(
     ) {
         youTube.cookiePath = cookiePath.toPath()
         coroutineScope.launch {
-            val resetSpotifyToken =
-                launch {
-                    dataStoreManager.setSpotifyClientToken("")
-                    dataStoreManager.setSpotifyPersonalToken("")
-                    dataStoreManager.setSpotifyClientTokenExpires(Clock.System.now().epochSeconds)
-                    dataStoreManager.setSpotifyPersonalTokenExpires(Clock.System.now().epochSeconds)
-                }
             val localeJob =
                 launch {
                     combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
@@ -138,16 +128,10 @@ internal class CommonRepositoryImpl(
                                     data.host,
                                     data.port,
                                 )
-                                spotify.setProxy(
-                                    data.type == DataStoreManager.ProxyType.PROXY_TYPE_HTTP,
-                                    data.host,
-                                    data.port,
-                                )
                             }
                         } else {
                             clearProxyAuthenticator()
                             youTube.removeProxy()
-                            spotify.removeProxy()
                         }
                     }
                 }
@@ -171,7 +155,6 @@ internal class CommonRepositoryImpl(
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()
-            resetSpotifyToken.join()
         }
     }
 

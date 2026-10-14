@@ -621,20 +621,8 @@ class SharedViewModel(
         Logger.w(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
-            // Both sources fill the same slot, so they are tried in order rather than raced:
-            // animated artwork first, and a Spotify canvas only if that found nothing AND the user
-            // has that switch on too. Neither switch touches the other — a track with no animated
-            // artwork still gets its canvas, and turning Spotify off still means no canvas at all.
-            val sources =
-                buildList {
-                    if (dataStoreManager.amAnimatedArtwork.first() == TRUE) {
-                        add(lyricsCanvasRepository.getAMAnimatedArtwork(videoId))
-                    }
-                    if (dataStoreManager.spotifyCanvas.first() == TRUE) {
-                        add(lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration))
-                    }
-                }
-            if (sources.isEmpty()) return@launch
+            if (dataStoreManager.amAnimatedArtwork.first() != TRUE) return@launch
+            val sources = listOf(lyricsCanvasRepository.getAMAnimatedArtwork(videoId))
 
             var resolved = false
             for (source in sources) {

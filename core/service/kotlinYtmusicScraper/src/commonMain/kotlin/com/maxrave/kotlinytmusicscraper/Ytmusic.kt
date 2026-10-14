@@ -379,14 +379,6 @@ class Ytmusic {
             parameter("q", query)
         }
 
-    suspend fun getYouTubeCaption(url: String) =
-        httpClient.get(url) {
-            contentType(ContentType.Text.Xml)
-            headers {
-                append(HttpHeaders.Accept, "text/xml; charset=UTF-8")
-            }
-        }
-
     suspend fun createYouTubePlaylist(
         title: String,
         listVideoId: List<String>?,

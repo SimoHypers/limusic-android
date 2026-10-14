@@ -243,11 +243,8 @@ class SettingsViewModel(
         getPlayVideoInsteadOfAudio()
         getRadioAudioOnly()
         getVideoQuality()
-        getSpotifyLogIn()
-        getSpotifyLyrics()
         getSyncFollowToYouTube()
         getEqualizer()
-        getSpotifyCanvas()
         getAMAnimatedArtwork()
         getUsingProxy()
         getCanvasCache()
@@ -1338,41 +1335,6 @@ class SettingsViewModel(
         }
     }
 
-    private var _spotifyLogIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val spotifyLogIn: StateFlow<Boolean> = _spotifyLogIn
-
-    fun getSpotifyLogIn() {
-        viewModelScope.launch {
-            dataStoreManager.spdc.collect { loggedIn ->
-                if (loggedIn.isNotEmpty()) {
-                    _spotifyLogIn.emit(true)
-                } else {
-                    _spotifyLogIn.emit(false)
-                }
-            }
-        }
-    }
-
-    fun setSpotifyLogIn(loggedIn: Boolean) {
-        viewModelScope.launch {
-            _spotifyLogIn.emit(loggedIn)
-            if (!loggedIn) {
-                dataStoreManager.setSpdc("")
-                // Logging out of Spotify must also tear down everything gated behind it. Otherwise the
-                // lyrics/canvas flags stay stuck ON with no way to switch them off (the toggles grey out
-                // when logged out) and stale tokens linger — issue #2064, same family as Discord #2157.
-                dataStoreManager.setSpotifyLyrics(false)
-                dataStoreManager.setSpotifyCanvas(false)
-                dataStoreManager.setSpotifyClientToken("")
-                dataStoreManager.setSpotifyClientTokenExpires(0)
-                dataStoreManager.setSpotifyPersonalToken("")
-                dataStoreManager.setSpotifyPersonalTokenExpires(0)
-                delay(500)
-            }
-            getSpotifyLogIn()
-        }
-    }
-
     private var _equalizerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val equalizerEnabled: StateFlow<Boolean> = _equalizerEnabled
 
@@ -1516,52 +1478,8 @@ class SettingsViewModel(
         }
     }
 
-    private var _spotifyLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val spotifyLyrics: StateFlow<Boolean> = _spotifyLyrics
-
-    private var _spotifyCanvas: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val spotifyCanvas: StateFlow<Boolean> = _spotifyCanvas
-
     private var _amAnimatedArtwork: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val amAnimatedArtwork: StateFlow<Boolean> = _amAnimatedArtwork
-
-    fun getSpotifyLyrics() {
-        viewModelScope.launch {
-            dataStoreManager.spotifyLyrics.collect {
-                if (it == DataStoreManager.TRUE) {
-                    _spotifyLyrics.emit(true)
-                } else {
-                    _spotifyLyrics.emit(false)
-                }
-            }
-        }
-    }
-
-    fun setSpotifyLyrics(loggedIn: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setSpotifyLyrics(loggedIn)
-            getSpotifyLyrics()
-        }
-    }
-
-    fun getSpotifyCanvas() {
-        viewModelScope.launch {
-            dataStoreManager.spotifyCanvas.collect {
-                if (it == DataStoreManager.TRUE) {
-                    _spotifyCanvas.emit(true)
-                } else {
-                    _spotifyCanvas.emit(false)
-                }
-            }
-        }
-    }
-
-    fun setSpotifyCanvas(loggedIn: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setSpotifyCanvas(loggedIn)
-            getSpotifyCanvas()
-        }
-    }
 
     fun getAMAnimatedArtwork() {
         viewModelScope.launch {

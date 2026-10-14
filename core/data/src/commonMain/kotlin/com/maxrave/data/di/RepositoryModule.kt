@@ -51,7 +51,7 @@ val repositoryModule =
         }
 
         single<CommonRepository>(createdAtStart = true) {
-            CommonRepositoryImpl(get(named(SERVICE_SCOPE)), get(), get(), get(), get()).apply {
+            CommonRepositoryImpl(get(named(SERVICE_SCOPE)), get(), get(), get()).apply {
                 this.init("${fileDir()}/ytdlp-cookie.txt", get(), get<AppIdentity>().isDevBuild)
             }
         }
@@ -84,7 +84,7 @@ val repositoryModule =
         }
 
         single<LyricsCanvasRepository>(createdAtStart = true) {
-            LyricsCanvasRepositoryImpl(get(), get(), get(), get(), get())
+            LyricsCanvasRepositoryImpl(get(), get(), get(), get())
         }
 
         single<PlaylistRepository>(createdAtStart = true) {

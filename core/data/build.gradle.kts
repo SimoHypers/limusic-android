@@ -49,7 +49,6 @@ kotlin {
                 implementation(projects.domain)
                 implementation(projects.autoEqService)
                 implementation(projects.lyricsService)
-                implementation(projects.spotify)
                 implementation(projects.kotlinYtmusicScraper)
                 implementation(projects.kizzy)
                 implementation(projects.listenTogether)

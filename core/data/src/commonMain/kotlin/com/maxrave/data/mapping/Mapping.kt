@@ -2,7 +2,6 @@ package com.maxrave.data.mapping
 
 import com.maxrave.data.parser.toListThumbnail
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.domain.data.model.metadata.Lyrics
@@ -24,15 +23,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItem
-import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
-import com.maxrave.spotify.model.response.spotify.CanvasResponse
-import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
-import org.simpmusic.lyrics.models.response.LyricsResponse
-import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
-import org.simpmusic.lyrics.parser.parseRichSyncLyrics
-import org.simpmusic.lyrics.parser.parseSyncedLyrics
-import org.simpmusic.lyrics.parser.parseUnsyncedLyrics
 import kotlin.jvm.JvmName
 
 internal fun SongItem.toTrack(): Track =
@@ -149,25 +140,6 @@ internal fun Lyrics.toLibraryLyrics(): org.simpmusic.lyrics.domain.Lyrics =
             ),
     )
 
-internal fun SpotifyLyricsResponse.toLyrics(): Lyrics {
-    val lines: ArrayList<Line> = arrayListOf()
-    this.lyrics.lines.forEach {
-        lines.add(
-            Line(
-                endTimeMs = it.endTimeMs,
-                startTimeMs = it.startTimeMs,
-                syllables = listOf(),
-                words = it.words,
-            ),
-        )
-    }
-    return Lyrics(
-        error = false,
-        lines = lines,
-        syncType = this.lyrics.syncType,
-    )
-}
-
 internal fun YouTubeInitialPage.toTrack(): Track {
     val initialPage = this
 
@@ -202,24 +174,6 @@ internal fun YouTubeInitialPage.toTrack(): Track {
     )
 }
 
-internal fun Transcript.toLyrics(): Lyrics {
-    val lines =
-        this.text.map {
-            Line(
-                endTimeMs = "0",
-                startTimeMs = (it.start.toFloat() * 1000).toInt().toString(),
-                syllables = listOf(),
-                words = it.content.replace(Regex("<[^>]*>"), ""),
-            )
-        }
-    val sortedLine = lines.sortedBy { it.startTimeMs.toInt() }
-    return Lyrics(
-        error = false,
-        lines = sortedLine,
-        syncType = "LINE_SYNCED",
-    )
-}
-
 internal fun AlbumItem.toAlbumsResult(): AlbumsResult =
     AlbumsResult(
         artists =
@@ -248,22 +202,6 @@ internal fun AlbumItem.toAlbumsResult(): AlbumsResult =
     )
 
 // SimpMusic Lyrics Extension
-internal fun LyricsResponse.toLyrics(): Lyrics? =
-    (
-        richSyncLyrics?.takeIf { it.isNotEmpty() }?.let {
-            parseRichSyncLyrics(it)
-        }
-            ?: syncedLyrics?.let { if (it.isNotEmpty() && it.isNotBlank()) parseSyncedLyrics(it) else null }
-            ?: (
-                if (plainLyric.isNotEmpty() && plainLyric.isNotBlank()) {
-                    parseUnsyncedLyrics(plainLyric)
-                } else {
-                    null
-                }
-            )
-    )?.toLyrics()
-
-internal fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseSyncedLyrics(this.translatedLyric).toLyrics()
 
 internal fun SearchSuggestions.toDomainSearchSuggestions(): com.maxrave.domain.data.model.searchResult.SearchSuggestions =
     com.maxrave.domain.data.model.searchResult.SearchSuggestions(
@@ -389,29 +327,6 @@ internal fun SearchSuggestions.toDomainSearchSuggestions(): com.maxrave.domain.d
                 }
             },
     )
-
-internal fun CanvasResponse.toCanvasResult(): CanvasResult? {
-    val canvasUrl = this.canvases.firstOrNull()?.canvas_url ?: return null
-    val canvasThumbs = this.canvases.firstOrNull()?.thumbsOfCanva
-    val thumbUrl =
-        if (!canvasThumbs.isNullOrEmpty()) {
-            (
-                canvasThumbs.let { thumb ->
-                    thumb
-                        .maxByOrNull {
-                            (it.height ?: 0) + (it.width ?: 0)
-                        }?.url
-                } ?: canvasThumbs.first().url
-            )
-        } else {
-            null
-        }
-    return CanvasResult(
-        isVideo = canvasUrl.contains(".mp4"),
-        canvasUrl = canvasUrl,
-        canvasThumbUrl = thumbUrl,
-    )
-}
 
 internal fun YouTubeWatchEndpoint.toWatchEndpoint(): WatchEndpoint =
     WatchEndpoint(

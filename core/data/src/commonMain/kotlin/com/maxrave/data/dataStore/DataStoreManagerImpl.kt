@@ -448,21 +448,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val spdc =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPDC] ?: ""
-        }
-
-    override suspend fun setSpdc(spdc: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPDC] = spdc
-            }
-        }
-        // Every Spotify sign-in and sign-out path writes through here; the value itself never goes out.
-        Logger.i("Auth", if (spdc.isEmpty()) "Spotify: sp_dc cleared" else "Spotify: sp_dc saved")
-    }
-
     override val equalizerEnabled: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[EQUALIZER_ENABLED] ?: FALSE
@@ -548,44 +533,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val spotifyLyrics: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_LYRICS] ?: FALSE
-        }
-
-    override suspend fun setSpotifyLyrics(spotifyLyrics: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (spotifyLyrics) {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_LYRICS] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_LYRICS] = FALSE
-                }
-            }
-        }
-    }
-
-    override val spotifyCanvas: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_CANVAS] ?: FALSE
-        }
-
-    override suspend fun setSpotifyCanvas(spotifyCanvas: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (spotifyCanvas) {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_CANVAS] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_CANVAS] = FALSE
-                }
-            }
-        }
-    }
-
     override val amAnimatedArtwork: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[AM_ANIMATED_ARTWORK] ?: FALSE
@@ -595,58 +542,6 @@ internal class DataStoreManagerImpl(
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[AM_ANIMATED_ARTWORK] = if (enabled) TRUE else FALSE
-            }
-        }
-    }
-
-    override val spotifyClientToken: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_CLIENT_TOKEN] ?: ""
-        }
-
-    override suspend fun setSpotifyClientToken(token: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPOTIFY_CLIENT_TOKEN] = token
-            }
-        }
-    }
-
-    override val spotifyClientTokenExpires: Flow<Long> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_CLIENT_TOKEN_EXPIRES] ?: 0
-        }
-
-    override suspend fun setSpotifyClientTokenExpires(expires: Long) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPOTIFY_CLIENT_TOKEN_EXPIRES] = expires
-            }
-        }
-    }
-
-    override val spotifyPersonalToken: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_PERSONAL_TOKEN] ?: ""
-        }
-
-    override suspend fun setSpotifyPersonalToken(token: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPOTIFY_PERSONAL_TOKEN] = token
-            }
-        }
-    }
-
-    override val spotifyPersonalTokenExpires: Flow<Long> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SPOTIFY_PERSONAL_TOKEN_EXPIRES] ?: 0
-        }
-
-    override suspend fun setSpotifyPersonalTokenExpires(expires: Long) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPOTIFY_PERSONAL_TOKEN_EXPIRES] = expires
             }
         }
     }
@@ -1354,20 +1249,13 @@ internal class DataStoreManagerImpl(
         val RADIO_AUDIO_ONLY = stringPreferencesKey("radio_audio_only")
         val VIDEO_QUALITY = stringPreferencesKey("video_quality")
         val PLAYER_VOLUME = floatPreferencesKey("player_volume")
-        val SPDC = stringPreferencesKey("sp_dc")
-        val SPOTIFY_LYRICS = stringPreferencesKey("spotify_lyrics")
         val SYNC_FOLLOW_TO_YOUTUBE = stringPreferencesKey("sync_follow_to_youtube")
         val EQUALIZER_AUTOEQ_PROFILE = stringPreferencesKey("equalizer_autoeq_profile")
         val EQUALIZER_BANDS = stringPreferencesKey("equalizer_bands")
         val EQUALIZER_ENABLED = stringPreferencesKey("equalizer_enabled")
         val EQUALIZER_TYPE = stringPreferencesKey("equalizer_type")
         val EQUALIZER_PREAMP = stringPreferencesKey("equalizer_preamp")
-        val SPOTIFY_CANVAS = stringPreferencesKey("spotify_canvas")
         val AM_ANIMATED_ARTWORK = stringPreferencesKey("am_animated_artwork")
-        val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
-        val SPOTIFY_CLIENT_TOKEN_EXPIRES = longPreferencesKey("spotify_client_token_expires")
-        val SPOTIFY_PERSONAL_TOKEN = stringPreferencesKey("spotify_personal_token")
-        val SPOTIFY_PERSONAL_TOKEN_EXPIRES = longPreferencesKey("spotify_personal_token_expires")
         val HOME_LIMIT = intPreferencesKey("home_limit")
         val CHART_KEY = stringPreferencesKey("chart_key")
         val THEME_MODE = stringPreferencesKey("theme_mode")

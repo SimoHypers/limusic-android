@@ -18,6 +18,7 @@ import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.SongRepository
@@ -32,6 +33,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.radio
@@ -45,14 +47,13 @@ class ArtistViewModel(
     private val artistRepository: ArtistRepository,
     private val songRepository: SongRepository,
     private val lyricsCanvasRepository: LyricsCanvasRepository,
+    private val dataStoreManager: DataStoreManager,
 ) : BaseViewModel() {
     // Artist name-logo image + accent color from the hidden catalog (immersive header).
     private val _artistLogo: MutableStateFlow<ArtistLogo?> = MutableStateFlow(null)
     val artistLogo: StateFlow<ArtistLogo?> = _artistLogo
 
-    // Apple Music's animated artist artwork, which plays as the header. It replaced the Spotify
-    // canvas of the artist's most-popular song: that was a video OF A TRACK standing in for a
-    // page about the artist, and it changed whenever their top song did.
+    // Apple Music's animated artist artwork, which plays as the header.
     private val _artistMotion: MutableStateFlow<ArtistMotion?> = MutableStateFlow(null)
     val artistMotion: StateFlow<ArtistMotion?> = _artistMotion
 
@@ -165,7 +166,8 @@ class ArtistViewModel(
                     // only one of the two that records a negative answer. A cached name-logo cannot
                     // stand in for it: every artist already in the library has one of those and no
                     // motion row at all, so keying off the logo would mean they never get a video.
-                    if (cachedMotion?.isFresh() != true) {
+                    // Only with animated artwork on, so with it off no artist name is sent to AM.
+                    if (cachedMotion?.isFresh() != true && dataStoreManager.amAnimatedArtwork.first() == DataStoreManager.TRUE) {
                         launch { fetchAndCacheArtistEditorial(artist.channelId, artist.name) }
                     }
                 }

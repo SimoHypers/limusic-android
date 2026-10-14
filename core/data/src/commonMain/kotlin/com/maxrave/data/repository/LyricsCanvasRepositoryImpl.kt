@@ -3,7 +3,6 @@
 package com.maxrave.data.repository
 
 import com.maxrave.data.db.datasource.LocalDataSource
-import com.maxrave.data.mapping.toCanvasResult
 import com.maxrave.data.mapping.toLyrics
 import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.lyrics.LyricsSource
@@ -15,12 +14,10 @@ import com.maxrave.domain.data.model.browse.artist.ArtistMotion
 import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.extension.now
-import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.logger.Logger
-import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -47,7 +44,6 @@ import kotlin.time.ExperimentalTime
 internal class LyricsCanvasRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
-    private val spotify: Spotify,
     private val simpMusicLyrics: SimpMusicLyricsClient,
     private val lyricsProviders: LyricsProviders,
 ) : LyricsCanvasRepository {
@@ -123,134 +119,6 @@ internal class LyricsCanvasRepositoryImpl(
         } else {
             lyricsProviders.ask(source.id, query)
         }
-
-    override fun getCanvas(
-        dataStoreManager: DataStoreManager,
-        videoId: String,
-        duration: Int,
-    ): Flow<Resource<CanvasResult>> =
-        flow {
-            runCatching {
-                localDataSource.getSong(videoId).let { song ->
-                    val q =
-                        "${song?.title} ${song?.artistName?.firstOrNull() ?: ""}"
-                            .replace(
-                                Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                                " ",
-                            ).replace(
-                                Regex("( và | & | и | e | und |, |和| dan)"),
-                                " ",
-                            ).replace("  ", " ")
-                            .replace(Regex("([()])"), "")
-                            .replace(".", " ")
-                            .replace("  ", " ")
-                    var spotifyPersonalToken = ""
-                    var spotifyClientToken = ""
-                    if (dataStoreManager.spotifyPersonalToken
-                            .first()
-                            .isNotEmpty() &&
-                        dataStoreManager.spotifyClientToken.first().isNotEmpty() &&
-                        dataStoreManager.spotifyPersonalTokenExpires.first() > Clock.System.now().toEpochMilliseconds() &&
-                        dataStoreManager.spotifyPersonalTokenExpires.first() != 0L &&
-                        dataStoreManager.spotifyClientTokenExpires.first() > Clock.System.now().toEpochMilliseconds() &&
-                        dataStoreManager.spotifyClientTokenExpires.first() != 0L
-                    ) {
-                        spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
-                        spotifyClientToken = dataStoreManager.spotifyClientToken.first()
-                        Logger.d("Canvas", "Spotify tokens reused")
-                    } else if (dataStoreManager.spdc.first().isNotEmpty()) {
-                        spotify
-                            .getClientToken()
-                            .onSuccess {
-                                Logger.d("Canvas", "Spotify client token refreshed")
-                                dataStoreManager.setSpotifyClientTokenExpires(
-                                    (it.grantedToken.expiresAfterSeconds * 1000L) + Clock.System.now().toEpochMilliseconds(),
-                                )
-                                dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
-                                spotifyClientToken = it.grantedToken.token
-                            }.onFailure {
-                                it.printStackTrace()
-                                emit(Resource.Error<CanvasResult>(it.message ?: "Not found"))
-                            }
-                        spotify
-                            .getPersonalTokenWithTotp(dataStoreManager.spdc.first())
-                            .onSuccess {
-                                spotifyPersonalToken = it.accessToken
-                                dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
-                                dataStoreManager.setSpotifyPersonalTokenExpires(
-                                    it.accessTokenExpirationTimestampMs,
-                                )
-                            }.onFailure {
-                                it.printStackTrace()
-                                emit(Resource.Error<CanvasResult>(it.message ?: "Not found"))
-                            }
-                    }
-                    if (spotifyPersonalToken.isNotEmpty() && spotifyClientToken.isNotEmpty()) {
-                        val authToken = spotifyPersonalToken
-                        spotify
-                            .searchSpotifyTrack(q, authToken, spotifyClientToken)
-                            .onSuccess { searchResponse ->
-                                Logger.d("Canvas", "Spotify search: ${searchResponse.data?.searchV2?.tracksV2?.items?.size ?: 0} tracks")
-                                val track =
-                                    if (duration != 0) {
-                                        searchResponse.data?.searchV2?.tracksV2?.items?.find {
-                                            abs(
-                                                (
-                                                    (
-                                                        (
-                                                            it.item
-                                                                ?.data
-                                                                ?.duration
-                                                                ?.totalMilliseconds ?: (0 / 1000)
-                                                        ) - duration
-                                                    )
-                                                ),
-                                            ) < 1
-                                        }
-                                            ?: searchResponse.data
-                                                ?.searchV2
-                                                ?.tracksV2
-                                                ?.items
-                                                ?.firstOrNull()
-                                    } else {
-                                        searchResponse.data
-                                            ?.searchV2
-                                            ?.tracksV2
-                                            ?.items
-                                            ?.firstOrNull()
-                                    }
-                                if (track != null) {
-                                    Logger.d("Canvas", "Spotify track: ${track.item?.data?.id}")
-                                    spotify
-                                        .getSpotifyCanvas(
-                                            track.item?.data?.id ?: "",
-                                            spotifyPersonalToken,
-                                            spotifyClientToken,
-                                        ).onSuccess {
-                                            Logger.d("Canvas", "Spotify canvas: ${it.canvases.size} found")
-                                            it.toCanvasResult()?.let {
-                                                emit(Resource.Success(it))
-                                            } ?: run {
-                                                emit(Resource.Error<CanvasResult>("Not found"))
-                                            }
-                                        }.onFailure {
-                                            Logger.e("Canvas", "Error: ${it.message}")
-                                            it.printStackTrace()
-                                            emit(Resource.Error<CanvasResult>(it.message ?: "Not found"))
-                                        }
-                                } else {
-                                    emit(Resource.Error<CanvasResult>("Not found"))
-                                }
-                            }.onFailure { throwable ->
-                                throwable.printStackTrace()
-                                emit(Resource.Error<CanvasResult>(throwable.message ?: "Not found"))
-                            }
-                    } else {
-                        emit(Resource.Error<CanvasResult>("Not found"))
-                    }
-                }
-            }
-        }.flowOn(Dispatchers.IO)
 
     /**
      * Animated album artwork from the hidden AM catalog. It fills exactly the slot a Spotify canvas

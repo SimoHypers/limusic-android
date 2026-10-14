@@ -4,7 +4,6 @@ import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.model.browse.artist.ArtistEditorial
 import com.maxrave.domain.data.model.canvas.CanvasResult
-import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
@@ -25,12 +24,6 @@ interface LyricsCanvasRepository {
         durationSeconds: Int,
         order: List<Pair<LyricsSource, Boolean>>,
     ): LyricsEntity?
-
-    fun getCanvas(
-        dataStoreManager: DataStoreManager,
-        videoId: String,
-        duration: Int,
-    ): Flow<Resource<CanvasResult>>
 
     /**
      * Animated album artwork from the hidden AM catalog, returned as the same [CanvasResult] a

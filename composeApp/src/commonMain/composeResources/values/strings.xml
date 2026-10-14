@@ -396,7 +396,7 @@
     <string name="enable_canvas">Enable Canvas</string>
     <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
     <string name="enable_animated_artwork">Animated artwork</string>
-    <string name="animated_artwork_info">Play the album's animated cover instead of a Canvas. No account needed. Albums without one keep the still cover.</string>
+    <string name="animated_artwork_info">Play the album's animated cover in the Apple Music and Material 3 Expressive styles, and the artist video on artist pages. Looks them up on Apple Music. No account needed.</string>
     <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
@@ -483,7 +483,7 @@
     <string name="updating">Updating</string>
     <string name="go_to_log_in_page">Go to log in page</string>
     <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can't work too. You should log in to YouTube to get better experience with SimpMusic.</string>
-    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
+    <string name="spotify_canvas_cache">Animated artwork cache</string>
     <string name="clear_canvas_cache">Clear canvas cache</string>
     <string name="listening_history">Listening history</string>
     <string name="clear_listening_history">Clear listening history</string>
