@@ -3,7 +3,6 @@ package com.maxrave.kotlinytmusicscraper
 import com.eygraber.uri.toKmpUri
 import com.maxrave.common.ITAG
 import com.maxrave.kotlinytmusicscraper.YouTube.Companion.DEFAULT_VISITOR_DATA
-import com.maxrave.kotlinytmusicscraper.extension.toListFormat
 import com.maxrave.kotlinytmusicscraper.extractor.ExtractSource
 import com.maxrave.kotlinytmusicscraper.extractor.contentLengthOf
 import com.maxrave.kotlinytmusicscraper.extractor.orderByAudioTrack
@@ -30,8 +29,6 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -55,11 +52,8 @@ import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SimpMusicChartResponse
 import com.maxrave.kotlinytmusicscraper.models.response.TidalSearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.TidalOAuthResponse
-import com.maxrave.kotlinytmusicscraper.models.response.RemoteConfig
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.FdroidResponse
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
@@ -897,16 +891,6 @@ class YouTube {
     suspend fun getSkipSegments(videoId: String): Result<List<SkipSegments>> =
         runCatching {
             ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
-        }
-
-    suspend fun checkForGithubReleaseUpdate(): Result<GithubResponse> =
-        runCatching {
-            ytMusic.checkForGithubReleaseUpdate().body<GithubResponse>()
-        }
-
-    suspend fun checkForFdroidUpdate(): Result<FdroidResponse> =
-        runCatching {
-            ytMusic.checkForFdroidUpdate().body<FdroidResponse>()
         }
 
     suspend fun newRelease(): Result<ExplorePage> =
@@ -2139,15 +2123,6 @@ class YouTube {
     suspend fun getSimpMusicChart() =
         runCatching {
             ytMusic.getSimpMusicChart().body<SimpMusicChartResponse>()
-        }
-
-    /**
-     * Fetch the remote app config (TIDAL credentials) from GitHub raw.
-     * Returns a [Result] so callers can fall back silently when the fetch/parse fails.
-     */
-    suspend fun getTidalRemoteConfig(dev: Boolean = false): Result<RemoteConfig> =
-        runCatching {
-            ytMusic.getTidalRemoteConfig(dev)
         }
 
     /**

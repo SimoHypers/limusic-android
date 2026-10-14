@@ -24,7 +24,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
-import com.maxrave.kotlinytmusicscraper.models.response.RemoteConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import com.maxrave.ktorext.curl.CurlLogger
@@ -55,7 +54,6 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -71,7 +69,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.io.readByteArray
@@ -714,16 +711,6 @@ class Ytmusic {
             parameter("service", "YouTube")
         }
 
-    suspend fun checkForGithubReleaseUpdate() =
-        httpClient.get("https://api.github.com/repos/maxrave-dev/SimpMusic/releases/latest") {
-            contentType(ContentType.Application.Json)
-        }
-
-    suspend fun checkForFdroidUpdate() =
-        httpClient.get("https://f-droid.org/api/v1/packages/com.maxrave.simpmusic") {
-            contentType(ContentType.Application.Json)
-        }
-
     suspend fun playlist(playlistId: String) =
         httpClient.post("browse") {
             ytClient(WEB_REMIX, !cookie.isNullOrEmpty())
@@ -1334,35 +1321,9 @@ class Ytmusic {
         parameter("supportsUserData", true)
     }
 
-    /**
-     * Fetch the remote app config (TIDAL credentials) from GitHub raw.
-     *
-     * raw.githubusercontent.com serves .json files as `text/plain`, so Ktor's
-     * ContentNegotiation will not auto-deserialize the body. We read it as text and parse
-     * it explicitly with [normalJson] (which ignores unknown keys for forward-compat).
-     */
-    suspend fun getTidalRemoteConfig(dev: Boolean = false): RemoteConfig {
-        val text =
-            httpClient
-                .get(if (dev) REMOTE_CONFIG_DEV_URL else TIDAL_REMOTE_CONFIG_URL) {
-                    accept(ContentType.Application.Json)
-                }.bodyAsText()
-        return normalJson.decodeFromString(RemoteConfig.serializer(), text)
-    }
-
     companion object {
         private const val TIDAL_AUTH_URL = "https://auth.tidal.com/v1/oauth2/token"
         private const val TIDAL_SEARCH_URL = "https://tidal.com/v2/client-search/"
-
-        // Remote config (TIDAL credentials) hosted on GitHub raw, fetched on each app launch.
-        // Credentials are NOT hard-coded in source — they live only in this remote file,
-        // kept in a separate repo (simpmusic-files) so the main repo stays credential-free.
-        const val TIDAL_REMOTE_CONFIG_URL =
-            "https://raw.githubusercontent.com/maxrave-dev/simpmusic-files/refs/heads/main/remote-config.json"
-
-        // Read by dev builds only, so a banner can be tried out without any real user seeing it.
-        const val REMOTE_CONFIG_DEV_URL =
-            "https://raw.githubusercontent.com/maxrave-dev/simpmusic-files/refs/heads/main/remote-config-dev.json"
     }
 }
 

@@ -31,7 +31,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -50,9 +49,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -70,7 +67,6 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
-import com.maxrave.simpmusic.ui.icon.RssFeed
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -220,10 +216,8 @@ fun NotificationItem(
     notification: NotificationEntity,
     navController: NavController,
 ) {
-    if (notification.type == NotificationEntity.TYPE_BLOG) {
-        BlogNotificationItem(notification)
-        return
-    }
+    // Blog posts came from SimpMusic's RSS feed, which this app no longer reads.
+    if (notification.type == NotificationEntity.TYPE_BLOG) return
     Box(
         modifier =
             Modifier
@@ -292,66 +286,6 @@ fun NotificationItem(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-        }
-        Text(
-            text = notification.time.formatTimeAgo(),
-            style = typo().titleSmall,
-            modifier =
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 15.dp),
-        )
-    }
-}
-
-@Composable
-fun BlogNotificationItem(notification: NotificationEntity) {
-    val uriHandler = LocalUriHandler.current
-    val link = notification.link
-    Box(
-        modifier =
-            Modifier
-                .padding(5.dp)
-                .fillMaxWidth(),
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable(enabled = !link.isNullOrEmpty()) {
-                    link?.let { uriHandler.openUri(it) }
-                },
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .align(Alignment.Top)
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = SimpIcons.RssFeed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(26.dp),
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(Modifier.padding(end = 56.dp)) {
-                Text(text = "New blog post", style = typo().titleSmall)
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(text = notification.name, style = typo().titleMedium)
-                notification.description?.takeIf { it.isNotBlank() }?.let { desc ->
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = desc,
-                        style = typo().bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
         }
         Text(
             text = notification.time.formatTimeAgo(),
