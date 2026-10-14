@@ -73,6 +73,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
+import com.maxrave.simpmusic.ui.component.LimusicMiniPlayer
 import com.maxrave.simpmusic.ui.component.LimusicNavigationBar
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
@@ -412,21 +413,9 @@ fun App(
                                 enter = fadeIn() + slideInHorizontally(),
                                 exit = fadeOut(),
                             ) {
-                                MiniPlayer(
-                                    Modifier
-                                        .height(60.dp)
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 8.dp)
-                                        .padding(bottom = 4.dp),
-                                    backdrop = backdrop,
-                                    navController = navController,
-                                    onClick = {
-                                        isShowNowPlaylistScreen = true
-                                    },
-                                    onClose = {
-                                        viewModel.stopPlayer()
-                                        viewModel.isServiceRunning = false
-                                    },
+                                LimusicMiniPlayer(
+                                    onOpen = { isShowNowPlaylistScreen = true },
+                                    modifier = Modifier.padding(horizontal = 8.dp).padding(bottom = 6.dp),
                                 )
                             }
                             LimusicNavigationBar(navController = navController) { klass ->
