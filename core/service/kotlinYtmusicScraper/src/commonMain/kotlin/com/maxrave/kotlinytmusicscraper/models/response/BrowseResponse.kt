@@ -76,7 +76,8 @@ data class BrowseResponse(
         @Serializable
         data class GridContinuation(
             val itemSize: String?,
-            val items: List<GridContinuation.Item>,
+            // Absent on the last, empty page of a long list (seen on the liked-playlists grid).
+            val items: List<GridContinuation.Item> = emptyList(),
             val continuations: List<Continuation>?,
         ) {
             @Serializable

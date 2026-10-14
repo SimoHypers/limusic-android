@@ -424,13 +424,13 @@ internal class MediaServiceHandlerImpl(
                     combine(dataStoreManager.playbackSpeed, dataStoreManager.pitch) { speed, pitch ->
                         Pair(speed, pitch)
                     }.collectLatest { pair ->
-                        Logger.w(TAG, "Playback speed: ${pair.first}, Pitch: ${pair.second}")
+                        Logger.d(TAG, "Playback speed: ${pair.first}, Pitch: ${pair.second}")
                         player.playbackParameters =
                             GenericPlaybackParameters(
                                 pair.first,
                                 2f.pow(pair.second.toFloat() / 12),
                             )
-                        Logger.w(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
+                        Logger.d(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
                         // A speed change shifts the RPC start/end timestamps (Discord renders the bar
                         // from timestamps client-side), so refresh presence while actively playing.
                         if (player.isPlaying) {
