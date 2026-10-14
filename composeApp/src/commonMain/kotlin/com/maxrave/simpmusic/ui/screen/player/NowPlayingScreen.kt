@@ -90,7 +90,9 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestin
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentAppleMusic
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentLimusic
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentM3Expressive
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
 import com.maxrave.simpmusic.ui.screen.player.content.fullscreenCanvas
@@ -855,8 +857,24 @@ fun NowPlayingScreenContent(
         )
     }
 
-    NowPlayingContentLimusic(
-        state = state,
-        actions = actions,
-    )
+    // Classic (the stored value is still SPOTIFY) is the Limusic player; the other two are SimpMusic's.
+    when (nowPlayingStyle) {
+        DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE ->
+            NowPlayingContentM3Expressive(
+                state = state,
+                actions = actions,
+            )
+
+        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC ->
+            NowPlayingContentAppleMusic(
+                state = state,
+                actions = actions,
+            )
+
+        else ->
+            NowPlayingContentLimusic(
+                state = state,
+                actions = actions,
+            )
+    }
 }
