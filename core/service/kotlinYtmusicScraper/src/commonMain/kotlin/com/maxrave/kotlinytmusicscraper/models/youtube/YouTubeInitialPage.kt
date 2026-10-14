@@ -1,7 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.youtube
 
-import com.maxrave.kotlinytmusicscraper.models.ResponseContext
-import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -40,9 +38,3 @@ data class YouTubeInitialPage(
         }
     }
 }
-
-@Serializable
-data class GhostResponse(
-    val responseContext: ResponseContext,
-    val playbackTracking: PlayerResponse.PlaybackTracking? = null
-)

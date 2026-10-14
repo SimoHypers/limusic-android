@@ -13,10 +13,13 @@ import dev.maxrave.pipepipe.extractor.exceptions.ReCaptchaException
 import dev.maxrave.pipepipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.Proxy
+
+private const val PIPEPIPE_API_HOST = "api.pipepipe.dev"
 
 class NewPipeDownloaderImpl(
     proxy: Proxy?,
@@ -93,6 +96,11 @@ class NewPipeDownloaderImpl(
     }
 
     private fun buildOkHttpRequest(request: Request): okhttp3.Request {
+        // PipePipe falls back to its own server to solve ciphers and look up the player. Nothing
+        // about the track being played leaves the device that way: the request fails instead.
+        if (request.url().toHttpUrlOrNull()?.host == PIPEPIPE_API_HOST) {
+            throw IOException("$PIPEPIPE_API_HOST is not used")
+        }
         val builder =
             okhttp3.Request
                 .Builder()

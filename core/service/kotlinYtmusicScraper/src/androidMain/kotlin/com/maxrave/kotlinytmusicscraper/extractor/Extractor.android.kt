@@ -18,7 +18,6 @@ import org.schabi.newpipe.extractor.stream.StreamInfo as BraveStreamInfo
 
 private const val TAG = "Extractor"
 private const val LOCAL_TIER = "local"
-private const val REMOTE_TIER = "pipepipe.dev"
 
 actual class Extractor {
     private var newPipeDownloader = NewPipeDownloaderImpl(proxy = null)
@@ -36,41 +35,22 @@ actual class Extractor {
     }
 
     actual fun newPipePlayer(videoId: String): List<Pair<Int, String>> {
-        // Three attempts, kept separate on purpose. PipePipe's own local-then-server fallback lives
-        // inside a single StreamInfo call and only fires when the local decoder THROWS — but the
-        // failure that actually happens is a stale player table, where the signature is well-formed
-        // and merely rejected by the CDN. Nothing throws, so the server tier is never asked, and a
-        // 403 used to skip straight to BravePipe. Driving the two as separate attempts is what
-        // stops that jump.
-
-        // Tier 1 — ciphers solved locally.
+        // Ciphers are only ever solved on the device. PipePipe would otherwise send them to
+        // api.pipepipe.dev, which NewPipeDownloaderImpl refuses to reach.
         // Re-registered every time: PipePipe drops the local decoder for good the first time it
         // throws, and the getter is package-private so its state cannot be read from here. Setting
         // it again turns "disabled forever" into "skipped for one track".
         YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
         pipePipeStreams(videoId, LOCAL_TIER)?.let { return it }
 
-        // Tier 2 — same extractor with no local decoder at all, so every challenge is solved at
-        // api.pipepipe.dev. This is the tier a 403 from tier 1 must reach.
-        //
-        // Clearing it is what `setLocalDecoder(null)` does: both call sites read the field and
-        // null-check it before use — `decodeBatch` and `getPlayerMetadata` each branch straight to
-        // the API path when it is absent (verified in the bytecode of the pinned f8982ca9e7 jar).
-        // PipePipe's own `disableLocalDecoder` does exactly this but is private, which is why it
-        // cannot simply be called from here.
-        YoutubeApiDecoder.setLocalDecoder(null)
-        pipePipeStreams(videoId, REMOTE_TIER)?.let { return it }
-
-        // Tier 3 — a different extractor entirely.
+        // Then a different extractor entirely.
         return braveStreams(videoId)
     }
 
     actual fun liveHlsUrl(videoId: String): String? {
-        // The same three tiers as newPipePlayer, in the same order and for the same reasons.
+        // The same order as newPipePlayer, for the same reasons.
         YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
         pipePipeLiveHlsUrl(videoId, LOCAL_TIER)?.let { return it }
-        YoutubeApiDecoder.setLocalDecoder(null)
-        pipePipeLiveHlsUrl(videoId, REMOTE_TIER)?.let { return it }
         return braveLiveHlsUrl(videoId)
     }
 
@@ -124,12 +104,11 @@ actual class Extractor {
             if (!pipeResult.headCheckRandomStream()) {
                 Logger.d(TAG, "PipePipe[$tier] stream URL HEAD check failed (non 2xx) for $videoId")
                 // A rejected URL is the one symptom of a stale player table: the signature is
-                // well-formed and still wrong, so nothing threw on the way here. Only the on-device
-                // table can go stale, so only that tier is worth invalidating.
-                if (tier == LOCAL_TIER) faradayDecoder.invalidate()
+                // well-formed and still wrong, so nothing threw on the way here.
+                faradayDecoder.invalidate()
                 return null
             }
-            val label = if (tier == LOCAL_TIER) faradayDecoder.lastOutcomeLabel else REMOTE_TIER
+            val label = faradayDecoder.lastOutcomeLabel
             ExtractSource.record(videoId, "PipePipe · $label")
             Logger.d(TAG, "extract source=PipePipe[$tier] itags=${pipeResult.map { it.first }} for $videoId")
             return pipeResult

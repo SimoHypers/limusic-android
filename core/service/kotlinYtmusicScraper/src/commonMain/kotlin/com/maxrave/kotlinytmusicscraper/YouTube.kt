@@ -45,14 +45,12 @@ import com.maxrave.kotlinytmusicscraper.models.response.GetSearchSuggestionsResp
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.NextAndroidMusicResponse
 import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
-import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SimpMusicChartResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
-import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.models.youtube.tryDecodeText
@@ -181,25 +179,6 @@ class YouTube {
         }
 
     /**
-     * Json deserializer for PO token request
-     */
-    private val poTokenJsonDeserializer =
-        Json {
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            coerceInputValues = true
-            useArrayPolymorphism = true
-        }
-
-    private fun String.getPoToken(): String? =
-        this
-            .replace("[", "")
-            .replace("]", "")
-            .split(",")
-            .findLast { it.contains("\"") }
-            ?.replace("\"", "")
-
-    /**
      * Remove proxy for client
      */
     fun removeProxy() {
@@ -222,18 +201,6 @@ class YouTube {
             it.printStackTrace()
         }
     }
-
-    private val listPipedInstances =
-        listOf(
-            "https://pipedapi.nosebs.ru",
-            "https://pipedapi.kavin.rocks",
-            "https://pipedapi.tokhmi.xyz",
-            "https://pipedapi.syncpundit.io",
-            "https://pipedapi.leptons.xyz",
-            "https://pipedapi.r4fo.com",
-            "https://yapi.vyper.me",
-            "https://pipedapi-libre.kavin.rocks",
-        )
 
     /**
      * Search for a song, album, artist, playlist, etc.
@@ -1196,75 +1163,6 @@ class YouTube {
             // Get author thumbnails, subscribers, description, like count
         }
 
-    private suspend fun getVisitorData(
-        videoId: String,
-        playlistId: String?,
-    ): Triple<String, String, PlayerResponse.PlaybackTracking?> {
-        try {
-            val pId = if (playlistId?.startsWith("VL") == true) playlistId.removeRange(0..1) else playlistId
-            val ghostRequest = ytMusic.ghostRequest(videoId, pId)
-            val cookie =
-                "PREF=hl=en&tz=UTC; SOCS=CAI; ${
-                    ghostRequest.headers
-                        .getAll("set-cookie")
-                        ?.map {
-                            it.split(";").first()
-                        }?.filter {
-                            it.lastOrNull() != '='
-                        }?.joinToString("; ")
-                }"
-            var response = ""
-            var data = ""
-            val ksoupHtmlParser =
-                KsoupHtmlParser(
-                    object : KsoupHtmlHandler {
-                        override fun onText(text: String) {
-                            super.onText(text)
-                            if (text.contains("var ytInitialPlayerResponse")) {
-                                val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
-                                temp?.let {
-                                    response = it.trimIndent()
-                                }
-                            } else if (text.contains("var ytInitialData = ")) {
-                                val temp = text.replace("var ytInitialData = ", "").dropLast(1)
-                                temp.let {
-                                    data = it.trimIndent()
-                                }
-                            }
-                        }
-                    },
-                )
-            ksoupHtmlParser.write(ghostRequest.bodyAsText())
-            ksoupHtmlParser.end()
-            val ytInitialData = poTokenJsonDeserializer.decodeFromString<GhostResponse>(data)
-            val ytInitialPlayerResponse = poTokenJsonDeserializer.decodeFromString<GhostResponse>(response)
-            val playbackTracking = ytInitialPlayerResponse.playbackTracking
-            val loggedIn =
-                ytInitialData.responseContext.serviceTrackingParams
-                    ?.find { it.service == "GFEEDBACK" }
-                    ?.params
-                    ?.find { it.key == "logged_in" }
-                    ?.value == "1"
-            Logger.d(TAG, "Logged In $loggedIn")
-            val visitorData =
-                ytInitialPlayerResponse.responseContext.serviceTrackingParams
-                    ?.find { it.service == "GFEEDBACK" }
-                    ?.params
-                    ?.find { it.key == "visitor_data" }
-                    ?.value
-                    ?: ytInitialData.responseContext.webResponseContextExtensionData
-                        ?.ytConfigData
-                        ?.visitorData
-            Logger.d(TAG, "Visitor Data $visitorData")
-            Logger.d(TAG, "New Cookie $cookie")
-            Logger.d(TAG, "Playback Tracking $playbackTracking")
-            return Triple(cookie, visitorData ?: this@YouTube.visitorData ?: "", playbackTracking)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return Triple("", "", null)
-        }
-    }
-
     suspend fun newPipePlayer(
         videoId: String,
         tempRes: PlayerResponse,
@@ -1894,13 +1792,6 @@ class YouTube {
             Logger.d(TAG, "Account List Response: $accountSwitcherEndpointResponse")
             accountSwitcherEndpointResponse.toListAccountInfo()
         }
-
-    suspend fun pipeStream(
-        videoId: String,
-        pipedInstance: String,
-    ) = runCatching {
-        ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
-    }
 
     suspend fun getLibraryPlaylists() =
         runCatching {

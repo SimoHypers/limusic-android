@@ -120,7 +120,6 @@ class Ytmusic {
         )
     var visitorData: String? = null
     var dataSyncId: String? = null
-    private var poTokenChallengeRequestKey = "O43z0dpjhgX20SCx4KAo"
     var cookie: String? = null
         set(value) {
             field = value
@@ -295,84 +294,6 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
-    suspend fun ghostRequest(
-        videoId: String,
-        playlistId: String?,
-    ) = httpClient
-        .get(
-            "https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1"
-                .let {
-                    if (playlistId != null) "$it&list=$playlistId" else it
-                },
-        ) {
-            headers {
-                header("Connection", "close")
-                header("Host", "www.youtube.com")
-                header("Cookie", if (cookie.isNullOrEmpty()) "PREF=hl=en&tz=UTC; SOCS=CAI" else cookie)
-                header("Sec-Fetch-Mode", "navigate")
-                header(
-                    "User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
-                )
-            }
-        }
-
-    private fun HttpRequestBuilder.poHeader() {
-        headers {
-            header("accept", "*/*")
-            header("origin", "https://www.youtube.com")
-            header("content-type", "application/json+protobuf")
-            header("priority", "u=1, i")
-            header("referer", "https://www.youtube.com/")
-            header("sec-ch-ua", "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"")
-            header("sec-ch-ua-mobile", "?0")
-            header("sec-ch-ua-platform", "\"macOS\"")
-            header("sec-fetch-dest", "empty")
-            header("sec-fetch-mode", "cors")
-            header("sec-fetch-site", "cross-site")
-            header(
-                "user-agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
-            )
-            header("x-goog-api-key", "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw")
-            header("x-user-agent", "grpc-web-javascript/0.1")
-        }
-    }
-
-    suspend fun createPoTokenChallenge() =
-        httpClient.post(
-            "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/Create",
-        ) {
-            poHeader()
-            setBody("[\"$poTokenChallengeRequestKey\"]")
-        }
-
-    suspend fun generatePoToken(challenge: String) =
-        httpClient.post(
-            "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/GenerateIT",
-        ) {
-            poHeader()
-            setBody("[\"$poTokenChallengeRequestKey\", \"$challenge\"]")
-        }
-
-//    curl 'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/Create' \
-//    -H 'accept: */*' \
-//    -H 'accept-language: vi,en;q=0.9,en-GB;q=0.8,en-US;q=0.7' \
-//    -H 'content-type: application/json+protobuf' \
-//    -H 'origin: https://www.youtube.com' \
-//    -H 'priority: u=1, i' \
-//    -H 'referer: https://www.youtube.com/' \
-//    -H 'sec-ch-ua: "Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"' \
-//    -H 'sec-ch-ua-mobile: ?0' \
-//    -H 'sec-ch-ua-platform: "macOS"' \
-//    -H 'sec-fetch-dest: empty' \
-//    -H 'sec-fetch-mode: cors' \
-//    -H 'sec-fetch-site: cross-site' \
-//    -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0' \
-//    -H 'x-goog-api-key: AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw' \
-//    -H 'x-user-agent: grpc-web-javascript/0.1' \
-//    --data-raw '["O43z0dpjhgX20SCx4KAo"]'
-
     /**
      * The player request a live broadcast is resolved with, made as the YouTube Android app: its HLS
      * playlist plays on without a PoToken. Measured 2026-10-01 on two live stations — every other
@@ -408,41 +329,6 @@ class Ytmusic {
             )
             parameter("prettyPrint", false)
         }
-
-    suspend fun noLogInPlayer(
-        videoId: String,
-        cookie: String,
-        visitorData: String?,
-        poToken: String,
-    ) = httpClient.post("https://www.youtube.com/youtubei/v1/player") {
-        accept(ContentType.Application.Json)
-        contentType(ContentType.Application.Json)
-        header("Host", "www.youtube.com")
-        header("Origin", "https://www.youtube.com")
-        header("Sec-Fetch-Mode", "navigate")
-        header(HttpHeaders.UserAgent, IOS.userAgent)
-        header(
-            "Set-Cookie",
-            cookie,
-        )
-        header("X-Goog-Visitor-Id", visitorData ?: this@Ytmusic.visitorData)
-        header("X-YouTube-Client-Name", IOS.clientName)
-        header("X-YouTube-Client-Version", IOS.clientVersion)
-        setBody(
-            PlayerBody(
-                context = IOS.toContext(locale, null),
-                playlistId = null,
-                cpn = null,
-                videoId = videoId,
-                playbackContext = PlayerBody.PlaybackContext(),
-                serviceIntegrityDimensions =
-                    PlayerBody.ServiceIntegrityDimensions(
-                        poToken = poToken,
-                    ),
-            ),
-        )
-        parameter("prettyPrint", false)
-    }
 
     suspend fun getSimpMusicChart() =
         httpClient.get("https://chart.simpmusic.org/api/playlists") {
@@ -495,13 +381,6 @@ class Ytmusic {
 //                    },
             ),
         )
-    }
-
-    suspend fun pipedStreams(
-        videoId: String,
-        pipedInstance: String,
-    ) = httpClient.get("$pipedInstance/streams/$videoId") {
-        contentType(ContentType.Application.Json)
     }
 
     suspend fun getSuggestQuery(query: String) =
