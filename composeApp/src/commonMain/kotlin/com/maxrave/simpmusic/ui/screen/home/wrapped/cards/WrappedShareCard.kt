@@ -337,7 +337,7 @@ private fun PosterLabel(
  * ground (`surface`), which is what keeps the mark readable whatever the artwork seeded.
  *
  * `Res.drawable.mono` is the app's logo, not an icon: `SimpIcons` is the Material Symbols set and
- * has no wordmark in it, and CLAUDE.md keeps the two logos as drawables on purpose. This is the
+ * has no wordmark in it, and the two logos stay drawables on purpose. This is the
  * only `painterResource` left in the file.
  */
 @Composable

@@ -29,8 +29,6 @@ sentry.properties
 /composeApp/build/
 /composeApp/cache/
 /composeApp/kcef-bundle/
-/.mcp.json
-/.claude/settings.local.json
 /androidApp/build/
 /androidApp/cache/
 /vivoAndroidApp/build/
@@ -38,10 +36,6 @@ sentry.properties
 /lastfm-empty/build/
 # libmpv native libraries (downloaded by `./gradlew :composeApp:mpvSetupAll`)
 /mpv-natives/
-# Agent scratch state. NOT anchored to the repo root: agents drop .omc/ next to
-# whatever directory they happen to be working in, which is how 21 of these ended
-# up committed under composeApp/src/.
-.omc/
 /desktopApp/build/
 # Conveyor auto-generated config (run `./gradlew :desktopApp:writeConveyorConfig`)
 /desktopApp/generated.conveyor.conf
