@@ -14,12 +14,9 @@
 .cxx
 local.properties
 /app/release/
-crowdin.yml
 # Kotlin 2.0
 .kotlin/
 .idea
-/simpmusic.jks
-/ffmpeg-kit/build/
 
 #dev files
 ign.md
@@ -28,16 +25,7 @@ ign.md
 sentry.properties
 /composeApp/build/
 /composeApp/cache/
-/composeApp/kcef-bundle/
 /androidApp/build/
 /androidApp/cache/
-/vivoAndroidApp/build/
 /lastfm/build/
 /lastfm-empty/build/
-# libmpv native libraries (downloaded by `./gradlew :composeApp:mpvSetupAll`)
-/mpv-natives/
-/desktopApp/build/
-# Conveyor auto-generated config (run `./gradlew :desktopApp:writeConveyorConfig`)
-/desktopApp/generated.conveyor.conf
-# Conveyor output directory
-/output/

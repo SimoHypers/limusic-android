@@ -25,21 +25,14 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-// Core modules live in the `core` git submodule INSIDE this repo.
-// We intentionally resolve ONLY the in-repo submodule and no longer probe a
-// sibling `../core` outside SimpMusic: another project (FPT Play `core`) shares
-// the same folder name one level up, and the old co-development lookup bound to
-// it by mistake, breaking configuration with ":common ... does not exist".
 val coreDir = File(rootDir, "core")
 val serviceDir = File(rootDir, "core/service")
 val mediaDir = File(rootDir, "core/media")
 
-rootProject.name = "SimpMusic"
+rootProject.name = "Limusic"
 include(
     ":androidApp",
-    ":vivoAndroidApp",
     ":composeApp",
-    ":desktopApp",
     ":common",
     ":data",
     ":domain",
@@ -49,8 +42,6 @@ include(
     ":aiService",
     ":autoEqService",
     ":lyricsService",
-    ":media-jvm",
-    ":media-jvm-ui",
     ":media3",
     ":media3-ui",
     ":crashlytics",
@@ -81,8 +72,6 @@ project(":listenTogether").projectDir = File(serviceDir, "listenTogether")
 project(":loginSync").projectDir = File(serviceDir, "loginSync")
 
 // media modules
-project(":media-jvm").projectDir = File(mediaDir, "media-jvm")
-project(":media-jvm-ui").projectDir = File(mediaDir, "media-jvm-ui")
 project(":media3").projectDir = File(mediaDir, "media3")
 project(":media3-ui").projectDir = File(mediaDir, "media3-ui")
 
