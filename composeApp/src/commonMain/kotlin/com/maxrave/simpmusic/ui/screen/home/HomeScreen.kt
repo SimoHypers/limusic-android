@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -52,8 +50,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -87,7 +83,6 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.loader.rememberNetworkLoader
 import com.kmpalette.rememberDominantColorState
-import com.maxrave.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
@@ -110,12 +105,12 @@ import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
-import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeDiscoverSection
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
+import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
@@ -126,7 +121,6 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -134,7 +128,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -231,15 +224,10 @@ fun HomeScreen(
     val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
-    val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
-    val chart by viewModel.chart.collectAsStateWithLifecycle()
-    val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsStateWithLifecycle()
-    val chartLoading by viewModel.loadingChart.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     var accountShow by rememberSaveable {
         mutableStateOf(false)
     }
-    val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -613,94 +601,6 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        if (homeListState == ListState.PAGINATION_EXHAUST) {
-                            items(newRelease, key = { it.hashCode() }) {
-                                AnimatedVisibility(
-                                    visible = newRelease.isNotEmpty(),
-                                ) {
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .padding(horizontal = 15.dp),
-                                    ) {
-                                        HomeItem(
-                                            navController = navController,
-                                            data = it,
-                                        )
-                                    }
-                                }
-                            }
-                            item {
-                                AnimatedVisibility(
-                                    visible = moodMomentAndGenre != null,
-                                ) {
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .padding(horizontal = 15.dp),
-                                    ) {
-                                        moodMomentAndGenre?.let {
-                                            MoodMomentAndGenre(
-                                                mood = it,
-                                                navController = navController,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            item {
-                                Column(
-                                    Modifier
-                                        .padding(vertical = 10.dp)
-                                        .padding(horizontal = 15.dp),
-                                    verticalArrangement = Arrangement.SpaceBetween,
-                                ) {
-                                    ChartTitle()
-                                    Spacer(modifier = Modifier.height(5.dp))
-                                    Crossfade(targetState = regionChart) {
-                                        if (it != null) {
-                                            DropdownButton(
-                                                items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                                defaultSelected =
-                                                    CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                        CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                                    )
-                                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                            ) {
-                                                viewModel.exploreChart(
-                                                    CHART_SUPPORTED_COUNTRY.items[
-                                                        CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                                            it,
-                                                        ),
-                                                    ],
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(5.dp))
-                                    Crossfade(
-                                        targetState = chartLoading,
-                                        label = "Chart",
-                                    ) { loading ->
-                                        if (!loading) {
-                                            chart?.let {
-                                                ChartData(
-                                                    chart = it,
-                                                    navController = navController,
-                                                )
-                                            }
-                                        } else {
-                                            CenterLoadingBox(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(400.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         item {
                             EndOfPage()
                         }
@@ -813,65 +713,28 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopAppBar(navController: NavController) {
-    val hour =
-        remember {
-            val date = now().time
-            date.hour
+    val hour = remember { now().time.hour }
+    LimusicTabTopBar(
+        title = stringResource(Res.string.app_name),
+        subtitle =
+            stringResource(
+                when (hour) {
+                    in 6..12 -> Res.string.good_morning
+                    in 13..17 -> Res.string.good_afternoon
+                    in 18..23 -> Res.string.good_evening
+                    else -> Res.string.good_night
+                },
+            ),
+        navController = navController,
+    ) {
+        ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
+        RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
+            navController.navigate(NotificationDestination)
         }
-    TopAppBar(
-        windowInsets =
-            TopAppBarDefaults.windowInsets.exclude(
-                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
-            ),
-        title = {
-            Column {
-                Text(
-                    text = stringResource(Res.string.app_name),
-                    style = typo().titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-                Text(
-                    text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(Res.string.good_morning)
-                            }
-
-                            in 13..17 -> {
-                                stringResource(Res.string.good_afternoon)
-                            }
-
-                            in 18..23 -> {
-                                stringResource(Res.string.good_evening)
-                            }
-
-                            else -> {
-                                stringResource(Res.string.good_night)
-                            }
-                        },
-                    style = typo().bodySmall,
-                )
-            }
-        },
-        actions = {
-            RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(NotificationDestination)
-            }
-            RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(RecentlySongsDestination)
-            }
-            // Fourth button, immediately before Settings — the position the design canvas fixes.
-            ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
-            RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(SettingsDestination)
-            }
-        },
-        colors =
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-            ),
-    )
+        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
+            navController.navigate(SettingsDestination)
+        }
+    }
 }
 
 @Composable

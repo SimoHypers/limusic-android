@@ -1,11 +1,12 @@
 package com.maxrave.simpmusic.ui.screen.library
 
+import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
+import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.History
+import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,9 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -61,10 +58,6 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.LocalResource
@@ -86,10 +79,8 @@ import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
-import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
-import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
@@ -180,9 +171,8 @@ fun LibraryScreen(
                 }
             }
 
-            // Mix for you has its own nav tab now. The filter is persisted, so a build upgraded
-            // while it was selected would land here with no chip to match — send it back to the
-            // default. The enum value itself stays so older persisted values still parse.
+            // Mix for you opens its own page, so the filter never stays here. A persisted value from
+            // an older build is sent back to the default.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
                 viewModel.setCurrentScreen(LibraryChipType.YOUR_LIBRARY)
             }
@@ -304,8 +294,8 @@ fun LibraryScreen(
                 }
             }
 
-            // Nothing to draw: MixForYouScreen owns this content now, and the effect above bounces
-            // the filter back to YOUR_LIBRARY the moment it lands here.
+            // Nothing to draw: MixForYouScreen owns this content, and the effect above bounces the
+            // filter back to YOUR_LIBRARY the moment it lands here.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> Unit
 
             LibraryChipType.LOCAL_PLAYLIST -> {
@@ -446,48 +436,12 @@ fun LibraryScreen(
                 topAppBarHeight = with(density) { coordinates.size.height.toDp() }
             },
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(Res.string.library),
-                    style = typo().titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-            navigationIcon = {
-                AnimatedVisibility(
-                    !accountThumbnail.isNullOrEmpty(),
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkVertically(),
-                ) {
-                    AsyncImage(
-                        model =
-                            ImageRequest
-                                .Builder(LocalPlatformContext.current)
-                                .data(accountThumbnail)
-                                .crossfade(550)
-                                .build(),
-                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
-                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
-                        contentDescription = null,
-                        modifier =
-                            Modifier
-                                .size(26.dp)
-                                .clip(CircleShape),
-                    )
-                }
-            },
-            // The Library bar had no actions slot at all — added for the Listen Together entry,
-            // which the design canvas puts on Home AND Library.
-            actions = {
-                ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
-            },
-        )
+        LimusicTabTopBar(title = stringResource(Res.string.library), navController = navController) {
+            RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
+                navController.navigate(RecentlySongsDestination)
+            }
+            ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
+        }
         AnimatedVisibility(visible = selectionState.isActive) {
             SongSelectionTopAppBar(
                 state = selectionState,
@@ -519,11 +473,8 @@ fun LibraryScreen(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             LibraryChipType.entries.forEach { type ->
-                // Mix for you left this row for a tab of its own.
-                if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) {
-                    return@forEach
-                }
-                if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
+                // Both come from the signed-in YouTube account.
+                if ((type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST || type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) && !loggedIn) {
                     return@forEach
                 }
                 Chip(
@@ -540,7 +491,12 @@ fun LibraryScreen(
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                         },
                 ) {
-                    viewModel.setCurrentScreen(type)
+                    // Mix for you is a page of its own rather than a filter of this one.
+                    if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) {
+                        navController.navigate(MixForYouDestination)
+                    } else {
+                        viewModel.setCurrentScreen(type)
+                    }
                 }
             }
         }

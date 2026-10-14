@@ -60,9 +60,7 @@ import com.maxrave.simpmusic.expect.currentOrientation
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
-import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
-import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
@@ -75,6 +73,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
+import com.maxrave.simpmusic.ui.component.LimusicNavigationBar
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
@@ -405,26 +404,20 @@ fun App(
                         enter = fadeIn() + slideInHorizontally(),
                         exit = fadeOut(),
                     ) {
-                        // On Android both materials go through the folding bar, which draws the mini
-                        // player itself. Desktop keeps the always-open flat bar under its own one.
-                        val useFoldingBar = getPlatform() == Platform.Android || isLiquidGlassEnabled == TRUE
+                        // The mini player sits right above the tabs; both disappear together when a
+                        // screen hides the bar (the fullscreen video player, for one).
                         Column {
                             AnimatedVisibility(
-                                isShowMiniPlayer && !useFoldingBar && isLiquidGlassEnabled == DataStoreManager.FALSE,
+                                isShowMiniPlayer,
                                 enter = fadeIn() + slideInHorizontally(),
                                 exit = fadeOut(),
                             ) {
                                 MiniPlayer(
                                     Modifier
-                                        // 56dp card + the 4dp gap below.
                                         .height(60.dp)
                                         .fillMaxWidth()
-                                        .padding(
-                                            // The bottom bar's own 16dp, so both edges line up.
-                                            horizontal = 16.dp,
-                                        ).padding(
-                                            bottom = 4.dp,
-                                        ),
+                                        .padding(horizontal = 8.dp)
+                                        .padding(bottom = 4.dp),
                                     backdrop = backdrop,
                                     navController = navController,
                                     onClick = {
@@ -436,25 +429,8 @@ fun App(
                                     },
                                 )
                             }
-                            if (useFoldingBar) {
-                                LiquidGlassAppBottomNavigationBar(
-                                    navController = navController,
-                                    backdrop = backdrop,
-                                    viewModel = viewModel,
-                                    onOpenNowPlaying = { isShowNowPlaylistScreen = true },
-                                    isScrolledToTop = isScrolledToTop,
-                                    showMixForYouTab = showMixForYouTab,
-                                    liquidGlass = isLiquidGlassEnabled == TRUE,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
-                                }
-                            } else {
-                                AppBottomNavigationBar(
-                                    navController = navController,
-                                    showMixForYouTab = showMixForYouTab,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
-                                }
+                            LimusicNavigationBar(navController = navController) { klass ->
+                                viewModel.reloadDestination(klass)
                             }
                         }
                     }
