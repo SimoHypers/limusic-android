@@ -84,7 +84,6 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.QueuePosition
-import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
@@ -96,7 +95,6 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
 import com.maxrave.simpmusic.ui.screen.player.content.fullscreenCanvas
 import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
-import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -191,8 +189,6 @@ fun NowPlayingScreenContent(
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
-    val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
-    val lyricsVoteState by sharedViewModel.lyricsVoteState.collectAsStateWithLifecycle()
     val isUserLoggedIn by sharedViewModel
         .isUserLoggedInFlow()
         .collectAsStateWithLifecycle(initialValue = false)
@@ -391,10 +387,6 @@ fun NowPlayingScreenContent(
     var queueMoreFor by remember { mutableStateOf<Pair<Int, Track>?>(null) }
 
     var showInfoBottomSheet by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var showVoteDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -682,7 +674,7 @@ fun NowPlayingScreenContent(
             onShowInfo = { showInfoBottomSheet = true },
             onShowAddToPlaylist = { showAddToPlaylistDirectly = true },
             onShowFullscreenLyrics = { showFullscreenLyrics = true },
-            onShowVoteDialog = { showVoteDialog = true },
+            onShowVoteDialog = {},
             onLyricsOffsetChange = { sharedViewModel.setLyricsOffsetMs(it) },
             onEnterFullscreenVideo = {
                 onDismiss()
@@ -802,7 +794,6 @@ fun NowPlayingScreenContent(
             },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
-            changeMainLyricsProviderEnable = true,
         )
     }
 
@@ -861,37 +852,6 @@ fun NowPlayingScreenContent(
                 showAddToPlaylistDirectly = false
             },
             videoId = uiState.songUIState.videoId,
-        )
-    }
-
-    // Vote Dialog
-    if (showVoteDialog) {
-        val canVoteLyrics =
-            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
-                screenDataState.lyricsData
-                    ?.lyrics
-                    ?.simpMusicLyrics != null
-        val canVoteTranslatedLyrics =
-            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-                screenDataState.lyricsData
-                    ?.translatedLyrics
-                    ?.first
-                    ?.simpMusicLyrics != null
-
-        VoteLyricsDialog(
-            canVoteLyrics = canVoteLyrics,
-            canVoteTranslatedLyrics = canVoteTranslatedLyrics,
-            lyricsVoteState = lyricsVoteState,
-            translatedLyricsVoteState = translatedVoteState,
-            onVoteLyrics = { upvote ->
-                sharedViewModel.voteLyrics(upvote)
-            },
-            onVoteTranslatedLyrics = { upvote ->
-                sharedViewModel.voteTranslatedLyrics(upvote)
-            },
-            onDismiss = {
-                showVoteDialog = false
-            },
         )
     }
 

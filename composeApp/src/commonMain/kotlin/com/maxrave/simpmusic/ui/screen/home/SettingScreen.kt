@@ -186,7 +186,6 @@ import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.ai
 import simpmusic.composeapp.generated.resources.ai_api_key
 import simpmusic.composeapp.generated.resources.ai_provider
-import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_log
 import simpmusic.composeapp.generated.resources.app_log_description
 import simpmusic.composeapp.generated.resources.app_name
@@ -202,7 +201,6 @@ import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
 import simpmusic.composeapp.generated.resources.backup_frequency
 import simpmusic.composeapp.generated.resources.balance_media_loudness
-import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.animated_artwork_info
 import simpmusic.composeapp.generated.resources.canvas_info
@@ -218,8 +216,6 @@ import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
 import simpmusic.composeapp.generated.resources.content_country
-import simpmusic.composeapp.generated.resources.contributor_email
-import simpmusic.composeapp.generated.resources.contributor_name
 import simpmusic.composeapp.generated.resources.crossfade
 import simpmusic.composeapp.generated.resources.crossfade_auto
 import simpmusic.composeapp.generated.resources.crossfade_description
@@ -253,8 +249,6 @@ import simpmusic.composeapp.generated.resources.equalizer_type_system
 import simpmusic.composeapp.generated.resources.free_space
 import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
-import simpmusic.composeapp.generated.resources.help_build_lyrics_database
-import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
 import simpmusic.composeapp.generated.resources.import_data
 import simpmusic.composeapp.generated.resources.import_data_intro
@@ -293,7 +287,6 @@ import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
-import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_style
 import simpmusic.composeapp.generated.resources.lyrics_offset
@@ -318,7 +311,6 @@ import simpmusic.composeapp.generated.resources.romanization_serbian
 import simpmusic.composeapp.generated.resources.romanization_ukrainian
 import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
 import simpmusic.composeapp.generated.resources.lyrics_style_classic
-import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.maxrave_dev
 import simpmusic.composeapp.generated.resources.monthly
@@ -370,7 +362,6 @@ import simpmusic.composeapp.generated.resources.send_back_listening_data_to_goog
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.signed_in
-import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.skip_no_music_part
 import simpmusic.composeapp.generated.resources.skip_silent
 import simpmusic.composeapp.generated.resources.socks
@@ -391,8 +382,6 @@ import simpmusic.composeapp.generated.resources.theme_mode_light
 import simpmusic.composeapp.generated.resources.theme_mode_system
 import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
-import simpmusic.composeapp.generated.resources.translation_language
-import simpmusic.composeapp.generated.resources.translation_language_message
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_ai_translation
@@ -406,9 +395,6 @@ import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.youtube_account
-import simpmusic.composeapp.generated.resources.youtube_subtitle_language
-import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
-import simpmusic.composeapp.generated.resources.youtube_transcript
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -491,9 +477,7 @@ fun SettingScreen(
     val skipSilent by remember { viewModel.skipSilent.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val savePlaybackState by remember { viewModel.savedPlaybackState.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val killServiceOnExit by remember { viewModel.killServiceOnExit.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = true)
-    val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
     val lyricsOffsetMs by viewModel.lyricsOffsetMs.collectAsStateWithLifecycle()
-    val youtubeSubtitleLanguage by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
     val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
@@ -515,12 +499,9 @@ fun SettingScreen(
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
-    val translationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
     val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
     val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
-    val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
-    val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
     val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
     val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
@@ -1500,51 +1481,6 @@ fun SettingScreen(
         item(key = "lyrics") {
             SettingGroup(title = stringResource(Res.string.lyrics)) {
                 SettingItem(
-                    title = stringResource(Res.string.main_lyrics_provider),
-                    subtitle =
-                        when (mainLyricsProvider) {
-                            DataStoreManager.SIMPMUSIC -> stringResource(Res.string.simpmusic_lyrics)
-                            DataStoreManager.YOUTUBE -> stringResource(Res.string.youtube_transcript)
-                            DataStoreManager.LRCLIB -> stringResource(Res.string.lrclib)
-                            DataStoreManager.BETTER_LYRICS -> stringResource(Res.string.better_lyrics)
-                            else -> stringResource(Res.string.unknown)
-                        },
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.main_lyrics_provider) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect =
-                                            listOf(
-                                                (mainLyricsProvider == DataStoreManager.SIMPMUSIC) to
-                                                    runBlocking { getString(Res.string.simpmusic_lyrics) },
-                                                (mainLyricsProvider == DataStoreManager.YOUTUBE) to
-                                                    runBlocking { getString(Res.string.youtube_transcript) },
-                                                (mainLyricsProvider == DataStoreManager.LRCLIB) to runBlocking { getString(Res.string.lrclib) },
-                                                (mainLyricsProvider == DataStoreManager.BETTER_LYRICS) to
-                                                    runBlocking { getString(Res.string.better_lyrics) },
-                                            ),
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setLyricsProvider(
-                                            when (state.selectOne?.getSelected()) {
-                                                runBlocking { getString(Res.string.simpmusic_lyrics) } -> DataStoreManager.SIMPMUSIC
-                                                runBlocking { getString(Res.string.youtube_transcript) } -> DataStoreManager.YOUTUBE
-                                                runBlocking { getString(Res.string.lrclib) } -> DataStoreManager.LRCLIB
-                                                runBlocking { getString(Res.string.better_lyrics) } -> DataStoreManager.BETTER_LYRICS
-                                                else -> DataStoreManager.SIMPMUSIC
-                                            },
-                                        )
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-
-                SettingItem(
                     title = stringResource(Res.string.lyrics_offset),
                     subtitle =
                         stringResource(
@@ -1583,118 +1519,6 @@ fun SettingScreen(
                         )
                     },
                 )
-
-                SettingItem(
-                    title = stringResource(Res.string.translation_language),
-                    subtitle = translationLanguage ?: "",
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.translation_language) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.translation_language) },
-                                        value = translationLanguage ?: "",
-                                        verifyCodeBlock = {
-                                            (it.length == 2 && it.isTwoLetterCode()) to
-                                                runBlocking { getString(Res.string.invalid_language_code) }
-                                        },
-                                    ),
-                                message = runBlocking { getString(Res.string.translation_language_message) },
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setTranslationLanguage(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                    isEnable = true,
-                )
-                SettingItem(
-                    title = stringResource(Res.string.youtube_subtitle_language),
-                    subtitle = youtubeSubtitleLanguage,
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.youtube_subtitle_language) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.youtube_subtitle_language) },
-                                        value = youtubeSubtitleLanguage,
-                                        verifyCodeBlock = {
-                                            (it.length == 2 && it.isTwoLetterCode()) to
-                                                runBlocking { getString(Res.string.invalid_language_code) }
-                                        },
-                                    ),
-                                message = runBlocking { getString(Res.string.youtube_subtitle_language_message) },
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setYoutubeSubtitleLanguage(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.help_build_lyrics_database),
-                    subtitle = stringResource(Res.string.help_build_lyrics_database_description),
-                    switch = (helpBuildLyricsDatabase to { viewModel.setHelpBuildLyricsDatabase(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.contributor_name),
-                    subtitle = contributor.first.ifEmpty { stringResource(Res.string.anonymous) },
-                    isEnable = helpBuildLyricsDatabase,
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.contributor_name) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.contributor_name) },
-                                        value = "",
-                                    ),
-                                message = "",
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setContributorName(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.contributor_email),
-                    subtitle = contributor.second.ifEmpty { stringResource(Res.string.anonymous) },
-                    isEnable = helpBuildLyricsDatabase,
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.contributor_email) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.contributor_email) },
-                                        value = "",
-                                        verifyCodeBlock = {
-                                            if (it.isNotEmpty()) {
-                                                (it.contains("@")) to runBlocking { getString(Res.string.invalid) }
-                                            } else {
-                                                true to ""
-                                            }
-                                        },
-                                    ),
-                                message = "",
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setContributorEmail(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
             }
         }
         item(key = "AI") {
@@ -1716,11 +1540,11 @@ fun SettingScreen(
                                     SettingAlertState.SelectData(
                                         listSelect =
                                             listOf(
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_OPENAI) to
+                                                (aiProvider == DataStoreManager.AI_PROVIDER_OPENAI) to
                                                     runBlocking { getString(Res.string.openai) },
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_GEMINI) to
+                                                (aiProvider == DataStoreManager.AI_PROVIDER_GEMINI) to
                                                     runBlocking { getString(Res.string.gemini) },
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) to
+                                                (aiProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) to
                                                     runBlocking { getString(Res.string.openai_api_compatible) },
                                             ),
                                     ),

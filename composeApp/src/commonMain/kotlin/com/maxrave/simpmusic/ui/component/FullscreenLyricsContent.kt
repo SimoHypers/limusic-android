@@ -780,7 +780,6 @@ fun FullscreenLyricsContent(
             },
             song = null,
             setSleepTimerEnable = true,
-            changeMainLyricsProviderEnable = true,
         )
     }
 

@@ -99,11 +99,7 @@ class SettingsViewModel(
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
     private var _sendBackToGoogle: MutableStateFlow<String?> = MutableStateFlow(null)
     val sendBackToGoogle: StateFlow<String?> = _sendBackToGoogle
-    private var _mainLyricsProvider: MutableStateFlow<String?> = MutableStateFlow(null)
-    val mainLyricsProvider: StateFlow<String?> = _mainLyricsProvider
 
-    private var _translationLanguage: MutableStateFlow<String?> = MutableStateFlow(null)
-    val translationLanguage: StateFlow<String?> = _translationLanguage
     private var _useTranslation: MutableStateFlow<String?> = MutableStateFlow(null)
     val useTranslation: StateFlow<String?> = _useTranslation
     private var _playerCacheLimit: MutableStateFlow<Int?> = MutableStateFlow(null)
@@ -153,17 +149,10 @@ class SettingsViewModel(
     val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
     private val _autoDownloadLikedSongs = MutableStateFlow<Boolean>(false)
     val autoDownloadLikedSongs: StateFlow<Boolean> = _autoDownloadLikedSongs
-    private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
-    val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
     private val _preferredAudioLanguage = MutableStateFlow("")
     val preferredAudioLanguage: StateFlow<String> = _preferredAudioLanguage
-
-    private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
-    private var _contributor: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("", ""))
-    val contributor: StateFlow<Pair<String, String>> = _contributor
 
     private var _backupDownloaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val backupDownloaded: StateFlow<Boolean> = _backupDownloaded
@@ -240,9 +229,7 @@ class SettingsViewModel(
     val killServiceOnExit: StateFlow<String?> = _killServiceOnExit
 
     init {
-        getYoutubeSubtitleLanguage()
         getPreferredAudioLanguage()
-        getHelpBuildLyricsDatabase()
         viewModelScope.launch {
             enableLiquidGlass.collect {
                 if (getPlatform() != Platform.Android && it) {
@@ -266,9 +253,6 @@ class SettingsViewModel(
         getSkipSilent()
         getSavedPlaybackState()
         getSendBackToGoogle()
-        getTranslationLanguage()
-        getYoutubeSubtitleLanguage()
-        getLyricsProvider()
         getLyricsOffsetMs()
         getUseTranslation()
         getPlayVideoInsteadOfAudio()
@@ -294,7 +278,6 @@ class SettingsViewModel(
         getCrossfadeDjMode()
         getCrossfadeSkipAlbum()
         getAutoDownloadLikedSongs()
-        getContributorNameAndEmail()
         getBackupDownloaded()
         getEnableLiquidGlass()
         getExplicitContentEnabled()
@@ -643,30 +626,6 @@ class SettingsViewModel(
         }
     }
 
-    private fun getContributorNameAndEmail() {
-        viewModelScope.launch {
-            combine(dataStoreManager.contributorName, dataStoreManager.contributorEmail) { name, email ->
-                name to email
-            }.collect { contributor ->
-                _contributor.value = contributor
-            }
-        }
-    }
-
-    fun setContributorName(name: String) {
-        viewModelScope.launch {
-            dataStoreManager.setContributorLyricsDatabase(name to contributor.value.second)
-            getContributorNameAndEmail()
-        }
-    }
-
-    fun setContributorEmail(email: String) {
-        viewModelScope.launch {
-            dataStoreManager.setContributorLyricsDatabase(contributor.value.first to email)
-            getContributorNameAndEmail()
-        }
-    }
-
     private fun getCustomModelId() {
         viewModelScope.launch {
             dataStoreManager.customModelId.collect { customModelId ->
@@ -910,21 +869,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getTranslationLanguage() {
-        viewModelScope.launch {
-            dataStoreManager.translationLanguage.collect { translationLanguage ->
-                _translationLanguage.emit(translationLanguage)
-            }
-        }
-    }
-
-    fun setTranslationLanguage(language: String) {
-        viewModelScope.launch {
-            dataStoreManager.setTranslationLanguage(language)
-            getTranslationLanguage()
-        }
-    }
-
     private fun getLyricsOffsetMs() {
         viewModelScope.launch {
             dataStoreManager.lyricsOffsetMs.collect { offsetMs ->
@@ -954,21 +898,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setEnableTranslateLyric(useTranslation)
             getUseTranslation()
-        }
-    }
-
-    fun getLyricsProvider() {
-        viewModelScope.launch {
-            dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
-                _mainLyricsProvider.emit(mainLyricsProvider)
-            }
-        }
-    }
-
-    fun setLyricsProvider(provider: String) {
-        viewModelScope.launch {
-            dataStoreManager.setLyricsProvider(provider)
-            getLyricsProvider()
         }
     }
 
@@ -1801,21 +1730,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getYoutubeSubtitleLanguage() {
-        viewModelScope.launch {
-            dataStoreManager.youtubeSubtitleLanguage.collect { language ->
-                _youtubeSubtitleLanguage.emit(language)
-            }
-        }
-    }
-
-    fun setYoutubeSubtitleLanguage(language: String) {
-        viewModelScope.launch {
-            dataStoreManager.setYoutubeSubtitleLanguage(language)
-            getYoutubeSubtitleLanguage()
-        }
-    }
-
     private fun getPreferredAudioLanguage() {
         viewModelScope.launch {
             dataStoreManager.preferredAudioLanguage.collect { language ->
@@ -1832,20 +1746,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getHelpBuildLyricsDatabase() {
-        viewModelScope.launch {
-            dataStoreManager.helpBuildLyricsDatabase.collect { helpBuildLyricsDatabase ->
-                _helpBuildLyricsDatabase.emit(helpBuildLyricsDatabase == DataStoreManager.TRUE)
-            }
-        }
-    }
-
-    fun setHelpBuildLyricsDatabase(help: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setHelpBuildLyricsDatabase(help)
-            getHelpBuildLyricsDatabase()
-        }
-    }
 }
 
 data class SettingsStorageSectionFraction(

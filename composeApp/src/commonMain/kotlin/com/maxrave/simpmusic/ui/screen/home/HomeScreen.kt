@@ -118,7 +118,6 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
-import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Notifications
@@ -238,8 +237,6 @@ fun HomeScreen(
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
-    val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
-    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val isLightTheme = backgroundColor.luminance() > 0.5f
@@ -281,9 +278,6 @@ fun HomeScreen(
         }
     }
 
-    var showRequestShareLyricsPermissions by rememberSaveable {
-        mutableStateOf(false)
-    }
     var topAppBarHeightPx by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -331,11 +325,6 @@ fun HomeScreen(
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
-    LaunchedEffect(openAppTime, shareLyricsPermissions) {
-        Logger.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
-        showRequestShareLyricsPermissions =
-            (openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && !shareLyricsPermissions
-    }
 
     val shouldStartPaginate =
         remember {
@@ -368,22 +357,6 @@ fun HomeScreen(
 //            },
 //        )
 //    }
-
-    if (showRequestShareLyricsPermissions) {
-        ShareSavedLyricsDialog(
-            onDismissRequest = {
-                showRequestShareLyricsPermissions = false
-                sharedViewModel.onDoneReview(
-                    isDismissOnly = true,
-                )
-            },
-            onConfirm = { contributor ->
-                sharedViewModel.onDoneRequestingShareLyrics(
-                    contributor,
-                )
-            },
-        )
-    }
 
     if (shouldShowLogInAlert) {
         var doNotShowAgain by rememberSaveable {

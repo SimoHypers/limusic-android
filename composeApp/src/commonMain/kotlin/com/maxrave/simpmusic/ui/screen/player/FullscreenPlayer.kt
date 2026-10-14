@@ -65,7 +65,6 @@ import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.elapsedLabel
-import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
@@ -755,7 +754,6 @@ fun FullscreenPlayer(
                     onDismiss = { showBottom = false },
                     navController = navController,
                     setSleepTimerEnable = true,
-                    changeMainLyricsProviderEnable = true,
                     song = null,
                 )
             }

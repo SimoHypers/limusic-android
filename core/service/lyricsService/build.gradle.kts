@@ -15,6 +15,7 @@ kotlin {
         namespace = "org.simpmusic.lyrics"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     // Source set declarations.

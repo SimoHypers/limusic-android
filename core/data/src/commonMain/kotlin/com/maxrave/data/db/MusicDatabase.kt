@@ -43,7 +43,7 @@ import com.maxrave.domain.data.entities.analytics.PlaybackEventEntity
         AutoEqEntryEntity::class, AutoEqIndexMetaEntity::class, AutoEqCurveEntity::class,
         ArtistMotionEntity::class
     ],
-    version = 27,
+    version = 28,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3), AutoMigration(
@@ -98,6 +98,8 @@ import com.maxrave.domain.data.entities.analytics.PlaybackEventEntity
         AutoMigration(26, 27),
         AutoMigration(25, 27),
         AutoMigration(24, 27),
+        // 28 adds the lyrics cache columns (provider, fetchedAt, offsetMs, pinned), all with defaults.
+        AutoMigration(27, 28),
     ],
 )
 @TypeConverters(Converters::class)

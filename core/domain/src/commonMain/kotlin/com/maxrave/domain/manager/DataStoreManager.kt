@@ -8,14 +8,6 @@ interface DataStoreManager {
 
     suspend fun setAppVersion(version: String)
 
-    val openAppTime: Flow<Int>
-
-    suspend fun openApp()
-
-    suspend fun resetOpenAppTime()
-
-    suspend fun doneOpenAppTime()
-
     val location: Flow<String>
 
     suspend fun setLocation(location: String)
@@ -117,13 +109,10 @@ interface DataStoreManager {
 
     suspend fun setEnableTranslateLyric(enable: Boolean)
 
-    val lyricsProvider: Flow<String>
+    /** Lyrics sources in the user's order, `-id` for one switched off; read with LyricsSource.order. */
+    val lyricsProviders: Flow<String>
 
-    suspend fun setLyricsProvider(provider: String)
-
-    val translationLanguage: Flow<String>
-
-    suspend fun setTranslationLanguage(language: String)
+    suspend fun setLyricsProviders(order: String)
 
     val maxSongCacheSize: Flow<Int>
 
@@ -376,28 +365,15 @@ interface DataStoreManager {
 
     suspend fun setAutoDownloadLikedSongs(enabled: Boolean)
 
-    val youtubeSubtitleLanguage: Flow<String>
-
-    suspend fun setYoutubeSubtitleLanguage(language: String)
-
     /**
      * Language code (e.g. "vi") of the audio track to prefer on videos that ship several — dubbed
      * podcasts, mostly. Empty means the original track. Deliberately NOT defaulted to the app
-     * language the way [youtubeSubtitleLanguage] is: that would swap the speaker's own voice for an
-     * AI dub for every user whose app language has one.
+     * language: that would swap the speaker's own voice for an AI dub for every user whose app
+     * language has one.
      */
     val preferredAudioLanguage: Flow<String>
 
     suspend fun setPreferredAudioLanguage(language: String)
-
-    val helpBuildLyricsDatabase: Flow<String>
-
-    suspend fun setHelpBuildLyricsDatabase(help: Boolean)
-
-    val contributorName: Flow<String>
-    val contributorEmail: Flow<String>
-
-    suspend fun setContributorLyricsDatabase(contributor: Pair<String, String>?)
 
     val backupDownloaded: Flow<String>
 
@@ -517,11 +493,6 @@ interface DataStoreManager {
     }
 
     companion object Values {
-        const val SIMPMUSIC = "simpmusic"
-        const val YOUTUBE = "youtube"
-        const val LRCLIB = "lrclib"
-        const val BETTER_LYRICS = "better_lyrics"
-
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

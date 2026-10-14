@@ -19,7 +19,6 @@ import com.maxrave.domain.manager.DataStoreManager.Values.PROXY_TYPE_SOCKS
 import com.maxrave.domain.manager.DataStoreManager.Values.REPEAT_ALL
 import com.maxrave.domain.manager.DataStoreManager.Values.REPEAT_MODE_OFF
 import com.maxrave.domain.manager.DataStoreManager.Values.REPEAT_ONE
-import com.maxrave.domain.manager.DataStoreManager.Values.SIMPMUSIC
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
@@ -43,35 +42,6 @@ internal class DataStoreManagerImpl(
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[APP_VERSION] = version
-            }
-        }
-    }
-
-    override val openAppTime: Flow<Int> =
-        settingsDataStore.data.map { preferences ->
-            preferences[OPEN_APP_TIME] ?: 0
-        }
-
-    override suspend fun openApp() {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[OPEN_APP_TIME] = openAppTime.first() + 1
-            }
-        }
-    }
-
-    override suspend fun resetOpenAppTime() {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[OPEN_APP_TIME] = 0
-            }
-        }
-    }
-
-    override suspend fun doneOpenAppTime() {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[OPEN_APP_TIME] = 31
             }
         }
     }
@@ -414,34 +384,15 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val lyricsProvider =
+    override val lyricsProviders =
         settingsDataStore.data.map { preferences ->
-            preferences[LYRICS_PROVIDER] ?: SIMPMUSIC
+            preferences[LYRICS_PROVIDERS].orEmpty()
         }
 
-    override suspend fun setLyricsProvider(provider: String) {
+    override suspend fun setLyricsProviders(order: String) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[LYRICS_PROVIDER] = provider
-            }
-        }
-    }
-
-    override val translationLanguage =
-        settingsDataStore.data.map { preferences ->
-            val languageValue = language.first()
-            preferences[TRANSLATION_LANGUAGE] ?: if (languageValue.length >= 2) {
-                languageValue
-                    .substring(0..1)
-            } else {
-                "en"
-            }
-        }
-
-    override suspend fun setTranslationLanguage(language: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[TRANSLATION_LANGUAGE] = language
+                settings[LYRICS_PROVIDERS] = order
             }
         }
     }
@@ -1275,25 +1226,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val youtubeSubtitleLanguage =
-        settingsDataStore.data.map { preferences ->
-            val languageValue = language.first()
-            preferences[YOUTUBE_SUBTITLE_LANGUAGE] ?: if (languageValue.length >= 2) {
-                languageValue
-                    .substring(0..1)
-            } else {
-                "en"
-            }
-        }
-
-    override suspend fun setYoutubeSubtitleLanguage(language: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[YOUTUBE_SUBTITLE_LANGUAGE] = language
-            }
-        }
-    }
-
     override val preferredAudioLanguage =
         settingsDataStore.data.map { preferences ->
             preferences[PREFERRED_AUDIO_LANGUAGE] ?: ""
@@ -1303,51 +1235,6 @@ internal class DataStoreManagerImpl(
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[PREFERRED_AUDIO_LANGUAGE] = language.trim()
-            }
-        }
-    }
-
-    override val helpBuildLyricsDatabase: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
-        }
-
-    override suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (help) {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
-                }
-            }
-        }
-    }
-
-    override val contributorName: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_NAME] ?: ""
-        }
-
-    override val contributorEmail: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_EMAIL] ?: ""
-        }
-
-    override suspend fun setContributorLyricsDatabase(
-        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
-    ) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                if (contributor == null) {
-                    settings[CONTRIBUTOR_NAME] = ""
-                    settings[CONTRIBUTOR_EMAIL] = ""
-                } else {
-                    settings[CONTRIBUTOR_NAME] = contributor.first
-                    settings[CONTRIBUTOR_EMAIL] = contributor.second
-                }
             }
         }
     }
@@ -1563,8 +1450,7 @@ internal class DataStoreManagerImpl(
         val CROSSFADE_DJ_MODE = stringPreferencesKey("crossfade_dj_mode")
         val CROSSFADE_SKIP_ALBUM = stringPreferencesKey("crossfade_skip_album")
         val AUTO_DOWNLOAD_LIKED_SONGS = stringPreferencesKey("auto_download_liked_songs")
-        val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
-        val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
+        val LYRICS_PROVIDERS = stringPreferencesKey("lyrics_providers")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
 
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
@@ -1608,7 +1494,6 @@ internal class DataStoreManagerImpl(
         val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
-        val OPEN_APP_TIME = intPreferencesKey("open_app_time")
         val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
         val VISITOR_DATA = stringPreferencesKey("visitor_data")
         val AI_PROVIDER = stringPreferencesKey("ai_provider")
@@ -1621,11 +1506,7 @@ internal class DataStoreManagerImpl(
         val USE_AI_TRANSLATION = stringPreferencesKey("use_ai_translation")
 
         val LOCAL_PLAYLIST_FILTER = stringPreferencesKey("local_playlist_filter")
-        val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
         val PREFERRED_AUDIO_LANGUAGE = stringPreferencesKey("preferred_audio_language")
-        val HELP_BUILD_LYRICS_DATABASE = stringPreferencesKey("help_build_lyrics_database")
-        val CONTRIBUTOR_NAME = stringPreferencesKey("contributor_name")
-        val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
 

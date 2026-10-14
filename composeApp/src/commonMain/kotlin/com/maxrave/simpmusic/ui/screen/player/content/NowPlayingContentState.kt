@@ -14,34 +14,13 @@ import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.player.GenericCastState
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.simpmusic.extension.GradientOffset
-import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
 
-/**
- * Whether the lyrics currently on screen can be rated.
- *
- * SimpMusic Lyrics is the only provider with a vote endpoint, and the vote is cast against the
- * SimpMusic record itself — so the provider tag alone is NOT the condition: `simpMusicLyrics`
- * must actually be there. Either half qualifying is enough, because the dialog rates whichever
- * of the two came from SimpMusic.
- *
- * Lives on the contract the three styles share. The Apple Music style shipped its floating vote
- * button ungated — offering a rating on YouTube, LRCLIB and Spotify lyrics alike — precisely
- * because this rule existed only as an expression copy-pasted inside the other two styles, where
- * a new style had no reason to go looking for it.
- */
-internal fun NowPlayingScreenData.LyricsData?.canVote(): Boolean {
-    val data = this ?: return false
-    val votableLyrics =
-        data.lyricsProvider == LyricsProvider.SIMPMUSIC && data.lyrics.simpMusicLyrics != null
-    val votableTranslation =
-        data.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-            data.translatedLyrics?.first?.simpMusicLyrics != null
-    return votableLyrics || votableTranslation
-}
+// SimpMusic lyrics are read-only here, so nothing can be rated; the old styles still ask.
+internal fun NowPlayingScreenData.LyricsData?.canVote(): Boolean = false
 
 // Apple Music's animated covers arrive as HLS (.m3u8) from Apple's video CDN; Spotify's canvases
 // are MP4. Only the former is album art, shaped like album art (3:4 or 1:1), so every style plays it

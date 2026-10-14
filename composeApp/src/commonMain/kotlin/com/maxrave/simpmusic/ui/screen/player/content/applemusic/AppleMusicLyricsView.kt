@@ -59,22 +59,14 @@ import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.canVote
-import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.ai_translated
 import simpmusic.composeapp.generated.resources.line_synced
-import simpmusic.composeapp.generated.resources.lyrics_provider_betterlyrics
-import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
-import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
-import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
-import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.rich_synced
-import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
 
 /**
@@ -209,14 +201,6 @@ internal fun AppleMusicLyricsView(
                             horizontalAlignment = Alignment.End,
                             modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
                         ) {
-                            if (lyricsData.translatedLyrics?.second == LyricsProvider.AI) {
-                                Text(
-                                    text = stringResource(Res.string.ai_translated),
-                                    style = typography.footer,
-                                    textAlign = TextAlign.End,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
                             // One line per fact, not one line joined by a bullet. "Word by word"
                             // and "Lyrics provided by SimpMusic Lyrics" are two different things,
                             // and glued together they make a single line long enough to run the
@@ -359,12 +343,4 @@ private fun appleMusicLyricsSyncText(lyricsData: NowPlayingScreenData.LyricsData
 /** The provider half of the caption. Its own line — see the footer for why. */
 @Composable
 private fun appleMusicLyricsProviderText(lyricsData: NowPlayingScreenData.LyricsData): String =
-    when (lyricsData.lyricsProvider) {
-        LyricsProvider.SIMPMUSIC -> stringResource(Res.string.lyrics_provider_simpmusic)
-        LyricsProvider.LRCLIB -> stringResource(Res.string.lyrics_provider_lrc)
-        LyricsProvider.YOUTUBE -> stringResource(Res.string.lyrics_provider_youtube)
-        LyricsProvider.SPOTIFY -> stringResource(Res.string.spotify_lyrics_provider)
-        LyricsProvider.OFFLINE -> stringResource(Res.string.offline_mode)
-        LyricsProvider.BETTER_LYRICS -> stringResource(Res.string.lyrics_provider_betterlyrics)
-        LyricsProvider.AI -> ""
-    }
+    lyricsData.lyricsProvider?.displayName.orEmpty()

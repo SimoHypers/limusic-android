@@ -1,11 +1,9 @@
 package com.maxrave.domain.repository
 
 import com.maxrave.domain.data.entities.LyricsEntity
-import com.maxrave.domain.data.entities.TranslatedLyricsEntity
-import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.model.browse.artist.ArtistEditorial
 import com.maxrave.domain.data.model.canvas.CanvasResult
-import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -15,22 +13,18 @@ interface LyricsCanvasRepository {
 
     suspend fun insertLyrics(lyricsEntity: LyricsEntity)
 
-    suspend fun insertTranslatedLyrics(translatedLyrics: TranslatedLyricsEntity)
-
-    fun getSavedTranslatedLyrics(
+    /**
+     * The song's lyrics as Limusic finds them: cached, else asked down [order] (switched-off sources
+     * skipped), the first synced answer winning over any plain one. Null when no source has any.
+     */
+    suspend fun getLyrics(
         videoId: String,
-        language: String,
-    ): Flow<TranslatedLyricsEntity?>
-
-    suspend fun removeTranslatedLyrics(
-        videoId: String,
-        language: String,
-    )
-
-    fun getYouTubeCaption(
-        preferLang: String,
-        videoId: String,
-    ): Flow<Resource<Pair<Lyrics, Lyrics?>>>
+        title: String,
+        artist: String,
+        album: String?,
+        durationSeconds: Int,
+        order: List<Pair<LyricsSource, Boolean>>,
+    ): LyricsEntity?
 
     fun getCanvas(
         dataStoreManager: DataStoreManager,
@@ -54,24 +48,6 @@ interface LyricsCanvasRepository {
         canvasThumbUrl: String,
     )
 
-    fun getSpotifyLyrics(
-        dataStoreManager: DataStoreManager,
-        query: String,
-        duration: Int?,
-    ): Flow<Resource<Lyrics>>
-
-    fun getLrclibLyricsData(
-        sartist: String,
-        strack: String,
-        duration: Int?,
-    ): Flow<Resource<Lyrics>>
-
-    fun getBetterLyrics(
-        artist: String,
-        track: String,
-        duration: Int?,
-    ): Flow<Resource<Lyrics>>
-
     /**
      * Fetch everything the hidden catalog holds for an artist: the name-logo image with its
      * dominant color, and the animated artist artwork.
@@ -81,39 +57,4 @@ interface LyricsCanvasRepository {
      */
     fun getArtistEditorial(artistName: String): Flow<Resource<ArtistEditorial>>
 
-    fun getAITranslationLyrics(
-        lyrics: Lyrics,
-        targetLanguage: String,
-    ): Flow<Resource<Lyrics>>
-
-    fun getSimpMusicLyrics(videoId: String): Flow<Resource<Lyrics>>
-
-    fun getSimpMusicTranslatedLyrics(
-        videoId: String,
-        language: String,
-    ): Flow<Resource<Lyrics>>
-
-    fun voteSimpMusicLyrics(
-        lyricsId: String,
-        upvote: Boolean,
-    ): Flow<Resource<String>>
-
-    fun voteSimpMusicTranslatedLyrics(
-        translatedLyricsId: String,
-        upvote: Boolean,
-    ): Flow<Resource<String>>
-
-    fun insertSimpMusicLyrics(
-        dataStoreManager: DataStoreManager,
-        track: Track,
-        duration: Int,
-        lyrics: Lyrics,
-    ): Flow<Resource<String>>
-
-    fun insertSimpMusicTranslatedLyrics(
-        dataStoreManager: DataStoreManager,
-        track: Track,
-        translatedLyrics: Lyrics,
-        language: String,
-    ): Flow<Resource<String>>
 }

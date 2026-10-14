@@ -10,10 +10,6 @@ import com.maxrave.domain.data.model.searchResult.songs.Album
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.manager.DataStoreManager
-import com.maxrave.domain.manager.DataStoreManager.Values.BETTER_LYRICS
-import com.maxrave.domain.manager.DataStoreManager.Values.LRCLIB
-import com.maxrave.domain.manager.DataStoreManager.Values.SIMPMUSIC
-import com.maxrave.domain.manager.DataStoreManager.Values.YOUTUBE
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
@@ -64,7 +60,6 @@ class NowPlayingBottomSheetViewModel(
             NowPlayingBottomSheetUIState(
                 listLocalPlaylist = emptyList(),
                 listYouTubePlaylist = emptyList(),
-                mainLyricsProvider = SIMPMUSIC,
                 sleepTimer =
                     SleepTimerState(
                         false,
@@ -103,36 +98,9 @@ class NowPlayingBottomSheetViewModel(
                         }
                     }
                 }
-            val mainLyricsProviderJob =
-                launch {
-                    dataStoreManager.lyricsProvider.collectLatest { lyricsProvider ->
-                        when (lyricsProvider) {
-                            SIMPMUSIC -> {
-                                _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
-                            }
-
-                            YOUTUBE -> {
-                                _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
-                            }
-
-                            LRCLIB -> {
-                                _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
-                            }
-
-                            BETTER_LYRICS -> {
-                                _uiState.update { it.copy(mainLyricsProvider = BETTER_LYRICS) }
-                            }
-
-                            else -> {
-                                log("Unknown lyrics provider", LogLevel.ERROR)
-                            }
-                        }
-                    }
-                }
             sleepTimerJob.join()
             listLocalPlaylistJob.join()
             listYouTubePlaylistJob.join()
-            mainLyricsProviderJob.join()
         }
     }
 
@@ -335,14 +303,6 @@ class NowPlayingBottomSheetViewModel(
                     makeToast(getString(Res.string.added_to_queue))
                 }
 
-                is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
-                    if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB, BETTER_LYRICS).contains(ev.lyricsProvider)) {
-                        dataStoreManager.setLyricsProvider(ev.lyricsProvider)
-                    } else {
-                        return@launch
-                    }
-                }
-
                 is NowPlayingBottomSheetUIEvent.SetSleepTimer -> {
                     if (ev.cancel) {
                         mediaPlayerHandler.sleepStop()
@@ -408,7 +368,6 @@ data class NowPlayingBottomSheetUIState(
     val songUIState: SongUIState = SongUIState(),
     val listLocalPlaylist: List<LocalPlaylistEntity>,
     val listYouTubePlaylist: List<PlaylistsResult>,
-    val mainLyricsProvider: String,
     val sleepTimer: SleepTimerState,
 ) {
     data class SongUIState(
@@ -444,10 +403,6 @@ sealed class NowPlayingBottomSheetUIEvent {
     data object PlayNext : NowPlayingBottomSheetUIEvent()
 
     data object AddToQueue : NowPlayingBottomSheetUIEvent()
-
-    data class ChangeLyricsProvider(
-        val lyricsProvider: String,
-    ) : NowPlayingBottomSheetUIEvent()
 
     data class SetSleepTimer(
         val cancel: Boolean = false,

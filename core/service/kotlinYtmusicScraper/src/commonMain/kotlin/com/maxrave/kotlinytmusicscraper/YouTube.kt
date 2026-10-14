@@ -1717,6 +1717,28 @@ class YouTube {
             }
         }
 
+    /**
+     * YouTube Music's plain lyrics for a video: its watch page's lyrics tab, then that tab's text.
+     * Two requests; [next] can cost a third when the queue it reads ends in an automix.
+     */
+    suspend fun plainLyrics(videoId: String): Result<String?> =
+        runCatching {
+            val endpoint =
+                ytMusic
+                    .next(WEB_REMIX, videoId, null, null, null, null, null)
+                    .body<NextResponse>()
+                    .contents.singleColumnMusicWatchNextResultsRenderer
+                    ?.tabbedRenderer
+                    ?.watchNextTabbedResultsRenderer
+                    ?.tabs
+                    ?.getOrNull(1)
+                    ?.tabRenderer
+                    ?.endpoint
+                    ?.browseEndpoint
+                    ?: return@runCatching null
+            lyrics(endpoint).getOrThrow()
+        }
+
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> =
         runCatching {
             val response = ytMusic.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
