@@ -55,7 +55,7 @@ fun SettingItem(
     // every visit to Settings. And it only ever ran if the user opened Settings and scrolled to the
     // row at all, so it could not do the job it existed for. Clearing a child flag now belongs to the
     // logout that invalidates it (SettingsViewModel: setSpotifyLogIn, logOutDiscord, logOutLastfm,
-    // setUsedAccount, logOutAllYouTube, setAIApiKey), which is a real event and cannot misfire.
+    // setUsedAccount, logOutAllYouTube), which is a real event and cannot misfire.
     val dividerColor = MaterialTheme.colorScheme.outlineVariant
     Box(
         Modifier

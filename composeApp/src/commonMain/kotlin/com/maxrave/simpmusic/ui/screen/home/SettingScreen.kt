@@ -170,22 +170,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.base_url
-import simpmusic.composeapp.generated.resources.configured
-import simpmusic.composeapp.generated.resources.custom_base_url
-import simpmusic.composeapp.generated.resources.custom_base_url_message
-import simpmusic.composeapp.generated.resources.custom_headers
-import simpmusic.composeapp.generated.resources.custom_headers_json
-import simpmusic.composeapp.generated.resources.custom_headers_message
-import simpmusic.composeapp.generated.resources.headers_json
-import simpmusic.composeapp.generated.resources.invalid_json_format
-import simpmusic.composeapp.generated.resources.invalid_url_format
-import simpmusic.composeapp.generated.resources.not_set
 import simpmusic.composeapp.generated.resources.about_us
 import simpmusic.composeapp.generated.resources.add_an_account
-import simpmusic.composeapp.generated.resources.ai
-import simpmusic.composeapp.generated.resources.ai_api_key
-import simpmusic.composeapp.generated.resources.ai_provider
 import simpmusic.composeapp.generated.resources.app_log
 import simpmusic.composeapp.generated.resources.app_log_description
 import simpmusic.composeapp.generated.resources.app_name
@@ -224,12 +210,9 @@ import simpmusic.composeapp.generated.resources.crossfade_dj_mode_description
 import simpmusic.composeapp.generated.resources.crossfade_duration
 import simpmusic.composeapp.generated.resources.crossfade_skip_album
 import simpmusic.composeapp.generated.resources.crossfade_skip_album_description
-import simpmusic.composeapp.generated.resources.custom_ai_model_id
 import simpmusic.composeapp.generated.resources.custom_color
-import simpmusic.composeapp.generated.resources.custom_model_id_messages
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
-import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.download_quality
@@ -247,7 +230,6 @@ import simpmusic.composeapp.generated.resources.equalizer_type
 import simpmusic.composeapp.generated.resources.equalizer_type_built_in
 import simpmusic.composeapp.generated.resources.equalizer_type_system
 import simpmusic.composeapp.generated.resources.free_space
-import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.http
 import simpmusic.composeapp.generated.resources.import_data
@@ -261,8 +243,6 @@ import simpmusic.composeapp.generated.resources.import_result_skipped
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
-import simpmusic.composeapp.generated.resources.invalid
-import simpmusic.composeapp.generated.resources.invalid_api_key
 import simpmusic.composeapp.generated.resources.invalid_host
 import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
@@ -324,8 +304,6 @@ import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
 import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.open_system_equalizer
-import simpmusic.composeapp.generated.resources.openai
-import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.original_audio
 import simpmusic.composeapp.generated.resources.other_app
 import simpmusic.composeapp.generated.resources.play_explicit_content
@@ -359,7 +337,6 @@ import simpmusic.composeapp.generated.resources.save_playback_state
 import simpmusic.composeapp.generated.resources.save_shuffle_and_repeat_mode
 import simpmusic.composeapp.generated.resources.scrobbling_info
 import simpmusic.composeapp.generated.resources.send_back_listening_data_to_google
-import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.signed_in
 import simpmusic.composeapp.generated.resources.skip_no_music_part
@@ -382,10 +359,7 @@ import simpmusic.composeapp.generated.resources.theme_mode_light
 import simpmusic.composeapp.generated.resources.theme_mode_system
 import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
-import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
-import simpmusic.composeapp.generated.resources.use_ai_translation
-import simpmusic.composeapp.generated.resources.use_ai_translation_description
 import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
@@ -496,12 +470,6 @@ fun SettingScreen(
     val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
     val proxyUsername by viewModel.proxyUsername.collectAsStateWithLifecycle()
     val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
-    val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
-    val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
-    val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
-    val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
-    val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
-    val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
     val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
     val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
@@ -1518,188 +1486,6 @@ fun SettingScreen(
                             ),
                         )
                     },
-                )
-            }
-        }
-        item(key = "AI") {
-            SettingGroup(title = stringResource(Res.string.ai)) {
-                SettingItem(
-                    title = stringResource(Res.string.ai_provider),
-                    subtitle =
-                        when (aiProvider) {
-                            DataStoreManager.AI_PROVIDER_OPENAI -> stringResource(Res.string.openai)
-                            DataStoreManager.AI_PROVIDER_GEMINI -> stringResource(Res.string.gemini)
-                            DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI -> stringResource(Res.string.openai_api_compatible)
-                            else -> stringResource(Res.string.unknown)
-                        },
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.ai_provider) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect =
-                                            listOf(
-                                                (aiProvider == DataStoreManager.AI_PROVIDER_OPENAI) to
-                                                    runBlocking { getString(Res.string.openai) },
-                                                (aiProvider == DataStoreManager.AI_PROVIDER_GEMINI) to
-                                                    runBlocking { getString(Res.string.gemini) },
-                                                (aiProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) to
-                                                    runBlocking { getString(Res.string.openai_api_compatible) },
-                                            ),
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setAIProvider(
-                                            when (state.selectOne?.getSelected()) {
-                                                runBlocking { getString(Res.string.openai) } -> DataStoreManager.AI_PROVIDER_OPENAI
-                                                runBlocking { getString(Res.string.gemini) } -> DataStoreManager.AI_PROVIDER_GEMINI
-                                                runBlocking {
-                                                    getString(
-                                                        Res.string.openai_api_compatible,
-                                                    )
-                                                },
-                                                -> DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI
-
-                                                else -> DataStoreManager.AI_PROVIDER_OPENAI
-                                            },
-                                        )
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.ai_api_key),
-                    subtitle = if (isHasApiKey) "XXXXXXXXXX" else "N/A",
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.ai_api_key) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.ai_api_key) },
-                                        value = "",
-                                        verifyCodeBlock = {
-                                            (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid_api_key) }
-                                        },
-                                    ),
-                                message = "",
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setAIApiKey(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.custom_ai_model_id),
-                    subtitle = customModelId.ifEmpty { stringResource(Res.string.default_models) },
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.custom_ai_model_id) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.custom_ai_model_id) },
-                                        value = "",
-                                        verifyCodeBlock = {
-                                            (it.isNotEmpty() && !it.contains(" ")) to runBlocking { getString(Res.string.invalid) }
-                                        },
-                                    ),
-                                message = runBlocking { getString(Res.string.custom_model_id_messages) },
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setCustomModelId(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                // Custom OpenAI Base URL - only show when Custom OpenAI is selected
-                if (aiProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) {
-                    val defaultBaseUrl = "https://api.openai.com/v1/"
-                    val customBaseUrlTitle = stringResource(Res.string.custom_base_url)
-                    val baseUrlLabel = stringResource(Res.string.base_url)
-                    val invalidUrlFormat = stringResource(Res.string.invalid_url_format)
-                    val customBaseUrlMessage = stringResource(Res.string.custom_base_url_message, defaultBaseUrl)
-                    val customHeadersJsonTitle = stringResource(Res.string.custom_headers_json)
-                    val headersJsonLabel = stringResource(Res.string.headers_json)
-                    val invalidJsonFormat = stringResource(Res.string.invalid_json_format)
-                    // The example JSON stays out of the translated text, so no translation can break it.
-                    val customHeadersMessage =
-                        stringResource(Res.string.custom_headers_message) + "\n{\"key1\":\"value1\",\"key2\":\"value2\"}"
-                    SettingItem(
-                        title = customBaseUrlTitle,
-                        subtitle = customOpenAIBaseUrl.ifEmpty { defaultBaseUrl },
-                        onClick = {
-                            viewModel.setAlertData(
-                                SettingAlertState(
-                                    title = customBaseUrlTitle,
-                                    textField =
-                                        SettingAlertState.TextFieldData(
-                                            label = baseUrlLabel,
-                                            value = customOpenAIBaseUrl,
-                                            verifyCodeBlock = {
-                                                (it.isEmpty() || it.startsWith("http")) to invalidUrlFormat
-                                            },
-                                        ),
-                                    message = customBaseUrlMessage,
-                                    confirm =
-                                        runBlocking { getString(Res.string.set) } to { state ->
-                                            val baseUrl = state.textField?.value ?: ""
-                                            viewModel.setCustomOpenAIBaseUrl(baseUrl)
-                                        },
-                                    dismiss = runBlocking { getString(Res.string.cancel) },
-                                ),
-                            )
-                        },
-                    )
-                    SettingItem(
-                        title = stringResource(Res.string.custom_headers),
-                        subtitle = stringResource(if (customOpenAIHeaders.isNotEmpty()) Res.string.configured else Res.string.not_set),
-                        onClick = {
-                            viewModel.setAlertData(
-                                SettingAlertState(
-                                    title = customHeadersJsonTitle,
-                                    textField =
-                                        SettingAlertState.TextFieldData(
-                                            label = headersJsonLabel,
-                                            value = customOpenAIHeaders,
-                                            verifyCodeBlock = { input ->
-                                                if (input.isEmpty()) {
-                                                    true to null
-                                                } else {
-                                                    try {
-                                                        // Simple validation: check if it looks like JSON
-                                                        val trimmed = input.trim()
-                                                        (trimmed.startsWith("{") && trimmed.endsWith("}")) to invalidJsonFormat
-                                                    } catch (e: Exception) {
-                                                        false to invalidJsonFormat
-                                                    }
-                                                }
-                                            },
-                                        ),
-                                    message = customHeadersMessage,
-                                    confirm =
-                                        runBlocking { getString(Res.string.set) } to { state ->
-                                            viewModel.setCustomOpenAIHeaders(state.textField?.value ?: "")
-                                        },
-                                    dismiss = runBlocking { getString(Res.string.cancel) },
-                                ),
-                            )
-                        },
-                    )
-                }
-                SettingItem(
-                    title = stringResource(Res.string.use_ai_translation),
-                    subtitle = stringResource(Res.string.use_ai_translation_description),
-                    switch = (useAITranslation to { viewModel.setAITranslation(it) }),
-                    isEnable = isHasApiKey,
                 )
             }
         }

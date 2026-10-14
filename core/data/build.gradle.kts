@@ -47,7 +47,6 @@ kotlin {
             dependencies {
                 implementation(projects.common)
                 implementation(projects.domain)
-                implementation(projects.aiService)
                 implementation(projects.autoEqService)
                 implementation(projects.lyricsService)
                 implementation(projects.spotify)

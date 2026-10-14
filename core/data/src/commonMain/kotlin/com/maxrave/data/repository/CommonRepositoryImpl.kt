@@ -30,8 +30,6 @@ import okio.IOException
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
-import org.simpmusic.aiservice.AIHost
-import org.simpmusic.aiservice.AiClient
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -41,7 +39,6 @@ internal class CommonRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
     private val spotify: Spotify,
-    private val aiClient: AiClient,
 ) : CommonRepository {
     @OptIn(ExperimentalTime::class)
     override fun init(
@@ -166,74 +163,6 @@ internal class CommonRepositoryImpl(
                         youTube.visitorData = visitorData
                     }
                 }
-            val aiClientProviderJob =
-                launch {
-                    dataStoreManager.aiProvider.collectLatest { provider ->
-                        aiClient.host =
-                            when (provider) {
-                                DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
-                                DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
-                                DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI -> AIHost.CUSTOM_OPENAI
-                                else -> AIHost.GEMINI // Default to Gemini if not set
-                            }
-                    }
-                }
-            val aiClientApiKeyJob =
-                launch {
-                    dataStoreManager.aiApiKey.collectLatest { apiKey ->
-                        aiClient.apiKey =
-                            apiKey.ifEmpty {
-                                null
-                            }
-                    }
-                }
-            val aiCustomModelIdJob =
-                launch {
-                    dataStoreManager.customModelId.collectLatest { modelId ->
-                        aiClient.customModelId =
-                            modelId.ifEmpty {
-                                null
-                            }
-                    }
-                }
-            val aiCustomBaseUrlJob =
-                launch {
-                    dataStoreManager.customOpenAIBaseUrl.collectLatest { baseUrl ->
-                        aiClient.customBaseUrl =
-                            baseUrl.ifEmpty {
-                                null
-                            }
-                    }
-                }
-            val aiCustomHeadersJob =
-                launch {
-                    dataStoreManager.customOpenAIHeaders.collectLatest { headers ->
-                        aiClient.customHeaders =
-                            if (headers.isNotEmpty()) {
-                                try {
-                                    // Parse JSON format: {"key1":"value1","key2":"value2"}
-                                    headers
-                                        .trim()
-                                        .removeSurrounding("{", "}")
-                                        .split(",")
-                                        .mapNotNull { pair ->
-                                            val parts = pair.split(":")
-                                            if (parts.size == 2) {
-                                                parts[0].trim().removeSurrounding("\"") to
-                                                    parts[1].trim().removeSurrounding("\"")
-                                            } else {
-                                                null
-                                            }
-                                        }.toMap()
-                                } catch (e: Exception) {
-                                    Logger.e("CommonRepository", "Failed to parse custom headers: ${e.message}")
-                                    null
-                                }
-                            } else {
-                                null
-                            }
-                    }
-                }
 
             localeJob.join()
             ytCookieJob.join()
@@ -243,11 +172,6 @@ internal class CommonRepositoryImpl(
             dataSyncIdJob.join()
             visitorDataJob.join()
             resetSpotifyToken.join()
-            aiClientProviderJob.join()
-            aiClientApiKeyJob.join()
-            aiCustomModelIdJob.join()
-            aiCustomBaseUrlJob.join()
-            aiCustomHeadersJob.join()
         }
     }
 

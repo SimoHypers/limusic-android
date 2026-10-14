@@ -159,8 +159,6 @@
 -dontwarn com.maxrave.spotify.model.response.spotify.search.SpotifySearchResponse$Data$Search
 -dontwarn com.maxrave.spotify.model.response.spotify.search.SpotifySearchResponse$Data
 -dontwarn com.maxrave.spotify.model.response.spotify.search.SpotifySearchResponse
--dontwarn org.simpmusic.aiservice.AIHost
--dontwarn org.simpmusic.aiservice.AiClient
 -dontwarn org.simpmusic.lyrics.SimpMusicLyricsClient
 -dontwarn org.simpmusic.lyrics.domain.Lyrics$LyricsX$Line
 -dontwarn org.simpmusic.lyrics.domain.Lyrics$LyricsX
