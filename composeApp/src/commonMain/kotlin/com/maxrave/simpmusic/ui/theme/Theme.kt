@@ -231,6 +231,7 @@ fun AppTheme(
             )
         }
     SystemBarAppearanceEffect(isDark)
+    val fonts = AppFonts(fontFamily(), headingFontFamily())
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         shapes = LimusicShapes,
@@ -242,10 +243,11 @@ fun AppTheme(
                 LocalIsDarkTheme provides isDark,
                 LocalForcedDarkColorScheme provides forcedDarkScheme,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
+                LocalAppFonts provides fonts,
                 content = content,
             )
         },
-        typography = typo(colorScheme),
+        typography = typo(colorScheme, fonts = fonts),
     )
 }
 
