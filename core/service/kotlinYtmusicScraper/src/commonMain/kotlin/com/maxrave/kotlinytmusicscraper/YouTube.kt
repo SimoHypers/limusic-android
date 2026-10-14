@@ -18,7 +18,6 @@ import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
-import com.maxrave.kotlinytmusicscraper.models.ReturnYouTubeDislikeResponse
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
@@ -1105,6 +1104,8 @@ class YouTube {
 
     suspend fun getSongInfo(videoId: String): Result<SongInfo> =
         runCatching {
+            // Called with "" before anything has played; that used to cost a /next request.
+            require(videoId.isNotBlank()) { "No video to describe" }
             val ytNext = ytMusic.next(WEB, videoId, null, null, null, null, null).body<NextResponse>()
             val videoSecondary =
                 ytNext.contents.twoColumnWatchNextResults
@@ -1122,8 +1123,6 @@ class YouTube {
                     ?.find {
                         it?.videoPrimaryInfoRenderer != null
                     }?.videoPrimaryInfoRenderer
-            val returnYouTubeDislikeResponse =
-                ytMusic.returnYouTubeDislike(videoId).body<ReturnYouTubeDislikeResponse>()
             return@runCatching SongInfo(
                 videoId = videoId,
                 author =
@@ -1156,9 +1155,15 @@ class YouTube {
                         ?.subscriberCountText
                         ?.simpleText,
                 uploadDate = videoPrimary?.dateText?.simpleText,
-                viewCount = returnYouTubeDislikeResponse.viewCount,
-                like = returnYouTubeDislikeResponse.likes,
-                dislike = returnYouTubeDislikeResponse.dislikes,
+                // "1,234,567 views" from YouTube's own watch page data.
+                viewCount =
+                    videoPrimary
+                        ?.viewCount
+                        ?.videoViewCountRenderer
+                        ?.viewCount
+                        ?.simpleText
+                        ?.filter(Char::isDigit)
+                        ?.toIntOrNull(),
             )
             // Get author thumbnails, subscribers, description, like count
         }

@@ -232,7 +232,6 @@ import simpmusic.composeapp.generated.resources.extract_source
 import simpmusic.composeapp.generated.resources.itag
 import simpmusic.composeapp.generated.resources.key
 import simpmusic.composeapp.generated.resources.like
-import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.liked
 import simpmusic.composeapp.generated.resources.list_all_cookies_of_this_page
 import simpmusic.composeapp.generated.resources.lrclib
@@ -837,35 +836,6 @@ fun InfoPlayerBottomSheet(
                             .padding(horizontal = 10.dp),
                     style = typo().bodyMedium,
                     maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.like),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text =
-                        stringResource(
-                            Res.string.like_and_dislike,
-                            screenDataState.songInfoData?.like ?: 0,
-                            screenDataState.songInfoData?.dislike ?: 0,
-                        ),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(

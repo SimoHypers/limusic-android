@@ -114,7 +114,6 @@ import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.elapsedLabel
-import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -167,7 +166,6 @@ import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.audio_output
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_offset
@@ -1554,16 +1552,6 @@ fun NowPlayingContentSpotify(
                                             ),
                                         style = typo().labelMedium,
                                         color = Color.White,
-                                    )
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Text(
-                                        text =
-                                            stringResource(
-                                                Res.string.like_and_dislike,
-                                                state.screenData.songInfoData?.like ?: 0,
-                                                state.screenData.songInfoData?.dislike ?: 0,
-                                            ),
-                                        style = typo().bodyMedium,
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(

@@ -26,6 +26,8 @@ actual class Extractor {
 
     actual fun init() {
         NewPipe.init(newPipeDownloader)
+        // PipePipe asks returnyoutubedislikeapi.com about every extracted video by default.
+        ServiceList.YouTube.setFetchDislike(false)
         BraveNewPipe.init(braveNewPipeDownloader)
         YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
     }

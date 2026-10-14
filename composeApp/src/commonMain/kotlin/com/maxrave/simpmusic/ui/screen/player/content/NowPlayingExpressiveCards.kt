@@ -113,7 +113,6 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_offset
@@ -847,16 +846,6 @@ internal fun ExpressiveBelowTheFold(
                             ),
                         style = typo().labelMedium,
                         color = Color.White,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text =
-                            stringResource(
-                                Res.string.like_and_dislike,
-                                state.screenData.songInfoData?.like ?: 0,
-                                state.screenData.songInfoData?.dislike ?: 0,
-                            ),
-                        style = typo().bodyMedium,
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(

@@ -289,10 +289,6 @@ class Ytmusic {
         parameter("ctoken", continuation)
     }
 
-    suspend fun returnYouTubeDislike(videoId: String) =
-        httpClient.get("https://returnyoutubedislikeapi.com/Votes?videoId=$videoId") {
-            contentType(ContentType.Application.Json)
-        }
 
     /**
      * The player request a live broadcast is resolved with, made as the YouTube Android app: its HLS
