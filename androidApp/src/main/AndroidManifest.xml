@@ -285,10 +285,6 @@
         </service>
 
 
-        <meta-data
-            android:name="io.sentry.auto-init"
-            android:value="false" />
-
 
         <receiver android:name=".ui.widget.TurntableWidgetReceiver"
             android:label="@string/widget_turntable_label"

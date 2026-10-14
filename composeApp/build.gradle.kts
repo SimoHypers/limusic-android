@@ -78,11 +78,7 @@ kotlin {
             api(projects.media3Ui)
 
             // Google Cast (gated: real SDK for full builds, no-op stub for FOSS builds)
-            if (isFullBuild) {
-                implementation(projects.cast)
-            } else {
-                implementation(projects.castEmpty)
-            }
+            implementation(projects.castEmpty)
 
             // Login sync QR scanner: CameraX + ZXing, not ML Kit, which F-Droid rejects as proprietary
             implementation(libs.camera.camera2)
@@ -184,17 +180,13 @@ buildkonfig {
                 .toInt()
         buildConfigField(STRING, "versionName", versionName)
         buildConfigField(INT, "versionCode", "$versionCode")
+        // No crash reporting in this app; kept so configCrashlytics keeps its signature.
+        buildConfigField(STRING, "sentryDsn", "")
 
         if (isFullBuild) {
             try {
-                println("Full build detected, enabling Sentry DSN")
                 val properties = Properties()
                 properties.load(rootProject.file("local.properties").inputStream())
-                buildConfigField(
-                    STRING,
-                    "sentryDsn",
-                    properties.getProperty("SENTRY_DSN") ?: "",
-                )
                 buildConfigField(
                     STRING,
                     "lastfmApiKey",
@@ -207,12 +199,10 @@ buildkonfig {
                 )
             } catch (e: Exception) {
                 println("Failed to load secrets from local.properties: ${e.message}")
-                buildConfigField(STRING, "sentryDsn", "")
                 buildConfigField(STRING, "lastfmApiKey", "")
                 buildConfigField(STRING, "lastfmSecret", "")
             }
         } else {
-            buildConfigField(STRING, "sentryDsn", "")
             // A FOSS build ships no Last.fm credentials, so `isLastfmAvailable()` stays false and
             // the feature hides itself. The stub module is linked in this flavour anyway.
             buildConfigField(STRING, "lastfmApiKey", "")
