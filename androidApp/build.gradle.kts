@@ -189,10 +189,6 @@ dependencies {
     // Coroutines
     implementation(libs.coroutines.android)
 
-    // Glance
-    implementation(libs.glance)
-    implementation(libs.glance.appwidget)
-    implementation(libs.glance.material3)
 
     implementation(projects.composeApp)
     implementation(projects.data)
