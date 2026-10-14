@@ -1,0 +1,13 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml:2:13-83
+INJECTED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml:2:13-83
+	package
+		INJECTED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml
+	xmlns:android
+		ADDED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml:2:23-81
+uses-sdk
+INJECTED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml reason: use-sdk injection requested
+INJECTED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml
+	android:minSdkVersion
+		INJECTED from /home/simohypers/Programming/limusic-android/core/service/loginSync/build/intermediates/tmp/ProcessLibraryManifest/tempAndroidManifest10189477184656519002.xml

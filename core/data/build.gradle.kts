@@ -94,8 +94,6 @@ kotlin {
                 implementation(libs.koin.android)
                 implementation(projects.media3)
                 implementation(libs.room.ktx)
-                // Login sync: the phone sends sign-ins to the Desktop
-                implementation(projects.loginSync)
             }
         }
 

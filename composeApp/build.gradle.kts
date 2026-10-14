@@ -80,11 +80,6 @@ kotlin {
             // Google Cast (gated: real SDK for full builds, no-op stub for FOSS builds)
             implementation(projects.castEmpty)
 
-            // Login sync QR scanner: CameraX + ZXing, not ML Kit, which F-Droid rejects as proprietary
-            implementation(libs.camera.camera2)
-            implementation(libs.camera.lifecycle)
-            implementation(libs.camera.view)
-            implementation(libs.zxing.core)
         }
         commonMain.dependencies {
             implementation(libs.runtime)

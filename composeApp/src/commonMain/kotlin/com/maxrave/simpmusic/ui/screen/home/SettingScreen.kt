@@ -110,13 +110,11 @@ import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
 import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
-import com.maxrave.simpmusic.expect.ui.rememberLocalNetworkPermission
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
@@ -318,11 +316,6 @@ import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
-import simpmusic.composeapp.generated.resources.login_sync_android_description
-import simpmusic.composeapp.generated.resources.login_sync_android_title
-import simpmusic.composeapp.generated.resources.login_sync_desktop_description
-import simpmusic.composeapp.generated.resources.login_sync_desktop_title
-import simpmusic.composeapp.generated.resources.login_sync_section
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_style
@@ -560,7 +553,6 @@ fun SettingScreen(
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
     val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
     val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
-    val localNetworkPermission = rememberLocalNetworkPermission()
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
@@ -622,9 +614,6 @@ fun SettingScreen(
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
     }
-    var showLoginSyncDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
     var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
@@ -640,13 +629,11 @@ fun SettingScreen(
 
     val settingListState = rememberLazyListState()
     // The toolbar is part of the list and scrolls away with it; a pinned, frosted copy takes over
-    // once the Devices group has gone under it — Playlist's and Artist's way. The group's height
-    // (top padding, header, card) is the scroll that carries it fully under the bar.
-    var devicesGroupHeightPx by remember { mutableIntStateOf(0) }
+    // as soon as the list scrolls.
     val showPinnedBar by remember {
         derivedStateOf {
             settingListState.firstVisibleItemIndex > 0 ||
-                settingListState.firstVisibleItemScrollOffset > devicesGroupHeightPx
+                settingListState.firstVisibleItemScrollOffset > 0
         }
     }
     // The list's side margin, which the in-list toolbar stretches back across.
@@ -695,28 +682,6 @@ fun SettingScreen(
                             layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
                         },
                 )
-                // Above every section, and inside item 0 rather than an item of its own, for the
-                // glow reason above.
-                SettingGroup(
-                    title = stringResource(Res.string.login_sync_section),
-                    modifier = Modifier.onSizeChanged { devicesGroupHeightPx = it.height },
-                ) {
-                    SettingItem(
-                        title =
-                            stringResource(
-                                if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
-                            ),
-                        subtitle =
-                            stringResource(
-                                if (getPlatform() == Platform.Android) {
-                                    Res.string.login_sync_android_description
-                                } else {
-                                    Res.string.login_sync_desktop_description
-                                },
-                            ),
-                        onClick = { showLoginSyncDialog = true },
-                    )
-                }
                 SettingGroup(title = stringResource(Res.string.user_interface)) {
                     val themeModeLabels =
                         listOf(
@@ -1954,7 +1919,6 @@ fun SettingScreen(
                                         runBlocking { getString(Res.string.set) } to { state ->
                                             val baseUrl = state.textField?.value ?: ""
                                             viewModel.setCustomOpenAIBaseUrl(baseUrl)
-                                            localNetworkPermission.requestIfNeeded(baseUrl)
                                         },
                                     dismiss = runBlocking { getString(Res.string.cancel) },
                                 ),
@@ -2908,9 +2872,6 @@ fun SettingScreen(
                 }
             },
         )
-    }
-    if (showLoginSyncDialog) {
-        LoginSyncDialog(onDismiss = { showLoginSyncDialog = false })
     }
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(

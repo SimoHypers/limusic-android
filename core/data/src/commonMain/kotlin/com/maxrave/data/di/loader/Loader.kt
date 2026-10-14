@@ -22,10 +22,6 @@ fun loadAllModules(appIdentity: AppIdentity) {
     // ListenTogetherViewModel injects and starts it; start() is idempotent.
     loadKoinModules(listenTogetherModule)
     loadMediaService()
-    loadLoginSyncModule()
 }
 
 expect fun loadMediaService()
-
-/** Login sync is one-sided per platform: Desktop hosts, Android sends, iOS takes no part. */
-expect fun loadLoginSyncModule()
