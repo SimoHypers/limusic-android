@@ -7,6 +7,19 @@ val isFullBuild: Boolean =
         false
     }
 
+// The app's signing key lives outside the repo. local.properties names its properties file as
+// limusic.signing (storeFile, storePassword, keyAlias, keyPassword). Without it, debug builds use
+// the default debug key and release builds are unsigned.
+val limusicSigning: Properties? =
+    rootProject
+        .file("local.properties")
+        .takeIf { it.exists() }
+        ?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
+        ?.getProperty("limusic.signing")
+        ?.let { File(it) }
+        ?.takeIf { it.exists() }
+        ?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.sentry.gradle)
@@ -20,7 +33,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.maxrave.simpmusic"
+        applicationId = "com.limusic.android"
         minSdk = 26
         targetSdk = 36
         versionCode =
@@ -77,6 +90,17 @@ android {
         }
     }
 
+    signingConfigs {
+        limusicSigning?.let { props ->
+            create("limusic") {
+                storeFile = file(props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+    }
+
     bundle {
         language {
             enableSplit = false
@@ -85,6 +109,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("limusic")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -102,8 +127,8 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
+            // The id stays com.limusic.android in every build type: it is the installed app.
+            signingConfig = signingConfigs.findByName("limusic") ?: signingConfigs.getByName("debug")
         }
     }
     compileOptions {
