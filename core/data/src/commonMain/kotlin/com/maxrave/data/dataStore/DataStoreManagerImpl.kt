@@ -117,7 +117,8 @@ internal class DataStoreManagerImpl(
 
     override val quality: Flow<String> =
         settingsDataStore.data.map { preferences ->
-            preferences[QUALITY] ?: COMMON_QUALITY.items[0].toString()
+            // High by default: the best rendition YouTube gives this account (see StreamRepositoryImpl).
+            preferences[QUALITY] ?: COMMON_QUALITY.items[2].toString()
         }
 
     override suspend fun setQuality(quality: String) {
@@ -130,7 +131,8 @@ internal class DataStoreManagerImpl(
 
     override val downloadQuality: Flow<String> =
         settingsDataStore.data.map { preferences ->
-            preferences[DOWNLOAD_QUALITY] ?: COMMON_QUALITY.items[0].toString()
+            // High by default: the best rendition YouTube gives this account (see StreamRepositoryImpl).
+            preferences[DOWNLOAD_QUALITY] ?: COMMON_QUALITY.items[2].toString()
         }
 
     override suspend fun setDownloadQuality(quality: String) {

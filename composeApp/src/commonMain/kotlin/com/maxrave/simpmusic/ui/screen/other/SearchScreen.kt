@@ -119,7 +119,6 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
-import com.maxrave.simpmusic.ui.component.SimpMusicChartButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
@@ -148,7 +147,6 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -167,7 +165,6 @@ import simpmusic.composeapp.generated.resources.search_for
 import simpmusic.composeapp.generated.resources.search_for_songs_artists_albums_playlists_and_more
 import simpmusic.composeapp.generated.resources.song
 import simpmusic.composeapp.generated.resources.videos
-import simpmusic.composeapp.generated.resources.what_do_you_want_to_listen_to
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -641,11 +638,6 @@ fun SearchScreen(
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier.fillMaxWidth(),
                                     )
-                                    SimpMusicChartButton(
-                                        modifier = Modifier.padding(top = 10.dp),
-                                    ) {
-                                        uriHandler.openUri("https://chart.simpmusic.org")
-                                    }
                                 }
                             }
                             mood.sections.forEachIndexed { index, section ->

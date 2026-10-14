@@ -326,7 +326,10 @@ internal class CrossfadeExoPlayerAdapter(
         }
     }
     private var precacheEnabled = true
-    private val maxPrecacheCount = 2
+    // One track ahead, as the desktop app does: every precached track is a full stream resolution
+    // (several YouTube requests), so looking further ahead only spends requests on songs that may
+    // never play.
+    private val maxPrecacheCount = 1
     private var precacheJob: Job? = null
 
     // ========== Crossfade System ==========
@@ -3055,31 +3058,21 @@ internal class CrossfadeExoPlayerAdapter(
         precacheJob =
             coroutineScope.launch {
                 try {
-                    val indicesToPrecache = mutableListOf<Int>()
-
-                    val index = localCurrentMediaItemIndex
-                    for (i in 1..maxPrecacheCount) {
-                        val nextIndex =
-                            when (internalRepeatMode) {
-                                PlayerConstants.REPEAT_MODE_ALL -> {
-                                    (index + i) % playlist.size
-                                }
-                                else -> {
-                                    val next = index + i
-                                    if (next < playlist.size) next else break
-                                }
-                            }
-
-                        val nextVideoId = playlist.getOrNull(nextIndex)?.mediaId
-                        // A live broadcast is not precached: buffered ahead, it would start behind
-                        // the live edge by however long it waited in the queue.
-                        if (nextIndex != localCurrentMediaItemIndex &&
-                            !precachedPlayers.containsKey(nextVideoId) &&
-                            nextVideoId?.let(LiveStreamRegistry::isLive) != true
-                        ) {
-                            indicesToPrecache.add(nextIndex)
-                        }
-                    }
+                    // The track that will actually play next: follows shuffle and repeat. Repeat-one
+                    // and the end of the queue both answer the current index, which precaches nothing.
+                    val nextIndex = getNextMediaItemIndex()
+                    val nextVideoId = playlist.getOrNull(nextIndex)?.mediaId
+                    // A live broadcast is not precached: buffered ahead, it would start behind the
+                    // live edge by however long it waited in the queue.
+                    val indicesToPrecache =
+                        listOfNotNull(
+                            nextIndex.takeIf {
+                                it != localCurrentMediaItemIndex &&
+                                    nextVideoId != null &&
+                                    !precachedPlayers.containsKey(nextVideoId) &&
+                                    !LiveStreamRegistry.isLive(nextVideoId)
+                            },
+                        )
 
                     for (idx in indicesToPrecache) {
                         if (!isActive) break

@@ -42,7 +42,6 @@ import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.head
 import io.ktor.client.request.header
@@ -323,12 +322,6 @@ class Ytmusic {
                 ),
             )
             parameter("prettyPrint", false)
-        }
-
-    suspend fun getSimpMusicChart() =
-        httpClient.get("https://chart.simpmusic.org/api/playlists") {
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
         }
 
     suspend fun test403Error(url: String): Boolean = httpClient.get(url).status.value in 200..299

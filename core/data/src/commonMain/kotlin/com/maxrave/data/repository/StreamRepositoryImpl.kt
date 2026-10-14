@@ -154,13 +154,15 @@ internal class StreamRepositoryImpl(
                             ?: formatList.find { it.itag == ITAG.VIDEO_720P }
                             ?: formatList.find { it.itag == ITAG.VIDEO_360P }
                             ?: formatList.find { !it.isAudio && it.url.isNullOrEmpty().not() }
-                    val audioTwinItag = ITAG.highQualityTwinOf(itag)
+                    // The chosen itag, then its 256 kbps twin, then the best audio this response
+                    // has. "High" is a Premium rendition: without Premium neither 256 kbps itag is
+                    // there, and the old fallback below could land on a video-only stream.
                     val audioFormat =
-                        formatList.find { it.itag == itag } ?: if (audioTwinItag != null) {
-                            formatList.find { it.itag == audioTwinItag }
-                        } else {
-                            formatList.find { it.isAudio && it.url.isNullOrEmpty().not() }
-                        }
+                        listOfNotNull(itag, ITAG.highQualityTwinOf(itag))
+                            .firstNotNullOfOrNull { wanted -> formatList.find { it.itag == wanted } }
+                            ?: formatList
+                                .filter { it.isAudio && it.url.isNullOrEmpty().not() }
+                                .maxByOrNull { it.bitrate }
                     var format =
                         if (isVideo) {
                             videoFormat

@@ -111,14 +111,12 @@ import simpmusic.composeapp.generated.resources.favorite_podcasts
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.mix_for_you
 import simpmusic.composeapp.generated.resources.no_YouTube_playlists
-import simpmusic.composeapp.generated.resources.no_charts_found
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
 import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
-import simpmusic.composeapp.generated.resources.simpmusic_charts
 import simpmusic.composeapp.generated.resources.your_library
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
@@ -142,7 +140,6 @@ fun LibraryScreen(
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
-    val chartPlaylists by viewModel.chartPlaylists.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
     val libraryOverview by viewModel.libraryOverview.collectAsStateWithLifecycle()
 
@@ -211,11 +208,6 @@ fun LibraryScreen(
                 viewModel.getFavoritePodcasts()
             }
 
-            LibraryChipType.CHART -> {
-                if (chartPlaylists.data.isNullOrEmpty()) {
-                    viewModel.getChartPlaylists()
-                }
-            }
         }
     }
 
@@ -367,17 +359,6 @@ fun LibraryScreen(
                 }
             }
 
-            LibraryChipType.CHART -> {
-                GridLibraryPlaylist(
-                    navController,
-                    innerPadding.copy(top = topAppBarHeight),
-                    chartPlaylists,
-                    emptyText = Res.string.no_charts_found,
-                    onScrolling = onScrolling,
-                ) {
-                    viewModel.getChartPlaylists()
-                }
-            }
         }
     }
     val coroutineScope = rememberCoroutineScope()
@@ -557,7 +538,6 @@ fun LibraryScreen(
                             LibraryChipType.FAVORITE_PLAYLIST -> stringResource(Res.string.favorite_playlists)
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
-                            LibraryChipType.CHART -> stringResource(Res.string.simpmusic_charts)
                         },
                 ) {
                     viewModel.setCurrentScreen(type)

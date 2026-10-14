@@ -6,7 +6,6 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.entities.YourYouTubePlaylistList
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -89,5 +88,4 @@ interface PlaylistRepository {
     /**
      * @return Country Code -> YouTube Music Playlist ID
      */
-    fun getChartPlaylist(): Flow<Resource<List<ChartItem>>>
 }

@@ -92,7 +92,6 @@ import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
-import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.HomeContentType
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
@@ -118,7 +117,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
-import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.live_badge
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.more
@@ -537,7 +535,6 @@ fun HomeItemContentPlaylist(
                     is com.maxrave.domain.data.model.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
                     is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
                     is LocalPlaylistEntity -> data.thumbnail
-                    is ChartItem -> null
                     is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                     is AlbumEntity -> data.thumbnails
                     is PlaylistEntity -> data.thumbnails
@@ -568,14 +565,6 @@ fun HomeItemContentPlaylist(
                                 )
                             }
 
-                            is ChartItem -> {
-                                painterPlaylistThumbnail(
-                                    data.name,
-                                    style = typo().bodySmall,
-                                    thumbSize * 0.9f to thumbSize * 0.9f,
-                                )
-                            }
-
                             else -> {
                                 rememberHolderPainter()
                             }
@@ -585,14 +574,6 @@ fun HomeItemContentPlaylist(
                             is LocalPlaylistEntity -> {
                                 painterPlaylistThumbnail(
                                     data.title,
-                                    style = typo().bodySmall,
-                                    thumbSize * 0.9f to thumbSize * 0.9f,
-                                )
-                            }
-
-                            is ChartItem -> {
-                                painterPlaylistThumbnail(
-                                    data.name,
                                     style = typo().bodySmall,
                                     thumbSize * 0.9f to thumbSize * 0.9f,
                                 )
@@ -620,7 +601,6 @@ fun HomeItemContentPlaylist(
                         is com.maxrave.domain.data.model.mood.genre.Content -> data.title.title
                         is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.title
                         is LocalPlaylistEntity -> data.title
-                        is ChartItem -> data.name
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
                         is PlaylistEntity -> data.title
@@ -670,10 +650,6 @@ fun HomeItemContentPlaylist(
 
                         is LocalPlaylistEntity -> {
                             stringResource(Res.string.you)
-                        }
-
-                        is ChartItem -> {
-                            stringResource(Res.string.app_name)
                         }
 
                         is PlaylistsResult -> {
