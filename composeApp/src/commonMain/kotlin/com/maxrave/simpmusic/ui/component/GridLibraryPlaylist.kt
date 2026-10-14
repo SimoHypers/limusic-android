@@ -48,7 +48,6 @@ import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
-import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
@@ -60,8 +59,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
-import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
-import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
@@ -281,21 +278,6 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                         )
                                     }
 
-                                    // The recap is not a stored playlist — it is a query over
-                                    // `playback_event` — so it opens the dynamic playlist screen,
-                                    // which rebuilds it from the year and month carried here.
-                                    is MonthlyRecapItem -> {
-                                        navController.navigate(
-                                            LibraryDynamicPlaylistDestination(
-                                                type =
-                                                    LibraryDynamicPlaylistType
-                                                        .MonthlyRecap(
-                                                            year = item.year,
-                                                            month = item.month,
-                                                        ).toStringParams(),
-                                            ),
-                                        )
-                                    }
                                 }
                             },
                             data = item,

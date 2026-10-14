@@ -48,7 +48,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
@@ -74,7 +73,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
     backdrop: PlatformBackdrop,
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean,
-    showAnalyticsTab: Boolean,
     showMixForYouTab: Boolean,
     onOpenNowPlaying: () -> Unit,
     liquidGlass: Boolean,
@@ -110,7 +108,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
         listOfNotNull(
             BottomNavScreen.Home,
             BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
-            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
             BottomNavScreen.Search,
         )
@@ -119,7 +116,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
         listOfNotNull(
             BottomNavScreen.Home,
             BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
-            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     var selectedIndex by rememberSaveable {
@@ -128,19 +124,15 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
-                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
                 is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
     }
-    // A tab can disappear from the bar under the user: tracking gets turned off while Analytics is
-    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
-    // nothing is left highlighted.
-    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
-        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
-            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
-        ) {
+    // The Mix tab disappears when the YouTube session ends; fall back to Home so nothing is left
+    // highlighted.
+    LaunchedEffect(showMixForYouTab) {
+        if (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal) {
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }

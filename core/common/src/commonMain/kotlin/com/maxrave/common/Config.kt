@@ -567,7 +567,6 @@ object MERGING_DATA_TYPE {
 
 enum class LibraryChipType {
     YOUR_LIBRARY,
-    WRAPPED,
     CHART,
     YOUTUBE_MUSIC_PLAYLIST,
     YOUTUBE_MIX_FOR_YOU,
@@ -587,7 +586,6 @@ enum class LibraryChipType {
             DOWNLOADED_PLAYLIST -> "downloaded_playlist"
             FAVORITE_PODCAST -> "favorite_podcast"
             CHART -> "chart"
-            WRAPPED -> "wrapped"
         }
 
     companion object {
@@ -601,7 +599,6 @@ enum class LibraryChipType {
                 "downloaded_playlist" -> DOWNLOADED_PLAYLIST
                 "favorite_podcast" -> FAVORITE_PODCAST
                 "chart" -> CHART
-                "wrapped" -> WRAPPED
                 else -> null
             }
     }

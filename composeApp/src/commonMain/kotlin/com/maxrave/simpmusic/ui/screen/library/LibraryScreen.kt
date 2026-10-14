@@ -9,7 +9,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -68,7 +67,6 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.SongEntity
-import com.maxrave.domain.data.model.taste.TasteProfile
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
@@ -84,24 +82,17 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
-import com.maxrave.simpmusic.ui.component.taste.ShareTasteSheet
-import com.maxrave.simpmusic.ui.component.taste.TasteCard
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
-import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
-import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
-import com.maxrave.simpmusic.viewModel.TasteUiState
-import com.maxrave.simpmusic.viewModel.TasteViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -109,12 +100,10 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.create
 import simpmusic.composeapp.generated.resources.downloaded_playlists
 import simpmusic.composeapp.generated.resources.favorite_playlists
@@ -130,7 +119,6 @@ import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.simpmusic_charts
-import simpmusic.composeapp.generated.resources.wrapped
 import simpmusic.composeapp.generated.resources.your_library
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
@@ -147,10 +135,6 @@ fun LibraryScreen(
     val density = LocalDensity.current
 
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
-    // Wrapped and its recaps are built entirely from playback_event, so the chip follows the same
-    // setting the Analytics tab does.
-    val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val monthlyRecaps by viewModel.monthlyRecaps.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
     val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
@@ -164,10 +148,6 @@ fun LibraryScreen(
 
     val selectionState = rememberSongSelectionState()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    val tasteViewModel: TasteViewModel = koinViewModel()
-    // Held here rather than inside the list item, so the sheet does not close if its card scrolls
-    // out of composition behind it.
-    var sharingTaste by remember { mutableStateOf<TasteProfile?>(null) }
     var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
     var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
@@ -236,10 +216,6 @@ fun LibraryScreen(
                     viewModel.getChartPlaylists()
                 }
             }
-
-            LibraryChipType.WRAPPED -> {
-                viewModel.getMonthlyRecaps()
-            }
         }
     }
 
@@ -286,23 +262,6 @@ fun LibraryScreen(
                     ) {
                         item {
                             LibraryTilingBox(navController, libraryOverview)
-                        }
-
-                        // The reading is drawn from playback_event, so the card follows the same
-                        // setting the Wrapped chip and the Analytics tab do.
-                        if (localTrackingEnabled) {
-                            item(key = "taste") {
-                                val tasteState by tasteViewModel.uiState.collectAsStateWithLifecycle()
-                                if (tasteState != TasteUiState.Hidden) {
-                                    TasteCard(
-                                        state = tasteState,
-                                        onGenerate = tasteViewModel::generate,
-                                        onOpenSettings = { navController.navigate(SettingsDestination) },
-                                        onShare = { sharingTaste = it },
-                                        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 8.dp),
-                                    )
-                                }
-                            }
                         }
 
                         if (!listCanvasSong.data.isNullOrEmpty()) {
@@ -419,21 +378,7 @@ fun LibraryScreen(
                     viewModel.getChartPlaylists()
                 }
             }
-
-            LibraryChipType.WRAPPED -> {
-                LibraryWrappedTab(
-                    navController = navController,
-                    contentPadding = innerPadding.copy(top = topAppBarHeight),
-                    recaps = monthlyRecaps,
-                    onScrolling = onScrolling,
-                ) {
-                    viewModel.getMonthlyRecaps()
-                }
-            }
         }
-    }
-    sharingTaste?.let { profile ->
-        ShareTasteSheet(profile = profile, onDismiss = { sharingTaste = null })
     }
     val coroutineScope = rememberCoroutineScope()
     if (showAddSheet) {
@@ -600,11 +545,6 @@ fun LibraryScreen(
                 if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
                     return@forEach
                 }
-                // Nothing to recap without the plays — gated exactly as the YouTube chip above
-                // is gated on being logged in.
-                if (type == LibraryChipType.WRAPPED && !localTrackingEnabled) {
-                    return@forEach
-                }
                 Chip(
                     isAnimated = false,
                     isSelected = type == currentFilter,
@@ -618,7 +558,6 @@ fun LibraryScreen(
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                             LibraryChipType.CHART -> stringResource(Res.string.simpmusic_charts)
-                            LibraryChipType.WRAPPED -> stringResource(Res.string.wrapped)
                         },
                 ) {
                     viewModel.setCurrentScreen(type)

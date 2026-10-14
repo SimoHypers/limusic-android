@@ -56,7 +56,6 @@ import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.mediaservice.player.MediaPlayerInterface
 import com.maxrave.domain.mediaservice.player.MediaPlayerListener
-import com.maxrave.domain.repository.AnalyticsRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.StreamRepository
@@ -114,7 +113,6 @@ internal class MediaServiceHandlerImpl(
     private val songRepository: SongRepository,
     private val streamRepository: StreamRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
-    private val analyticsRepository: AnalyticsRepository,
     private val coroutineScope: CoroutineScope,
 ) : MediaPlayerHandler,
     MediaPlayerListener {
@@ -2635,11 +2633,6 @@ internal class MediaServiceHandlerImpl(
         reason: Int,
     ) {
         Logger.w(TAG, "Checking current state before transition ${simpleMediaState.value}")
-        val lastPlayed = nowPlayingState.value.songEntity
-        val currentState = simpleMediaState.value
-        if (currentState is SimpleMediaState.Progress && lastPlayed != null && lastPlayed.durationSeconds > 0) {
-            mayBeTrackingListeningLocal(lastPlayed, currentState.progress)
-        }
         Logger.w(TAG, "Smooth Switching Transition Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
         Logger.w(TAG, "REASON onMediaItemTransition: $reason")
@@ -2679,40 +2672,6 @@ internal class MediaServiceHandlerImpl(
             resetCrossfade()
         }
         mayBeSaveRecentSong()
-    }
-
-    private fun mayBeTrackingListeningLocal(
-        song: SongEntity,
-        currentPositionMillis: Long,
-    ) {
-        coroutineScope.launch {
-            val trackingEnabled = dataStoreManager.localTrackingEnabled.first() == TRUE
-            if (!trackingEnabled) {
-                return@launch
-            }
-            val percent = (currentPositionMillis / (song.durationSeconds * 1000f))
-            Logger.w(TAG, "${song.title} - $currentPositionMillis ms listened, duration: ${song.durationSeconds * 1000} ms, percent: $percent")
-            if (percent < 0.2f) {
-                Logger.d(TAG, "Not enough listening time for ${song.title}, skipping tracking")
-                return@launch
-            }
-            Logger.d(TAG, "Tracking listening for ${song.title} at position $currentPositionMillis ms")
-            analyticsRepository
-                .insertPlaybackEvent(
-                    videoId = song.videoId,
-                    channelIds = song.artistId ?: emptyList(),
-                    albumBrowseId = song.albumId,
-                    durationSecond = song.durationSeconds.toLong(),
-                    listenedSecond =
-                        if (percent >= 0.8f) {
-                            song.durationSeconds.toLong()
-                        } else {
-                            (currentPositionMillis / 1000)
-                        },
-                ).collect {
-                    Logger.d(TAG, "Inserted playback event for ${song.title}: $it")
-                }
-        }
     }
 
     private fun updateDiscordRpc(song: SongEntity) {

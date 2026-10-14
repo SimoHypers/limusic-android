@@ -115,23 +115,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val tasteProfile: Flow<String?> =
-        settingsDataStore.data.map { preferences ->
-            preferences[TASTE_PROFILE]
-        }
-
-    override suspend fun setTasteProfile(json: String?) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                if (json == null) {
-                    settings.remove(TASTE_PROFILE)
-                } else {
-                    settings[TASTE_PROFILE] = json
-                }
-            }
-        }
-    }
-
     override val quality: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[QUALITY] ?: COMMON_QUALITY.items[0].toString()
@@ -1495,19 +1478,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val localTrackingEnabled: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[LOCAL_TRACKING_ENABLED] ?: FALSE
-        }
-
-    override suspend fun setLocalTrackingEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[LOCAL_TRACKING_ENABLED] = if (enabled) TRUE else FALSE
-            }
-        }
-    }
-
     // Auto Backup
     override val autoBackupEnabled: Flow<String> =
         settingsDataStore.data.map { preferences ->
@@ -1571,7 +1541,6 @@ internal class DataStoreManagerImpl(
         val LOCATION = stringPreferencesKey("location")
         val MOOD_AND_GENRES_CACHE = stringPreferencesKey("mood_and_genres_cache")
         val MOOD_ARTWORK_CACHE = stringPreferencesKey("mood_artwork_cache")
-        val TASTE_PROFILE = stringPreferencesKey("ai_taste_profile")
         val QUALITY = stringPreferencesKey("quality")
         val DOWNLOAD_QUALITY = stringPreferencesKey("download_quality")
         val VIDEO_DOWNLOAD_QUALITY = stringPreferencesKey("video_download_quality")
@@ -1669,7 +1638,6 @@ internal class DataStoreManagerImpl(
         val LASTFM_USERNAME = stringPreferencesKey("lastfm_username")
         val LASTFM_SCROBBLE_ENABLED = stringPreferencesKey("lastfm_scrobble_enabled")
 
-        val LOCAL_TRACKING_ENABLED = stringPreferencesKey("local_tracking_enabled")
 
 
         // Auto Backup

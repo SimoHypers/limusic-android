@@ -65,10 +65,8 @@ import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
@@ -126,9 +124,6 @@ fun App(
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
-    // Analytics only makes sense with local tracking on, so its tab follows that setting.
-    val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
-    val showAnalyticsTab = isLocalTrackingEnabled == TRUE
     // Mix for you comes from the signed-in YouTube account, so its tab follows the session — the
     // same condition that used to hide the chip inside Library.
     val isYouTubeLoggedIn by viewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -211,11 +206,10 @@ fun App(
                     }
                 Logger.d("MainActivity", "simpmusic.org deep link, appPath: $appPath")
                 // A path added to the when below must also go into APP_LINK_PATHS in AppLinks.kt.
-                // Some screens exist only with local tracking on or while signed in to YouTube; see
-                // isAppLinkAvailable. Read before setIntent(null): clearing the intent changes this
-                // effect's key, and the next frame cancels the effect wherever it is suspended, which
-                // would lose a navigation waiting on these reads.
-                val localTrackingOn = viewModel.getLocalTrackingEnabled().first() == TRUE
+                // Some screens exist only while signed in to YouTube; see isAppLinkAvailable. Read
+                // before setIntent(null): clearing the intent changes this effect's key, and the next
+                // frame cancels the effect wherever it is suspended, which would lose a navigation
+                // waiting on this read.
                 val youTubeLoggedIn = viewModel.getYouTubeLoggedIn().first() == TRUE
                 viewModel.setIntent(null)
                 when (appPath) {
@@ -268,10 +262,10 @@ fun App(
                     "library" -> {
                         val type = data.getQueryParameter("type")
                         if (type.isNullOrBlank()) {
-                            // simpmusic://library?tab=wrapped → the Library tab on one of its chips,
-                            // named as LibraryChipType stores them (a launch banner points at Wrapped).
+                            // simpmusic://library?tab=chart → the Library tab on one of its chips,
+                            // named as LibraryChipType stores them.
                             val tab = libraryTabOf(data)
-                            if (!isAppLinkAvailable(appPath, tab, localTrackingOn, youTubeLoggedIn)) {
+                            if (!isAppLinkAvailable(appPath, tab, youTubeLoggedIn)) {
                                 viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                             } else {
                                 viewModel.requestLibraryTab(tab)
@@ -279,27 +273,6 @@ fun App(
                             }
                         } else {
                             navController.navigate(LibraryDynamicPlaylistDestination(type = type))
-                        }
-                    }
-
-                    // simpmusic://analytics — added for the launch banners.
-                    "analytics" -> {
-                        if (isAppLinkAvailable(appPath, null, localTrackingOn, youTubeLoggedIn)) {
-                            navController.navigate(AnalyticsDestination)
-                        } else {
-                            viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
-                        }
-                    }
-
-                    // simpmusic://taste — the AI taste card, which sits on Your library. A link of its
-                    // own rather than library?tab=your_library, so it can say that the card exists only
-                    // while local tracking is on.
-                    "taste" -> {
-                        if (isAppLinkAvailable(appPath, null, localTrackingOn, youTubeLoggedIn)) {
-                            viewModel.requestLibraryTab(LibraryChipType.YOUR_LIBRARY)
-                            navController.navigate(LibraryDestination)
-                        } else {
-                            viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                         }
                     }
 
@@ -376,29 +349,9 @@ fun App(
         if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
             isShowNowPlaylistScreen = false
         }
-        // Wrapped counts as fullscreen for the same reason the video player does: it is a
-        // full-bleed reel, and the rail and the mini player would sit on top of the card the user
-        // is meant to be reading — and on top of every card captured as a share image.
         isInFullscreen = navBackStackEntry?.destination?.hierarchy?.any {
-            it.hasRoute(FullscreenDestination::class) || it.hasRoute(WrappedDestination::class)
+            it.hasRoute(FullscreenDestination::class)
         } == true
-    }
-    LaunchedEffect(showAnalyticsTab) {
-        // Turning tracking off removes the Analytics tab, so leaving the user standing on it would
-        // strand them on a screen no tab points at anymore.
-        if (!showAnalyticsTab &&
-            navBackStackEntry?.destination?.hierarchy?.any {
-                it.hasRoute(AnalyticsDestination::class)
-            } == true
-        ) {
-            navController.navigate(HomeDestination) {
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
-                }
-                launchSingleTop = true
-                restoreState = true
-            }
-        }
     }
     LaunchedEffect(showMixForYouTab) {
         // Same for signing out of YouTube: the Mix for you tab goes away, so nobody may be left
@@ -490,7 +443,6 @@ fun App(
                                     viewModel = viewModel,
                                     onOpenNowPlaying = { isShowNowPlaylistScreen = true },
                                     isScrolledToTop = isScrolledToTop,
-                                    showAnalyticsTab = showAnalyticsTab,
                                     showMixForYouTab = showMixForYouTab,
                                     liquidGlass = isLiquidGlassEnabled == TRUE,
                                 ) { klass ->
@@ -499,7 +451,6 @@ fun App(
                             } else {
                                 AppBottomNavigationBar(
                                     navController = navController,
-                                    showAnalyticsTab = showAnalyticsTab,
                                     showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
@@ -527,7 +478,6 @@ fun App(
                         if (isTablet && !isInFullscreen) {
                             AppNavigationRail(
                                 navController = navController,
-                                showAnalyticsTab = showAnalyticsTab,
                                 showMixForYouTab = showMixForYouTab,
                             ) { klass ->
                                 viewModel.reloadDestination(klass)

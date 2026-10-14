@@ -8,7 +8,6 @@ import com.maxrave.data.dataStore.DataStoreManagerImpl
 import com.maxrave.data.dataStore.createDataStoreInstance
 import com.maxrave.data.db.Converters
 import com.maxrave.data.db.MusicDatabase
-import com.maxrave.data.db.datasource.AnalyticsDatasource
 import com.maxrave.data.db.datasource.LocalDataSource
 import com.maxrave.data.db.getDatabaseBuilder
 import com.maxrave.domain.manager.DataStoreManager
@@ -44,10 +43,6 @@ val databaseModule =
         // LocalDataSource
         single(createdAtStart = true) {
             LocalDataSource(get<DatabaseDao>(), get<MusicDatabase>())
-        }
-        // AnalyticsDatasource
-        single(createdAtStart = true) {
-            AnalyticsDatasource(get<DatabaseDao>())
         }
         // Datastore
         single(createdAtStart = true) {

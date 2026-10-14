@@ -208,8 +208,6 @@ class SettingsViewModel(
     private val _videoDownloadQuality = MutableStateFlow<String?>(null)
     val videoDownloadQuality: StateFlow<String?> = _videoDownloadQuality
 
-    private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
-    val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
 
     // Auto Backup
     private val _autoBackupEnabled = MutableStateFlow<Boolean>(false)
@@ -308,7 +306,6 @@ class SettingsViewModel(
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
         getVideoDownloadQuality()
-        getLocalTrackingEnabled()
         getAutoBackupEnabled()
         getAutoBackupFrequency()
         getAutoBackupMaxFiles()
@@ -319,21 +316,6 @@ class SettingsViewModel(
             )?.let {
                 _fraction.value = it
             }
-        }
-    }
-
-    private fun getLocalTrackingEnabled() {
-        viewModelScope.launch {
-            dataStoreManager.localTrackingEnabled.collect { enabled ->
-                _localTrackingEnabled.value = enabled == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setLocalTrackingEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setLocalTrackingEnabled(enabled)
-            getLocalTrackingEnabled()
         }
     }
 
@@ -1189,9 +1171,6 @@ class SettingsViewModel(
                 makeToast(getString(Res.string.error))
                 return@launch
             }
-            // The taste reading in Library was written from the history just wiped; left behind, it
-            // would keep describing a listener the app no longer has any record of.
-            dataStoreManager.setTasteProfile(null)
             makeToast(formatString(Res.string.clear_listening_history_done, removed))
             // Only the database slice of the storage bar moved; getData() would also restart every
             // collecting getter it owns.

@@ -94,7 +94,6 @@ import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.HomeContentType
-import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
@@ -115,7 +114,6 @@ import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
@@ -127,7 +125,6 @@ import simpmusic.composeapp.generated.resources.more
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.subscribers
-import simpmusic.composeapp.generated.resources.wrapped_recap_subtitle
 import simpmusic.composeapp.generated.resources.you
 
 @Composable
@@ -549,12 +546,6 @@ fun HomeItemContentPlaylist(
                     is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
                     is PodcastsEntity -> data.thumbnail
                     is AlbumsResult -> data.thumbnails.lastOrNull()?.url
-                    // A recap owns no artwork; it borrows the month's own top song's, resolved
-                    // where the recap itself is (LibraryViewModel.getMonthlyRecaps).
-                    // Deliberately null: a recap has no artwork of its own, so it falls to
-                    // the title placeholder below — the same tile a local playlist without
-                    // a thumbnail gets. Same reason ChartItem above is null.
-                    is MonthlyRecapItem -> null
                     else -> null
                 }
             Box {
@@ -585,17 +576,6 @@ fun HomeItemContentPlaylist(
                                 )
                             }
 
-                            // A month whose top song has no artwork still has a name, and the
-                            // deterministic title tile reads as a playlist where the grey holder
-                            // reads as a failed load.
-                            is MonthlyRecapItem -> {
-                                painterPlaylistThumbnail(
-                                    data.title,
-                                    style = typo().bodySmall,
-                                    thumbSize * 0.9f to thumbSize * 0.9f,
-                                )
-                            }
-
                             else -> {
                                 rememberHolderPainter()
                             }
@@ -613,17 +593,6 @@ fun HomeItemContentPlaylist(
                             is ChartItem -> {
                                 painterPlaylistThumbnail(
                                     data.name,
-                                    style = typo().bodySmall,
-                                    thumbSize * 0.9f to thumbSize * 0.9f,
-                                )
-                            }
-
-                            // A month whose top song has no artwork still has a name, and the
-                            // deterministic title tile reads as a playlist where the grey holder
-                            // reads as a failed load.
-                            is MonthlyRecapItem -> {
-                                painterPlaylistThumbnail(
-                                    data.title,
                                     style = typo().bodySmall,
                                     thumbSize * 0.9f to thumbSize * 0.9f,
                                 )
@@ -660,7 +629,6 @@ fun HomeItemContentPlaylist(
                         is ResultPlaylist -> data.title
                         is PodcastsEntity -> data.title
                         is AlbumsResult -> data.title
-                        is MonthlyRecapItem -> data.title
                         else -> ""
                     },
                 style = typo().titleSmall,
@@ -734,10 +702,6 @@ fun HomeItemContentPlaylist(
 
                         is PodcastsEntity -> {
                             data.authorName
-                        }
-
-                        is MonthlyRecapItem -> {
-                            stringResource(Res.string.wrapped_recap_subtitle)
                         }
 
                         is AlbumsResult -> {

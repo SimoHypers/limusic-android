@@ -283,8 +283,6 @@ import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.lastfm_integration
 import simpmusic.composeapp.generated.resources.limit_player_cache
 import simpmusic.composeapp.generated.resources.listening_history
-import simpmusic.composeapp.generated.resources.local_tracking_description
-import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_lastfm
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
@@ -484,7 +482,6 @@ fun SettingScreen(
     val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
-    val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val radioAudioOnly by remember { viewModel.radioAudioOnly.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
@@ -1479,16 +1476,8 @@ fun SettingScreen(
                 }
             }
         }
-        // Deliberately not part of "storage" further down, which is Android-only: tracking and the
-        // rows it leaves behind exist on Desktop just the same. The switch that produces the history
-        // and the button that erases it belong together.
         item(key = "listening_history") {
             SettingGroup(title = stringResource(Res.string.listening_history)) {
-                SettingItem(
-                    title = stringResource(Res.string.local_tracking_title),
-                    subtitle = stringResource(Res.string.local_tracking_description),
-                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
-                )
                 SettingItem(
                     title = stringResource(Res.string.clear_listening_history),
                     subtitle = stringResource(Res.string.clear_listening_history_description),
