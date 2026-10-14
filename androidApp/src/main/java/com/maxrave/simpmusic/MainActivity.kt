@@ -143,14 +143,15 @@ class MainActivity : AppCompatActivity() {
                     }",
                 )
                 putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
-                if (SUPPORTED_LOCATION.items.contains(Locale.getDefault().country)) {
-                    putString("location", Locale.getDefault().country)
-                } else {
-                    putString("location", "US")
-                }
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
             }
+            // The content region follows the phone's country whatever its language, so an en-GB phone
+            // gets GB rather than the stored default.
+            putString(
+                "location",
+                Locale.getDefault().country.takeIf { it in SUPPORTED_LOCATION.items } ?: "US",
+            )
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
                 Logger.d("Locale Key", "getString: $it")
