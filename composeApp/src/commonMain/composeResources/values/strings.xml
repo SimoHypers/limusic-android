@@ -78,14 +78,13 @@
     <string name="clear_thumbnail_cache">Clear Thumbnail Cache</string>
     <string name="playlist_name">Playlist Name</string>
     <string name="create">Create</string>
-    <string name="edit_title">Edit title</string>
-    <string name="edit_thumbnail">Edit thumbnail</string>
     <string name="delete_playlist">Delete playlist</string>
     <string name="edit_playlist">Edit playlist</string>
     <string name="save_to_playlist">Save to playlist</string>
     <string name="playlist_saved">Playlist saved</string>
     <string name="playlist_deleted">Playlist deleted</string>
     <string name="delete_playlist_confirm">Delete this playlist?</string>
+    <string name="delete_playlist_desc_local">“%1$s” will be deleted from this device. This can’t be undone.</string>
     <string name="delete_playlist_desc">“%1$s” will be deleted from your YouTube Music account. This can’t be undone.</string>
     <string name="change_image">Change image</string>
     <string name="public_playlist">Public</string>
@@ -347,7 +346,6 @@
     <string name="proxy_username_message">Please enter your Proxy username (optional)</string>
     <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
-    <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Autoplay</string>
     <string name="continue_playing">Continue Playing</string>
     <string name="do_not_show_again">Do not show again</string>

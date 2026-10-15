@@ -73,8 +73,6 @@
     <string name="clear_thumbnail_cache">Titelbild-Cache leeren</string>
     <string name="playlist_name">Name der Playlist</string>
     <string name="create">Erstellen</string>
-    <string name="edit_title">Titel bearbeiten</string>
-    <string name="edit_thumbnail">Titelbild bearbeiten</string>
     <string name="delete_playlist">Playlist löschen</string>
     <string name="add_to_a_playlist">Zu Playlist hinzufügen</string>
     <string name="share">Teilen</string>
@@ -309,7 +307,6 @@
     <string name="proxy_username_message">Bitte gebe deinen Proxy-Benutzernamen ein (optional)</string>
     <string name="proxy_password_message">Bitte gebe dein Proxy-Passwort ein (optional)</string>
     <string name="five_seconds">Fünf Sekunden</string>
-    <string name="sync_first">Diese Playlist erst mit Youtube Musik synchronisieren</string>
     <string name="endless_queue">Endlose Warteschlange</string>
     <string name="continue_playing">Continuer à jouer</string>
     <string name="do_not_show_again">Nicht erneut anzeigen</string>

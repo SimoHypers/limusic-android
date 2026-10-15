@@ -64,8 +64,6 @@
     <string name="clear_thumbnail_cache">مسح ذاكرة الصور المصغرة</string>
     <string name="playlist_name">اسم قائمة التشغيل</string>
     <string name="create">إنشاء</string>
-    <string name="edit_title">تعديل العنوان</string>
-    <string name="edit_thumbnail">تعديل الصورة المصغرة</string>
     <string name="delete_playlist">حذف قائمة التشغيل</string>
     <string name="add_to_a_playlist">إضافة إلى قائمة تشغيل</string>
     <string name="share">مشاركة</string>

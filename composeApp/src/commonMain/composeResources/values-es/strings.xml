@@ -72,8 +72,6 @@
     <string name="clear_thumbnail_cache">Limpiar cache de imágenes</string>
     <string name="playlist_name">Nombre de la lista</string>
     <string name="create">Crear</string>
-    <string name="edit_title">Editar título</string>
-    <string name="edit_thumbnail">Editar Imagen</string>
     <string name="delete_playlist">Borrar lista</string>
     <string name="add_to_a_playlist">Añadir a una lista</string>
     <string name="share">Compartir</string>
@@ -307,7 +305,6 @@
     <string name="proxy_username_message">Por favor ingrese su nombre de usuario proxy (opcional)</string>
     <string name="proxy_password_message">Introduzca su contraseña proxy (opcional)</string>
     <string name="five_seconds">Cinco segundos</string>
-    <string name="sync_first">Primero sincroniza esta playlist a Youtube Music</string>
     <string name="endless_queue">Cola infinita</string>
     <string name="continue_playing">Continúa reproduciendo</string>
     <string name="do_not_show_again">No mostrar de nuevo</string>

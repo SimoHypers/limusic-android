@@ -78,8 +78,6 @@
     <string name="clear_thumbnail_cache">Pulisci la cache delle copertine</string>
     <string name="playlist_name">Nome della playlist</string>
     <string name="create">Crea</string>
-    <string name="edit_title">Modifica il titolo</string>
-    <string name="edit_thumbnail">Modifica la copertina</string>
     <string name="delete_playlist">Elimina la playlist</string>
     <string name="add_to_a_playlist">Aggiungi alla playlist</string>
     <string name="share">Condividi</string>
@@ -307,7 +305,6 @@
     <string name="proxy_username_message">Inserisci il tuo nome utente proxy (opzionale)</string>
     <string name="proxy_password_message">Inserisci la tua password proxy (opzionale)</string>
     <string name="five_seconds">Cinque secondi</string>
-    <string name="sync_first">Sincronizza prima questa playlist con YouTube Music</string>
     <string name="endless_queue">Coda infinita</string>
     <string name="continue_playing">Riproduzione continua</string>
     <string name="do_not_show_again">Non mostrare più</string>

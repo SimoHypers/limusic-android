@@ -82,8 +82,6 @@
     <string name="clear_thumbnail_cache">Очистить кэш миниатюр</string>
     <string name="playlist_name">Название плейлиста</string>
     <string name="create">Создать</string>
-    <string name="edit_title">Редактировать название</string>
-    <string name="edit_thumbnail">Редактировать миниатюру</string>
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="add_to_a_playlist">Добавить в плейлист</string>
     <string name="share">Поделиться</string>
@@ -319,7 +317,6 @@
     <string name="proxy_username_message">Введите имя пользователя вашего прокси-сервера (необязательно)</string>
     <string name="proxy_password_message">Введите пароль от вашего прокси-сервера (необязательно)</string>
     <string name="five_seconds">Пять секунд</string>
-    <string name="sync_first">Сначала синхронизируйте этот плейлист с YouTube Music</string>
     <string name="endless_queue">Бесконечная очередь</string>
     <string name="continue_playing">Продолжать играть когда очередь закончится</string>
     <string name="do_not_show_again">Больше не показывать</string>

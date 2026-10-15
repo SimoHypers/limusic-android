@@ -63,8 +63,6 @@
     <string name="clear_thumbnail_cache">נקה מטמון תמונות ממוזערות</string>
     <string name="playlist_name">שם רשימת ההשמעה</string>
     <string name="create">צור</string>
-    <string name="edit_title">ערוך כותרת</string>
-    <string name="edit_thumbnail">ערוך תמונה ממוזערת</string>
     <string name="delete_playlist">מחיקת רשימת השמעה</string>
     <string name="add_to_a_playlist">הוסף לרשימת ההשמעה</string>
     <string name="share">שיתוף</string>

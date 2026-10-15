@@ -76,8 +76,6 @@
     <string name="clear_thumbnail_cache">Xoá bộ nhớ cache của trình tải ảnh</string>
     <string name="playlist_name">Tên danh sách phát</string>
     <string name="create">Tạo</string>
-    <string name="edit_title">Chỉnh sửa tiêu đề</string>
-    <string name="edit_thumbnail">Chỉnh sửa ảnh nền</string>
     <string name="delete_playlist">Xoá danh sách phát</string>
     <string name="add_to_a_playlist">Thêm danh sách phát</string>
     <string name="share">Chia sẻ</string>
@@ -313,7 +311,6 @@
     <string name="proxy_username_message">Hãy điền tên người dùng proxy của bạn (tùy chọn)</string>
     <string name="proxy_password_message">Hãy điền tên mật khẩu proxy của bạn (tùy chọn)</string>
     <string name="five_seconds">5 giây</string>
-    <string name="sync_first">Đồng bộ danh sách phát này với YouTube Music trước</string>
     <string name="endless_queue">Hàng đợi không dừng</string>
     <string name="continue_playing">Tiếp tục phát</string>
     <string name="do_not_show_again">Không hiển thị lại</string>

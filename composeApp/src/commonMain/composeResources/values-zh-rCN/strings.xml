@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">清除缩略图缓存</string>
     <string name="playlist_name">歌单名称</string>
     <string name="create">创建</string>
-    <string name="edit_title">编辑标题</string>
-    <string name="edit_thumbnail">编辑缩略图</string>
     <string name="delete_playlist">删除歌单</string>
     <string name="add_to_a_playlist">添加到歌单</string>
     <string name="share">分享</string>
@@ -255,7 +253,6 @@
     <string name="proxy_username_message">请输入您的代理服务器用户名 (可选)</string>
     <string name="proxy_password_message">请输入您的代理服务器密码 (可选)</string>
     <string name="five_seconds">5秒</string>
-    <string name="sync_first">首先将此播放列表同步到 YouTube 音乐</string>
     <string name="endless_queue">无尽队列</string>
     <string name="do_not_show_again">不再显示</string>
     <string name="playback_speed_pitch"><![CDATA[播放速度与音调]]></string>

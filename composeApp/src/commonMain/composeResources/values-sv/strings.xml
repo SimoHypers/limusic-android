@@ -72,8 +72,6 @@
     <string name="clear_thumbnail_cache">Rensa cache för miniatyrbilder</string>
     <string name="playlist_name">Spellistans namn</string>
     <string name="create">Skapa</string>
-    <string name="edit_title">Redigera titel</string>
-    <string name="edit_thumbnail">Redigera miniatyrbild</string>
     <string name="delete_playlist">Ta bort spellista</string>
     <string name="add_to_a_playlist">Lägg till i spellista</string>
     <string name="share">Dela</string>
@@ -308,7 +306,6 @@
     <string name="proxy_username_message">Ange användarnamnet för proxyservern (valfritt)</string>
     <string name="proxy_password_message">Ange lösenordet för proxyservern (valfritt)</string>
     <string name="five_seconds">Fem sekunder</string>
-    <string name="sync_first">Synkronisera den här spellistan till YouTube Music först</string>
     <string name="endless_queue">Oändlig kö</string>
     <string name="continue_playing">Fortsätt spela</string>
     <string name="do_not_show_again">Visa inte igen</string>

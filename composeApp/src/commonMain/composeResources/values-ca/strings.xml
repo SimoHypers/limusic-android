@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Esborra la memòria cau de les miniatures</string>
     <string name="playlist_name">Nom de la llista de reproducció</string>
     <string name="create">Crea</string>
-    <string name="edit_title">Edita el títol</string>
-    <string name="edit_thumbnail">Edita la miniatura</string>
     <string name="delete_playlist">Suprimeix la llista de reproducció</string>
     <string name="add_to_a_playlist">Afegeix a una llista de reproducció</string>
     <string name="share">Compartir</string>
@@ -246,7 +244,6 @@
     <string name="proxy_username_message">Introdueix el nom d'usuari del proxy (opcional)</string>
     <string name="proxy_password_message">Introdueix la contrasenya del proxy (opcional)</string>
     <string name="five_seconds">Cinc segons</string>
-    <string name="sync_first">Sincronitza aquesta llista amb YouTube Music primer</string>
     <string name="endless_queue">Cua de reproducció sense fi</string>
     <string name="do_not_show_again">No ho tornis a mostrar</string>
     <string name="playback_speed_pitch"><![CDATA[Velocitat de reproducció i to]]></string>

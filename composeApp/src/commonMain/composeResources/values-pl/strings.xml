@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Wyczyść pamięć podręczną miniatur</string>
     <string name="playlist_name">Nazwa playlisty</string>
     <string name="create">Utwórz</string>
-    <string name="edit_title">Edytuj tytuł</string>
-    <string name="edit_thumbnail">Edytuj miniaturkę</string>
     <string name="delete_playlist">Usuń playlistę</string>
     <string name="add_to_a_playlist">Dodaj do playlisty</string>
     <string name="share">Udostępnij</string>
@@ -252,7 +250,6 @@
     <string name="proxy_password">Hasło proxy</string>
     <string name="proxy_username_message">Wprowadź nazwę użytkownika proxy (opcjonalne)</string>
     <string name="five_seconds">Pięć sekund</string>
-    <string name="sync_first">Najpierw synchronizuj tę playlistę z YouTube Music</string>
     <string name="endless_queue">Kolejka bez końca</string>
     <string name="do_not_show_again">Nie pokazuj ponownie</string>
     <string name="playback_speed_pitch"><![CDATA[Prędkość odtwarzania i tonacja]]></string>

@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Изчисти кеша на изображенията</string>
     <string name="playlist_name">Име на плейлист</string>
     <string name="create">Създай</string>
-    <string name="edit_title">Редактиране на заглавието</string>
-    <string name="edit_thumbnail">Промяна на изображението</string>
     <string name="delete_playlist">Изтрий плейлиста</string>
     <string name="add_to_a_playlist">Добави към плейлиста</string>
     <string name="share">Сподели</string>
@@ -241,7 +239,6 @@
     <string name="proxy_host_message">Моля, въведете прокси хост</string>
     <string name="proxy_port_message">Моля, въведете прокси порт</string>
     <string name="five_seconds">Пет секунди</string>
-    <string name="sync_first">Синхронизирай плейлиста първо в YouTube Music</string>
     <string name="endless_queue">Безкрайна опашка</string>
     <string name="do_not_show_again">Не показвай отново</string>
     <string name="playback_speed_pitch"><![CDATA[Скорост на възпроизвеждане и тон]]></string>

@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">پاک‌سازی حافظه پنهان تصاویر کوچک</string>
     <string name="playlist_name">نام فهرست پخش</string>
     <string name="create">ایجاد</string>
-    <string name="edit_title">ویرایش عنوان</string>
-    <string name="edit_thumbnail">ویرایش تصویر کوچک</string>
     <string name="delete_playlist">حذف لیست پخش</string>
     <string name="add_to_a_playlist">افزودن به فهرست پخش</string>
     <string name="share">هم‌رسانی</string>
@@ -245,7 +243,6 @@
     <string name="proxy_host_message">لطفا میزبان پروکسی خود را وارد کنید</string>
     <string name="proxy_port_message">لطفا پورت پروکسی خود را وارد کنید</string>
     <string name="five_seconds">5 ثانیه</string>
-    <string name="sync_first">ابتدا این پلی‌لیست را با یوتیوب موزیک همگام‌سازی کنید</string>
     <string name="endless_queue">صف بی‌پایان</string>
     <string name="do_not_show_again">دوباره نشان نده</string>
     <string name="playback_speed_pitch"><![CDATA[سرعت پخش و گام]]></string>

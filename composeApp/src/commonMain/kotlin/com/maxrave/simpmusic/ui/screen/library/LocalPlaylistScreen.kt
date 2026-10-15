@@ -15,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -24,12 +23,10 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -87,8 +84,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -106,12 +101,12 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toBitmap
 import com.kyant.backdrop.highlight.Highlight
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
@@ -130,6 +125,9 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.SearchBarExit
 import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
+import com.maxrave.simpmusic.ui.component.DeletePlaylistDialog
+import com.maxrave.simpmusic.ui.component.EditPlaylistBottomSheet
+import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.DraggableItem
@@ -160,7 +158,6 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Sort
 import com.maxrave.simpmusic.ui.icon.TipsAndUpdates
-import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
@@ -191,6 +188,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.delete_playlist_desc_local
 import simpmusic.composeapp.generated.resources.album_length
 import simpmusic.composeapp.generated.resources.baseline_downloaded
 import simpmusic.composeapp.generated.resources.cancel
@@ -202,7 +200,6 @@ import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.sync_playlist_warning
-import simpmusic.composeapp.generated.resources.synced_playlist_cannot_change_order
 import simpmusic.composeapp.generated.resources.unsync_playlist_warning
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
@@ -286,6 +283,10 @@ fun LocalPlaylistScreen(
     val suggestionsLoading by viewModel.loading.collectAsStateWithLifecycle()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
+    var showEditPlaylist by remember { mutableStateOf(false) }
+    var showDeletePlaylist by remember { mutableStateOf(false) }
+    // Set by the menu's Save to playlist; non-null shows the picker.
+    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
     var firstTimeGetLocalPlaylist by rememberSaveable {
         mutableStateOf(false)
     }
@@ -1509,23 +1510,13 @@ fun LocalPlaylistScreen(
         )
     }
     if (playlistBottomSheetShow) {
-        Logger.w("PlaylistScreen", "PlaylistBottomSheet")
         LocalPlaylistBottomSheet(
-            isBottomSheetVisible = playlistBottomSheetShow,
             onDismiss = { playlistBottomSheetShow = false },
-            title = uiState.title,
             ytPlaylistId = uiState.ytPlaylistId,
-            onEditTitle =
-                { newTitle ->
-                    viewModel.updatePlaylistTitle(newTitle, uiState.id)
-                },
-            onEditThumbnail =
-                { thumbUri ->
-                    viewModel.updatePlaylistThumbnail(thumbUri, uiState.id)
-                },
-            onAddToQueue = {
-                viewModel.addAllToQueue()
-            },
+            onPlayNext = { viewModel.withFullTracks { sharedViewModel.playListNext(it) } },
+            onAddToQueue = { viewModel.addAllToQueue() },
+            onSaveToPlaylist = { viewModel.withFullTracks { saveTracks = it } },
+            onEditPlaylist = { showEditPlaylist = true },
             onSync = {
                 if (uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
                     showUnsyncAlertDialog = true
@@ -1536,9 +1527,54 @@ fun LocalPlaylistScreen(
             onUpdatePlaylist = {
                 viewModel.updateListTrackSynced(uiState.id)
             },
-            onDelete = {
+            onDelete = { showDeletePlaylist = true },
+        )
+    }
+    if (showEditPlaylist) {
+        EditPlaylistBottomSheet(
+            title = uiState.title,
+            description = null,
+            privacy = null,
+            thumbnail = uiState.thumbnail,
+            onDismiss = { showEditPlaylist = false },
+            onSave = { title, _, _, cover, onResult ->
+                title?.let { viewModel.updatePlaylistTitle(it, uiState.id) }
+                coroutineScope.launch {
+                    // Named after the content: Coil caches by url, so a fixed name would keep
+                    // showing the old cover, and the same picture re-picked reuses its file.
+                    cover
+                        ?.let { persistPickedImage(it, "cover_${it.contentHashCode().toUInt()}.jpg") }
+                        ?.let { viewModel.updatePlaylistThumbnail(it, uiState.id) }
+                    onResult(true)
+                    showEditPlaylist = false
+                }
+            },
+        )
+    }
+    if (showDeletePlaylist) {
+        DeletePlaylistDialog(
+            message = stringResource(Res.string.delete_playlist_desc_local, uiState.title),
+            onDismiss = { showDeletePlaylist = false },
+            onConfirm = {
+                showDeletePlaylist = false
                 viewModel.deletePlaylist(uiState.id)
                 navController.navigateUp()
+            },
+        )
+    }
+    saveTracks?.let { toSave ->
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            // Not into itself.
+            listLocalPlaylist = localPlaylists.filter { it.id != uiState.id },
+            listYouTubePlaylist = youTubePlaylists,
+            onDismiss = { saveTracks = null },
+            onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
+            onYTPlaylistClick = { playlist ->
+                selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
             },
         )
     }

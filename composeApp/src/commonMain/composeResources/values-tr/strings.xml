@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Küçük Resim Önbelleğini Temizle</string>
     <string name="playlist_name">Oynatma Listesi Adı</string>
     <string name="create">Oluştur</string>
-    <string name="edit_title">Başlığı düzenle</string>
-    <string name="edit_thumbnail">Küçük resmi düzenle</string>
     <string name="delete_playlist">Oynatma listesini sil</string>
     <string name="add_to_a_playlist">Oynatma listesine ekle</string>
     <string name="share">Paylaş</string>
@@ -271,7 +269,6 @@
     <string name="proxy_username_message">Lütfen Proxy kullanıcı adınızı girin (isteğe bağlı)</string>
     <string name="proxy_password_message">Lütfen Proxy şifrenizi girin (isteğe bağlı)</string>
     <string name="five_seconds">Beş saniye</string>
-    <string name="sync_first">Önce bu çalma listesini YouTube Music ile senkronize edin</string>
     <string name="endless_queue">Sonsuz sıra</string>
     <string name="continue_playing">Çalmaya Devam Et</string>
     <string name="do_not_show_again">Tekrar gösterme</string>

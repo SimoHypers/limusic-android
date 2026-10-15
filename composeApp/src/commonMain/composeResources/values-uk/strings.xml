@@ -75,8 +75,6 @@
     <string name="clear_thumbnail_cache">Очистити кеш мініатюр</string>
     <string name="playlist_name">Назва списку</string>
     <string name="create">Створити</string>
-    <string name="edit_title">Редагувати назву</string>
-    <string name="edit_thumbnail">Редагувати мініатюру</string>
     <string name="delete_playlist">Видалити список</string>
     <string name="add_to_a_playlist">Додати до списку</string>
     <string name="share">Поділитися</string>
@@ -311,7 +309,6 @@
     <string name="proxy_username_message">Введіть ім'я користувача проксі-сервера (необов'язково)</string>
     <string name="proxy_password_message">Будь ласка,  введіть ім'я користувача проксі-сервера (необов'язково)</string>
     <string name="five_seconds">П'ять секунд</string>
-    <string name="sync_first">Спочатку синхронізуйте цей список відтворення з YouTube Music</string>
     <string name="endless_queue">Нескінченна черга</string>
     <string name="continue_playing">Продовжити грати</string>
     <string name="do_not_show_again">Більше не показувати</string>

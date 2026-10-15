@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">ล้างแคชภาพขนาดย่อ</string>
     <string name="playlist_name">ชื่อเพลย์ลิสต์</string>
     <string name="create">สร้าง</string>
-    <string name="edit_title">แก้ไขชื่อเรื่อง</string>
-    <string name="edit_thumbnail">แก้ไขภาพขนาดย่อ</string>
     <string name="delete_playlist">ลบเพลย์ลิสต์</string>
     <string name="add_to_a_playlist">เพิ่มลงในเพลย์ลิสต์</string>
     <string name="share">แบ่งปัน</string>
@@ -273,7 +271,6 @@
     <string name="proxy_username_message">กรุณากรอกชื่อผู้ใช้พร็อกซี (ไม่บังคับ)</string>
     <string name="proxy_password_message">กรุณากรอกรหัสผ่านพร็อกซี (ไม่บังคับ)</string>
     <string name="five_seconds">5 วินาที</string>
-    <string name="sync_first">ซิงค์เพลย์ลิสต์นี้กับ YouTube Music ก่อน</string>
     <string name="endless_queue">คิวไม่มีที่สิ้นสุด</string>
     <string name="do_not_show_again">อย่าแสดงอีก</string>
     <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>

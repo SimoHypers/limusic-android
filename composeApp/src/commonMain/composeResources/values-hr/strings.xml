@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Obriši Thumbnail Cache</string>
     <string name="playlist_name">Popis za reprodukciju Name</string>
     <string name="create">Stvori</string>
-    <string name="edit_title">Uredi title</string>
-    <string name="edit_thumbnail">Uredi thumbnail</string>
     <string name="delete_playlist">Izbriši playlist</string>
     <string name="add_to_a_playlist">Dodaj to a playlist</string>
     <string name="share">Dijeli</string>
@@ -300,7 +298,6 @@
     <string name="proxy_username_message">Please enter your Proxy username (optional)</string>
     <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
-    <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>
     <string name="continue_playing">Nastavi Playing</string>
     <string name="do_not_show_again">Do not show again</string>

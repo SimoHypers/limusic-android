@@ -118,7 +118,6 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.data.io.readLocalImageBytes
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
@@ -136,14 +135,11 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
-import com.maxrave.simpmusic.expect.ui.persistPickedImage
-import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
-import com.maxrave.simpmusic.ui.icon.AddPhotoAlternate
 import com.maxrave.simpmusic.ui.icon.Album
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.Close
@@ -206,7 +202,6 @@ import simpmusic.composeapp.generated.resources.bitrate
 import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
-import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.delete
@@ -220,9 +215,7 @@ import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.downloading_audio
 import simpmusic.composeapp.generated.resources.downloading_video
-import simpmusic.composeapp.generated.resources.edit_thumbnail
 import simpmusic.composeapp.generated.resources.edit_playlist
-import simpmusic.composeapp.generated.resources.edit_title
 import simpmusic.composeapp.generated.resources.endless_queue
 import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.extract_source
@@ -249,17 +242,14 @@ import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
 import simpmusic.composeapp.generated.resources.playback_speed_pitch
 import simpmusic.composeapp.generated.resources.playback_speed_pitch_disabled
-import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
-import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.share
-import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
 import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
@@ -270,7 +260,6 @@ import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.save_to_playlist
 import simpmusic.composeapp.generated.resources.start_radio
 import simpmusic.composeapp.generated.resources.sync
-import simpmusic.composeapp.generated.resources.sync_first
 import simpmusic.composeapp.generated.resources.synced
 import simpmusic.composeapp.generated.resources.title
 import simpmusic.composeapp.generated.resources.to_download_folder
@@ -2762,195 +2751,76 @@ fun PlaylistBottomSheet(
     }
 }
 
+/**
+ * The ⋮ menu of a playlist on this device: [PlaylistBottomSheet]'s rows minus radio and share
+ * (there is no YouTube playlist behind it until it is synced), plus sync and update.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistBottomSheet(
-    isBottomSheetVisible: Boolean,
     onDismiss: () -> Unit,
-    title: String,
     ytPlaylistId: String? = null,
-    onEditTitle: (newTitle: String) -> Unit,
-    onEditThumbnail: (newThumbnailUri: String) -> Unit,
+    onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
+    onSaveToPlaylist: () -> Unit,
+    onEditPlaylist: () -> Unit,
     onSync: () -> Unit,
     onUpdatePlaylist: () -> Unit,
     onDelete: () -> Unit,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
-        var showEditTitle by remember { mutableStateOf(false) }
-        val modelBottomSheetState =
-            rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val hideModalBottomSheet: () -> Unit =
-            {
-                coroutineScope.launch {
-                    modelBottomSheetState.hide()
-                    onDismiss()
-                }
-            }
-        // The picked file is cropped before it is used. A cover slot is square, so an uncropped 16:9
-        // photo would be squashed to fit — which is what it used to do.
-        var imageAwaitingCrop by remember { mutableStateOf<ByteArray?>(null) }
-        val resultLauncher =
-            photoPickerResult { pickedUri ->
-                pickedUri?.let { uri ->
-                    coroutineScope.launch { imageAwaitingCrop = readLocalImageBytes(uri) }
-                }
-            }
-        imageAwaitingCrop?.let { bytes ->
-            ImageCropperDialog(
-                imageBytes = bytes,
-                titleText = stringResource(Res.string.crop_cover),
-                confirmText = stringResource(Res.string.save),
-                cancelText = stringResource(Res.string.cancel),
-                onDismiss = { imageAwaitingCrop = null },
-                onCropped = { cropped ->
-                    imageAwaitingCrop = null
-                    coroutineScope.launch {
-                        // Written into the app's own storage, NOT reused from the picker's uri: that
-                        // one still points at the original uncropped file, and on Android the read
-                        // permission granted for it does not outlive the process.
-                        // Named after the CONTENT, not the clock. A fixed name would be overwritten
-                        // in place and Coil, which caches by url, would keep showing the previous
-                        // cover; a timestamp would leave a new file behind every time the user
-                        // re-picked the same picture. Hashing gives a fresh name for a new image and
-                        // the same name for the same one.
-                        persistPickedImage(cropped, "cover_${cropped.contentHashCode().toUInt()}.jpg")
-                            ?.let(onEditThumbnail)
-                    }
-                },
-            )
-        }
-        if (showEditTitle) {
-            var newTitle by remember { mutableStateOf(title) }
-            val showEditTitleSheetState =
-                rememberModalBottomSheetState(skipPartiallyExpanded = true)
-            val hideEditTitleBottomSheet: () -> Unit =
-                {
-                    coroutineScope.launch {
-                        showEditTitleSheetState.hide()
-                        onDismiss()
-                    }
-                }
-            ModalBottomSheet(
-                onDismissRequest = { showEditTitle = false },
-                sheetState = showEditTitleSheetState,
-                containerColor = Color.Transparent,
-                contentColor = Color.Transparent,
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Card(
-                            modifier = Modifier.width(60.dp).height(4.dp),
-                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                            shape = RoundedCornerShape(50),
-                        ) {}
-                        Spacer(modifier = Modifier.height(5.dp))
-                        OutlinedTextField(
-                            value = newTitle,
-                            onValueChange = { s -> newTitle = s },
-                            label = { Text(text = stringResource(Res.string.title)) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
-                        TextButton(
-                            onClick = {
-                                if (newTitle.isBlank()) {
-                                    showToast(playlistNameError, ToastGravity.Bottom)
-                                } else {
-                                    onEditTitle(newTitle)
-                                    hideEditTitleBottomSheet()
-                                    hideModalBottomSheet()
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                        ) {
-                            Text(text = stringResource(Res.string.save))
-                        }
-                        EndOfModalBottomSheet()
-                    }
-                }
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val run: (() -> Unit) -> Unit = { action ->
+            action()
+            coroutineScope.launch {
+                sheetState.hide()
+                onDismiss()
             }
         }
-        if (isBottomSheetVisible) {
-            ModalBottomSheet(
-                onDismissRequest = onDismiss,
-                sheetState = modelBottomSheetState,
-                containerColor = Color.Transparent,
-                contentColor = Color.Transparent,
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Card(
-                            modifier = Modifier.width(60.dp).height(4.dp),
-                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                            shape = RoundedCornerShape(50),
-                        ) {}
-                        Spacer(modifier = Modifier.height(5.dp))
-                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
-                            showEditTitle = true
-                        }
-                        ActionButton(icon = SimpIcons.AddPhotoAlternate, text = Res.string.edit_thumbnail) {
-                            resultLauncher.launch()
-                        }
-                        ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) {
-                            onAddToQueue()
-                        }
-                        ActionButton(
-                            icon =
-                                if (ytPlaylistId != null) {
-                                    SimpIcons.SyncDisabled
-                                } else {
-                                    SimpIcons.Sync
-                                },
-                            text =
-                                if (ytPlaylistId != null) {
-                                    Res.string.synced
-                                } else {
-                                    Res.string.sync
-                                },
-                        ) {
-                            onSync()
-                        }
-                        ActionButton(
-                            icon = SimpIcons.Update,
-                            text = Res.string.update_playlist,
-                            enable = (ytPlaylistId != null),
-                        ) {
-                            onUpdatePlaylist()
-                        }
-                        ActionButton(icon = SimpIcons.Delete, text = Res.string.delete_playlist) {
-                            onDelete()
-                            hideModalBottomSheet()
-                        }
-                        val shareTitle = stringResource(Res.string.share_url)
-                        ActionButton(
-                            icon = SimpIcons.Share,
-                            text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
-                            enable = (ytPlaylistId != null),
-                        ) {
-                            val url = "https://music.youtube.com/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
-                            shareUrl(shareTitle, url)
-                        }
-                        EndOfModalBottomSheet()
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier = Modifier.width(60.dp).height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(5.dp))
+                    ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
+                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
+                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
+                    ActionButton(
+                        icon = if (ytPlaylistId != null) SimpIcons.SyncDisabled else SimpIcons.Sync,
+                        text = if (ytPlaylistId != null) Res.string.synced else Res.string.sync,
+                    ) { run(onSync) }
+                    ActionButton(
+                        icon = SimpIcons.Update,
+                        text = Res.string.update_playlist,
+                        enable = ytPlaylistId != null,
+                    ) { run(onUpdatePlaylist) }
+                    val danger = MaterialTheme.colorScheme.error
+                    ActionButton(
+                        icon = SimpIcons.Delete,
+                        text = Res.string.delete_playlist,
+                        textColor = danger,
+                        iconColor = danger,
+                    ) { run(onDelete) }
+                    EndOfModalBottomSheet()
                 }
             }
         }

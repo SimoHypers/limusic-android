@@ -76,8 +76,6 @@
     <string name="clear_thumbnail_cache">サムネイルのキャッシュを消去</string>
     <string name="playlist_name">再生リスト名</string>
     <string name="create">作成</string>
-    <string name="edit_title">題名を編集</string>
-    <string name="edit_thumbnail">サムネイルを編集</string>
     <string name="delete_playlist">再生リストの削除</string>
     <string name="add_to_a_playlist">再生リストに追加</string>
     <string name="share">共有</string>
@@ -313,7 +311,6 @@
     <string name="proxy_username_message">プロキシユーザー名を入力してください（オプション）</string>
     <string name="proxy_password_message">プロキシパスワードを入力してください（オプション）</string>
     <string name="five_seconds">5秒</string>
-    <string name="sync_first">この再生リストをYouTube Music に同期</string>
     <string name="endless_queue">無限のキュー</string>
     <string name="continue_playing">再生を続ける</string>
     <string name="do_not_show_again">再び表示しない</string>

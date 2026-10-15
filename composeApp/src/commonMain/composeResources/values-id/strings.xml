@@ -66,8 +66,6 @@
     <string name="clear_thumbnail_cache">Bersihkan Tembolok Thumbnail</string>
     <string name="playlist_name">Nama Daftar putar</string>
     <string name="create">Buat</string>
-    <string name="edit_title">Ubah judul</string>
-    <string name="edit_thumbnail">Ubah thumbnail</string>
     <string name="delete_playlist">Hapus daftar putar</string>
     <string name="add_to_a_playlist">Tambahkan ke daftar putar</string>
     <string name="share">Bagikan</string>
@@ -260,7 +258,6 @@
     <string name="proxy_username_message">Harap masukkan nama pengguna Proksi Anda (opsional)</string>
     <string name="proxy_password_message">Harap masukkan kata sandi Proksi Anda (opsional)</string>
     <string name="five_seconds">Lima detik</string>
-    <string name="sync_first">Sinkronkan daftar putar ini ke YouTube Music terlebih dahulu</string>
     <string name="endless_queue">Antrean tanpa batas</string>
     <string name="do_not_show_again">Jangan tampilkan lagi</string>
     <string name="playback_speed_pitch"><![CDATA[Kecepatan pemutaran & nada]]></string>

@@ -63,8 +63,6 @@
     <string name="clear_thumbnail_cache">Bersihkan Cache Thumbnail</string>
     <string name="playlist_name">Nama Playlist</string>
     <string name="create">Membuat</string>
-    <string name="edit_title">Edit judul</string>
-    <string name="edit_thumbnail">Edit thumbnail</string>
     <string name="delete_playlist">Hapus playlist</string>
     <string name="add_to_a_playlist">Tambahkan ke playlist</string>
     <string name="share">Bagikan</string>

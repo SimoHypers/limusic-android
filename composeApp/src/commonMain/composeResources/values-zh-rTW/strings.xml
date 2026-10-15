@@ -72,8 +72,6 @@
     <string name="clear_thumbnail_cache">清除縮圖快取</string>
     <string name="playlist_name">播放清單名稱</string>
     <string name="create">建立</string>
-    <string name="edit_title">編輯標題</string>
-    <string name="edit_thumbnail">編輯縮圖</string>
     <string name="delete_playlist">刪除播放清單</string>
     <string name="add_to_a_playlist">新增至播放清單</string>
     <string name="share">分享</string>
@@ -308,7 +306,6 @@
     <string name="proxy_username_message">請輸入您的代理用戶名（可選）</string>
     <string name="proxy_password_message">請輸入您的代理密碼（可選）</string>
     <string name="five_seconds">5秒</string>
-    <string name="sync_first">先將此播放清單同步至YouTube Music</string>
     <string name="endless_queue">無休止隊列</string>
     <string name="continue_playing">繼續播放</string>
     <string name="do_not_show_again">以後不再提示</string>

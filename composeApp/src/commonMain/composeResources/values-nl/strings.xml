@@ -64,8 +64,6 @@
     <string name="clear_thumbnail_cache">Miniatuur-Cache wissen</string>
     <string name="playlist_name">Playlist-Naam</string>
     <string name="create">Creëren</string>
-    <string name="edit_title">Titel bewerken</string>
-    <string name="edit_thumbnail">Miniatuur bewerken</string>
     <string name="delete_playlist">Playlist verwijderen</string>
     <string name="add_to_a_playlist">Toevoegen aan een Playlist</string>
     <string name="share">Delen</string>

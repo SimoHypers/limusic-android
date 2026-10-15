@@ -63,8 +63,6 @@
     <string name="clear_thumbnail_cache">Tyhjennä pienoiskuvien välimuisti</string>
     <string name="playlist_name">Soittolistan nimi</string>
     <string name="create">Luo</string>
-    <string name="edit_title">Muokkaa otsikkoa</string>
-    <string name="edit_thumbnail">Muokkaa pienoiskuvaa</string>
     <string name="delete_playlist">Poista soittolista</string>
     <string name="add_to_a_playlist">Lisää soittolistaan</string>
     <string name="share">Jaa</string>

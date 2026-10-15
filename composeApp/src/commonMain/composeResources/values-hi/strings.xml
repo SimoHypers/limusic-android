@@ -72,8 +72,6 @@
     <string name="clear_thumbnail_cache">थंबनेल कैश साफ़ करें</string>
     <string name="playlist_name">प्लेलिस्ट का नाम</string>
     <string name="create">बनाएं</string>
-    <string name="edit_title">शीर्षक संपादित करें</string>
-    <string name="edit_thumbnail">थंबनेल संपादित करें</string>
     <string name="delete_playlist">प्लेलिस्ट हटाएं</string>
     <string name="add_to_a_playlist">प्लेलिस्ट में जोड़ें</string>
     <string name="share">साझा करें</string>
@@ -245,7 +243,6 @@
     <string name="proxy_host_message">कृपया अपना प्रॉक्सी होस्ट दर्ज करें</string>
     <string name="proxy_port_message">कृपया अपना प्रॉक्सी पोर्ट दर्ज करें</string>
     <string name="five_seconds">पाँच सेकंड</string>
-    <string name="sync_first">पहले इस प्लेलिस्ट को YouTube Music के साथ सिंक करें</string>
     <string name="endless_queue">अंतहीन कतार</string>
     <string name="do_not_show_again">दोबारा न दिखाएं</string>
     <string name="playback_speed_pitch"><![CDATA[प्लेबैक गति और पिच]]></string>
