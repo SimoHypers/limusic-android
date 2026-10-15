@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.di
 
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
-import com.maxrave.simpmusic.viewModel.ListenTogetherSettingsViewModel
 import com.maxrave.simpmusic.viewModel.ListenTogetherViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.BrowseViewModel
@@ -175,9 +174,6 @@ val viewModelModule =
         }
         viewModel {
             ExploreViewModel(get(), get())
-        }
-        viewModel {
-            ListenTogetherSettingsViewModel(get())
         }
         viewModel {
             ListenTogetherViewModel(

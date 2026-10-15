@@ -577,15 +577,6 @@
     <string name="analytics">การวิเคราะห์</string>
     <string name="select_all">เลือกทั้งหมด</string>
     <!-- Listen Together -->
-    <string name="lt_not_connected">ไม่ได้เชื่อมต่อ</string>
-    <string name="lt_suggestions">เพลงแนะนำ</string>
-    <string name="lt_leave_room">ออกจากห้อง</string>
-    <string name="lt_server">เซิร์ฟเวอร์</string>
-    <string name="lt_custom_server">เซิร์ฟเวอร์แบบกำหนดเอง</string>
-    <string name="lt_custom_server_desc">ป้อนที่อยู่ wss:// ของคุณเอง</string>
-    <string name="lt_unblock">ปลดบล็อค</string>
-    <string name="lt_kick">ลบออกจากห้อง</string>
-    <string name="lt_block">บล็อคถาวร</string>
     <string name="share_lyrics">แชร์เนื้อเพลง</string>
     <string name="share_lyrics_select_title">เลือกบรรทัด</string>
     <string name="share_lyrics_selected_count">เลือกแล้ว %1$d บรรทัด</string>

@@ -110,10 +110,6 @@ class ListenTogetherSession(
 
     private var pump: Job? = null
 
-    /** Host-side conveniences from settings; both default off, matching the design's toggles. */
-    var autoApproveJoins: Boolean = false
-    var autoApproveSuggestions: Boolean = false
-
     /** Opens the socket. Joining a room is a separate, later step. */
     fun connect() {
         if (pump == null) {
@@ -150,22 +146,11 @@ class ListenTogetherSession(
     /** Gives up on a join that has not been answered. Local only — the server needs no message. */
     fun cancelJoin() = _state.update { it.copy(pendingJoinCode = null) }
 
+    /** Leaves and closes the connection, as desktop does; the next Start or Join reconnects. */
     fun leaveRoom() =
         launch {
             client.send(MessageTypes.LEAVE_ROOM, LeaveRoomPayload())
-            // The server sends nothing back for leave_room, so the local state is cleared here —
-            // waiting for a confirmation that never arrives would leave the room UI on screen.
-            _state.update {
-                it.copy(
-                    roomCode = null,
-                    isHost = false,
-                    members = emptyList(),
-                    joinRequests = emptyList(),
-                    suggestions = emptyList(),
-                    currentTrack = null,
-                    waitingFor = emptyList(),
-                )
-            }
+            disconnect()
         }
 
     fun approveJoin(userId: String) =
@@ -357,10 +342,6 @@ class ListenTogetherSession(
 
             MessageTypes.JOIN_REQUEST -> {
                 val p = payload as? JoinRequestPayload ?: return
-                if (autoApproveJoins) {
-                    approveJoin(p.userId)
-                    return
-                }
                 _state.update { s ->
                     if (s.joinRequests.any { it.userId == p.userId }) {
                         s
@@ -463,10 +444,6 @@ class ListenTogetherSession(
             MessageTypes.SUGGESTION_RECEIVED -> {
                 val p = payload as? SuggestionReceivedPayload ?: return
                 val track = p.trackInfo ?: return
-                if (autoApproveSuggestions) {
-                    approveSuggestion(p.suggestionId)
-                    return
-                }
                 _state.update { s ->
                     if (s.suggestions.any { it.suggestionId == p.suggestionId }) {
                         s

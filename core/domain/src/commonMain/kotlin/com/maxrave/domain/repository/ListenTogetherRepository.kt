@@ -8,15 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
  * The app's view of a Listen Together room.
  *
  * The implementation owns the socket and the protocol; nothing above this interface knows either
- * exists. That is what lets the wire format stay pinned to Metrolist's schema — which it must be —
- * without that schema reaching into our ViewModels and screens.
+ * exists, so the wire format (Limusic's server protocol) never reaches the ViewModels and screens.
  */
 interface ListenTogetherRepository {
     val room: StateFlow<ListenTogetherRoom>
-
-    /** Host conveniences from settings; the implementation applies them where requests arrive. */
-    var autoApproveJoins: Boolean
-    var autoApproveSuggestions: Boolean
 
     fun connect()
 

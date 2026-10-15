@@ -34,18 +34,6 @@ class ListenTogetherRepositoryImpl(
     private val _room = MutableStateFlow(ListenTogetherRoom())
     override val room: StateFlow<ListenTogetherRoom> = _room.asStateFlow()
 
-    override var autoApproveJoins: Boolean
-        get() = session.autoApproveJoins
-        set(value) {
-            session.autoApproveJoins = value
-        }
-
-    override var autoApproveSuggestions: Boolean
-        get() = session.autoApproveSuggestions
-        set(value) {
-            session.autoApproveSuggestions = value
-        }
-
     init {
         scope.launch { session.state.collect { _room.value = it.toDomain() } }
     }

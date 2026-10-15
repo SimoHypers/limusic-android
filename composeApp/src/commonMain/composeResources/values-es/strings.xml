@@ -684,30 +684,4 @@
     <string name="exit_selection">Cerrar selección</string>
     <string name="remove_from_playlist">Eliminar de la lista</string>
     <!-- Listen Together -->
-    <string name="lt_not_connected">Desconectado</string>
-    <string name="lt_connected">Conectado</string>
-    <string name="lt_connecting">Conectando…</string>
-    <string name="lt_connect">Conectar</string>
-    <string name="lt_disconnect">Desconectado</string>
-    <string name="lt_room_code">Código de la habitación</string>
-    <string name="lt_in_room">En la habitación</string>
-    <string name="lt_host_badge">host</string>
-    <string name="lt_you">tú</string>
-    <string name="lt_join_requests">Preguntar para unirse</string>
-    <string name="lt_just_asked">ya has preguntado para unirte</string>
-    <string name="lt_leave_room">Dejar habitación</string>
-    <string name="lt_server">Servidor</string>
-    <string name="lt_custom_server">Servidor personalizado</string>
-    <string name="lt_save_server">Guardar servidor</string>
-    <string name="lt_auto_approve_joins">Auto-aprobar uniones</string>
-    <string name="lt_auto_approve_joins_desc">Cualquiera con el código entra sin preguntar</string>
-    <string name="lt_blocked">Bloqueado</string>
-    <string name="lt_blocked_empty">Nadie está bloqueado</string>
-    <string name="lt_unblock">Desbloquear</string>
-    <string name="lt_transfer_host_desc">Ellos controlarán la reproducción</string>
-    <string name="lt_kick">Eliminar de la sala</string>
-    <string name="lt_kick_desc">Pueden volver a unirse al código</string>
-    <string name="lt_block">Bloquear permanentemente</string>
-    <string name="lt_block_desc">No pueden volver a unirse, incluso con el código</string>
-    <string name="lt_waiting_approval">Esperando al host</string>
 </resources>
