@@ -177,6 +177,7 @@ import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.AppThemeContent
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
@@ -1307,6 +1308,29 @@ fun NowPlayingBottomSheet(
     queuePosition: QueuePosition? = null,
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
+    // The menu follows the app theme even when opened from the player or an album page.
+    AppThemeContent {
+        NowPlayingBottomSheetContent(
+            onDismiss, navController, song, viewModel, setSleepTimerEnable, onNavigateToOtherScreen,
+            onDelete, onLibraryDelete, queuePosition, dataStoreManager,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+private fun NowPlayingBottomSheetContent(
+    onDismiss: () -> Unit,
+    navController: NavController,
+    song: SongEntity?,
+    viewModel: NowPlayingBottomSheetViewModel,
+    setSleepTimerEnable: Boolean,
+    onNavigateToOtherScreen: () -> Unit,
+    onDelete: (() -> Unit)?,
+    onLibraryDelete: (() -> Unit)?,
+    queuePosition: QueuePosition?,
+    dataStoreManager: DataStoreManager,
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1439,8 +1463,9 @@ fun NowPlayingBottomSheet(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+                // Limusic's sheet corner, on the card colour its desktop menus use.
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1458,12 +1483,12 @@ fun NowPlayingBottomSheet(
                             ),
                         shape = RoundedCornerShape(50),
                     ) {}
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 10.dp),
+                                .padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         val thumb = uiState.songUIState.thumbnails
@@ -1483,14 +1508,14 @@ fun NowPlayingBottomSheet(
                             modifier =
                                 Modifier
                                     .align(Alignment.CenterVertically)
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(6.dp)),
+                                    .size(48.dp)
+                                    .clip(MaterialTheme.shapes.small),
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text(
                                 text = uiState.songUIState.title,
-                                style = typo().labelSmall,
+                                style = typo().labelMedium,
                                 // typo() bakes a colour into the style, computed from the app's own
                                 // scheme — on this always-dark sheet that reads as washed out next
                                 // to the ActionButton rows below, which take their colour from here.
@@ -1520,9 +1545,10 @@ fun NowPlayingBottomSheet(
                     }
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                        thickness = 1.dp,
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     if (queuePosition != null) {
                         QueueItemActions(position = queuePosition, onDone = hideModalBottomSheet)
                     }

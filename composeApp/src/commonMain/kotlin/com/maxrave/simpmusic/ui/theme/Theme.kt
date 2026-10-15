@@ -77,6 +77,9 @@ val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
  */
 val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
 
+/** The app's own scheme and whether it is dark, so [AppThemeContent] can undo [ForceDarkContent]. */
+private val LocalAppScheme = staticCompositionLocalOf<Pair<ColorScheme, Boolean>?> { null }
+
 /** Parses "RRGGBB" or "AARRGGBB" (optionally "#"-prefixed) into a [Color]; null if malformed. */
 fun parseThemeColorHex(hex: String): Color? {
     val clean = hex.trim().removePrefix("#")
@@ -244,6 +247,7 @@ fun AppTheme(
                 LocalForcedDarkColorScheme provides forcedDarkScheme,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
                 LocalAppFonts provides fonts,
+                LocalAppScheme provides (colorScheme to isDark),
                 content = content,
             )
         },
@@ -315,6 +319,30 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
             )
         },
         typography = typo(darkScheme, forceDark = true),
+    )
+}
+
+/**
+ * The reverse of [ForceDarkContent]: puts the app's own theme back for a subtree, so a menu opened
+ * from an immersive screen still follows light or dark like the rest of the app.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun AppThemeContent(content: @Composable () -> Unit) {
+    val (scheme, isDark) = LocalAppScheme.current ?: return content()
+    MaterialExpressiveTheme(
+        colorScheme = scheme,
+        shapes = LimusicShapes,
+        content = {
+            CompositionLocalProvider(
+                LocalForceDarkText provides false,
+                LocalIsDarkTheme provides isDark,
+                LocalContentColor provides scheme.onSurfaceVariant,
+                LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
+                content = content,
+            )
+        },
+        typography = typo(scheme, forceDark = false),
     )
 }
 
