@@ -321,8 +321,6 @@
     <string name="no_playlist_found">Yerel çalma listesi bulunamadı, lütfen önce bir tane oluşturun</string>
     <string name="list_all_cookies_of_this_page">Bu sayfadaki tüm çerezleri listele</string>
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
-    <string name="enable_liquid_glass_effect">Sıvı camı etkinleştir (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Belirli bir konumda iOS'un sıvı cam efektini etkinleştirin (Android 13+)</string>
     <string name="your_library">Kitaplığınız</string>
     <string name="play_explicit_content">Uygunsuz içeriği oynat</string>
     <string name="play_explicit_content_description">Uygunsuz içeriği oynatmayı etkinleştir</string>

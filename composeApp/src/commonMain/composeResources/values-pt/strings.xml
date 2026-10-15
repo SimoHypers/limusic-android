@@ -305,8 +305,6 @@
     <string name="no_playlist_found">Não foram encontradas listas de reprodução locais, por favor crie uma primeiro</string>
     <string name="list_all_cookies_of_this_page">Listar todos os cookies desta página</string>
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
-    <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Ativar o efeito de vidro líquido do iOS em alguma posição (Android 13+)</string>
     <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>

@@ -1062,26 +1062,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val enableLiquidGlass: Flow<String>
-        get() =
-            settingsDataStore.data.map { preferences ->
-                preferences[LIQUID_GLASS] ?: FALSE
-            }
-
-    override suspend fun setEnableLiquidGlass(enable: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (enable) {
-                settingsDataStore.edit { settings ->
-                    settings[LIQUID_GLASS] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[LIQUID_GLASS] = FALSE
-                }
-            }
-        }
-    }
-
     override val explicitContentEnabled: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[EXPLICIT_CONTENT_ENABLED] ?: TRUE
@@ -1299,7 +1279,6 @@ internal class DataStoreManagerImpl(
 
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
 
-        val LIQUID_GLASS = stringPreferencesKey("liquid_glass")
 
         val EXPLICIT_CONTENT_ENABLED = stringPreferencesKey("explicit_content_enabled")
 

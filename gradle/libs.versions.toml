@@ -70,8 +70,6 @@ webkit = "1.17.1"
 kermit = "2.2.0"
 paging-common = "3.5.2"
 glance = "1.2.0"
-liquid-glass = "2.0.1"
-liquid-glass-shapes = "1.2.1"
 ffmpeg-kit-audio = "6.0.1"
 composeHotReload = "1.2.0"
 composeMultiplatform = "1.12.1"
@@ -213,8 +211,6 @@ glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", versi
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 
-liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
-liquid-glass-shape = { module = "io.github.kyant0:shapes", version.ref = "liquid-glass-shapes" }
 
 ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.ref = "ffmpeg-kit-audio" }
 

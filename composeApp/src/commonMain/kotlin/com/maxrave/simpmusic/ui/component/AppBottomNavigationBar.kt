@@ -304,7 +304,7 @@ internal fun FlatSearchButton(
 }
 
 // Mirrors the glass tab bar's geometry (TabWidth/BarHeight/BlobHeight/BarInset in
-// LiquidGlassTabBar.android.kt) so the two bars are one form in two materials.
+// the old glass tab bar) so the two bars are one form in two materials.
 private val FlatTabWidth = 96.dp
 private val FlatBarHeight = 64.dp
 private val FlatIndicatorHeight = 56.dp
@@ -323,7 +323,7 @@ internal fun flatTabBarWidth(
     availableWidth: Dp,
 ): Dp = flatTabWidth(tabsCount, availableWidth) * tabsCount + CapsuleInset * 2
 
-// The phone bar folds into one circle at its start edge (LiquidGlassAppBottomNavigationBar). Both
+// The phone bar folds into one circle at its start edge. Both
 // tab bars accept any width between this and their full width and fold by it.
 internal val CollapsedBarSize = 48.dp
 

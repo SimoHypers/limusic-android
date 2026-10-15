@@ -70,7 +70,6 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
@@ -78,15 +77,13 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
+import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
@@ -205,13 +202,8 @@ fun NowPlayingContentAppleMusic(
     var showOutputSheet by rememberSaveable { mutableStateOf(false) }
     val openOutput = { showOutputSheet = true }
 
-    // Backdrop source for the Desktop dismiss button below. The glass layers MUST be a sibling of
-    // the button, never its parent: nesting the button inside the source is the render-feedback
-    // loop that crashes the RuntimeShader.
-    val panelBackdrop = rememberBackdrop(Color.Black)
-
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        Box(modifier = Modifier.matchParentSize().layerBackdrop(panelBackdrop)) {
+        Box(modifier = Modifier.matchParentSize()) {
             AppleMusicArtworkBackdrop(state = state, actions = actions, seedColor = seedColor)
             // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
             // turns the bars above and below it into dead black slabs — keep the artwork-tinted
@@ -278,14 +270,12 @@ fun NowPlayingContentAppleMusic(
         // those reads as belonging to the list rather than to the panel.
         if (getPlatform() == Platform.Desktop) {
             if (viewState == AppleMusicView.MAIN) {
-                LiquidGlassIconButton(
-                    backdrop = panelBackdrop,
+                PillIconButton(
                     imageVector = state.dismissIcon,
                     shape = RoundedCornerShape(24.dp),
                     // Same as AnalyticsScreen's back button: a 48dp circle catches only a short arc
                     // of the default directional sweep and reads as rimless. 1.dp is the smallest
                     // step that stays visible without looking like a plain border.
-                    highlight = Highlight(width = 1.dp),
                     modifier =
                         Modifier
                             .align(Alignment.TopStart)
@@ -751,9 +741,8 @@ private fun AppleMusicMainView(
 
 /**
  * The frosted cover art behind the page, with the artwork-derived gradient washed over it. Shared
- * with the fullscreen lyrics landscape layout. Emits straight into the caller's Box — in both
- * places that Box is the glass backdrop source, and anything stacked after this call (the canvas
- * black layer here) must keep drawing on top of it.
+ * with the fullscreen lyrics landscape layout. Emits straight into the caller's Box; anything
+ * stacked after this call (the canvas black layer here) must keep drawing on top of it.
  */
 @Composable
 internal fun BoxScope.AppleMusicArtworkBackdrop(

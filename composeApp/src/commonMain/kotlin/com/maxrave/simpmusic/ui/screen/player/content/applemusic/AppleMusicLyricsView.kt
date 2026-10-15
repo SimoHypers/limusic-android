@@ -246,7 +246,6 @@ internal fun AppleMusicLyricsView(
                             LyricsOffsetFloatingControl(
                                 offsetMs = state.lyricsOffsetMs.toInt(),
                                 onOffsetChange = actions.onLyricsOffsetChange,
-                                backdrop = null,
                                 // Adjusting counts as touching the page, or the cluster hides mid-tap.
                                 onInteraction = { interactionTick++ },
                             ) { onClick ->

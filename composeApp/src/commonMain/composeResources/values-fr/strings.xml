@@ -373,8 +373,6 @@
     <string name="no_playlist_found">Aucune playlist locale n'a été trouvée. Veuillez d'abord en créer une.</string>
     <string name="list_all_cookies_of_this_page">Afficher la liste de tous les cookies de cette page</string>
     <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
-    <string name="enable_liquid_glass_effect">Activer le verre liquide</string>
-    <string name="enable_liquid_glass_effect_description">Activer l'effet « verre liquide » d'iOS dans certaines situations (Android 13 et versions ultérieures)</string>
     <string name="your_library">Votre Bibliothèque</string>
     <string name="play_explicit_content">Lire le contenu explicite</string>
     <string name="play_explicit_content_description">Activer la lecture de contenu explicite</string>

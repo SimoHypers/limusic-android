@@ -65,8 +65,6 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
@@ -132,7 +130,6 @@ fun App(
     val intent by viewModel.intent.collectAsStateWithLifecycle()
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
-    val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     // Mix for you comes from the signed-in YouTube account, so its tab follows the session — the
     // same condition that used to hide the chip inside Library.
     val isYouTubeLoggedIn by viewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -400,14 +397,9 @@ fun App(
         themeColorSource = themeColorSource,
         customThemeColor = parseThemeColorHex(customThemeColorHex),
         artworkColor = artworkColor,
-        // Desktop is unconditionally true — the liquid-glass setting row is Android-only, and the
-        // Desktop capsule player is glass by design. Same rule as MiniPlayer's useGlassSurface.
-        liquidGlassEnabled = isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop,
     ) {
-        // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
         val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-        val backdrop = rememberBackdrop(if (isLightScheme) Color.White else Color.Black)
 
         // The desktop shell is a window colour with panels floating on it. The two schemes mirror
         // each other: the window takes the extreme (pure black / pure white) and the panel steps
@@ -446,17 +438,7 @@ fun App(
                 }
             },
             content = { innerPadding ->
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (isLiquidGlassEnabled == TRUE && !isTablet) {
-                                Modifier.layerBackdrop(backdrop)
-                            } else {
-                                Modifier
-                            },
-                        ),
-                ) {
+                Box(Modifier.fillMaxSize()) {
                     Row(
                         Modifier.fillMaxSize(),
                     ) {
@@ -490,21 +472,7 @@ fun App(
                             Box(
                                 Modifier
                                     .fillMaxSize()
-                                    .then(
-                                        // Desktop is unconditional: the floating capsule player is ALWAYS
-                                        // liquid glass there, and glass with no recorded source draws as
-                                        // plain transparency. Gating the source on the setting while the
-                                        // capsule ignored it was exactly the nested-flag split that kept
-                                        // the capsule see-through.
-                                        if ((isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop) &&
-                                            isTablet &&
-                                            !isInFullscreen
-                                        ) {
-                                            Modifier.layerBackdrop(backdrop)
-                                        } else {
-                                            Modifier
-                                        },
-                                    ).hazeSource(hazeState),
+                                    .hazeSource(hazeState),
                             ) {
                                 AppNavigationGraph(
                                     innerPadding = innerPadding,
@@ -535,8 +503,7 @@ fun App(
                                 MiniPlayer(
                                     if (getPlatform() == Platform.Android) {
                                         Modifier
-                                            // Glass keeps its 52dp card; the flat one is 56dp.
-                                            .height(if (isLiquidGlassEnabled == TRUE) 56.dp else 60.dp)
+                                            .height(60.dp)
                                             .fillMaxWidth(0.8f)
                                             .padding(
                                                 horizontal = 12.dp,
@@ -560,7 +527,6 @@ fun App(
                                             .padding(bottom = 20.dp)
                                             .height(60.dp)
                                     },
-                                    backdrop = backdrop,
                                     navController = navController,
                                     onClick = {
                                         isShowNowPlaylistScreen = true

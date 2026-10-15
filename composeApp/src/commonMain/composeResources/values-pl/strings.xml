@@ -296,8 +296,6 @@
     <string name="no_playlist_found">Nie znaleziono lokalnych playlist, proszę utworzyć przynajmniej jedną</string>
     <string name="list_all_cookies_of_this_page">Lista wszystkich plików cookie na tej stronie</string>
     <string name="copied_to_clipboard">Skopiowane do schowka</string>
-    <string name="enable_liquid_glass_effect">Włącz efekt płynnego szkła (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Włącz efekt płynnego szkła z iOS w pewnej pozycji (Android 13+)</string>
     <string name="your_library">Twoja biblioteka</string>
     <string name="play_explicit_content">Odtwarzaj obraźliwe treści</string>
     <string name="play_explicit_content_description">Włącz, aby móc odtwarzać wulgarne lub obraźliwe treści</string>

@@ -66,14 +66,11 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
-import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
@@ -85,12 +82,12 @@ import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
+import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
-import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.pillSurface
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
@@ -248,18 +245,14 @@ fun AlbumScreen(
                                 ) {
                                     if (isPortrait) {
                                         // Apple Music-style: edge-to-edge artwork (taller than square,
-                                        // ~half screen height) with title overlay + liquid glass buttons.
-                                        // Glass buttons MUST be siblings of the backdrop source (not children)
-                                        // to avoid render feedback loop / RuntimeShader crash.
-                                        val artworkBackdrop = rememberBackdrop(Color.Black)
+                                        // ~half screen height) with title overlay + floating buttons.
                                         Box(
                                             modifier =
                                                 Modifier
                                                     .fillMaxWidth()
                                                     .height((screenInfo.hDP / 2).dp),
                                         ) {
-                                            // Inner Box — backdrop SOURCE (artwork + overlays only, NO glass)
-                                            Box(modifier = Modifier.fillMaxSize().layerBackdrop(artworkBackdrop)) {
+                                            Box(modifier = Modifier.fillMaxSize()) {
                                                 AsyncImage(
                                                     model =
                                                         ImageRequest
@@ -342,9 +335,8 @@ fun AlbumScreen(
                                                     )
                                                 }
                                             }
-                                            // Back button — liquid glass effect (Kyant backdrop)
-                                            LiquidGlassIconButton(
-                                                backdrop = artworkBackdrop,
+                                            // Back button
+                                            PillIconButton(
                                                 imageVector = SimpIcons.ArrowBackIosNew,
                                                 modifier =
                                                     Modifier
@@ -355,7 +347,7 @@ fun AlbumScreen(
                                             ) {
                                                 navController.navigateUp()
                                             }
-                                            // Heart + More — liquid glass pill
+                                            // Heart + More pill
                                             Row(
                                                 modifier =
                                                     Modifier
@@ -363,7 +355,7 @@ fun AlbumScreen(
                                                         .padding(12.dp)
                                                         .windowInsetsPadding(WindowInsets.statusBars)
                                                         .height(48.dp)
-                                                        .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
+                                                        .pillSurface(RoundedCornerShape(24.dp)),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Box(
@@ -393,22 +385,15 @@ fun AlbumScreen(
                                         // Apple Music desktop header: back and the like/more pair on
                                         // their own top row, then a square artwork with the text column
                                         // and the action cluster laid out beside it rather than under it.
-                                        // Built exactly like the portrait branch, which renders correctly on both
-                                        // platforms: the backdrop SOURCE is the content column — artwork included,
-                                        // so the recorded layer holds something to refract — and the glass buttons
-                                        // are SIBLINGS placed with align(), never children of the source (that
-                                        // nesting is the render-feedback loop that kills the RuntimeShader).
-                                        val headerBackdrop = rememberBackdrop(Color.Black)
                                         Box(modifier = Modifier.fillMaxWidth()) {
                                             Column(
                                                 modifier =
                                                     Modifier
                                                         .fillMaxWidth()
-                                                        .layerBackdrop(headerBackdrop)
                                                         .windowInsetsPadding(WindowInsets.statusBars)
                                                         .padding(horizontal = 32.dp, vertical = 16.dp),
                                             ) {
-                                                // Reserves the strip the sibling glass buttons are drawn over.
+                                                // Reserves the strip the floating buttons are drawn over.
                                                 Spacer(modifier = Modifier.height(48.dp))
                                                 Spacer(modifier = Modifier.height(16.dp))
                                                 Row(
@@ -617,17 +602,15 @@ fun AlbumScreen(
                                                     }
                                                 }
                                             }
-                                            // Glass overlays — siblings of the source, over the strip the column reserved.
+                                            // Overlays, over the strip the column reserved.
                                             Box(Modifier.padding(start = 12.dp)) {
-                                                LiquidGlassIconButton(
-                                                    backdrop = headerBackdrop,
+                                                PillIconButton(
                                                     imageVector = SimpIcons.ArrowBackIosNew,
                                                     shape = RoundedCornerShape(24.dp),
                                                     // Same directional style as the like/⋯ pill, a touch thicker. The default
                                                     // width of 0.5.dp becomes a ~2px stroke (HighlightModifier: ceil(width.toPx()) * 2),
                                                     // which reads along the pill's long edge but vanishes around a 48dp circle. 1.dp
                                                     // is the smallest step up that stays visible without looking like a border.
-                                                    highlight = Highlight(width = 1.dp),
                                                     modifier =
                                                         Modifier
                                                             .align(Alignment.TopStart)
@@ -645,7 +628,7 @@ fun AlbumScreen(
                                                         .windowInsetsPadding(WindowInsets.statusBars)
                                                         .padding(end = 32.dp, top = 16.dp)
                                                         .height(48.dp)
-                                                        .liquidGlass(headerBackdrop, RoundedCornerShape(24.dp)),
+                                                        .pillSurface(RoundedCornerShape(24.dp)),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Box(

@@ -367,8 +367,6 @@
     <string name="no_playlist_found">Keine lokalen Playlisten gefunden, bitte erstelle zuerst eine</string>
     <string name="list_all_cookies_of_this_page">Alle Cookies dieser Seite auflisten</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
-    <string name="enable_liquid_glass_effect">Liquid-Glass-Effekt aktivieren (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Aktiviere den Liquid-Glass-Effekt von iOS in bestimmten Positionen (Android 13+).</string>
     <string name="your_library">Deine Bibliothek</string>
     <string name="play_explicit_content">Expliziten Inhalt abspielen</string>
     <string name="play_explicit_content_description">Aktivieren, um explizite Inhalte abzuspielen</string>

@@ -304,8 +304,6 @@
     <string name="no_playlist_found">未找到本地播放列表, 请先创建一个</string>
     <string name="list_all_cookies_of_this_page">列出此页面的所有 cookie</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
-    <string name="enable_liquid_glass_effect">启用液体玻璃(BETA)</string>
-    <string name="enable_liquid_glass_effect_description">在部分区域启用类似于 iOS 的液体玻璃效果 (Android 13+)</string>
     <string name="your_library">您的库</string>
     <string name="play_explicit_content">播放限制级内容</string>
     <string name="play_explicit_content_description">允许播放限制级内容</string>

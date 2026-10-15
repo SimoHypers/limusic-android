@@ -81,14 +81,10 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
@@ -119,7 +115,6 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingTrackInfoRow
 import com.maxrave.simpmusic.ui.screen.player.content.SpotifyPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
-import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -251,11 +246,6 @@ fun FullscreenLyricsContent(
     val screenInfo = getScreenSizeInfo()
     val isLandscape = screenInfo.wDP > screenInfo.hDP
     val isDesktop = getPlatform() == Platform.Desktop
-    // Glass source for the Desktop chrome. Each layout marks its own background with it, and the
-    // pills are always drawn as siblings of that background — nesting them inside the source is
-    // the render-feedback loop that crashes the RuntimeShader.
-    val backdrop = rememberBackdrop(Color.Black)
-
     Box(
         modifier =
             Modifier
@@ -278,12 +268,10 @@ fun FullscreenLyricsContent(
                 state = state,
                 actions = actions,
                 nowPlayingStyle = nowPlayingStyle,
-                backdrop = backdrop,
             )
             if (isDesktop) {
                 FullscreenLyricsDesktopChrome(
                     sharedViewModel = sharedViewModel,
-                    backdrop = backdrop,
                     onDismiss = onDismiss,
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
@@ -308,12 +296,8 @@ fun FullscreenLyricsContent(
                 label = "sliderCrossfadeColor",
             )
             Box(modifier = Modifier.fillMaxSize()) {
-                // Animated gradient background. The glass source whenever glass is on: the Desktop
-                // chrome draws from it, and so does the lyrics timing button on both platforms.
-                AnimatedLyricsGradientBackground(
-                    color = color,
-                    modifier = if (LocalLiquidGlassEnabled.current) Modifier.layerBackdrop(backdrop) else Modifier,
-                )
+                // Animated gradient background.
+                AnimatedLyricsGradientBackground(color = color)
 
                 // ── Foreground content column ─────────────────────────────────────
                 Column(
@@ -334,7 +318,6 @@ fun FullscreenLyricsContent(
                     if (isDesktop) {
                         FullscreenLyricsDesktopChrome(
                             sharedViewModel = sharedViewModel,
-                            backdrop = backdrop,
                             onDismiss = onDismiss,
                         )
                     }
@@ -495,7 +478,6 @@ fun FullscreenLyricsContent(
                             lyricsData = screenDataState.lyricsData,
                             sharedViewModel = sharedViewModel,
                             color = color,
-                            backdrop = backdrop,
                         )
                     }
 
@@ -810,13 +792,10 @@ private fun FullscreenLyricsLandscape(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     nowPlayingStyle: String,
-    backdrop: PlatformBackdrop,
 ) {
     val localDensity = LocalDensity.current
     Box(modifier = Modifier.fillMaxSize()) {
-        // The glass backdrop source. The Desktop chrome drawn over this layout is a sibling of this
-        // whole Box, never a child of it.
-        Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop)) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (nowPlayingStyle == DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC) {
                 // The same seed rule the Apple Music page applies: the shell's colour starts on black
                 // and only turns into the palette colour once the palette resolves.
@@ -959,7 +938,6 @@ private fun FullscreenLyricsLandscape(
                     lyricsData = state.screenData.lyricsData,
                     sharedViewModel = sharedViewModel,
                     color = color,
-                    backdrop = backdrop,
                 )
             }
         }
@@ -974,7 +952,6 @@ private fun FullscreenLyricsLandscape(
 @Composable
 private fun FullscreenLyricsDesktopChrome(
     sharedViewModel: SharedViewModel,
-    backdrop: PlatformBackdrop,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -1015,7 +992,7 @@ private fun FullscreenLyricsDesktopChrome(
             modifier =
                 Modifier
                     .height(48.dp)
-                    .liquidGlass(backdrop, RoundedCornerShape(24.dp)),
+                    .pillSurface(RoundedCornerShape(24.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onDismiss) {
@@ -1034,9 +1011,7 @@ private fun FullscreenLyricsDesktopChrome(
             modifier =
                 Modifier
                     .height(48.dp)
-                    // Static glass: the press swell scales the whole pill, which would slide the
-                    // slider out from under a pointer that is dragging it.
-                    .liquidGlass(backdrop, RoundedCornerShape(24.dp), interactive = false)
+                    .pillSurface(RoundedCornerShape(24.dp))
                     .padding(end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1114,7 +1089,6 @@ private fun FullscreenLyricsList(
     lyricsData: NowPlayingScreenData.LyricsData?,
     sharedViewModel: SharedViewModel,
     color: Color,
-    backdrop: PlatformBackdrop,
 ) {
     val lyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
     Box(modifier = Modifier.fillMaxSize()) {
@@ -1150,22 +1124,20 @@ private fun FullscreenLyricsList(
             }
         }
         // Here rather than in either layout, so portrait, landscape and Desktop all get it. Bottom-end,
-        // over the dimmest lines. Glass, like the rest of this page's floating chrome.
+        // over the dimmest lines. A pill, like the rest of this page's floating chrome.
         if (lyricsData.hasTiming()) {
             LyricsOffsetFloatingControl(
                 offsetMs = lyricsOffsetMs,
+                onPill = true,
                 onOffsetChange = { sharedViewModel.setLyricsOffsetMs(it) },
-                backdrop = backdrop,
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
                         .padding(bottom = 12.dp),
             ) { onClick ->
-                LiquidGlassIconButton(
-                    backdrop = backdrop,
+                PillIconButton(
                     imageVector = SimpIcons.AvTimer,
                     // A round button's rim, as on the Apple Music player's Desktop dismiss button.
-                    highlight = Highlight(width = 1.dp),
                     onClick = onClick,
                 )
             }

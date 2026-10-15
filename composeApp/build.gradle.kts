@@ -153,8 +153,6 @@ kotlin {
             api(libs.cmptoast)
 
             // Liquid glass
-            implementation(libs.liquid.glass)
-            implementation(libs.liquid.glass.shape)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

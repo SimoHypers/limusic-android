@@ -371,8 +371,6 @@
     <string name="no_playlist_found">ローカルプレイリストが見つかりませんでした。最初に作成してください</string>
     <string name="list_all_cookies_of_this_page">このページのすべてのクッキーを一覧表示</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
-    <string name="enable_liquid_glass_effect">Liquid Glassを有効にする (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">iOSのLiquid Glass効果を一部の箇所で有効にします (Android 13以上)</string>
     <string name="your_library">あなたのライブラリ</string>
     <string name="play_explicit_content">明示的なコンテンツを再生</string>
     <string name="play_explicit_content_description">明示的なコンテンツの再生を有効にします</string>

@@ -355,8 +355,6 @@
     <string name="no_playlist_found">Ne local playlists found, please create one first</string>
     <string name="list_all_cookies_of_this_page">List all cookies of this page</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="enable_liquid_glass_effect">Omogući liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Omogući iOS's liquid glass effect in some position (Android 13+)</string>
     <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Omogući to play explicit content</string>

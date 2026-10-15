@@ -366,8 +366,6 @@
     <string name="no_playlist_found">沒有本地播放清單，請先創建一個</string>
     <string name="list_all_cookies_of_this_page">列出本頁面的所有 Cookies</string>
     <string name="copied_to_clipboard">已複製至剪貼簿</string>
-    <string name="enable_liquid_glass_effect">啟用 Liquid Glass 效果（測試版）</string>
-    <string name="enable_liquid_glass_effect_description">在某些位置啟用 iOS 的液態玻璃效果（Android 13+）</string>
     <string name="your_library">我的音樂庫</string>
     <string name="play_explicit_content">播放露骨內容</string>
     <string name="play_explicit_content_description">允許播放露骨內容</string>

@@ -226,8 +226,6 @@ import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_animated_artwork
-import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
-import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.equalizer
@@ -499,7 +497,6 @@ fun SettingScreen(
     val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
     val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
-    val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
@@ -1019,15 +1016,6 @@ fun SettingScreen(
                                 smallSubtitle = true,
                                 switch = ((artworkColors == DataStoreManager.TRUE) to { sharedViewModel.setArtworkColors(it) }),
                             )
-                            if (getPlatform() == Platform.Android) {
-                                SettingItem(
-                                    title = stringResource(Res.string.enable_liquid_glass_effect),
-                                    subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
-                                    smallSubtitle = true,
-                                    switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
-                                    isEnable = getPlatform() == Platform.Android,
-                                )
-                            }
                             // The Apple Music treatments ARE the blur — the frosted page behind the player, and
                             // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
                             // Android 12, so on an older device they render as a flat, wrong-looking version of

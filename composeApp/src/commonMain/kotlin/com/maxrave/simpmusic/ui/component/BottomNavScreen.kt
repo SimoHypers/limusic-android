@@ -2,8 +2,6 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.ui.icon.Home
 import com.maxrave.simpmusic.ui.icon.LibraryMusic
 import com.maxrave.simpmusic.ui.icon.Search
@@ -13,28 +11,12 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
-import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.jetbrains.compose.resources.StringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.home
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.mix
 import simpmusic.composeapp.generated.resources.search
-import kotlin.reflect.KClass
-
-@Composable
-expect fun LiquidGlassAppBottomNavigationBar(
-    startDestination: Any = HomeDestination,
-    navController: NavController,
-    backdrop: PlatformBackdrop,
-    viewModel: SharedViewModel,
-    isScrolledToTop: Boolean = false,
-    showMixForYouTab: Boolean = false,
-    onOpenNowPlaying: () -> Unit = {},
-    // False draws the same folding bar in the flat material (liquid glass turned off).
-    liquidGlass: Boolean = true,
-    reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
-)
 
 sealed class BottomNavScreen(
     val ordinal: Int,

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
@@ -13,10 +12,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -36,7 +33,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,8 +42,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -85,14 +79,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -108,12 +100,10 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.entities.SongEntity
-import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.getPlatform
@@ -122,8 +112,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
-import com.maxrave.simpmusic.ui.component.liquidGlass
-import com.maxrave.simpmusic.ui.component.rememberGlassLuminance
+import com.maxrave.simpmusic.ui.component.pillSurface
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Headphones
@@ -134,14 +123,12 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
-import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
@@ -156,45 +143,19 @@ private const val TAG = "MiniPlayer"
 @Composable
 fun MiniPlayer(
     modifier: Modifier,
-    backdrop: PlatformBackdrop,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
     onOpenFullscreenLyrics: () -> Unit = {},
-    // ConstraintLayout keeps Gone content composed, so its visibility must gate sampling separately.
-    isVisible: Boolean = true,
     /** Lets the queue's song sheets open artist and album pages; the Desktop capsule's queue needs it. */
     navController: NavController? = null,
 ) {
-    val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     // The Desktop capsule's quality line between its timestamps — see toAudioQualityLabel.
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
-    val layer = rememberGraphicsLayer()
-
-    // The Desktop capsule is always liquid glass, so it needs the glass code paths whatever the
-    // setting says — both the luminance sampling loop that drives the glass and the theme-following
-    // text colour. Leaving them gated left the capsule with luminance stuck at 0: a 2dp blur and a
-    // 0.12 darken, which is why it looked like a smear rather than glass. The setting still governs
-    // the Android card below.
-    val useGlassSurface = isLiquidGlassEnabled == DataStoreManager.TRUE || getPlatform() == Platform.Desktop
-    val luminance = rememberGlassLuminance(layer, enabled = useGlassSurface && isVisible)
-
-    val isDarkTheme = LocalIsDarkTheme.current
-    val textColor by animateColorAsState(
-        // With liquid glass the surface follows the theme (light = frosted white → black text);
-        // without it, the card is a theme surface, so its foreground token.
-        targetValue =
-            if (useGlassSurface) {
-                if (isDarkTheme) Color.White else Color.Black
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
-        label = "MiniPlayerTextColor",
-        animationSpec = tween(500),
-    )
+    val textColor = MaterialTheme.colorScheme.onSurface
 
     val (songEntity, setSongEntity) =
         remember {
@@ -272,16 +233,8 @@ fun MiniPlayer(
         // the Card's own background draw, so the larger radius wins and silently becomes the
         // visible one.
         val miniPlayerShape = CircleShape
-        // Without glass the card follows the theme, not the playing artwork.
-        val cardColor =
-            if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                Color.Transparent
-            } else {
-                // Same opaque surface as the bottom bar capsule, so the two floating surfaces read as one set.
-                MaterialTheme.colorScheme.surfaceContainer
-            }
-        // The flat (default) card: round artwork and controls sitting in filled circles. Glass keeps its own look.
-        val isFlat = isLiquidGlassEnabled != DataStoreManager.TRUE
+        // Same opaque surface as the bottom bar capsule, so the two floating surfaces read as one set.
+        val cardColor = MaterialTheme.colorScheme.surfaceContainer
         Card(
             shape = miniPlayerShape,
             colors =
@@ -292,12 +245,6 @@ fun MiniPlayer(
             modifier =
                 modifier
                     .then(
-                        if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                            Modifier.liquidGlass(backdrop, layer, luminance, RoundedCornerShape(16.dp))
-                        } else {
-                            Modifier
-                        },
-                    ).then(
                         Modifier
                             .clip(miniPlayerShape)
                             .offset { IntOffset(0, offsetY.value.roundToInt()) }
@@ -393,21 +340,19 @@ fun MiniPlayer(
                                         .align(Alignment.CenterVertically),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                if (isFlat) {
-                                    // Progress rides a ring around the artwork: wavy while playing, flat when paused.
-                                    val ringStroke = Stroke(width = with(LocalDensity.current) { 3.dp.toPx() }, cap = StrokeCap.Round)
-                                    CircularWavyProgressIndicator(
-                                        progress = { animatedProgress },
-                                        modifier = Modifier.fillMaxSize(),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                        stroke = ringStroke,
-                                        trackStroke = ringStroke,
-                                        // A raw 0/1, never a tweened value: the node animates amplitude
-                                        // itself and drops new targets mid-animation (see WavySeekBar).
-                                        amplitude = { p -> if (p > 0f && isPlaying) 1f else 0f },
-                                    )
-                                }
+                                // Progress rides a ring around the artwork: wavy while playing, flat when paused.
+                                val ringStroke = Stroke(width = with(LocalDensity.current) { 3.dp.toPx() }, cap = StrokeCap.Round)
+                                CircularWavyProgressIndicator(
+                                    progress = { animatedProgress },
+                                    modifier = Modifier.fillMaxSize(),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    stroke = ringStroke,
+                                    trackStroke = ringStroke,
+                                    // A raw 0/1, never a tweened value: the node animates amplitude
+                                    // itself and drops new targets mid-animation (see WavySeekBar).
+                                    amplitude = { p -> if (p > 0f && isPlaying) 1f else 0f },
+                                )
                                 AsyncImage(
                                     model =
                                         ImageRequest
@@ -419,11 +364,11 @@ fun MiniPlayer(
                                     error = rememberHolderPainter(),
                                     contentDescription = null,
                                     // Crop in the circle: FillWidth would leave bands around a 16:9 video thumbnail.
-                                    contentScale = if (isFlat) ContentScale.Crop else ContentScale.FillWidth,
+                                    contentScale = ContentScale.Crop,
                                     modifier =
                                         Modifier
-                                            .size(if (isFlat) 26.dp else 40.dp)
-                                            .clip(if (isFlat) CircleShape else RoundedCornerShape(4.dp)),
+                                            .size(26.dp)
+                                            .clip(CircleShape),
                                 )
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -468,7 +413,7 @@ fun MiniPlayer(
                                     ) {
                                         Text(
                                             text = (songEntity?.title ?: "").toString(),
-                                            style = if (isFlat) typo().titleSmall else typo().labelSmall,
+                                            style = typo().titleSmall,
                                             color = textColor,
                                             maxLines = 1,
                                             modifier =
@@ -493,9 +438,9 @@ fun MiniPlayer(
                                             }
                                             Text(
                                                 text = (songEntity?.artistName?.connectArtists() ?: ""),
-                                                style = if (isFlat) typo().bodySmall.copy(fontSize = 10.sp) else typo().bodySmall,
+                                                style = typo().bodySmall.copy(fontSize = 10.sp),
                                                 maxLines = 1,
-                                                color = if (isFlat) MaterialTheme.colorScheme.onSurfaceVariant else textColor,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier =
                                                     Modifier
                                                         .weight(1f)
@@ -513,31 +458,27 @@ fun MiniPlayer(
                         }
                     }
                     // Flat: 40dp in the 56dp pill leaves an even 8dp ring.
-                    val controlSize = if (isFlat) 40.dp else 48.dp
-                    val playColor = if (isFlat) MaterialTheme.colorScheme.onPrimary else textColor
-                    Spacer(modifier = Modifier.width(if (isFlat) 8.dp else 15.dp))
+                    val controlSize = 40.dp
+                    val playColor = MaterialTheme.colorScheme.onPrimary
+                    Spacer(modifier = Modifier.width(8.dp))
                     // background(shape), not clip: the heart's like-burst draws outside its bounds.
                     Box(
                         modifier =
-                            if (isFlat) {
-                                Modifier
-                                    .size(controlSize)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
-                            } else {
-                                Modifier
-                            },
+                            Modifier
+                                .size(controlSize)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         HeartCheckBox(checked = liked, size = 30, tint = textColor) {
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
                     }
-                    Spacer(modifier = Modifier.width(if (isFlat) 8.dp else 15.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Box(
                         modifier =
                             Modifier
                                 .size(controlSize)
-                                .then(if (isFlat) Modifier.background(MaterialTheme.colorScheme.primary, CircleShape) else Modifier),
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Crossfade(targetState = loading, label = "") {
@@ -557,34 +498,7 @@ fun MiniPlayer(
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(if (isFlat) 8.dp else 15.dp))
-                }
-                // The flat card shows progress as the ring around its artwork instead.
-                if (!isFlat) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .padding(
-                                    horizontal = 10.dp,
-                                ).align(Alignment.BottomCenter),
-                    ) {
-                        LinearProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp),
-                                    ),
-                            color = textColor,
-                            trackColor = Color.Transparent,
-                            strokeCap = StrokeCap.Round,
-                            drawStopIndicator = {},
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
             }
         }
@@ -644,13 +558,11 @@ fun MiniPlayer(
         // Apple Music-style floating capsule: transport on the left, the track and its slim
         // progress slider in the middle, the action cluster on the right. Size and placement come
         // from the caller (App.kt), so the capsule keeps a fixed width and floats over content.
-        // Always liquid glass, not gated on the setting: the capsule IS the glass shape here, and
-        // falling back to a haze blur gives a dark smear instead of a floating pill.
         val capsuleShape = RoundedCornerShape(50)
         val density = LocalDensity.current
         Box(
             modifier
-                .liquidGlass(backdrop, layer, luminance, capsuleShape, blurScale = 1.2f)
+                .pillSurface(capsuleShape)
                 .clip(capsuleShape)
                 .clickable {
                     onClick()
@@ -677,9 +589,7 @@ fun MiniPlayer(
                         isSmallSize = true,
                         plainPlayPause = true,
                         horizontalPadding = 0.dp,
-                        // Dark keeps the familiar seed; light needs the darker seed-derived
-                        // primary or the active state washes out on the light glass.
-                        activeColor = if (isDarkTheme) com.maxrave.simpmusic.ui.theme.seed else MaterialTheme.colorScheme.primary,
+                        activeColor = MaterialTheme.colorScheme.primary,
                         contentColor = textColor,
                     ) {
                         sharedViewModel.onUIEvent(it)
