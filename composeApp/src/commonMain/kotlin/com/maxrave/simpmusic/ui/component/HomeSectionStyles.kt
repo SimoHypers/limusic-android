@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
 private const val WIDE_LAYOUT_MIN_DP = 600
 
 /**
- * "Your daily discover" as ArchiveTune's hero carousel: one large card in the middle, narrow
+ * Quick picks as ArchiveTune's hero carousel: one large card in the middle, narrow
  * neighbours, and the song's name on the art over a scrim. Past half the row only one large item
  * fits, so the large width is set above that and a wide window never lines up two side by side.
  * Tapping a neighbour brings it to the middle; tapping the middle card starts the song's radio, a
@@ -92,6 +92,8 @@ fun HomeDiscoverSection(
                         .height(if (wide) 400.dp else heroWidth * 1.1f),
             ) { index ->
                 val song = songs[index]
+                // List shelves ship ~120px art; ask YouTube's image host for a size that fills the card.
+                val art = remember(song) { song.thumbnails.lastOrNull()?.url?.replace(Regex("=w\\d+-h\\d+"), "=w1080-h1080") }
                 val info = carouselItemDrawInfo
                 // A neighbour is only brought to the middle; the middle card is the one that plays.
                 val play: () -> Unit = {
@@ -112,9 +114,9 @@ fun HomeDiscoverSection(
                         model =
                             ImageRequest
                                 .Builder(LocalPlatformContext.current)
-                                .data(song.thumbnails.lastOrNull()?.url)
+                                .data(art)
                                 .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(song.thumbnails.lastOrNull()?.url)
+                                .diskCacheKey(art)
                                 .crossfade(550)
                                 .build(),
                         contentDescription = null,

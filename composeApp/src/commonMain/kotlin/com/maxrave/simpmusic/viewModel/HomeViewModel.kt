@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.song
 import simpmusic.composeapp.generated.resources.view_count
 
@@ -159,14 +160,28 @@ class HomeViewModel(
                                 _homeItemList.value = listOf()
                             }
                         }
-                        _homeListState.value =
-                            if (continuation.value.isNullOrEmpty()) ListState.PAGINATION_EXHAUST else ListState.IDLE
                         if (home is Resource.Error) {
                             showSnackBarErrorState.emit(home.message ?: "Unknown error")
                             Logger.w("Error", "getHomeItemList: ${home.message}")
                         }
-                        loading.value = false
                     }
+                // Quick picks leads Home, but YouTube can send it on a later page. Fetch up to it
+                // before showing Home, or it lands above the list once the user scrolls there.
+                // ponytail: two extra pages at most, the same requests scrolling down would make.
+                val quickPicks = getString(Res.string.quick_picks)
+                repeat(2) {
+                    val next = continuation.value
+                    if (next.isNullOrEmpty() || _homeItemList.value.any { it.title == quickPicks }) return@repeat
+                    homeRepository
+                        .getHomeDataContinue(next, getString(Res.string.view_count), getString(Res.string.song))
+                        .collect { home ->
+                            _continuation.value = (home as? Resource.Success)?.data?.first
+                            home.data?.second?.let { items -> _homeItemList.update { it + items } }
+                        }
+                }
+                _homeListState.value =
+                    if (continuation.value.isNullOrEmpty()) ListState.PAGINATION_EXHAUST else ListState.IDLE
+                loading.value = false
             }
     }
 

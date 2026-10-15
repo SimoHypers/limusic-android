@@ -177,7 +177,6 @@ import simpmusic.composeapp.generated.resources.good_evening
 import simpmusic.composeapp.generated.resources.good_morning
 import simpmusic.composeapp.generated.resources.good_night
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
-import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_warning
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
@@ -222,7 +221,10 @@ fun HomeScreen(
     val scrollState = rememberLazyListState()
     val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
-    val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
+    val homeItems by viewModel.homeItemList.collectAsStateWithLifecycle()
+    val quickPicksTitle = stringResource(Res.string.quick_picks)
+    // Quick picks leads Home wherever YouTube put it (stable sort: the rest keep their order).
+    val homeData = remember(homeItems, quickPicksTitle) { homeItems.sortedByDescending { it.title == quickPicksTitle } }
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     var accountShow by rememberSaveable {
         mutableStateOf(false)
@@ -505,51 +507,26 @@ fun HomeScreen(
                                         )
                                         Spacer(Modifier.height(8.dp))
                                     }
-                                    if (item.title == stringResource(Res.string.quick_picks)) {
-                                        AnimatedVisibility(
-                                            visible =
-                                                homeData.find {
-                                                    it.title ==
-                                                        stringResource(
-                                                            Res.string.quick_picks,
-                                                        )
-                                                } != null,
-                                        ) {
-                                            QuickPicks(
-                                                homeItem =
-                                                    (
-                                                        homeData.find {
-                                                            it.title ==
-                                                                stringResource(
-                                                                    Res.string.quick_picks,
-                                                                )
-                                                        } ?: return@AnimatedVisibility
-                                                    ).let { content ->
-                                                        content.copy(
-                                                            contents =
-                                                                content.contents.mapNotNull { ct ->
-                                                                    ct?.copy(
-                                                                        artists =
-                                                                            ct.artists?.let { art ->
-                                                                                if (art.size > 1) {
-                                                                                    art.dropLast(1)
-                                                                                } else {
-                                                                                    art
-                                                                                }
-                                                                            },
-                                                                    )
-                                                                },
-                                                        )
-                                                    },
-                                                navController = navController,
-                                                viewModel = viewModel,
-                                            )
-                                        }
-                                    } else if (item.isSongCardShelf()) {
+                                    // Quick picks takes the hero carousel and the song-card shelves ("Your
+                                    // daily discover") take the 4-row list, swapped from upstream.
+                                    if (item.title == quickPicksTitle) {
                                         HomeDiscoverSection(
-                                            data = item,
+                                            // The last "artist" on a Quick picks row is the album.
+                                            data =
+                                                item.copy(
+                                                    contents =
+                                                        item.contents.mapNotNull { ct ->
+                                                            ct?.copy(artists = ct.artists?.let { art -> if (art.size > 1) art.dropLast(1) else art })
+                                                        },
+                                                ),
                                             navController = navController,
                                             homeViewModel = viewModel,
+                                        )
+                                    } else if (item.isSongCardShelf()) {
+                                        QuickPicks(
+                                            homeItem = item,
+                                            navController = navController,
+                                            viewModel = viewModel,
                                         )
                                     } else {
                                         HomeItem(
@@ -806,12 +783,11 @@ fun QuickPicks(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
+                homeItem.subtitle?.takeIf { it.isNotBlank() }?.let {
+                    Text(text = it, style = typo().bodySmall)
+                }
                 Text(
-                    text = stringResource(Res.string.let_s_start_with_a_radio),
-                    style = typo().bodySmall,
-                )
-                Text(
-                    text = stringResource(Res.string.quick_picks),
+                    text = homeItem.title,
                     style = typo().headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
