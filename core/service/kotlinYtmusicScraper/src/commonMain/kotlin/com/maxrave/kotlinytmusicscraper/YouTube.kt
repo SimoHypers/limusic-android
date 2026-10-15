@@ -1897,10 +1897,17 @@ class YouTube {
 
     suspend fun editPlaylist(
         playlistId: String,
-        title: String,
+        title: String? = null,
+        description: String? = null,
+        privacy: String? = null,
     ) = runCatching {
-        ytMusic.editYouTubePlaylist(playlistId, title).status.value
+        ytMusic.editYouTubePlaylist(playlistId, title, description, privacy).status.value
     }
+
+    suspend fun deletePlaylist(playlistId: String) =
+        runCatching {
+            ytMusic.deleteYouTubePlaylist(playlistId).status.value
+        }
 
     /**
      * Puts a custom cover on a YouTube Music playlist.

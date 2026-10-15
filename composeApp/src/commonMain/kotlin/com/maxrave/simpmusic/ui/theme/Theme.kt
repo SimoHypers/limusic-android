@@ -7,6 +7,8 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ColorScheme
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialExpressiveTheme
@@ -240,6 +242,7 @@ fun AppTheme(
         shapes = LimusicShapes,
         content = {
             CompositionLocalProvider(
+                LocalTextStyle provides defaultTextStyle(),
                 LocalRippleConfiguration provides SoftRippleConfiguration,
                 LocalContentColor provides colorScheme.onSurfaceVariant,
                 LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
@@ -311,6 +314,7 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
         shapes = LimusicShapes,
         content = {
             CompositionLocalProvider(
+                LocalTextStyle provides defaultTextStyle(),
                 LocalForceDarkText provides true,
                 LocalIsDarkTheme provides true,
                 LocalContentColor provides darkScheme.onSurfaceVariant,
@@ -335,6 +339,7 @@ fun AppThemeContent(content: @Composable () -> Unit) {
         shapes = LimusicShapes,
         content = {
             CompositionLocalProvider(
+                LocalTextStyle provides defaultTextStyle(),
                 LocalForceDarkText provides false,
                 LocalIsDarkTheme provides isDark,
                 LocalContentColor provides scheme.onSurfaceVariant,
@@ -345,6 +350,16 @@ fun AppThemeContent(content: @Composable () -> Unit) {
         typography = typo(scheme, forceDark = false),
     )
 }
+
+/**
+ * MaterialTheme's default text style, minus [typo]'s baked-in grey. Material hands every Text
+ * `typography.bodyLarge` as its base, and a button label (labelLarge, no colour of its own) merged
+ * onto that kept the grey instead of the button's content colour: grey "Save" on an accent pill.
+ * With the colour unspecified, a plain Text falls back to LocalContentColor, which each theme below
+ * sets to the same onSurfaceVariant, and buttons get onPrimary / primary as Material intends.
+ */
+@Composable
+private fun defaultTextStyle(): TextStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Unspecified)
 
 /** Keeps a generated scheme's accents but puts it on Limusic's background and surface ramp. */
 private fun ColorScheme.withLimusicNeutrals(isDark: Boolean): ColorScheme {

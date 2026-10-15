@@ -98,6 +98,8 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
+import com.maxrave.simpmusic.ui.component.DeletePlaylistDialog
+import com.maxrave.simpmusic.ui.component.EditPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -151,6 +153,7 @@ import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.delete_playlist_desc
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.search
@@ -271,6 +274,8 @@ fun PlaylistScreen(
     }
     // Set by the menu's Save to playlist once every page is in; non-null shows the picker.
     var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
+    var showEditPlaylist by remember { mutableStateOf(false) }
+    var showDeletePlaylist by remember { mutableStateOf(false) }
 
     val onPlaylistItemClick: (videoId: String) -> Unit = { videoId ->
         viewModel.onUIEvent(
@@ -1292,10 +1297,11 @@ fun PlaylistScreen(
                         song = track,
                     )
                 }
+                // Liked Music (LM) is a playlist YouTube fills from ratings: no edit, no delete.
+                val ownPlaylist = (data.owned || isYourYouTubePlaylist) && !data.isRadio && data.id.removePrefix("VL") != "LM"
                 if (playlistBottomSheetShow) {
                     PlaylistBottomSheet(
                         onDismiss = { playlistBottomSheetShow = false },
-                        playlistName = data.title,
                         shareLink = "https://music.youtube.com/playlist?list=${data.id.removePrefix("VL")}",
                         onPlayNext = { viewModel.getFullTracks { sharedViewModel.playListNext(it) } },
                         onAddToQueue = {
@@ -1303,12 +1309,39 @@ fun PlaylistScreen(
                         },
                         onStartRadio = if (data.isRadio) null else ({ viewModel.onUIEvent(PlaylistUIEvent.StartRadio) }),
                         onSaveToPlaylist = { viewModel.getFullTracks { saveTracks = it } },
-                        onEditTitle =
-                            if (isYourYouTubePlaylist && !data.isRadio) {
-                                { newTitle -> viewModel.updatePlaylistTitle(newTitle, data.id) }
-                            } else {
-                                null
-                            },
+                        onEditPlaylist = if (ownPlaylist) ({ showEditPlaylist = true }) else null,
+                        onDeletePlaylist = if (ownPlaylist) ({ showDeletePlaylist = true }) else null,
+                    )
+                }
+                if (showEditPlaylist) {
+                    EditPlaylistBottomSheet(
+                        title = data.title,
+                        description = data.description.orEmpty(),
+                        privacy = data.privacy ?: "PRIVATE",
+                        thumbnail = data.thumbnail,
+                        onDismiss = { showEditPlaylist = false },
+                        onSave = { title, description, privacy, cover, onResult ->
+                            viewModel.editPlaylist(title, description, privacy, cover) { ok ->
+                                onResult(ok)
+                                if (ok) {
+                                    showEditPlaylist = false
+                                    sharedViewModel.youTubePlaylistsChanged()
+                                }
+                            }
+                        },
+                    )
+                }
+                if (showDeletePlaylist) {
+                    DeletePlaylistDialog(
+                        message = stringResource(Res.string.delete_playlist_desc, data.title),
+                        onDismiss = { showDeletePlaylist = false },
+                        onConfirm = {
+                            showDeletePlaylist = false
+                            viewModel.deletePlaylist {
+                                sharedViewModel.youTubePlaylistsChanged()
+                                navController.navigateUp()
+                            }
+                        },
                     )
                 }
                 saveTracks?.let { toSave ->

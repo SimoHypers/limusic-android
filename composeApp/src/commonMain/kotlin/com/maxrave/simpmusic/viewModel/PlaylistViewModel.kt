@@ -50,11 +50,12 @@ import simpmusic.composeapp.generated.resources.auto_created_by_youtube_music
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.playlist_deleted
+import simpmusic.composeapp.generated.resources.playlist_saved
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.shuffle
 import simpmusic.composeapp.generated.resources.shuffle_not_available
-import simpmusic.composeapp.generated.resources.synced
 import simpmusic.composeapp.generated.resources.view_count
 
 class PlaylistViewModel(
@@ -249,6 +250,8 @@ class PlaylistViewModel(
                                                 year = data.first.year,
                                                 shuffleEndpoint = data.first.shuffleEndpoint,
                                                 radioEndpoint = data.first.radioEndpoint,
+                                                privacy = data.first.privacy,
+                                                owned = data.first.owned,
                                             ),
                                     )
                                 _tracks.value = data.first.tracks
@@ -625,27 +628,46 @@ class PlaylistViewModel(
         }
     }
 
-    fun updatePlaylistTitle(
-        title: String,
-        id: String,
+    /** Sends only what changed; null means untouched. [onResult] says whether it saved. */
+    fun editPlaylist(
+        title: String?,
+        description: String?,
+        privacy: String?,
+        cover: ByteArray?,
+        onResult: (Boolean) -> Unit,
     ) {
+        val id = uiState.value.data?.id ?: return
         viewModelScope.launch {
-            playlistRepository
-                .updateYourYouTubePlaylistTitle(
-                    id,
-                    title,
-                ).collect {
-                    when (it) {
-                        is Resource.Success -> {
-                            getData(id)
-                            makeToast(it.data ?: getString(Res.string.synced))
-                        }
+            playlistRepository.editYourYouTubePlaylist(id, title, description, privacy, cover).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        getData(id)
+                        makeToast(getString(Res.string.playlist_saved))
+                        onResult(true)
+                    }
 
-                        is Resource.Error -> {
-                            makeToast(it.message ?: getString(Res.string.error))
-                        }
+                    is Resource.Error -> {
+                        makeToast("${getString(Res.string.error)}: ${it.message}")
+                        onResult(false)
                     }
                 }
+            }
+        }
+    }
+
+    fun deletePlaylist(onDeleted: () -> Unit) {
+        val id = uiState.value.data?.id ?: return
+        viewModelScope.launch {
+            playlistRepository.deleteYourYouTubePlaylist(id).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        makeToast(getString(Res.string.playlist_deleted))
+                        onDeleted()
+                    }
+
+                    is Resource.Error -> makeToast("${getString(Res.string.error)}: ${it.message}")
+                }
+            }
         }
     }
 

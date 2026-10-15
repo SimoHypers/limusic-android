@@ -1041,7 +1041,6 @@ fun AlbumScreen(
                 if (albumBottomSheetShow) {
                     PlaylistBottomSheet(
                         onDismiss = { albumBottomSheetShow = false },
-                        playlistName = uiState.title,
                         shareLink =
                             if (uiState.audioPlaylistId.isNotEmpty()) {
                                 "https://music.youtube.com/playlist?list=${uiState.audioPlaylistId}"

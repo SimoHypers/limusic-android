@@ -13,4 +13,7 @@ data class PlaylistState(
     val trackCount: Int = 0,
     val radioEndpoint: YouTubeWatchEndpoint? = null,
     val shuffleEndpoint: YouTubeWatchEndpoint? = null,
+    /** `PUBLIC`, `UNLISTED` or `PRIVATE`; only read for playlists you own. */
+    val privacy: String? = null,
+    val owned: Boolean = false,
 )

@@ -131,12 +131,25 @@ data class BrowseResponse(
         @Serializable
         data class MusicEditablePlaylistDetailHeaderRenderer(
             val header: Header,
+            /** The edit form YouTube sends only for playlists you own: where their privacy lives. */
+            val editHeader: EditHeader? = null,
         ) {
             @Serializable
             data class Header(
                 val musicDetailHeaderRenderer: MusicDetailHeaderRenderer?,
                 val musicResponsiveHeaderRenderer: SectionListRenderer.Content.MusicResponsiveHeaderRenderer?,
             )
+
+            @Serializable
+            data class EditHeader(
+                val musicPlaylistEditHeaderRenderer: MusicPlaylistEditHeaderRenderer?,
+            ) {
+                /** [privacy] is `PUBLIC`, `UNLISTED` or `PRIVATE`. */
+                @Serializable
+                data class MusicPlaylistEditHeaderRenderer(
+                    val privacy: String?,
+                )
+            }
         }
 
         @Serializable

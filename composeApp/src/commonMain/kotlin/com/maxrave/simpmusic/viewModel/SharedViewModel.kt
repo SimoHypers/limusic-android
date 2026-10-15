@@ -1068,6 +1068,15 @@ class SharedViewModel(
         _recreateActivity.value = false
     }
 
+    private val _youTubePlaylistsVersion = MutableStateFlow(0)
+
+    /** Bumped when one of your YouTube playlists is edited or deleted, so Library refetches its list. */
+    val youTubePlaylistsVersion: StateFlow<Int> = _youTubePlaylistsVersion
+
+    fun youTubePlaylistsChanged() {
+        _youTubePlaylistsVersion.value++
+    }
+
     /** Each insert lands right after the playing track, so walking backwards keeps the list's order. */
     // ponytail: one insert per track; a batch insert in the handler if a long playlist feels slow.
     fun playListNext(listTrack: List<Track>) {

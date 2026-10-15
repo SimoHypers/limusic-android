@@ -83,6 +83,14 @@
     <string name="delete_playlist">Delete playlist</string>
     <string name="edit_playlist">Edit playlist</string>
     <string name="save_to_playlist">Save to playlist</string>
+    <string name="playlist_saved">Playlist saved</string>
+    <string name="playlist_deleted">Playlist deleted</string>
+    <string name="delete_playlist_confirm">Delete this playlist?</string>
+    <string name="delete_playlist_desc">“%1$s” will be deleted from your YouTube Music account. This can’t be undone.</string>
+    <string name="change_image">Change image</string>
+    <string name="public_playlist">Public</string>
+    <string name="public_playlist_on">Anyone can find this playlist on YouTube Music.</string>
+    <string name="public_playlist_off">Only you can see this playlist.</string>
     <string name="add_to_a_playlist">Add to a playlist</string>
     <string name="share">Share</string>
     <string name="move_up">Move up</string>

@@ -14,6 +14,7 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
 import com.maxrave.kotlinytmusicscraper.models.body.BrowseBody
 import com.maxrave.kotlinytmusicscraper.models.body.CreatePlaylistBody
+import com.maxrave.kotlinytmusicscraper.models.body.DeletePlaylistBody
 import com.maxrave.kotlinytmusicscraper.models.body.EditPlaylistBody
 import com.maxrave.kotlinytmusicscraper.models.body.FormData
 import com.maxrave.kotlinytmusicscraper.models.body.GetQueueBody
@@ -393,9 +394,12 @@ class Ytmusic {
         )
     }
 
+    /** Only the fields given are sent, so renaming can't blank a description read back wrong. */
     suspend fun editYouTubePlaylist(
         playlistId: String,
         title: String? = null,
+        description: String? = null,
+        privacy: String? = null,
     ) = httpClient.post("browse/edit_playlist") {
         ytClient(WEB_REMIX, setLogin = true)
         setBody(
@@ -403,15 +407,29 @@ class Ytmusic {
                 context = WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
-                    listOf(
-                        EditPlaylistBody.Action(
-                            action = "ACTION_SET_PLAYLIST_NAME",
-                            playlistName = title ?: "",
-                        ),
+                    listOfNotNull(
+                        title?.let { EditPlaylistBody.Action(action = "ACTION_SET_PLAYLIST_NAME", playlistName = it) },
+                        description?.let {
+                            EditPlaylistBody.Action(action = "ACTION_SET_PLAYLIST_DESCRIPTION", playlistDescription = it)
+                        },
+                        privacy?.let {
+                            EditPlaylistBody.Action(action = "ACTION_SET_PLAYLIST_PRIVACY", playlistPrivacy = it)
+                        },
                     ),
             ),
         )
     }
+
+    suspend fun deleteYouTubePlaylist(playlistId: String) =
+        httpClient.post("playlist/delete") {
+            ytClient(WEB_REMIX, setLogin = true)
+            setBody(
+                DeletePlaylistBody(
+                    context = WEB_REMIX.toContext(locale, visitorData),
+                    playlistId = playlistId.removePrefix("VL"),
+                ),
+            )
+        }
 
     /**
      * Step 1 of setting a playlist cover: reserve a resumable upload slot.

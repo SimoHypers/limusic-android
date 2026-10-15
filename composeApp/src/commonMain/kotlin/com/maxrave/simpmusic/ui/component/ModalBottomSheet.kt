@@ -2688,13 +2688,13 @@ fun ArtistModalBottomSheet(
  */
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
-    playlistName: String,
     shareLink: String,
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onStartRadio: (() -> Unit)?,
     onSaveToPlaylist: () -> Unit,
-    onEditTitle: ((newTitle: String) -> Unit)? = null,
+    onEditPlaylist: (() -> Unit)? = null,
+    onDeletePlaylist: (() -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2707,68 +2707,6 @@ fun PlaylistBottomSheet(
                     onDismiss()
                 }
             }
-        var showEditTitle by remember { mutableStateOf(false) }
-        if (showEditTitle) {
-            var newTitle by remember { mutableStateOf(playlistName) }
-            val showEditTitleSheetState =
-                rememberModalBottomSheetState(skipPartiallyExpanded = true)
-            val hideEditTitleBottomSheet: () -> Unit =
-                {
-                    coroutineScope.launch {
-                        showEditTitleSheetState.hide()
-                        onDismiss()
-                    }
-                }
-            ModalBottomSheet(
-                onDismissRequest = { showEditTitle = false },
-                sheetState = showEditTitleSheetState,
-                containerColor = Color.Transparent,
-                contentColor = Color.Transparent,
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Card(
-                            modifier = Modifier.width(60.dp).height(4.dp),
-                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                            shape = RoundedCornerShape(50),
-                        ) {}
-                        Spacer(modifier = Modifier.height(5.dp))
-                        OutlinedTextField(
-                            value = newTitle,
-                            onValueChange = { s -> newTitle = s },
-                            label = { Text(text = stringResource(Res.string.title)) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
-                        TextButton(
-                            onClick = {
-                                if (newTitle.isBlank()) {
-                                    showToast(playlistNameError, ToastGravity.Bottom)
-                                } else {
-                                    onEditTitle?.invoke(newTitle)
-                                    hideEditTitleBottomSheet()
-                                    hideModalBottomSheet()
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                        ) {
-                            Text(text = stringResource(Res.string.save))
-                        }
-                        EndOfModalBottomSheet()
-                    }
-                }
-            }
-        }
-
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = modelBottomSheetState,
@@ -2805,10 +2743,17 @@ fun PlaylistBottomSheet(
                     ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
                         shareUrl(shareTitle, shareLink)
                     }
-                    if (onEditTitle != null) {
-                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) {
-                            showEditTitle = true
-                        }
+                    if (onEditPlaylist != null) {
+                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
+                    }
+                    if (onDeletePlaylist != null) {
+                        val danger = MaterialTheme.colorScheme.error
+                        ActionButton(
+                            icon = SimpIcons.Delete,
+                            text = Res.string.delete_playlist,
+                            textColor = danger,
+                            iconColor = danger,
+                        ) { run(onDeletePlaylist) }
                     }
                     EndOfModalBottomSheet()
                 }

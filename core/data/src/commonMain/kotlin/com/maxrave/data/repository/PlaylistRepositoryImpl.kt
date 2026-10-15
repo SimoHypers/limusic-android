@@ -512,6 +512,21 @@ internal class PlaylistRepositoryImpl(
                         val shuffleEndpoint =
                             result.getPlaylistShuffleEndpoint()
                         Logger.d("getPlaylistData", "Endpoint: $radioEndpoint $shuffleEndpoint")
+                        // YouTube sends the editable header only for playlists you own, wherever the
+                        // page was opened from, so it is what decides Edit and Delete.
+                        val editableHeader =
+                            result.header?.musicEditablePlaylistDetailHeaderRenderer
+                                    ?: result.contents
+                                        ?.twoColumnBrowseResultsRenderer
+                                        ?.tabs
+                                        ?.firstOrNull()
+                                        ?.tabRenderer
+                                        ?.content
+                                        ?.sectionListRenderer
+                                        ?.contents
+                                        ?.firstOrNull()
+                                        ?.musicEditablePlaylistDetailHeaderRenderer
+                        val privacy = editableHeader?.editHeader?.musicPlaylistEditHeaderRenderer?.privacy
                         try {
                             parsePlaylistData(header, data ?: emptyList(), playlistId, viewString)?.let { playlist ->
                                 emit(
@@ -525,6 +540,8 @@ internal class PlaylistRepositoryImpl(
                                                 trackCount = (playlist.trackCount + listContent.size),
                                                 shuffleEndpoint = shuffleEndpoint?.toYouTubeWatchEndpoint(),
                                                 radioEndpoint = radioEndpoint?.toYouTubeWatchEndpoint(),
+                                                privacy = privacy ?: playlist.privacy,
+                                                owned = editableHeader != null,
                                             ),
                                             continueParam,
                                         ),
@@ -740,18 +757,40 @@ internal class PlaylistRepositoryImpl(
                 }
         }.flowOn(Dispatchers.IO)
 
-    override fun updateYourYouTubePlaylistTitle(
+    override fun editYourYouTubePlaylist(
         playlistId: String,
-        newTitle: String,
+        title: String?,
+        description: String?,
+        privacy: String?,
+        cover: ByteArray?,
     ): Flow<Resource<String>> =
         flow {
-            youTube
-                .editPlaylist(playlistId, newTitle)
-                .onSuccess {
-                    emit(Resource.Success(it.toString()))
-                }.onFailure {
-                    emit(Resource.Error<String>(it.message ?: "Unknown error"))
+            val details =
+                if (title == null && description == null && privacy == null) {
+                    Result.success(200)
+                } else {
+                    youTube.editPlaylist(playlistId, title, description, privacy)
                 }
+            val result =
+                details.mapCatching { status ->
+                    check(status in 200..299) { "HTTP $status" }
+                    if (cover != null) {
+                        val coverStatus = youTube.setPlaylistCustomThumbnail(playlistId, cover).getOrThrow()
+                        check(coverStatus in 200..299) { "Cover: HTTP $coverStatus" }
+                    }
+                }
+            result
+                .onSuccess { emit(Resource.Success("")) }
+                .onFailure { emit(Resource.Error<String>(it.message ?: "Unknown error")) }
+        }.flowOn(Dispatchers.IO)
+
+    override fun deleteYourYouTubePlaylist(playlistId: String): Flow<Resource<String>> =
+        flow {
+            youTube
+                .deletePlaylist(playlistId)
+                .mapCatching { status -> check(status in 200..299) { "HTTP $status" } }
+                .onSuccess { emit(Resource.Success("")) }
+                .onFailure { emit(Resource.Error<String>(it.message ?: "Unknown error")) }
         }.flowOn(Dispatchers.IO)
 
     override suspend fun insertYourYouTubePlaylist(yourYouTubePlaylist: YourYouTubePlaylistList) =

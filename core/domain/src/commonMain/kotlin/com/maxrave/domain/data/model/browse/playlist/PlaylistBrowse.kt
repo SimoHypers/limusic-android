@@ -18,4 +18,6 @@ data class PlaylistBrowse(
     val year: String,
     val shuffleEndpoint: YouTubeWatchEndpoint? = null,
     val radioEndpoint: YouTubeWatchEndpoint? = null,
+    /** Yours to edit: the page came with YouTube's edit header. */
+    val owned: Boolean = false,
 )

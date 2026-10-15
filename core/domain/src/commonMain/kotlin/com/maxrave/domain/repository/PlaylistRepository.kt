@@ -71,10 +71,16 @@ interface PlaylistRepository {
 
     fun getMixedForYou(): Flow<List<PlaylistsResult>?>
 
-    fun updateYourYouTubePlaylistTitle(
+    /** Edits a playlist you own. A null field is left as it is; [cover] is a square JPEG/PNG. */
+    fun editYourYouTubePlaylist(
         playlistId: String,
-        newTitle: String,
+        title: String?,
+        description: String?,
+        privacy: String?,
+        cover: ByteArray?,
     ): Flow<Resource<String>>
+
+    fun deleteYourYouTubePlaylist(playlistId: String): Flow<Resource<String>>
 
     suspend fun insertYourYouTubePlaylist(yourYouTubePlaylist: YourYouTubePlaylistList)
 

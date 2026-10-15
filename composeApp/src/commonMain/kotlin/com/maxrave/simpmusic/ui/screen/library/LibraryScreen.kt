@@ -41,6 +41,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -160,6 +161,16 @@ fun LibraryScreen(
         libraryTabRequest?.let {
             viewModel.setCurrentScreen(it)
             sharedViewModel.requestLibraryTab(null)
+        }
+    }
+
+    val youTubePlaylistsVersion by sharedViewModel.youTubePlaylistsVersion.collectAsStateWithLifecycle()
+    // Saveable so coming back to Library refetches once per change, not on every visit.
+    var seenYouTubePlaylistsVersion by rememberSaveable { mutableIntStateOf(youTubePlaylistsVersion) }
+    LaunchedEffect(youTubePlaylistsVersion) {
+        if (youTubePlaylistsVersion != seenYouTubePlaylistsVersion) {
+            seenYouTubePlaylistsVersion = youTubePlaylistsVersion
+            viewModel.getYouTubePlaylist()
         }
     }
 
