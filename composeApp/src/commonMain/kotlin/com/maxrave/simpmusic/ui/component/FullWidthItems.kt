@@ -85,7 +85,6 @@ import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PushPin
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
@@ -98,7 +97,6 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
@@ -152,9 +150,6 @@ fun SongFullWidthItems(
             offsetX.value >= maxOffset / 2,
         ) { shouldShowAddToQueue ->
             if (shouldShowAddToQueue) {
-                // Where Add to queue is blocked the swipe plays the song next instead
-                // (SharedViewModel.addListToQueue), so the icon shows what will happen.
-                val playsNext = rememberAddToQueueBlock() != null
                 Box(
                     modifier =
                         Modifier
@@ -166,9 +161,8 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = contentColor,
-                        imageVector = if (playsNext) SimpIcons.SkipNext else SimpIcons.QueueMusic,
-                        contentDescription =
-                            stringResource(if (playsNext) Res.string.play_next else Res.string.add_to_queue),
+                        imageVector = SimpIcons.QueueMusic,
+                        contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }
             }

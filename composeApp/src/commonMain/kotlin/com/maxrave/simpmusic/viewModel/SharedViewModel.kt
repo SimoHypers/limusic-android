@@ -45,7 +45,6 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
 import com.maxrave.domain.mediaservice.handler.SleepTimerState
-import com.maxrave.domain.mediaservice.handler.addToQueueBlock
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
@@ -96,7 +95,6 @@ import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
 import simpmusic.composeapp.generated.resources.login_success
-import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
@@ -1071,16 +1069,8 @@ class SharedViewModel(
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
         viewModelScope.launch {
-            // A radio, a mix or an Endless queue has no end to append to, so a single song (the swipe
-            // on a song row) goes right after the current one instead.
-            val endlessQueue = dataStoreManager.endlessQueue.first() == TRUE
-            if (listTrack.size == 1 && mediaPlayerHandler.queueData.value.addToQueueBlock(endlessQueue) != null) {
-                mediaPlayerHandler.playNext(listTrack.first())
-                makeToast(getString(Res.string.play_next))
-            } else {
-                mediaPlayerHandler.loadMoreCatalog(listTrack)
-                makeToast(getString(Res.string.added_to_queue))
-            }
+            mediaPlayerHandler.loadMoreCatalog(listTrack)
+            makeToast(getString(Res.string.added_to_queue))
         }
     }
 

@@ -203,8 +203,6 @@
     <string name="radio_audio_only_description">Phát phiên bản âm thanh thay vì video âm nhạc (nếu có), đồng thời bỏ qua các bản remix và mashup chỉ tồn tại dưới dạng video. Các danh sách phát và album sẽ không bị ảnh hưởng</string>
     <string name="video_quality">Chất lượng video</string>
     <string name="add_to_queue">Thêm vào hàng đợi</string>
-    <string name="add_to_queue_disabled_radio">Thêm vào hàng đợi (bị vô hiệu hóa khi đang phát đài hoặc bản phối)</string>
-    <string name="add_to_queue_disabled_endless">Thêm vào hàng đợi (bị vô hiệu hóa khi bật chế độ hàng đợi vô tận)</string>
     <string name="added_to_queue">Đã thêm vào hàng đợi</string>
     <string name="new_release">Mới phát hành</string>
     <string name="youtube_account">Tài khoản YouTube</string>

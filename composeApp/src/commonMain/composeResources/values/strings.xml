@@ -209,8 +209,6 @@
     <string name="radio_audio_only_description">Play the audio version instead of the music video when there is one, and skip remixes and mashups that only exist as videos. Playlists and albums are not affected</string>
     <string name="video_quality">Video Quality</string>
     <string name="add_to_queue">Add to queue</string>
-    <string name="add_to_queue_disabled_radio">Add to queue (disabled while a radio or mix is playing)</string>
-    <string name="add_to_queue_disabled_endless">Add to queue (disabled when endless queue is enabled)</string>
     <string name="added_to_queue">Added to queue</string>
     <string name="new_release">New release</string>
     <string name="youtube_account">YouTube Account</string>
@@ -341,7 +339,7 @@
     <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
-    <string name="endless_queue">Endless queue</string>
+    <string name="endless_queue">Autoplay</string>
     <string name="continue_playing">Continue Playing</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
