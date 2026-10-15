@@ -40,7 +40,7 @@ fun rememberSurfaceDarkColors(): SurfaceDarkColors {
         )
     } else {
         SurfaceDarkColors(
-            container = cs.surfaceContainerLow,
+            container = cs.surfaceContainerHigh, // the card colour Limusic desktop uses for menus
             handle = cs.outlineVariant,
             content = cs.onSurface,
             subtitle = cs.onSurfaceVariant,

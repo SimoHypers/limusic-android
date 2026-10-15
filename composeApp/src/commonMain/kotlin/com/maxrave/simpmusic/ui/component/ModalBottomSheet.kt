@@ -299,609 +299,611 @@ fun InfoPlayerBottomSheet(
     onDismiss: () -> Unit,
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val localDensity = LocalDensity.current
-    val windowInsets = WindowInsets.systemBars
-    val scrollState = rememberScrollState()
-    val sheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        val localDensity = LocalDensity.current
+        val windowInsets = WindowInsets.systemBars
+        val scrollState = rememberScrollState()
+        val sheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            )
 
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
-    val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
-    val format by sharedViewModel.format.collectAsState(null)
-    val extractSource by sharedViewModel.extractSource.collectAsState()
-    val downloadProgress by sharedViewModel.downloadFileProgress.collectAsStateWithLifecycle()
+        val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
+        val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
+        val format by sharedViewModel.format.collectAsState(null)
+        val extractSource by sharedViewModel.extractSource.collectAsState()
+        val downloadProgress by sharedViewModel.downloadFileProgress.collectAsStateWithLifecycle()
 
-    ModalBottomSheet(
-        onDismissRequest = {
-            onDismiss()
-        },
-        containerColor = rememberSurfaceDarkColors().container,
-        contentColor = Color.Transparent,
-        dragHandle = {},
-        scrimColor = Color.Black.copy(alpha = .5f),
-        sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        shape = RectangleShape,
-    ) {
-        // This dialog MUST stay inside the sheet's content lambda. A Dialog is its own window
-        // (Android ComponentDialog) / scene layer (skiko), so nothing in the layout tree orders
-        // it — the layer attached LAST wins, and DisposableEffects attach in composition order.
-        // Written as a sibling BEFORE ModalBottomSheet it lost to the sheet whenever both entered
-        // composition in the same pass: reopening the sheet mid-download, or an Android config
-        // change (downloadProgress lives in the ViewModel, so it survives this composable leaving).
-        // Nested here, the sheet's layer necessarily exists first, so the dialog is always on top.
-        if (downloadProgress != DownloadProgress.INIT) {
-            BasicAlertDialog(
-                onDismissRequest = { },
-                modifier = Modifier.wrapContentSize(),
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large,
-                    color = rememberSurfaceDarkColors().container,
-                    tonalElevation = AlertDialogDefaults.TonalElevation,
-                    shadowElevation = 1.dp,
+        ModalBottomSheet(
+            onDismissRequest = {
+                onDismiss()
+            },
+            containerColor = rememberSurfaceDarkColors().container,
+            contentColor = Color.Transparent,
+            dragHandle = {},
+            scrimColor = Color.Black.copy(alpha = .5f),
+            sheetState = sheetState,
+            modifier = Modifier.fillMaxHeight(),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            shape = RectangleShape,
+        ) {
+            // This dialog MUST stay inside the sheet's content lambda. A Dialog is its own window
+            // (Android ComponentDialog) / scene layer (skiko), so nothing in the layout tree orders
+            // it — the layer attached LAST wins, and DisposableEffects attach in composition order.
+            // Written as a sibling BEFORE ModalBottomSheet it lost to the sheet whenever both entered
+            // composition in the same pass: reopening the sheet mid-download, or an Android config
+            // change (downloadProgress lives in the ViewModel, so it survives this composable leaving).
+            // Nested here, the sheet's layer necessarily exists first, so the dialog is always on top.
+            if (downloadProgress != DownloadProgress.INIT) {
+                BasicAlertDialog(
+                    onDismissRequest = { },
+                    modifier = Modifier.wrapContentSize(),
                 ) {
-                    Column(
-                        Modifier.padding(
-                            horizontal = 20.dp,
-                            vertical = 20.dp,
-                        ),
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.large,
+                        color = rememberSurfaceDarkColors().container,
+                        tonalElevation = AlertDialogDefaults.TonalElevation,
+                        shadowElevation = 1.dp,
                     ) {
-                        Text(
-                            stringResource(Res.string.downloading),
-                            style = typo().headlineMedium,
-                        )
-                        Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                            if (!downloadProgress.isDone && !downloadProgress.isError) {
-                                CircularProgressIndicator()
-                                Spacer(Modifier.size(15.dp))
-                            }
-                            Crossfade(downloadProgress) {
-                                if (it.isMerging) {
-                                    Text(
-                                        text = stringResource(Res.string.merging_audio_and_video),
-                                        modifier = Modifier.padding(vertical = 5.dp),
-                                        style = typo().bodyMedium,
-                                    )
-                                } else if (it.isError) {
-                                    Column {
+                        Column(
+                            Modifier.padding(
+                                horizontal = 20.dp,
+                                vertical = 20.dp,
+                            ),
+                        ) {
+                            Text(
+                                stringResource(Res.string.downloading),
+                                style = typo().headlineMedium,
+                            )
+                            Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                                if (!downloadProgress.isDone && !downloadProgress.isError) {
+                                    CircularProgressIndicator()
+                                    Spacer(Modifier.size(15.dp))
+                                }
+                                Crossfade(downloadProgress) {
+                                    if (it.isMerging) {
                                         Text(
-                                            text = stringResource(Res.string.error_occurred),
+                                            text = stringResource(Res.string.merging_audio_and_video),
                                             modifier = Modifier.padding(vertical = 5.dp),
                                             style = typo().bodyMedium,
                                         )
+                                    } else if (it.isError) {
+                                        Column {
+                                            Text(
+                                                text = stringResource(Res.string.error_occurred),
+                                                modifier = Modifier.padding(vertical = 5.dp),
+                                                style = typo().bodyMedium,
+                                            )
+                                            Text(
+                                                text = downloadProgress.errorMessage,
+                                                modifier = Modifier.padding(bottom = 5.dp),
+                                                maxLines = 2,
+                                                style = typo().bodyMedium,
+                                            )
+                                        }
+                                    } else if (it.isDone) {
                                         Text(
-                                            text = downloadProgress.errorMessage,
-                                            modifier = Modifier.padding(bottom = 5.dp),
-                                            maxLines = 2,
+                                            text =
+                                                stringResource(Res.string.downloaded) +
+                                                    stringResource(Res.string.to_download_folder)
+                                                        .replace("\"", ""),
+                                            modifier = Modifier.padding(vertical = 5.dp),
                                             style = typo().bodyMedium,
                                         )
+                                    } else {
+                                        Column {
+                                            if (it.audioDownloadProgress != 0f) {
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            Res.string.downloading_audio,
+                                                            (downloadProgress.audioDownloadProgress * 100).toString() + "%",
+                                                        ),
+                                                    modifier = Modifier.padding(vertical = 5.dp),
+                                                    style = typo().bodyMedium,
+                                                )
+                                            }
+                                            if (it.videoDownloadProgress != 0f) {
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            Res.string.downloading_video,
+                                                            (downloadProgress.videoDownloadProgress * 100).toString() + "%",
+                                                        ),
+                                                    modifier = Modifier.padding(vertical = 5.dp),
+                                                    style = typo().bodyMedium,
+                                                )
+                                            }
+                                            if (downloadProgress.downloadSpeed != 0) {
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            Res.string.download_speed,
+                                                            downloadProgress.downloadSpeed.toString() + " kb/s",
+                                                        ),
+                                                    modifier = Modifier.padding(vertical = 5.dp),
+                                                    style = typo().bodyMedium,
+                                                )
+                                            }
+                                        }
                                     }
-                                } else if (it.isDone) {
-                                    Text(
-                                        text =
-                                            stringResource(Res.string.downloaded) +
-                                                stringResource(Res.string.to_download_folder)
-                                                    .replace("\"", ""),
-                                        modifier = Modifier.padding(vertical = 5.dp),
-                                        style = typo().bodyMedium,
-                                    )
-                                } else {
+                                }
+                            }
+                            Crossfade(downloadProgress) {
+                                if (it.isError) {
                                     Column {
-                                        if (it.audioDownloadProgress != 0f) {
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        Res.string.downloading_audio,
-                                                        (downloadProgress.audioDownloadProgress * 100).toString() + "%",
-                                                    ),
-                                                modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo().bodyMedium,
-                                            )
-                                        }
-                                        if (it.videoDownloadProgress != 0f) {
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        Res.string.downloading_video,
-                                                        (downloadProgress.videoDownloadProgress * 100).toString() + "%",
-                                                    ),
-                                                modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo().bodyMedium,
-                                            )
-                                        }
-                                        if (downloadProgress.downloadSpeed != 0) {
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        Res.string.download_speed,
-                                                        downloadProgress.downloadSpeed.toString() + " kb/s",
-                                                    ),
-                                                modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo().bodyMedium,
-                                            )
-                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                        OutlinedButton(onClick = {
+                                            sharedViewModel.downloadFileDone()
+                                        }) { Text(stringResource(Res.string.ok)) }
                                     }
                                 }
-                            }
-                        }
-                        Crossfade(downloadProgress) {
-                            if (it.isError) {
-                                Column {
-                                    Spacer(Modifier.height(10.dp))
-                                    OutlinedButton(onClick = {
-                                        sharedViewModel.downloadFileDone()
-                                    }) { Text(stringResource(Res.string.ok)) }
-                                }
-                            }
-                            if (it.isDone) {
-                                Column {
-                                    Spacer(Modifier.height(10.dp))
-                                    OutlinedButton(onClick = {
-                                        sharedViewModel.downloadFileDone()
-                                    }) { Text(stringResource(Res.string.ok)) }
+                                if (it.isDone) {
+                                    Column {
+                                        Spacer(Modifier.height(10.dp))
+                                        OutlinedButton(onClick = {
+                                            sharedViewModel.downloadFileDone()
+                                        }) { Text(stringResource(Res.string.ok)) }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-            shape = RectangleShape,
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-        ) {
-            Column(
+            Card(
                 modifier =
                     Modifier
-                        .verticalScroll(scrollState)
-                        .padding(
-                            top =
-                                with(localDensity) {
-                                    windowInsets.getTop(localDensity).toDp()
-                                },
-                        ),
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                shape = RectangleShape,
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
-                TopAppBar(
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    colors =
-                        TopAppBarDefaults.topAppBarColors().copy(
-                            containerColor = Color.Transparent,
-                        ),
-                    title = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.now_playing_upper),
-                                style = typo().bodyMedium,
-                                color = rememberSurfaceDarkColors().content,
-                            )
-                            Text(
-                                text = screenDataState.nowPlayingTitle,
-                                style = typo().labelMedium,
-                                color = rememberSurfaceDarkColors().content,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            coroutineScope.launch {
-                                sheetState.hide()
-                                onDismiss()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = SimpIcons.KeyboardArrowDown,
-                                contentDescription = "",
-                                tint = rememberSurfaceDarkColors().content,
-                            )
-                        }
-                    },
-                    actions = {
-                        Box(
-                            modifier = Modifier.size(48.dp),
-                        )
-                    },
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = stringResource(Res.string.title),
+                Column(
                     modifier =
                         Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = screenDataState.nowPlayingTitle,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .padding(horizontal = 10.dp)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.artists),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = screenDataState.artistName,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.album),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = songEntity?.albumName ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.itag),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.itag?.toString() ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.mime_type),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.mimeType ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.codec),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.codecs ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.bitrate),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.bitrate?.toString() ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.bpm),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.bpm?.toString() ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.key),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.musicKey ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.scale),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = format?.keyScale ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-
-                Text(
-                    text = stringResource(Res.string.extract_source),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = extractSource ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-
-                Text(
-                    text = stringResource(Res.string.plays),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = screenDataState.songInfoData?.viewCount?.toString() ?: stringResource(Res.string.unknown),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.description),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text = screenDataState.songInfoData?.description ?: stringResource(Res.string.no_description),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .padding(horizontal = 10.dp),
-                    style = typo().bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.youtube_url),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                    textAlign = TextAlign.Center,
-                    style = typo().labelMedium,
-                    color = rememberSurfaceDarkColors().content,
-                )
-                Text(
-                    text =
-                        buildAnnotatedString {
-                            withLink(
-                                LinkAnnotation.Url(
-                                    "https://music.youtube.com/watch?v=${songEntity?.videoId}",
-                                    TextLinkStyles(style = SpanStyle(textDecoration = TextDecoration.Underline)),
-                                ),
+                            .verticalScroll(scrollState)
+                            .padding(
+                                top =
+                                    with(localDensity) {
+                                        windowInsets.getTop(localDensity).toDp()
+                                    },
+                            ),
+                ) {
+                    TopAppBar(
+                        windowInsets = WindowInsets(0, 0, 0, 0),
+                        colors =
+                            TopAppBarDefaults.topAppBarColors().copy(
+                                containerColor = Color.Transparent,
+                            ),
+                        title = {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
                             ) {
-                                append("https://music.youtube.com/watch?v=${songEntity?.videoId}")
+                                Text(
+                                    text = stringResource(Res.string.now_playing_upper),
+                                    style = typo().bodyMedium,
+                                    color = rememberSurfaceDarkColors().content,
+                                )
+                                Text(
+                                    text = screenDataState.nowPlayingTitle,
+                                    style = typo().labelMedium,
+                                    color = rememberSurfaceDarkColors().content,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
                             }
                         },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                    style = typo().bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-                OutlinedButton(
-                    enabled = screenDataState.bitmap != null,
-                    onClick = {
-                        sharedViewModel.downloadFile(
-                            bitmap = screenDataState.bitmap ?: return@OutlinedButton,
-                        )
-                    },
-                    modifier =
-                        Modifier
-                            .wrapContentSize()
-                            .align(Alignment.CenterHorizontally)
-                            .padding(vertical = 10.dp),
-                ) {
-                    Text(text = stringResource(Res.string.download_this_song_video_file_to_your_device))
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                coroutineScope.launch {
+                                    sheetState.hide()
+                                    onDismiss()
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = SimpIcons.KeyboardArrowDown,
+                                    contentDescription = "",
+                                    tint = rememberSurfaceDarkColors().content,
+                                )
+                            }
+                        },
+                        actions = {
+                            Box(
+                                modifier = Modifier.size(48.dp),
+                            )
+                        },
+                    )
 
-                EndOfModalBottomSheet()
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(Res.string.title),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = screenDataState.nowPlayingTitle,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .padding(horizontal = 10.dp)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.artists),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = screenDataState.artistName,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.album),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = songEntity?.albumName ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.itag),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.itag?.toString() ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.mime_type),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.mimeType ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.codec),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.codecs ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.bitrate),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.bitrate?.toString() ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.bpm),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.bpm?.toString() ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.key),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.musicKey ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.scale),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = format?.keyScale ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Text(
+                        text = stringResource(Res.string.extract_source),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = extractSource ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Text(
+                        text = stringResource(Res.string.plays),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = screenDataState.songInfoData?.viewCount?.toString() ?: stringResource(Res.string.unknown),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.description),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text = screenDataState.songInfoData?.description ?: stringResource(Res.string.no_description),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .padding(horizontal = 10.dp),
+                        style = typo().bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(Res.string.youtube_url),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                        style = typo().labelMedium,
+                        color = rememberSurfaceDarkColors().content,
+                    )
+                    Text(
+                        text =
+                            buildAnnotatedString {
+                                withLink(
+                                    LinkAnnotation.Url(
+                                        "https://music.youtube.com/watch?v=${songEntity?.videoId}",
+                                        TextLinkStyles(style = SpanStyle(textDecoration = TextDecoration.Underline)),
+                                    ),
+                                ) {
+                                    append("https://music.youtube.com/watch?v=${songEntity?.videoId}")
+                                }
+                            },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable(),
+                        style = typo().bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                    OutlinedButton(
+                        enabled = screenDataState.bitmap != null,
+                        onClick = {
+                            sharedViewModel.downloadFile(
+                                bitmap = screenDataState.bitmap ?: return@OutlinedButton,
+                            )
+                        },
+                        modifier =
+                            Modifier
+                                .wrapContentSize()
+                                .align(Alignment.CenterHorizontally)
+                                .padding(vertical = 10.dp),
+                    ) {
+                        Text(text = stringResource(Res.string.download_this_song_video_file_to_your_device))
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    EndOfModalBottomSheet()
+                }
             }
         }
     }
@@ -918,316 +920,318 @@ fun QueueBottomSheet(
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val localDensity = LocalDensity.current
-    val windowInsets = WindowInsets.systemBars
-    val sheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
-    val lazyListState = rememberLazyListState()
-    val dragDropState =
-        rememberDragDropState(lazyListState) { from, to ->
-            coroutineScope.launch {
-                musicServiceHandler.swap(from, to)
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        val localDensity = LocalDensity.current
+        val windowInsets = WindowInsets.systemBars
+        val sheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            )
+        val lazyListState = rememberLazyListState()
+        val dragDropState =
+            rememberDragDropState(lazyListState) { from, to ->
+                coroutineScope.launch {
+                    musicServiceHandler.swap(from, to)
+                }
             }
-        }
-    var overscrollJob by remember { mutableStateOf<Job?>(null) }
-    // The row whose ⋯ was tapped, as its queue position and the track that was there.
-    var moreFor by remember { mutableStateOf<Pair<Int, Track>?>(null) }
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
-    val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
-    val queueData by musicServiceHandler.queueData.collectAsStateWithLifecycle()
-    val queue by remember {
-        derivedStateOf {
-            queueData?.data?.listTracks ?: emptyList()
-        }
-    }
-    val loadMoreState by remember {
-        derivedStateOf {
-            queueData?.queueState ?: QueueData.StateSource.STATE_CREATED
-        }
-    }
-    val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
-
-    val shouldLoadMore =
-        remember {
+        var overscrollJob by remember { mutableStateOf<Job?>(null) }
+        // The row whose ⋯ was tapped, as its queue position and the track that was there.
+        var moreFor by remember { mutableStateOf<Pair<Int, Track>?>(null) }
+        val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
+        val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
+        val queueData by musicServiceHandler.queueData.collectAsStateWithLifecycle()
+        val queue by remember {
             derivedStateOf {
-                val layoutInfo = lazyListState.layoutInfo
-                val lastVisibleItem =
-                    layoutInfo.visibleItemsInfo.lastOrNull()
-                        ?: return@derivedStateOf true
-
-                lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
+                queueData?.data?.listTracks ?: emptyList()
             }
         }
-
-    // Convert the state into a cold flow and collect
-    LaunchedEffect(shouldLoadMore) {
-        snapshotFlow { shouldLoadMore.value }
-            .collect {
-                // if should load more, then invoke loadMore
-                if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
+        val loadMoreState by remember {
+            derivedStateOf {
+                queueData?.queueState ?: QueueData.StateSource.STATE_CREATED
             }
-    }
-
-    DisposableEffect(Unit) {
-        val currentSongIndex = musicServiceHandler.currentOrderIndex().takeIf { i -> i > -1 } ?: 0
-        Logger.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
-        coroutineScope.launch {
-            lazyListState.requestScrollToItem(currentSongIndex)
         }
-        onDispose { }
-    }
+        val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
 
-    val showQueueItemBottomSheet: (Int) -> Unit = { index ->
-        moreFor = queue.getOrNull(index)?.let { index to it }
-    }
+        val shouldLoadMore =
+            remember {
+                derivedStateOf {
+                    val layoutInfo = lazyListState.layoutInfo
+                    val lastVisibleItem =
+                        layoutInfo.visibleItemsInfo.lastOrNull()
+                            ?: return@derivedStateOf true
 
-    // Composed before the queue's own sheet but entered later, on a tap, so it attaches on top.
-    moreFor?.let { (index, track) ->
-        NowPlayingBottomSheet(
-            onDismiss = { moreFor = null },
-            navController = navController,
-            song = track.toSongEntity(),
-            queuePosition = QueuePosition(index, track.videoId),
-            onNavigateToOtherScreen = onNavigateToOtherScreen,
-        )
-    }
+                    lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
+                }
+            }
 
-    ModalBottomSheet(
-        onDismissRequest = {
-            onDismiss()
-        },
-        containerColor = rememberSurfaceDarkColors().container,
-        contentColor = Color.Transparent,
-        dragHandle = {},
-        scrimColor = Color.Black.copy(alpha = .5f),
-        sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        shape = RectangleShape,
-    ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
+        // Convert the state into a cold flow and collect
+        LaunchedEffect(shouldLoadMore) {
+            snapshotFlow { shouldLoadMore.value }
+                .collect {
+                    // if should load more, then invoke loadMore
+                    if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
+                }
+        }
+
+        DisposableEffect(Unit) {
+            val currentSongIndex = musicServiceHandler.currentOrderIndex().takeIf { i -> i > -1 } ?: 0
+            Logger.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
+            coroutineScope.launch {
+                lazyListState.requestScrollToItem(currentSongIndex)
+            }
+            onDispose { }
+        }
+
+        val showQueueItemBottomSheet: (Int) -> Unit = { index ->
+            moreFor = queue.getOrNull(index)?.let { index to it }
+        }
+
+        // Composed before the queue's own sheet but entered later, on a tap, so it attaches on top.
+        moreFor?.let { (index, track) ->
+            NowPlayingBottomSheet(
+                onDismiss = { moreFor = null },
+                navController = navController,
+                song = track.toSongEntity(),
+                queuePosition = QueuePosition(index, track.videoId),
+                onNavigateToOtherScreen = onNavigateToOtherScreen,
+            )
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                onDismiss()
+            },
+            containerColor = rememberSurfaceDarkColors().container,
+            contentColor = Color.Transparent,
+            dragHandle = {},
+            scrimColor = Color.Black.copy(alpha = .5f),
+            sheetState = sheetState,
+            modifier = Modifier.fillMaxHeight(),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             shape = RectangleShape,
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
         ) {
-            Column(
+            Card(
                 modifier =
-                    Modifier.padding(
-                        top =
-                            with(localDensity) {
-                                windowInsets.getTop(localDensity).toDp()
-                            },
-                    ),
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                shape = RectangleShape,
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
-                TopAppBar(
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    colors =
-                        TopAppBarDefaults.topAppBarColors().copy(
-                            containerColor = Color.Transparent,
-                        ),
-                    title = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.now_playing_upper),
-                                style = typo().bodyMedium,
-                                color = rememberSurfaceDarkColors().content,
-                            )
-                            Text(
-                                text = screenDataState.playlistName,
-                                style = typo().labelMedium,
-                                color = rememberSurfaceDarkColors().content,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            coroutineScope.launch {
-                                sheetState.hide()
-                                onDismiss()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = SimpIcons.KeyboardArrowDown,
-                                contentDescription = "",
-                                tint = rememberSurfaceDarkColors().content,
-                            )
-                        }
-                    },
-                    actions = {
-                        Box(
-                            modifier = Modifier.size(32.dp),
-                        )
-                    },
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = stringResource(Res.string.now_playing),
-                    style = typo().titleMedium,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
-                SongFullWidthItems(
-                    songEntity = songEntity,
-                    isPlaying = false,
-                    onAddToQueue = null,
+                Column(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                        Modifier.padding(
+                            top =
+                                with(localDensity) {
+                                    windowInsets.getTop(localDensity).toDp()
+                                },
+                        ),
+                ) {
+                    TopAppBar(
+                        windowInsets = WindowInsets(0, 0, 0, 0),
+                        colors =
+                            TopAppBarDefaults.topAppBarColors().copy(
+                                containerColor = Color.Transparent,
+                            ),
+                        title = {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.now_playing_upper),
+                                    style = typo().bodyMedium,
+                                    color = rememberSurfaceDarkColors().content,
+                                )
+                                Text(
+                                    text = screenDataState.playlistName,
+                                    style = typo().labelMedium,
+                                    color = rememberSurfaceDarkColors().content,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                coroutineScope.launch {
+                                    sheetState.hide()
+                                    onDismiss()
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = SimpIcons.KeyboardArrowDown,
+                                    contentDescription = "",
+                                    tint = rememberSurfaceDarkColors().content,
+                                )
+                            }
+                        },
+                        actions = {
+                            Box(
+                                modifier = Modifier.size(32.dp),
+                            )
+                        },
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = stringResource(Res.string.queue),
+                        text = stringResource(Res.string.now_playing),
                         style = typo().titleMedium,
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                    )
+                    SongFullWidthItems(
+                        songEntity = songEntity,
+                        isPlaying = false,
+                        onAddToQueue = null,
                         modifier =
                             Modifier
-                                .padding(horizontal = 20.dp)
-                                .weight(1f),
+                                .fillMaxWidth()
+                                .padding(10.dp),
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = stringResource(Res.string.endless_queue),
-                            style = typo().bodySmall,
-                            modifier = Modifier.padding(horizontal = 8.dp),
+                            text = stringResource(Res.string.queue),
+                            style = typo().titleMedium,
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .weight(1f),
                         )
-                        Switch(
-                            checked = endlessQueueEnable,
-                            onCheckedChange = {
-                                coroutineScope.launch {
-                                    dataStoreManager.setEndlessQueue(it)
-                                }
-                            },
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                    }
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                val queueRowKeys =
-                    remember(queue) {
-                        val seen = HashMap<String, Int>(queue.size)
-                        queue.map { track ->
-                            val occurrence = seen.getOrElse(track.videoId) { 0 }
-                            seen[track.videoId] = occurrence + 1
-                            "${track.videoId}#$occurrence"
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(Res.string.endless_queue),
+                                style = typo().bodySmall,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                            )
+                            Switch(
+                                checked = endlessQueueEnable,
+                                onCheckedChange = {
+                                    coroutineScope.launch {
+                                        dataStoreManager.setEndlessQueue(it)
+                                    }
+                                },
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
                     }
-                LazyColumn(
-                    horizontalAlignment = Alignment.Start,
-                    state = lazyListState,
-                    modifier =
-                        Modifier
-                            .pointerInput(Unit) {
-                                detectDragGesturesAfterLongPress(
-                                    onDrag = { change, offset ->
-                                        Logger.d("QueueBottomSheet", "onDrag $offset")
-                                        change.consume()
-                                        dragDropState.onDrag(offset = offset)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    val queueRowKeys =
+                        remember(queue) {
+                            val seen = HashMap<String, Int>(queue.size)
+                            queue.map { track ->
+                                val occurrence = seen.getOrElse(track.videoId) { 0 }
+                                seen[track.videoId] = occurrence + 1
+                                "${track.videoId}#$occurrence"
+                            }
+                        }
+                    LazyColumn(
+                        horizontalAlignment = Alignment.Start,
+                        state = lazyListState,
+                        modifier =
+                            Modifier
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDrag = { change, offset ->
+                                            Logger.d("QueueBottomSheet", "onDrag $offset")
+                                            change.consume()
+                                            dragDropState.onDrag(offset = offset)
 
-                                        if (overscrollJob?.isActive == true) {
-                                            return@detectDragGesturesAfterLongPress
-                                        }
-
-                                        dragDropState
-                                            .checkForOverScroll()
-                                            .takeIf { it != 0f }
-                                            ?.let {
-                                                overscrollJob =
-                                                    coroutineScope.launch {
-                                                        dragDropState.state.animateScrollBy(
-                                                            it * 1.3f,
-                                                            tween(easing = FastOutLinearInEasing),
-                                                        )
-                                                    }
+                                            if (overscrollJob?.isActive == true) {
+                                                return@detectDragGesturesAfterLongPress
                                             }
-                                            ?: run { overscrollJob?.cancel() }
-                                    },
-                                    onDragStart = { offset ->
-                                        Logger.d("QueueBottomSheet", "onDragStart $offset")
-                                        dragDropState.onDragStart(offset)
-                                    },
-                                    onDragEnd = {
-                                        Logger.d("QueueBottomSheet", "onDragEnd")
-                                        dragDropState.onDragInterrupted(true)
-                                        overscrollJob?.cancel()
-                                    },
-                                    onDragCancel = {
-                                        Logger.d("QueueBottomSheet", "onDragCancel")
-                                        dragDropState.onDragInterrupted()
-                                        overscrollJob?.cancel()
-                                    },
-                                )
-                            },
-                ) {
-                    itemsIndexed(
-                        queue,
-                        // Keyed by the track, NOT by its position: a radio queue drops played
-                        // tracks off the front, and a position-based key changes for every row
-                        // when that happens, so the list loses its scroll anchor and jumps under
-                        // the user. The occurrence number keeps the key unique when a radio
-                        // repeats a song.
-                        key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
-                    ) { index, track ->
-                        if (index != -1) {
-                            DraggableItem(
-                                dragDropState = dragDropState,
-                                index = index,
-                                modifier = Modifier,
-                            ) { _ ->
-                                SongFullWidthItems(
-                                    track = track,
-                                    isPlaying = track.videoId == songEntity?.videoId,
+
+                                            dragDropState
+                                                .checkForOverScroll()
+                                                .takeIf { it != 0f }
+                                                ?.let {
+                                                    overscrollJob =
+                                                        coroutineScope.launch {
+                                                            dragDropState.state.animateScrollBy(
+                                                                it * 1.3f,
+                                                                tween(easing = FastOutLinearInEasing),
+                                                            )
+                                                        }
+                                                }
+                                                ?: run { overscrollJob?.cancel() }
+                                        },
+                                        onDragStart = { offset ->
+                                            Logger.d("QueueBottomSheet", "onDragStart $offset")
+                                            dragDropState.onDragStart(offset)
+                                        },
+                                        onDragEnd = {
+                                            Logger.d("QueueBottomSheet", "onDragEnd")
+                                            dragDropState.onDragInterrupted(true)
+                                            overscrollJob?.cancel()
+                                        },
+                                        onDragCancel = {
+                                            Logger.d("QueueBottomSheet", "onDragCancel")
+                                            dragDropState.onDragInterrupted()
+                                            overscrollJob?.cancel()
+                                        },
+                                    )
+                                },
+                    ) {
+                        itemsIndexed(
+                            queue,
+                            // Keyed by the track, NOT by its position: a radio queue drops played
+                            // tracks off the front, and a position-based key changes for every row
+                            // when that happens, so the list loses its scroll anchor and jumps under
+                            // the user. The occurrence number keeps the key unique when a radio
+                            // repeats a song.
+                            key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
+                        ) { index, track ->
+                            if (index != -1) {
+                                DraggableItem(
+                                    dragDropState = dragDropState,
+                                    index = index,
+                                    modifier = Modifier,
+                                ) { _ ->
+                                    SongFullWidthItems(
+                                        track = track,
+                                        isPlaying = track.videoId == songEntity?.videoId,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth(),
+                                        onClickListener = { videoId ->
+                                            if (videoId == track.videoId) {
+                                                musicServiceHandler.playMediaItemInMediaSource(index)
+                                            }
+                                        },
+                                        onMoreClickListener = {
+                                            showQueueItemBottomSheet(index)
+                                        },
+                                        onAddToQueue = {
+                                            sharedViewModel.addListToQueue(
+                                                arrayListOf(track),
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        item {
+                            if (loadMoreState == QueueData.StateSource.STATE_INITIALIZING) {
+                                CenterLoadingBox(
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth(),
-                                    onClickListener = { videoId ->
-                                        if (videoId == track.videoId) {
-                                            musicServiceHandler.playMediaItemInMediaSource(index)
-                                        }
-                                    },
-                                    onMoreClickListener = {
-                                        showQueueItemBottomSheet(index)
-                                    },
-                                    onAddToQueue = {
-                                        sharedViewModel.addListToQueue(
-                                            arrayListOf(track),
-                                        )
-                                    },
+                                            .fillMaxWidth()
+                                            .height(80.dp),
                                 )
                             }
                         }
-                    }
-                    item {
-                        if (loadMoreState == QueueData.StateSource.STATE_INITIALIZING) {
-                            CenterLoadingBox(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp),
-                            )
+                        item {
+                            EndOfPage()
                         }
-                    }
-                    item {
-                        EndOfPage()
                     }
                 }
             }
@@ -1926,114 +1930,62 @@ fun PlaybackSpeedPitchBottomSheet(
     pitch: Int,
     onSet: (playbackSpeed: Float, pitch: Int) -> Unit,
 ) {
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = modelBottomSheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+    AppThemeContent {
+        val modelBottomSheetState =
+            rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = modelBottomSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
-                Card(
-                    modifier = Modifier.width(40.dp).height(4.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                    shape = RoundedCornerShape(50),
-                ) {}
-                Spacer(modifier = Modifier.height(16.dp))
-                // Playback Speed row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
-                    Image(
-                        imageVector = SimpIcons.Speed,
-                        contentDescription = stringResource(Res.string.playback_speed),
-                        modifier = Modifier.size(24.dp),
-                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().subtitle),
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
-                            val newSpeed = (kotlin.math.floor((playbackSpeed - 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
-                            onSet(
-                                newSpeed,
-                                pitch,
-                            )
-                        },
-                    ) {
-                        Icon(
-                            SimpIcons.Remove,
-                            contentDescription = "Decrease speed",
-                            tint = rememberSurfaceDarkColors().subtitle,
-                        )
-                    }
-                    Text(
-                        text = "x${String.format("%.1f", playbackSpeed)}",
-                        style = typo().titleMedium,
-                        color = rememberSurfaceDarkColors().subtitle,
-                        modifier = Modifier.widthIn(min = 60.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                    IconButton(
-                        onClick = {
-                            val newSpeed = (kotlin.math.floor((playbackSpeed + 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
-                            onSet(
-                                newSpeed,
-                                pitch,
-                            )
-                        },
-                    ) {
-                        Icon(
-                            SimpIcons.Add,
-                            contentDescription = "Increase speed",
-                            tint = rememberSurfaceDarkColors().subtitle,
-                        )
-                    }
-                }
-                // Shown on every platform. It used to be hidden on Desktop because LibVLC had no
-                // independent pitch control, but that backend is long gone — mpv shifts pitch with
-                // its rubberband filter. The control is still locked out while crossfade is on,
-                // handled by the caller: crossfade owns mpv's filter chain and the two would fight
-                // over it.
-                run {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Card(
+                        modifier = Modifier.width(40.dp).height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Playback Speed row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            SimpIcons.Tune,
-                            contentDescription = stringResource(Res.string.pitch),
+                        Image(
+                            imageVector = SimpIcons.Speed,
+                            contentDescription = stringResource(Res.string.playback_speed),
                             modifier = Modifier.size(24.dp),
-                            tint = rememberSurfaceDarkColors().subtitle,
+                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().subtitle),
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(
                             onClick = {
-                                val newPitch = (pitch - 1).coerceIn(-12, 12)
-                                onSet(playbackSpeed, newPitch)
+                                val newSpeed = (kotlin.math.floor((playbackSpeed - 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                                onSet(
+                                    newSpeed,
+                                    pitch,
+                                )
                             },
                         ) {
                             Icon(
                                 SimpIcons.Remove,
-                                contentDescription = "Decrease pitch",
+                                contentDescription = "Decrease speed",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
                         }
                         Text(
-                            text = "$pitch",
+                            text = "x${String.format("%.1f", playbackSpeed)}",
                             style = typo().titleMedium,
                             color = rememberSurfaceDarkColors().subtitle,
                             modifier = Modifier.widthIn(min = 60.dp),
@@ -2041,19 +1993,73 @@ fun PlaybackSpeedPitchBottomSheet(
                         )
                         IconButton(
                             onClick = {
-                                val newPitch = (pitch + 1).coerceIn(-12, 12)
-                                onSet(playbackSpeed, newPitch)
+                                val newSpeed = (kotlin.math.floor((playbackSpeed + 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                                onSet(
+                                    newSpeed,
+                                    pitch,
+                                )
                             },
                         ) {
                             Icon(
                                 SimpIcons.Add,
-                                contentDescription = "Increase pitch",
+                                contentDescription = "Increase speed",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
                         }
                     }
+                    // Shown on every platform. It used to be hidden on Desktop because LibVLC had no
+                    // independent pitch control, but that backend is long gone — mpv shifts pitch with
+                    // its rubberband filter. The control is still locked out while crossfade is on,
+                    // handled by the caller: crossfade owns mpv's filter chain and the two would fight
+                    // over it.
+                    run {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                SimpIcons.Tune,
+                                contentDescription = stringResource(Res.string.pitch),
+                                modifier = Modifier.size(24.dp),
+                                tint = rememberSurfaceDarkColors().subtitle,
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(
+                                onClick = {
+                                    val newPitch = (pitch - 1).coerceIn(-12, 12)
+                                    onSet(playbackSpeed, newPitch)
+                                },
+                            ) {
+                                Icon(
+                                    SimpIcons.Remove,
+                                    contentDescription = "Decrease pitch",
+                                    tint = rememberSurfaceDarkColors().subtitle,
+                                )
+                            }
+                            Text(
+                                text = "$pitch",
+                                style = typo().titleMedium,
+                                color = rememberSurfaceDarkColors().subtitle,
+                                modifier = Modifier.widthIn(min = 60.dp),
+                                textAlign = TextAlign.Center,
+                            )
+                            IconButton(
+                                onClick = {
+                                    val newPitch = (pitch + 1).coerceIn(-12, 12)
+                                    onSet(playbackSpeed, newPitch)
+                                },
+                            ) {
+                                Icon(
+                                    SimpIcons.Add,
+                                    contentDescription = "Increase pitch",
+                                    tint = rememberSurfaceDarkColors().subtitle,
+                                )
+                            }
+                        }
+                    }
+                    EndOfModalBottomSheet()
                 }
-                EndOfModalBottomSheet()
             }
         }
     }
@@ -2070,286 +2076,288 @@ fun SleepTimerBottomSheet(
     onDismiss: () -> Unit,
     onSetTimer: (minutes: Int) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        val modelBottomSheetState =
+            rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // -1 = nothing selected, Int.MAX_VALUE = End of Song, else = minutes
-    var selectedPreset by rememberSaveable { mutableIntStateOf(-1) }
-    var showCustomInput by rememberSaveable { mutableStateOf(false) }
-    var customMinutes by rememberSaveable { mutableStateOf("") }
+        // -1 = nothing selected, Int.MAX_VALUE = End of Song, else = minutes
+        var selectedPreset by rememberSaveable { mutableIntStateOf(-1) }
+        var showCustomInput by rememberSaveable { mutableStateOf(false) }
+        var customMinutes by rememberSaveable { mutableStateOf("") }
 
-    data class Preset(
-        val label: String,
-        val minutes: Int,
-    )
-
-    val presets =
-        listOf(
-            Preset("5 min", 5),
-            Preset("10 min", 10),
-            Preset("15 min", 15),
-            Preset("30 min", 30),
-            Preset("45 min", 45),
-            Preset("1 hour", 60),
+        data class Preset(
+            val label: String,
+            val minutes: Int,
         )
 
-    // Whether the Set button should be enabled
-    val isSetEnabled =
-        when {
-            selectedPreset == END_OF_SONG_SENTINEL -> true
-            selectedPreset > 0 && !showCustomInput -> true
-            showCustomInput && (customMinutes.toIntOrNull() ?: 0) > 0 -> true
-            else -> false
-        }
+        val presets =
+            listOf(
+                Preset("5 min", 5),
+                Preset("10 min", 10),
+                Preset("15 min", 15),
+                Preset("30 min", 30),
+                Preset("45 min", 45),
+                Preset("1 hour", 60),
+            )
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = modelBottomSheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        // Whether the Set button should be enabled
+        val isSetEnabled =
+            when {
+                selectedPreset == END_OF_SONG_SENTINEL -> true
+                selectedPreset > 0 && !showCustomInput -> true
+                showCustomInput && (customMinutes.toIntOrNull() ?: 0) > 0 -> true
+                else -> false
+            }
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = modelBottomSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 16.dp),
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Drag handle
-                Card(
-                    modifier = Modifier.width(40.dp).height(4.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().disabled),
-                    shape = RoundedCornerShape(50),
-                ) {}
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Title row with alarm icon
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
-                    Image(
-                        imageVector = SimpIcons.AccessAlarm,
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(seed),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(Res.string.sleep_timer_off),
-                        style = typo().titleMedium,
-                        color = rememberSurfaceDarkColors().content,
-                    )
-                }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    // Drag handle
+                    Card(
+                        modifier = Modifier.width(40.dp).height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().disabled),
+                        shape = RoundedCornerShape(50),
+                    ) {}
 
-                // ── Preset grid: 3 columns × 2 rows ──────────────────────
-                val presetRows = presets.chunked(3)
-                presetRows.forEach { row ->
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Title row with alarm icon
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            imageVector = SimpIcons.AccessAlarm,
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(seed),
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(Res.string.sleep_timer_off),
+                            style = typo().titleMedium,
+                            color = rememberSurfaceDarkColors().content,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ── Preset grid: 3 columns × 2 rows ──────────────────────
+                    val presetRows = presets.chunked(3)
+                    presetRows.forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            row.forEach { preset ->
+                                val isSelected = selectedPreset == preset.minutes && !showCustomInput
+                                OutlinedButton(
+                                    onClick = {
+                                        selectedPreset = preset.minutes
+                                        showCustomInput = false
+                                        customMinutes = ""
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors =
+                                        ButtonDefaults.outlinedButtonColors(
+                                            containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                        ),
+                                    border =
+                                        BorderStroke(
+                                            width = if (isSelected) 1.5.dp else 1.dp,
+                                            color = if (isSelected) seed else rememberSurfaceDarkColors().disabled,
+                                        ),
+                                    contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
+                                ) {
+                                    Text(
+                                        text = preset.label,
+                                        style = typo().bodySmall,
+                                        color = if (isSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    // ── End of Song + Custom row ─────────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        row.forEach { preset ->
-                            val isSelected = selectedPreset == preset.minutes && !showCustomInput
-                            OutlinedButton(
-                                onClick = {
-                                    selectedPreset = preset.minutes
-                                    showCustomInput = false
-                                    customMinutes = ""
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                colors =
-                                    ButtonDefaults.outlinedButtonColors(
-                                        containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                                    ),
-                                border =
-                                    BorderStroke(
-                                        width = if (isSelected) 1.5.dp else 1.dp,
-                                        color = if (isSelected) seed else rememberSurfaceDarkColors().disabled,
-                                    ),
-                                contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                            ) {
-                                Text(
-                                    text = preset.label,
-                                    style = typo().bodySmall,
-                                    color = if (isSelected) seed else rememberSurfaceDarkColors().subtitle,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                )
-                            }
+                        // End of Song
+                        val isEndSelected = selectedPreset == END_OF_SONG_SENTINEL && !showCustomInput
+                        OutlinedButton(
+                            onClick = {
+                                selectedPreset = END_OF_SONG_SENTINEL
+                                showCustomInput = false
+                                customMinutes = ""
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors =
+                                ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                ),
+                            border =
+                                BorderStroke(
+                                    width = if (isEndSelected) 1.5.dp else 1.dp,
+                                    color = if (isEndSelected) seed else rememberSurfaceDarkColors().disabled,
+                                ),
+                            contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
+                        ) {
+                            Text(
+                                text = "End of song",
+                                style = typo().bodySmall,
+                                color = if (isEndSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            )
+                        }
+
+                        // Custom
+                        val isCustomSelected = showCustomInput
+                        OutlinedButton(
+                            onClick = {
+                                showCustomInput = true
+                                selectedPreset = -1
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors =
+                                ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                ),
+                            border =
+                                BorderStroke(
+                                    width = if (isCustomSelected) 1.5.dp else 1.dp,
+                                    color = if (isCustomSelected) seed else rememberSurfaceDarkColors().disabled,
+                                ),
+                            contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
+                        ) {
+                            Text(
+                                text = "Custom",
+                                style = typo().bodySmall,
+                                color = if (isCustomSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
 
-                // ── End of Song + Custom row ─────────────────────────────
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    // End of Song
-                    val isEndSelected = selectedPreset == END_OF_SONG_SENTINEL && !showCustomInput
-                    OutlinedButton(
+                    // ── Custom input (animated expand) ───────────────────────
+                    AnimatedVisibility(visible = showCustomInput) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedTextField(
+                                value = customMinutes,
+                                onValueChange = { value ->
+                                    if (value.all { it.isDigit() } && value.length <= 4) {
+                                        customMinutes = value
+                                    }
+                                },
+                                label = {
+                                    Text(
+                                        text = stringResource(Res.string.sleep_minutes),
+                                        style = typo().bodySmall,
+                                    )
+                                },
+                                suffix = {
+                                    Text(
+                                        text = "min",
+                                        style = typo().bodySmall,
+                                        color = rememberSurfaceDarkColors().disabled,
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ── Set button ───────────────────────────────────────────
+                    Button(
                         onClick = {
-                            selectedPreset = END_OF_SONG_SENTINEL
-                            showCustomInput = false
-                            customMinutes = ""
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors =
-                            ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                            ),
-                        border =
-                            BorderStroke(
-                                width = if (isEndSelected) 1.5.dp else 1.dp,
-                                color = if (isEndSelected) seed else rememberSurfaceDarkColors().disabled,
-                            ),
-                        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                    ) {
-                        Text(
-                            text = "End of song",
-                            style = typo().bodySmall,
-                            color = if (isEndSelected) seed else rememberSurfaceDarkColors().subtitle,
-                            fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                    }
-
-                    // Custom
-                    val isCustomSelected = showCustomInput
-                    OutlinedButton(
-                        onClick = {
-                            showCustomInput = true
-                            selectedPreset = -1
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors =
-                            ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                            ),
-                        border =
-                            BorderStroke(
-                                width = if (isCustomSelected) 1.5.dp else 1.dp,
-                                color = if (isCustomSelected) seed else rememberSurfaceDarkColors().disabled,
-                            ),
-                        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                    ) {
-                        Text(
-                            text = "Custom",
-                            style = typo().bodySmall,
-                            color = if (isCustomSelected) seed else rememberSurfaceDarkColors().subtitle,
-                            fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                    }
-                }
-
-                // ── Custom input (animated expand) ───────────────────────
-                AnimatedVisibility(visible = showCustomInput) {
-                    Column {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = customMinutes,
-                            onValueChange = { value ->
-                                if (value.all { it.isDigit() } && value.length <= 4) {
-                                    customMinutes = value
-                                }
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(Res.string.sleep_minutes),
-                                    style = typo().bodySmall,
-                                )
-                            },
-                            suffix = {
-                                Text(
-                                    text = "min",
-                                    style = typo().bodySmall,
-                                    color = rememberSurfaceDarkColors().disabled,
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ── Set button ───────────────────────────────────────────
-                Button(
-                    onClick = {
-                        when {
-                            selectedPreset == END_OF_SONG_SENTINEL -> {
-                                onSetTimer(END_OF_SONG_SENTINEL)
-                                coroutineScope.launch {
-                                    modelBottomSheetState.hide()
-                                    onDismiss()
-                                }
-                            }
-                            showCustomInput -> {
-                                val mins = customMinutes.toIntOrNull() ?: 0
-                                if (mins > 0) {
-                                    onSetTimer(mins)
+                            when {
+                                selectedPreset == END_OF_SONG_SENTINEL -> {
+                                    onSetTimer(END_OF_SONG_SENTINEL)
                                     coroutineScope.launch {
                                         modelBottomSheetState.hide()
                                         onDismiss()
                                     }
-                                } else {
+                                }
+                                showCustomInput -> {
+                                    val mins = customMinutes.toIntOrNull() ?: 0
+                                    if (mins > 0) {
+                                        onSetTimer(mins)
+                                        coroutineScope.launch {
+                                            modelBottomSheetState.hide()
+                                            onDismiss()
+                                        }
+                                    } else {
+                                        showToast(
+                                            runBlocking { getString(Res.string.sleep_timer_set_error) },
+                                            ToastGravity.Bottom,
+                                        )
+                                    }
+                                }
+                                selectedPreset > 0 -> {
+                                    onSetTimer(selectedPreset)
+                                    coroutineScope.launch {
+                                        modelBottomSheetState.hide()
+                                        onDismiss()
+                                    }
+                                }
+                                else -> {
                                     showToast(
                                         runBlocking { getString(Res.string.sleep_timer_set_error) },
                                         ToastGravity.Bottom,
                                     )
                                 }
                             }
-                            selectedPreset > 0 -> {
-                                onSetTimer(selectedPreset)
-                                coroutineScope.launch {
-                                    modelBottomSheetState.hide()
-                                    onDismiss()
-                                }
-                            }
-                            else -> {
-                                showToast(
-                                    runBlocking { getString(Res.string.sleep_timer_set_error) },
-                                    ToastGravity.Bottom,
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = seed,
-                            disabledContainerColor = seed.copy(alpha = 0.3f),
-                        ),
-                    enabled = isSetEnabled,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.set),
-                        style = typo().labelSmall,
-                        color = rememberSurfaceDarkColors().content,
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
-                }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = seed,
+                                disabledContainerColor = seed.copy(alpha = 0.3f),
+                            ),
+                        enabled = isSetEnabled,
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.set),
+                            style = typo().labelSmall,
+                            color = rememberSurfaceDarkColors().content,
+                            modifier = Modifier.padding(vertical = 4.dp),
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                EndOfModalBottomSheet()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    EndOfModalBottomSheet()
+                }
             }
         }
     }
@@ -2366,244 +2374,246 @@ fun AddToPlaylistModalBottomSheet(
     onYTPlaylistClick: (PlaylistsResult) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    val hideModalBottomSheet: () -> Unit =
-        {
-            coroutineScope.launch {
-                modelBottomSheetState.hide()
-                onDismiss()
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        val modelBottomSheetState =
+            rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        val hideModalBottomSheet: () -> Unit =
+            {
+                coroutineScope.launch {
+                    modelBottomSheetState.hide()
+                    onDismiss()
+                }
             }
-        }
-    if (isBottomSheetVisible) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = modelBottomSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier =
-                    Modifier
-                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                shape = BottomSheetDefaults.ExpandedShape,
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        if (isBottomSheetVisible) {
+            ModalBottomSheet(
+                onDismissRequest = onDismiss,
+                sheetState = modelBottomSheetState,
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent,
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Card(
                     modifier =
                         Modifier
-                            .padding(horizontal = 10.dp)
-                            // The sheet is handed no insets, so nothing else lifts the list above the keyboard.
-                            // Navigation bars are left out: EndOfModalBottomSheet already pads for them.
-                            .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars)),
+                            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                    shape = BottomSheetDefaults.ExpandedShape,
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
                 ) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Spacer(modifier = Modifier.height(5.dp))
-
-                    var query by remember { mutableStateOf("") }
-                    var isSearchFocused by remember { mutableStateOf(false) }
-                    BasicTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        singleLine = true,
-                        textStyle = typo().labelSmall.copy(color = rememberSurfaceDarkColors().content),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier =
                             Modifier
-                                .fillMaxWidth()
-                                .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 4.dp)
-                                .height(40.dp)
-                                .clip(CircleShape)
-                                .background(rememberSurfaceDarkColors().content.copy(alpha = 0.08f))
-                                .onFocusChanged { focusState ->
-                                    isSearchFocused = focusState.isFocused
-                                    // A half-open sheet would leave the results under the keyboard.
-                                    if (focusState.isFocused) coroutineScope.launch { modelBottomSheetState.expand() }
-                                },
-                        decorationBox = { innerTextField ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    imageVector = SimpIcons.Search,
-                                    contentDescription = null,
-                                    tint = rememberSurfaceDarkColors().subtitle,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Box(modifier = Modifier.weight(1f)) {
-                                    if (query.isEmpty()) {
-                                        Text(
-                                            text = stringResource(Res.string.search),
-                                            style = typo().labelSmall,
-                                            color = rememberSurfaceDarkColors().subtitle,
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                                if (query.isEmpty()) {
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                } else {
-                                    IconButton(onClick = { query = "" }) {
-                                        Icon(
-                                            imageVector = SimpIcons.Close,
-                                            contentDescription = null,
-                                            tint = rememberSurfaceDarkColors().subtitle,
-                                            modifier = Modifier.size(20.dp),
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                    )
+                                .padding(horizontal = 10.dp)
+                                // The sheet is handed no insets, so nothing else lifts the list above the keyboard.
+                                // Navigation bars are left out: EndOfModalBottomSheet already pads for them.
+                                .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars)),
+                    ) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Card(
+                            modifier = Modifier.width(60.dp).height(4.dp),
+                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                            shape = RoundedCornerShape(50),
+                        ) {}
+                        Spacer(modifier = Modifier.height(5.dp))
 
-                    val chipRowState = rememberScrollState()
-                    var isYouTubePlaylistClicked by remember { mutableStateOf(false) }
-                    if (listYouTubePlaylist.isNotEmpty()) {
-                        Row(
+                        var query by remember { mutableStateOf("") }
+                        var isSearchFocused by remember { mutableStateOf(false) }
+                        BasicTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            singleLine = true,
+                            textStyle = typo().labelSmall.copy(color = rememberSurfaceDarkColors().content),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             modifier =
                                 Modifier
-                                    .horizontalScroll(chipRowState)
-                                    .padding(horizontal = 12.dp)
-                                    .padding(vertical = 8.dp)
-                                    .background(Color.Transparent),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Chip(
-                                isAnimated = false,
-                                isSelected = !isYouTubePlaylistClicked,
-                                text = stringResource(Res.string.your_playlists),
-                                onClick = { isYouTubePlaylistClicked = false },
-                            )
-                            Chip(
-                                isAnimated = false,
-                                isSelected = isYouTubePlaylistClicked,
-                                text = stringResource(Res.string.your_youtube_playlists),
-                                onClick = { isYouTubePlaylistClicked = true },
-                            )
-                        }
-                    }
-
-                    val keyword = query.trim()
-                    val shownLocalPlaylist =
-                        remember(listLocalPlaylist, keyword) { listLocalPlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
-                    val shownYouTubePlaylist =
-                        remember(listYouTubePlaylist, keyword) { listYouTubePlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
-                    // While searching, the list takes the rest of the sheet. Otherwise the sheet resizes with every
-                    // keystroke and drags the field along with it.
-                    val listModifier = if (isSearchFocused || query.isNotEmpty()) Modifier.weight(1f) else Modifier
-                    if ((shownLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
-                        (shownYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
-                    ) {
-                        val tabHasPlaylists =
-                            if (isYouTubePlaylistClicked) listYouTubePlaylist.isNotEmpty() else listLocalPlaylist.isNotEmpty()
-                        Text(
-                            text = stringResource(if (tabHasPlaylists) Res.string.no_results_found else Res.string.no_playlist_found),
-                            style = typo().labelSmall,
-                            modifier = listModifier.padding(20.dp),
-                            color = rememberSurfaceDarkColors().disabled,
-                        )
-                    } else {
-                        Crossfade(isYouTubePlaylistClicked, modifier = listModifier) { clicked ->
-                            if (clicked) {
-                                LazyColumn {
-                                    items(shownYouTubePlaylist) { playlist ->
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 3.dp)
-                                                    .clickable(onClick = {
-                                                        onYTPlaylistClick(playlist)
-                                                        hideModalBottomSheet()
-                                                    }),
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
-                                            ) {
-                                                Image(
-                                                    imageVector = SimpIcons.PlaylistAdd,
-                                                    contentDescription = "",
-                                                    colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                )
-                                                Spacer(modifier = Modifier.width(10.dp))
-                                                Text(
-                                                    text = playlist.title,
-                                                    style = typo().labelSmall,
-                                                    color = rememberSurfaceDarkColors().content,
-                                                )
-                                            }
+                                    .fillMaxWidth()
+                                    .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 4.dp)
+                                    .height(40.dp)
+                                    .clip(CircleShape)
+                                    .background(rememberSurfaceDarkColors().content.copy(alpha = 0.08f))
+                                    .onFocusChanged { focusState ->
+                                        isSearchFocused = focusState.isFocused
+                                        // A half-open sheet would leave the results under the keyboard.
+                                        if (focusState.isFocused) coroutineScope.launch { modelBottomSheetState.expand() }
+                                    },
+                            decorationBox = { innerTextField ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        imageVector = SimpIcons.Search,
+                                        contentDescription = null,
+                                        tint = rememberSurfaceDarkColors().subtitle,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        if (query.isEmpty()) {
+                                            Text(
+                                                text = stringResource(Res.string.search),
+                                                style = typo().labelSmall,
+                                                color = rememberSurfaceDarkColors().subtitle,
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                    if (query.isEmpty()) {
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                    } else {
+                                        IconButton(onClick = { query = "" }) {
+                                            Icon(
+                                                imageVector = SimpIcons.Close,
+                                                contentDescription = null,
+                                                tint = rememberSurfaceDarkColors().subtitle,
+                                                modifier = Modifier.size(20.dp),
+                                            )
                                         }
                                     }
                                 }
-                            } else {
-                                LazyColumn {
-                                    items(shownLocalPlaylist) { playlist ->
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 3.dp)
-                                                    .clickable(
-                                                        enabled = playlist.tracks?.contains(videoId) != true,
-                                                        onClick = {
-                                                            onClick(playlist)
+                            },
+                        )
+
+                        val chipRowState = rememberScrollState()
+                        var isYouTubePlaylistClicked by remember { mutableStateOf(false) }
+                        if (listYouTubePlaylist.isNotEmpty()) {
+                            Row(
+                                modifier =
+                                    Modifier
+                                        .horizontalScroll(chipRowState)
+                                        .padding(horizontal = 12.dp)
+                                        .padding(vertical = 8.dp)
+                                        .background(Color.Transparent),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Chip(
+                                    isAnimated = false,
+                                    isSelected = !isYouTubePlaylistClicked,
+                                    text = stringResource(Res.string.your_playlists),
+                                    onClick = { isYouTubePlaylistClicked = false },
+                                )
+                                Chip(
+                                    isAnimated = false,
+                                    isSelected = isYouTubePlaylistClicked,
+                                    text = stringResource(Res.string.your_youtube_playlists),
+                                    onClick = { isYouTubePlaylistClicked = true },
+                                )
+                            }
+                        }
+
+                        val keyword = query.trim()
+                        val shownLocalPlaylist =
+                            remember(listLocalPlaylist, keyword) { listLocalPlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                        val shownYouTubePlaylist =
+                            remember(listYouTubePlaylist, keyword) { listYouTubePlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                        // While searching, the list takes the rest of the sheet. Otherwise the sheet resizes with every
+                        // keystroke and drags the field along with it.
+                        val listModifier = if (isSearchFocused || query.isNotEmpty()) Modifier.weight(1f) else Modifier
+                        if ((shownLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
+                            (shownYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
+                        ) {
+                            val tabHasPlaylists =
+                                if (isYouTubePlaylistClicked) listYouTubePlaylist.isNotEmpty() else listLocalPlaylist.isNotEmpty()
+                            Text(
+                                text = stringResource(if (tabHasPlaylists) Res.string.no_results_found else Res.string.no_playlist_found),
+                                style = typo().labelSmall,
+                                modifier = listModifier.padding(20.dp),
+                                color = rememberSurfaceDarkColors().disabled,
+                            )
+                        } else {
+                            Crossfade(isYouTubePlaylistClicked, modifier = listModifier) { clicked ->
+                                if (clicked) {
+                                    LazyColumn {
+                                        items(shownYouTubePlaylist) { playlist ->
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 3.dp)
+                                                        .clickable(onClick = {
+                                                            onYTPlaylistClick(playlist)
                                                             hideModalBottomSheet()
-                                                        },
-                                                    ),
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
+                                                        }),
                                             ) {
-                                                Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
-                                                    if (it) {
-                                                        Image(
-                                                            imageVector = SimpIcons.Done,
-                                                            contentDescription = "",
-                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                        )
-                                                    } else {
-                                                        Image(
-                                                            imageVector = SimpIcons.PlaylistAdd,
-                                                            contentDescription = "",
-                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                        )
-                                                    }
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
+                                                ) {
+                                                    Image(
+                                                        imageVector = SimpIcons.PlaylistAdd,
+                                                        contentDescription = "",
+                                                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
+                                                    )
+                                                    Spacer(modifier = Modifier.width(10.dp))
+                                                    Text(
+                                                        text = playlist.title,
+                                                        style = typo().labelSmall,
+                                                        color = rememberSurfaceDarkColors().content,
+                                                    )
                                                 }
-                                                Spacer(modifier = Modifier.width(10.dp))
-                                                Text(
-                                                    text = playlist.title,
-                                                    style = typo().labelSmall,
-                                                    color =
-                                                        if (playlist.tracks?.contains(videoId) ==
-                                                            true
-                                                        ) {
-                                                            rememberSurfaceDarkColors().disabled
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    LazyColumn {
+                                        items(shownLocalPlaylist) { playlist ->
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 3.dp)
+                                                        .clickable(
+                                                            enabled = playlist.tracks?.contains(videoId) != true,
+                                                            onClick = {
+                                                                onClick(playlist)
+                                                                hideModalBottomSheet()
+                                                            },
+                                                        ),
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
+                                                ) {
+                                                    Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
+                                                        if (it) {
+                                                            Image(
+                                                                imageVector = SimpIcons.Done,
+                                                                contentDescription = "",
+                                                                colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
+                                                            )
                                                         } else {
-                                                            rememberSurfaceDarkColors().content
-                                                        },
-                                                )
+                                                            Image(
+                                                                imageVector = SimpIcons.PlaylistAdd,
+                                                                contentDescription = "",
+                                                                colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(modifier = Modifier.width(10.dp))
+                                                    Text(
+                                                        text = playlist.title,
+                                                        style = typo().labelSmall,
+                                                        color =
+                                                            if (playlist.tracks?.contains(videoId) ==
+                                                                true
+                                                            ) {
+                                                                rememberSurfaceDarkColors().disabled
+                                                            } else {
+                                                                rememberSurfaceDarkColors().content
+                                                            },
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+                        EndOfModalBottomSheet()
                     }
-                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -2619,68 +2629,70 @@ fun ArtistModalBottomSheet(
     onNavigateToOtherScreen: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hideModalBottomSheet: () -> Unit =
-        {
-            coroutineScope.launch {
-                modelBottomSheetState.hide()
-                onDismiss()
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        val modelBottomSheetState =
+            rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val hideModalBottomSheet: () -> Unit =
+            {
+                coroutineScope.launch {
+                    modelBottomSheetState.hide()
+                    onDismiss()
+                }
             }
-        }
-    if (isBottomSheetVisible) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = modelBottomSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        if (isBottomSheetVisible) {
+            ModalBottomSheet(
+                onDismissRequest = onDismiss,
+                sheetState = modelBottomSheetState,
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent,
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Spacer(modifier = Modifier.height(5.dp))
-                    LazyColumn {
-                        items(artists) { artist ->
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            val id = artist.id
-                                            if (!id.isNullOrBlank()) {
-                                                onNavigateToOtherScreen()
-                                                navController.navigate(ArtistDestination(id))
-                                            }
-                                        },
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(20.dp).align(Alignment.CenterStart),
+                Card(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Card(
+                            modifier = Modifier.width(60.dp).height(4.dp),
+                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                            shape = RoundedCornerShape(50),
+                        ) {}
+                        Spacer(modifier = Modifier.height(5.dp))
+                        LazyColumn {
+                            items(artists) { artist ->
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                val id = artist.id
+                                                if (!id.isNullOrBlank()) {
+                                                    onNavigateToOtherScreen()
+                                                    navController.navigate(ArtistDestination(id))
+                                                }
+                                            },
                                 ) {
-                                    Image(
-                                        imageVector = SimpIcons.PeopleAlt,
-                                        contentDescription = "",
-                                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(text = artist.name, style = typo().labelSmall)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(20.dp).align(Alignment.CenterStart),
+                                    ) {
+                                        Image(
+                                            imageVector = SimpIcons.PeopleAlt,
+                                            contentDescription = "",
+                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(text = artist.name, style = typo().labelSmall)
+                                    }
                                 }
                             }
+                            item { EndOfModalBottomSheet() }
                         }
-                        item { EndOfModalBottomSheet() }
                     }
                 }
             }
@@ -2700,41 +2712,98 @@ fun PlaylistBottomSheet(
     onAddToQueue: (() -> Unit)? = null,
     localPlaylistRepository: LocalPlaylistRepository = koinInject(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var isSavedToLocal by remember { mutableStateOf(false) }
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hideModalBottomSheet: () -> Unit =
-        {
-            coroutineScope.launch {
-                modelBottomSheetState.hide()
-                onDismiss()
-            }
-        }
-    var showEditTitle by remember { mutableStateOf(false) }
-    if (showEditTitle) {
-        var newTitle by remember { mutableStateOf(playlistName) }
-        val showEditTitleSheetState =
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        var isSavedToLocal by remember { mutableStateOf(false) }
+        val modelBottomSheetState =
             rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val hideEditTitleBottomSheet: () -> Unit =
+        val hideModalBottomSheet: () -> Unit =
             {
                 coroutineScope.launch {
-                    showEditTitleSheetState.hide()
+                    modelBottomSheetState.hide()
                     onDismiss()
                 }
             }
+        var showEditTitle by remember { mutableStateOf(false) }
+        if (showEditTitle) {
+            var newTitle by remember { mutableStateOf(playlistName) }
+            val showEditTitleSheetState =
+                rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val hideEditTitleBottomSheet: () -> Unit =
+                {
+                    coroutineScope.launch {
+                        showEditTitleSheetState.hide()
+                        onDismiss()
+                    }
+                }
+            ModalBottomSheet(
+                onDismissRequest = { showEditTitle = false },
+                sheetState = showEditTitleSheetState,
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent,
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Card(
+                            modifier = Modifier.width(60.dp).height(4.dp),
+                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                            shape = RoundedCornerShape(50),
+                        ) {}
+                        Spacer(modifier = Modifier.height(5.dp))
+                        OutlinedTextField(
+                            value = newTitle,
+                            onValueChange = { s -> newTitle = s },
+                            label = { Text(text = stringResource(Res.string.title)) },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
+                        TextButton(
+                            onClick = {
+                                if (newTitle.isBlank()) {
+                                    showToast(playlistNameError, ToastGravity.Bottom)
+                                } else {
+                                    onEditTitle(newTitle)
+                                    hideEditTitleBottomSheet()
+                                    hideModalBottomSheet()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                        ) {
+                            Text(text = stringResource(Res.string.save))
+                        }
+                        EndOfModalBottomSheet()
+                    }
+                }
+            }
+        }
+
+        LaunchedEffect(true) {
+            localPlaylistRepository.getAllLocalPlaylists().collect {
+                isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
+            }
+        }
+
         ModalBottomSheet(
-            onDismissRequest = { showEditTitle = false },
-            sheetState = showEditTitleSheetState,
+            onDismissRequest = onDismiss,
+            sheetState = modelBottomSheetState,
             containerColor = Color.Transparent,
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            contentWindowInsets = { WindowInsets(0) },
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2745,102 +2814,47 @@ fun PlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    OutlinedTextField(
-                        value = newTitle,
-                        onValueChange = { s -> newTitle = s },
-                        label = { Text(text = stringResource(Res.string.title)) },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
-                    TextButton(
-                        onClick = {
-                            if (newTitle.isBlank()) {
-                                showToast(playlistNameError, ToastGravity.Bottom)
-                            } else {
-                                onEditTitle(newTitle)
-                                hideEditTitleBottomSheet()
-                                hideModalBottomSheet()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                    ) {
-                        Text(text = stringResource(Res.string.save))
+                    if (onAddToQueue != null) {
+                        val addToQueueBlock = rememberAddToQueueBlock()
+                        ActionButton(
+                            icon = SimpIcons.QueueMusic,
+                            text = addToQueueBlock.addToQueueLabel(),
+                            enable = addToQueueBlock == null,
+                        ) {
+                            onAddToQueue()
+                            hideModalBottomSheet()
+                        }
+                    }
+                    if (isYourYouTubePlaylist) {
+                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
+                            showEditTitle = true
+                        }
+                        ActionButton(
+                            icon =
+                                if (isSavedToLocal) {
+                                    SimpIcons.SyncDisabled
+                                } else {
+                                    SimpIcons.Sync
+                                },
+                            text =
+                                if (isSavedToLocal) {
+                                    Res.string.saved_to_local_playlist
+                                } else {
+                                    Res.string.save_to_local_playlist
+                                },
+                            enable = !isSavedToLocal,
+                        ) {
+                            onSaveToLocal.invoke()
+                            hideModalBottomSheet()
+                        }
+                    }
+                    val shareTitle = stringResource(Res.string.share)
+                    ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
+                        val url = "https://music.youtube.com/playlist?list=${playlistId.replaceFirst("VL", "")}"
+                        shareUrl(shareTitle, url)
                     }
                     EndOfModalBottomSheet()
                 }
-            }
-        }
-    }
-
-    LaunchedEffect(true) {
-        localPlaylistRepository.getAllLocalPlaylists().collect {
-            isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = modelBottomSheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0) },
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Card(
-                    modifier = Modifier.width(60.dp).height(4.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                    shape = RoundedCornerShape(50),
-                ) {}
-                Spacer(modifier = Modifier.height(5.dp))
-                if (onAddToQueue != null) {
-                    val addToQueueBlock = rememberAddToQueueBlock()
-                    ActionButton(
-                        icon = SimpIcons.QueueMusic,
-                        text = addToQueueBlock.addToQueueLabel(),
-                        enable = addToQueueBlock == null,
-                    ) {
-                        onAddToQueue()
-                        hideModalBottomSheet()
-                    }
-                }
-                if (isYourYouTubePlaylist) {
-                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
-                        showEditTitle = true
-                    }
-                    ActionButton(
-                        icon =
-                            if (isSavedToLocal) {
-                                SimpIcons.SyncDisabled
-                            } else {
-                                SimpIcons.Sync
-                            },
-                        text =
-                            if (isSavedToLocal) {
-                                Res.string.saved_to_local_playlist
-                            } else {
-                                Res.string.save_to_local_playlist
-                            },
-                        enable = !isSavedToLocal,
-                    ) {
-                        onSaveToLocal.invoke()
-                        hideModalBottomSheet()
-                    }
-                }
-                val shareTitle = stringResource(Res.string.share)
-                ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
-                    val url = "https://music.youtube.com/playlist?list=${playlistId.replaceFirst("VL", "")}"
-                    shareUrl(shareTitle, url)
-                }
-                EndOfModalBottomSheet()
             }
         }
     }
@@ -2860,184 +2874,186 @@ fun LocalPlaylistBottomSheet(
     onUpdatePlaylist: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var showEditTitle by remember { mutableStateOf(false) }
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hideModalBottomSheet: () -> Unit =
-        {
-            coroutineScope.launch {
-                modelBottomSheetState.hide()
-                onDismiss()
-            }
-        }
-    // The picked file is cropped before it is used. A cover slot is square, so an uncropped 16:9
-    // photo would be squashed to fit — which is what it used to do.
-    var imageAwaitingCrop by remember { mutableStateOf<ByteArray?>(null) }
-    val resultLauncher =
-        photoPickerResult { pickedUri ->
-            pickedUri?.let { uri ->
-                coroutineScope.launch { imageAwaitingCrop = readLocalImageBytes(uri) }
-            }
-        }
-    imageAwaitingCrop?.let { bytes ->
-        ImageCropperDialog(
-            imageBytes = bytes,
-            titleText = stringResource(Res.string.crop_cover),
-            confirmText = stringResource(Res.string.save),
-            cancelText = stringResource(Res.string.cancel),
-            onDismiss = { imageAwaitingCrop = null },
-            onCropped = { cropped ->
-                imageAwaitingCrop = null
-                coroutineScope.launch {
-                    // Written into the app's own storage, NOT reused from the picker's uri: that
-                    // one still points at the original uncropped file, and on Android the read
-                    // permission granted for it does not outlive the process.
-                    // Named after the CONTENT, not the clock. A fixed name would be overwritten
-                    // in place and Coil, which caches by url, would keep showing the previous
-                    // cover; a timestamp would leave a new file behind every time the user
-                    // re-picked the same picture. Hashing gives a fresh name for a new image and
-                    // the same name for the same one.
-                    persistPickedImage(cropped, "cover_${cropped.contentHashCode().toUInt()}.jpg")
-                        ?.let(onEditThumbnail)
-                }
-            },
-        )
-    }
-    if (showEditTitle) {
-        var newTitle by remember { mutableStateOf(title) }
-        val showEditTitleSheetState =
+    AppThemeContent {
+        val coroutineScope = rememberCoroutineScope()
+        var showEditTitle by remember { mutableStateOf(false) }
+        val modelBottomSheetState =
             rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val hideEditTitleBottomSheet: () -> Unit =
+        val hideModalBottomSheet: () -> Unit =
             {
                 coroutineScope.launch {
-                    showEditTitleSheetState.hide()
+                    modelBottomSheetState.hide()
                     onDismiss()
                 }
             }
-        ModalBottomSheet(
-            onDismissRequest = { showEditTitle = false },
-            sheetState = showEditTitleSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Spacer(modifier = Modifier.height(5.dp))
-                    OutlinedTextField(
-                        value = newTitle,
-                        onValueChange = { s -> newTitle = s },
-                        label = { Text(text = stringResource(Res.string.title)) },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
-                    TextButton(
-                        onClick = {
-                            if (newTitle.isBlank()) {
-                                showToast(playlistNameError, ToastGravity.Bottom)
-                            } else {
-                                onEditTitle(newTitle)
-                                hideEditTitleBottomSheet()
-                                hideModalBottomSheet()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                    ) {
-                        Text(text = stringResource(Res.string.save))
+        // The picked file is cropped before it is used. A cover slot is square, so an uncropped 16:9
+        // photo would be squashed to fit — which is what it used to do.
+        var imageAwaitingCrop by remember { mutableStateOf<ByteArray?>(null) }
+        val resultLauncher =
+            photoPickerResult { pickedUri ->
+                pickedUri?.let { uri ->
+                    coroutineScope.launch { imageAwaitingCrop = readLocalImageBytes(uri) }
+                }
+            }
+        imageAwaitingCrop?.let { bytes ->
+            ImageCropperDialog(
+                imageBytes = bytes,
+                titleText = stringResource(Res.string.crop_cover),
+                confirmText = stringResource(Res.string.save),
+                cancelText = stringResource(Res.string.cancel),
+                onDismiss = { imageAwaitingCrop = null },
+                onCropped = { cropped ->
+                    imageAwaitingCrop = null
+                    coroutineScope.launch {
+                        // Written into the app's own storage, NOT reused from the picker's uri: that
+                        // one still points at the original uncropped file, and on Android the read
+                        // permission granted for it does not outlive the process.
+                        // Named after the CONTENT, not the clock. A fixed name would be overwritten
+                        // in place and Coil, which caches by url, would keep showing the previous
+                        // cover; a timestamp would leave a new file behind every time the user
+                        // re-picked the same picture. Hashing gives a fresh name for a new image and
+                        // the same name for the same one.
+                        persistPickedImage(cropped, "cover_${cropped.contentHashCode().toUInt()}.jpg")
+                            ?.let(onEditThumbnail)
                     }
-                    EndOfModalBottomSheet()
+                },
+            )
+        }
+        if (showEditTitle) {
+            var newTitle by remember { mutableStateOf(title) }
+            val showEditTitleSheetState =
+                rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val hideEditTitleBottomSheet: () -> Unit =
+                {
+                    coroutineScope.launch {
+                        showEditTitleSheetState.hide()
+                        onDismiss()
+                    }
+                }
+            ModalBottomSheet(
+                onDismissRequest = { showEditTitle = false },
+                sheetState = showEditTitleSheetState,
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent,
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Card(
+                            modifier = Modifier.width(60.dp).height(4.dp),
+                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                            shape = RoundedCornerShape(50),
+                        ) {}
+                        Spacer(modifier = Modifier.height(5.dp))
+                        OutlinedTextField(
+                            value = newTitle,
+                            onValueChange = { s -> newTitle = s },
+                            label = { Text(text = stringResource(Res.string.title)) },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
+                        TextButton(
+                            onClick = {
+                                if (newTitle.isBlank()) {
+                                    showToast(playlistNameError, ToastGravity.Bottom)
+                                } else {
+                                    onEditTitle(newTitle)
+                                    hideEditTitleBottomSheet()
+                                    hideModalBottomSheet()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                        ) {
+                            Text(text = stringResource(Res.string.save))
+                        }
+                        EndOfModalBottomSheet()
+                    }
                 }
             }
         }
-    }
-    if (isBottomSheetVisible) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = modelBottomSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        if (isBottomSheetVisible) {
+            ModalBottomSheet(
+                onDismissRequest = onDismiss,
+                sheetState = modelBottomSheetState,
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent,
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Spacer(modifier = Modifier.height(5.dp))
-                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
-                        showEditTitle = true
+                Card(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Card(
+                            modifier = Modifier.width(60.dp).height(4.dp),
+                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                            shape = RoundedCornerShape(50),
+                        ) {}
+                        Spacer(modifier = Modifier.height(5.dp))
+                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
+                            showEditTitle = true
+                        }
+                        ActionButton(icon = SimpIcons.AddPhotoAlternate, text = Res.string.edit_thumbnail) {
+                            resultLauncher.launch()
+                        }
+                        val addToQueueBlock = rememberAddToQueueBlock()
+                        ActionButton(
+                            icon = SimpIcons.QueueMusic,
+                            text = addToQueueBlock.addToQueueLabel(),
+                            enable = addToQueueBlock == null,
+                        ) {
+                            onAddToQueue()
+                        }
+                        ActionButton(
+                            icon =
+                                if (ytPlaylistId != null) {
+                                    SimpIcons.SyncDisabled
+                                } else {
+                                    SimpIcons.Sync
+                                },
+                            text =
+                                if (ytPlaylistId != null) {
+                                    Res.string.synced
+                                } else {
+                                    Res.string.sync
+                                },
+                        ) {
+                            onSync()
+                        }
+                        ActionButton(
+                            icon = SimpIcons.Update,
+                            text = Res.string.update_playlist,
+                            enable = (ytPlaylistId != null),
+                        ) {
+                            onUpdatePlaylist()
+                        }
+                        ActionButton(icon = SimpIcons.Delete, text = Res.string.delete_playlist) {
+                            onDelete()
+                            hideModalBottomSheet()
+                        }
+                        val shareTitle = stringResource(Res.string.share_url)
+                        ActionButton(
+                            icon = SimpIcons.Share,
+                            text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
+                            enable = (ytPlaylistId != null),
+                        ) {
+                            val url = "https://music.youtube.com/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
+                            shareUrl(shareTitle, url)
+                        }
+                        EndOfModalBottomSheet()
                     }
-                    ActionButton(icon = SimpIcons.AddPhotoAlternate, text = Res.string.edit_thumbnail) {
-                        resultLauncher.launch()
-                    }
-                    val addToQueueBlock = rememberAddToQueueBlock()
-                    ActionButton(
-                        icon = SimpIcons.QueueMusic,
-                        text = addToQueueBlock.addToQueueLabel(),
-                        enable = addToQueueBlock == null,
-                    ) {
-                        onAddToQueue()
-                    }
-                    ActionButton(
-                        icon =
-                            if (ytPlaylistId != null) {
-                                SimpIcons.SyncDisabled
-                            } else {
-                                SimpIcons.Sync
-                            },
-                        text =
-                            if (ytPlaylistId != null) {
-                                Res.string.synced
-                            } else {
-                                Res.string.sync
-                            },
-                    ) {
-                        onSync()
-                    }
-                    ActionButton(
-                        icon = SimpIcons.Update,
-                        text = Res.string.update_playlist,
-                        enable = (ytPlaylistId != null),
-                    ) {
-                        onUpdatePlaylist()
-                    }
-                    ActionButton(icon = SimpIcons.Delete, text = Res.string.delete_playlist) {
-                        onDelete()
-                        hideModalBottomSheet()
-                    }
-                    val shareTitle = stringResource(Res.string.share_url)
-                    ActionButton(
-                        icon = SimpIcons.Share,
-                        text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
-                        enable = (ytPlaylistId != null),
-                    ) {
-                        val url = "https://music.youtube.com/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
-                        shareUrl(shareTitle, url)
-                    }
-                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -3051,81 +3067,83 @@ fun SortPlaylistBottomSheet(
     onDismiss: () -> Unit,
     onSortChanged: (FilterState) -> Unit,
 ) {
-    val modelBottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val filterOptions =
-        remember {
-            listOf(
-                FilterState.CustomOrder,
-                FilterState.NewerFirst,
-                FilterState.OlderFirst,
-                FilterState.Title,
-            )
-        }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = modelBottomSheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Card(
-                    modifier = Modifier.width(60.dp).height(4.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                    shape = RoundedCornerShape(50),
-                ) {}
-                Text(
-                    stringResource(Res.string.sort_by),
-                    style = typo().labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier =
-                        Modifier
-                            .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
-                            .align(Alignment.Start),
+    AppThemeContent {
+        val modelBottomSheetState =
+            rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val filterOptions =
+            remember {
+                listOf(
+                    FilterState.CustomOrder,
+                    FilterState.NewerFirst,
+                    FilterState.OlderFirst,
+                    FilterState.Title,
                 )
-                LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                    items(filterOptions, key = { it.hashCode() }) { filterOption ->
-                        val isSelected = filterOption == selectedState
-                        Row(
+            }
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = modelBottomSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier = Modifier.width(60.dp).height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Text(
+                        stringResource(Res.string.sort_by),
+                        style = typo().labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier =
                             Modifier
-                                .padding(vertical = 4.dp)
-                                .clickable {
-                                    onSortChanged(filterOption)
-                                    onDismiss()
-                                }.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(filterOption.displayNameRes()),
-                                style = typo().labelMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isSelected) seed else rememberSurfaceDarkColors().content,
-                            )
-                            Spacer(modifier = Modifier.weight(1f))
-                            if (isSelected) {
-                                Image(
-                                    imageVector = SimpIcons.Done,
-                                    contentDescription = "Selected",
-                                    colorFilter = ColorFilter.tint(seed),
-                                    modifier = Modifier.size(32.dp),
+                                .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
+                                .align(Alignment.Start),
+                    )
+                    LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
+                        items(filterOptions, key = { it.hashCode() }) { filterOption ->
+                            val isSelected = filterOption == selectedState
+                            Row(
+                                Modifier
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        onSortChanged(filterOption)
+                                        onDismiss()
+                                    }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = stringResource(filterOption.displayNameRes()),
+                                    style = typo().labelMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (isSelected) seed else rememberSurfaceDarkColors().content,
                                 )
-                            } else {
-                                Spacer(modifier = Modifier.size(32.dp))
+                                Spacer(modifier = Modifier.weight(1f))
+                                if (isSelected) {
+                                    Image(
+                                        imageVector = SimpIcons.Done,
+                                        contentDescription = "Selected",
+                                        colorFilter = ColorFilter.tint(seed),
+                                        modifier = Modifier.size(32.dp),
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.size(32.dp))
+                                }
                             }
                         }
                     }
+                    EndOfModalBottomSheet()
                 }
-                EndOfModalBottomSheet()
             }
         }
     }
@@ -3155,7 +3173,7 @@ fun DevLogInBottomSheet(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -3219,7 +3237,7 @@ fun DevCookieLogInBottomSheet(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
