@@ -172,6 +172,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = koinInject(),
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
+    innerPadding: PaddingValues = PaddingValues(),
 ) {
     val uriHandler = LocalUriHandler.current
     val focusManager = LocalFocusManager.current
@@ -383,7 +384,9 @@ fun SearchScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color.Transparent),
+                .background(Color.Transparent)
+                // A tab now: stop above the mini player and the tab bar.
+                .padding(bottom = innerPadding.calculateBottomPadding()),
     ) {
         // Content scrolls under the bar (it is the haze source), so it needs top padding
         // equal to the bar's measured height to keep its first item clear of it.
@@ -668,6 +671,7 @@ fun SearchScreen(
                                     }
                                     MoodCategoryCard(
                                         title = item.title,
+                                        color = Color(item.stripeColor),
                                         artworkUrl = moodArtwork[item.params],
                                     ) {
                                         navController.navigate(MoodDestination(item.params))
@@ -1131,7 +1135,9 @@ fun SearchScreen(
                     .onFocusChanged {
                         isFocused = it.isFocused
                     }.padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
+            // Limusic's pill, on the card colour like desktop's search field.
+            shape = CircleShape,
+            colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             // See the note on SongSelectionTopAppBar above — the Column owns the status-bar inset.
             windowInsets = WindowInsets(0),
             content = {},

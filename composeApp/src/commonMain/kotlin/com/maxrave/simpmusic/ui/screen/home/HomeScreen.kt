@@ -698,7 +698,6 @@ fun HomeTopAppBar(navController: NavController) {
                     else -> Res.string.good_night
                 },
             ),
-        navController = navController,
     ) {
         ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
         RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {

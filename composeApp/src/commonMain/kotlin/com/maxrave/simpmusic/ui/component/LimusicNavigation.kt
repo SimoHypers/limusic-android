@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -26,12 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import com.maxrave.simpmusic.ui.icon.Explore
 import com.maxrave.simpmusic.ui.icon.Home
 import com.maxrave.simpmusic.ui.icon.LibraryMusic
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.navigation.destination.home.ExploreDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
@@ -39,7 +36,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.explore
 import simpmusic.composeapp.generated.resources.home
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.search
@@ -52,11 +48,11 @@ private class LimusicTab(
     val icon: ImageVector,
 )
 
-// The three tabs, as in the brief: Home, Explore, Library. Search lives in the top bar instead.
+// The three tabs: Home, Search, Library.
 private val limusicTabs =
     listOf(
         LimusicTab(HomeDestination, Res.string.home, SimpIcons.Home),
-        LimusicTab(ExploreDestination, Res.string.explore, SimpIcons.Explore),
+        LimusicTab(SearchDestination, Res.string.search, SimpIcons.Search),
         LimusicTab(LibraryDestination, Res.string.library, SimpIcons.LibraryMusic),
     )
 
@@ -118,13 +114,11 @@ fun LimusicNavigationBar(
 }
 
 /**
- * The top bar every tab shares: its title on the left, then search and the tab's own [actions] on
- * the right. Draws below the status bar and nothing behind itself, so the screen decides the ground.
+ * The top bar Home and Library share: the title on the left, the tab's own [actions] on the right. Draws below the status bar and nothing behind itself, so the screen decides the ground.
  */
 @Composable
 fun LimusicTabTopBar(
     title: String,
-    navController: NavController,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
@@ -149,9 +143,6 @@ fun LimusicTabTopBar(
             if (subtitle != null) {
                 Text(text = subtitle, style = typo().bodySmall, maxLines = 1)
             }
-        }
-        IconButton(onClick = { navController.navigate(SearchDestination) }) {
-            Icon(SimpIcons.Search, contentDescription = stringResource(Res.string.search), tint = MaterialTheme.colorScheme.onBackground)
         }
         actions()
     }

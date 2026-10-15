@@ -13,9 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.maxrave.simpmusic.ui.component.limusicTabIndex
-import com.maxrave.simpmusic.ui.navigation.destination.home.ExploreDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
-import com.maxrave.simpmusic.ui.screen.home.ExploreScreen
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
@@ -71,15 +69,10 @@ fun AppNavigationGraph(
                 navController = navController,
             )
         }
-        composable<ExploreDestination> {
-            ExploreScreen(
-                innerPadding = innerPadding,
-                navController = navController,
-            )
-        }
         composable<SearchDestination> {
             SearchScreen(
                 navController = navController,
+                innerPadding = innerPadding,
             )
         }
         composable<LibraryDestination> {

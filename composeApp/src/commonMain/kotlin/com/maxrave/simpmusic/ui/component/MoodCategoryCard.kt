@@ -13,68 +13,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import coil3.compose.AsyncImage
-import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.ui.theme.typo
-import org.jetbrains.compose.resources.painterResource
-import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.monochrome
 
 /**
- * A "Moods & Genres" browse category tile: the [playlistTitleGradient] and SimpMusic badge of an
- * artwork-less playlist tile, plus the tilted cover Spotify puts on its browse cards.
+ * A "Moods & Genres" browse category tile, tinted with the category's own colour over the card
+ * colour the way Limusic desktop draws its tiles, with the tilted cover in the corner.
  *
- * [artworkUrl] is null until resolved — the category list carries no artwork at all, so the cover
- * costs a separate browse per category and arrives late. The tile is designed to look finished
- * without it.
+ * [artworkUrl] is null until resolved: the category list carries no artwork at all, so the cover
+ * costs a separate browse per category and arrives late. The tile looks finished without it.
  */
 @Composable
 fun MoodCategoryCard(
     title: String,
+    color: Color,
     artworkUrl: String?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val badge = painterResource(Res.drawable.monochrome)
+    val shape = RoundedCornerShape(20.dp)
     Box(
         modifier =
             modifier
                 .fillMaxWidth()
                 .aspectRatio(2f)
-                .clip(RoundedCornerShape(10.dp))
-                .angledGradientBackground(
-                    colors = playlistTitleGradient(title),
-                    degrees = 45f,
-                ).drawBehind {
-                    // PlaylistThumbnailPainter sizes the badge off the width because its tile is
-                    // square. This one is 2:1, so the same fractions would double it — anchor on
-                    // the height instead to keep the badge the size the eye expects.
-                    val radius = size.height * 0.09f
-                    val centerX = size.width - radius * 2f
-                    val centerY = radius * 2f
-                    drawCircle(
-                        center = Offset(centerX, centerY),
-                        color = Color.White,
-                        radius = radius,
-                    )
-                    val badgeSize = size.copy(width = radius * 3f, height = radius * 3f)
-                    translate(
-                        left = centerX - badgeSize.width / 2f,
-                        top = centerY - badgeSize.height / 2f,
-                    ) {
-                        with(badge) {
-                            draw(badgeSize, alpha = 0.2f)
-                        }
-                    }
-                }.clickable(onClick = onClick),
+                .clip(shape)
+                .background(lerp(MaterialTheme.colorScheme.surfaceContainerHigh, color, 0.14f))
+                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f), shape)
+                .clickable(onClick = onClick),
     ) {
         if (artworkUrl != null) {
             AsyncImage(
@@ -95,8 +72,9 @@ fun MoodCategoryCard(
         }
         Text(
             text = title,
-            style = typo().titleSmall,
-            color = Color.White,
+            // Desktop's tile title: the heading face, bold.
+            style = typo().titleLarge.copy(fontSize = 16.sp, lineHeight = 19.sp),
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier =

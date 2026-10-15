@@ -436,7 +436,7 @@ fun LibraryScreen(
                 topAppBarHeight = with(density) { coordinates.size.height.toDp() }
             },
     ) {
-        LimusicTabTopBar(title = stringResource(Res.string.library), navController = navController) {
+        LimusicTabTopBar(title = stringResource(Res.string.library)) {
             RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
             }
