@@ -42,8 +42,8 @@ class MessageCodecTest {
 
     @Test
     fun messagesWithoutACounterpartAreNotSent() {
-        assertNull(codec.encode(MessageTypes.BUFFER_READY, BufferReadyPayload(trackId = "x")))
-        assertNull(codec.encode(MessageTypes.PLAYBACK_ACTION, PlaybackActionPayload(action = PlaybackActions.SKIP_NEXT)))
+        assertNull(codec.encode("chat", null))
+        assertNull(codec.encode(MessageTypes.PLAYBACK_ACTION, PlaybackActionPayload(action = "skip_next")))
     }
 
     @Test

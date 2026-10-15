@@ -26,8 +26,6 @@ data class RoomMember(
     val username: String,
     val isHost: Boolean,
     val isConnected: Boolean,
-    /** True while this member has not reported the current track as ready. */
-    val isBuffering: Boolean = false,
 )
 
 data class RoomJoinRequest(
@@ -62,16 +60,10 @@ data class ListenTogetherRoom(
     val queue: List<RoomTrack> = emptyList(),
     val isPlaying: Boolean = false,
     val position: Long = 0L,
-    /** Non-empty while the room is held at the buffer barrier. */
-    val waitingFor: List<String> = emptyList(),
     /** The code we asked to join and have not heard back about. */
     val pendingJoinCode: String? = null,
     val error: String? = null,
 ) {
     val inRoom: Boolean get() = roomCode != null
     val isConnected: Boolean get() = connection is RoomConnection.Connected
-
-    /** Names, not ids — "Waiting for Long" is the only useful phrasing of the barrier. */
-    val waitingForNames: List<String>
-        get() = waitingFor.mapNotNull { id -> members.firstOrNull { it.userId == id }?.username }
 }

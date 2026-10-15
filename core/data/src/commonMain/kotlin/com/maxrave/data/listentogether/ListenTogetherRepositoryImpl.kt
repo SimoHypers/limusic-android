@@ -107,7 +107,6 @@ private fun ListenTogetherState.toDomain() =
         queue = queue.map { it.toDomain() },
         isPlaying = isPlaying,
         position = position,
-        waitingFor = waitingFor,
         pendingJoinCode = pendingJoinCode,
         error = error,
     )
@@ -126,7 +125,6 @@ private fun ProtocolMember.toDomain() =
         username = username,
         isHost = isHost,
         isConnected = isConnected,
-        isBuffering = isBuffering,
     )
 
 private fun PendingJoin.toDomain() = RoomJoinRequest(userId = userId, username = username)

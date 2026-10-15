@@ -32,8 +32,6 @@ data class RoomMember(
     val username: String,
     val isHost: Boolean,
     val isConnected: Boolean,
-    /** True while this member has not answered `buffer_ready` for the current track. */
-    val isBuffering: Boolean = false,
 )
 
 data class PendingJoin(
@@ -67,8 +65,6 @@ data class ListenTogetherState(
      * different one track later.
      */
     val queue: List<TrackInfo> = emptyList(),
-    /** Non-empty while the room is held at the buffer barrier. */
-    val waitingFor: List<String> = emptyList(),
     /** Server time the last transport command was captured at; 0 when unknown. */
     val lastActionServerTime: Long = 0L,
     /**
@@ -85,10 +81,6 @@ data class ListenTogetherState(
 ) {
     val inRoom: Boolean get() = roomCode != null
     val isConnected: Boolean get() = connection is ConnectionState.Connected
-
-    /** Names, not ids — "Waiting for Long" is the only useful phrasing of the barrier. */
-    val waitingForNames: List<String>
-        get() = waitingFor.mapNotNull { id -> members.firstOrNull { it.userId == id }?.username }
 }
 
 /**
@@ -257,10 +249,6 @@ class ListenTogetherSession(
             client.send(MessageTypes.REQUEST_SYNC, null)
         }
 
-    /** Answers the buffer barrier for [trackId]; until every member does, nobody hears anything. */
-    fun reportBufferReady(trackId: String) =
-        launch { client.send(MessageTypes.BUFFER_READY, BufferReadyPayload(trackId = trackId)) }
-
     fun clearError() = _state.update { it.copy(error = null) }
 
     fun release() {
@@ -276,7 +264,6 @@ class ListenTogetherSession(
             is ListenTogetherEvent.Connected ->
                 _state.update { it.copy(connection = ConnectionState.Connected(event.serverVersion)) }
 
-            is ListenTogetherEvent.ClockReady -> Unit
 
             is ListenTogetherEvent.Disconnected ->
                 _state.update {
@@ -393,19 +380,6 @@ class ListenTogetherSession(
                         connection = _state.value.connection,
                         error = (payload as? KickedPayload)?.reason ?: "Removed from the room",
                     )
-
-            MessageTypes.BUFFER_WAIT -> {
-                val p = payload as? BufferWaitPayload ?: return
-                _state.update { s ->
-                    s.copy(
-                        waitingFor = p.waitingFor,
-                        members = s.members.map { it.copy(isBuffering = it.userId in p.waitingFor) },
-                    )
-                }
-            }
-
-            MessageTypes.BUFFER_COMPLETE ->
-                _state.update { s -> s.copy(waitingFor = emptyList(), members = s.members.map { it.copy(isBuffering = false) }) }
 
             MessageTypes.SYNC_STATE -> {
                 val p = payload as? SyncStatePayload ?: return

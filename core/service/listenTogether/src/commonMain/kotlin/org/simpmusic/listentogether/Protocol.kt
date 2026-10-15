@@ -17,17 +17,14 @@ object MessageTypes {
     const val APPROVE_JOIN = "approve_join"
     const val REJECT_JOIN = "reject_join"
     const val PLAYBACK_ACTION = "playback_action"
-    const val BUFFER_READY = "buffer_ready"
     const val KICK_USER = "kick_user"
     const val TRANSFER_HOST = "transfer_host"
     const val PING = "ping"
-    const val CHAT = "chat"
     const val REQUEST_SYNC = "request_sync"
     const val RECONNECT = "reconnect"
     const val SUGGEST_TRACK = "suggest_track"
     const val APPROVE_SUGGESTION = "approve_suggestion"
     const val REJECT_SUGGESTION = "reject_suggestion"
-
 
     const val ROOM_CREATED = "room_created"
     const val JOIN_REQUEST = "join_request"
@@ -36,8 +33,6 @@ object MessageTypes {
     const val USER_JOINED = "user_joined"
     const val USER_LEFT = "user_left"
     const val SYNC_PLAYBACK = "sync_playback"
-    const val BUFFER_WAIT = "buffer_wait"
-    const val BUFFER_COMPLETE = "buffer_complete"
     const val ERROR = "error"
     const val PONG = "pong"
     const val HOST_CHANGED = "host_changed"
@@ -57,16 +52,10 @@ object PlaybackActions {
     const val PLAY = "play"
     const val PAUSE = "pause"
     const val SEEK = "seek"
-    const val SKIP_NEXT = "skip_next"
-    const val SKIP_PREV = "skip_prev"
     const val CHANGE_TRACK = "change_track"
-    const val QUEUE_ADD = "queue_add"
-    const val QUEUE_REMOVE = "queue_remove"
-    const val QUEUE_CLEAR = "queue_clear"
     const val SYNC_QUEUE = "sync_queue"
     const val SET_VOLUME = "set_volume"
 }
-
 
 /**
  * One track, as the room sees it.
@@ -161,17 +150,6 @@ data class PlaybackActionPayload(
 )
 
 @Serializable
-data class PingPayload(
-    val clientTime: Long = 0L,
-    val sequence: Long = 0L,
-)
-
-@Serializable
-data class BufferReadyPayload(
-    val trackId: String = "",
-)
-
-@Serializable
 data class KickUserPayload(
     val userId: String = "",
     val reason: String = "",
@@ -243,23 +221,6 @@ data class UserLeftPayload(
     val username: String = "",
 )
 
-/**
- * Nobody hears anything until everyone in [waitingFor] has answered [BufferReadyPayload].
- *
- * This is the whole synchronisation model, and the reason the UI has to name who it is waiting for:
- * playback genuinely stops for the slowest device, and silence with no explanation reads as a hang.
- */
-@Serializable
-data class BufferWaitPayload(
-    val trackId: String = "",
-    val waitingFor: List<String> = emptyList(),
-)
-
-@Serializable
-data class BufferCompletePayload(
-    val trackId: String = "",
-)
-
 @Serializable
 data class ErrorPayload(
     val code: String = "",
@@ -286,14 +247,6 @@ data class SyncStatePayload(
     val queue: List<TrackInfo> = emptyList(),
     val volume: Float = 0f,
     val revision: Long = 0L,
-)
-
-@Serializable
-data class PongPayload(
-    val clientTime: Long = 0L,
-    val serverReceiveTime: Long = 0L,
-    val serverSendTime: Long = 0L,
-    val sequence: Long = 0L,
 )
 
 @Serializable
@@ -337,5 +290,4 @@ data class SuggestionRejectedPayload(
 )
 
 // ───────────────────────── capability negotiation ─────────────────────────
-
 

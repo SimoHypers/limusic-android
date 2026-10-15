@@ -96,7 +96,6 @@ class ListenTogetherPlaybackBridge(
         scope.launch { publishTrackChangesAsHost() }
         scope.launch { publishPlayPauseAsHost() }
         scope.launch { publishSeeksAsHost() }
-        scope.launch { answerBufferBarrier() }
     }
 
     /**
@@ -499,30 +498,6 @@ class ListenTogetherPlaybackBridge(
                 trackInfo = null,
             )
         }
-    }
-
-    // ─────────────────────────── the buffer barrier ───────────────────────────
-
-    /**
-     * Answers `buffer_ready` once the local player has the track the room is waiting on.
-     *
-     * Nobody in the room hears anything until every member answers, so a client that never sends
-     * this silently freezes playback for everyone — including the host.
-     */
-    private suspend fun answerBufferBarrier() {
-        repository.room
-            .map { it.waitingFor to it.currentTrack?.id }
-            .distinctUntilChanged()
-            .collect { (waitingFor, trackId) ->
-                val state = repository.room.value
-                if (trackId.isNullOrBlank() || !state.inRoom) return@collect
-                if (state.selfUserId !in waitingFor) return@collect
-                // bufferedPercentage, not isPlaying: the barrier asks whether the track is loaded,
-                // and playback is exactly what it is holding back.
-                if (handler.player.bufferedPercentage >= READY_BUFFER_PERCENT) {
-                    session.reportBufferReady(trackId)
-                }
-            }
     }
 
     private fun RoomTrack.toProtocol(): TrackInfo =

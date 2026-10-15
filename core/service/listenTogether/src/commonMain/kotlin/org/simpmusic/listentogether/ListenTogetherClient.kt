@@ -63,9 +63,6 @@ sealed interface ListenTogetherEvent {
         val payload: Any?,
     ) : ListenTogetherEvent
 
-    /** The server clock is set, so [ListenTogetherClient.positionAt] now returns corrected values. */
-    data object ClockReady : ListenTogetherEvent
-
     /**
      * The socket is down. [willRetry] false means this client has given up and the user has to
      * rejoin by hand — the retry budget is spent, or the server refused this client outright.
@@ -242,7 +239,6 @@ class ListenTogetherClient(
                 reconnectDelay = INITIAL_RECONNECT_DELAY
                 reconnectAttempts = 0
                 _events.emit(ListenTogetherEvent.Connected(serverVersion = "", resumed = token != null))
-                _events.emit(ListenTogetherEvent.ClockReady)
 
                 val pinger = launch { pingLoop() }
                 reader.join()
