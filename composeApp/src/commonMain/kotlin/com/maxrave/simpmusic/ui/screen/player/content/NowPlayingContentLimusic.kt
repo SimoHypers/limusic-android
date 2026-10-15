@@ -156,8 +156,11 @@ private fun ClassicLayout(
                     ArtworkImage(url = url, modifier = Modifier.fillMaxSize())
                 }
             }
+            // Cover, lyric line and title stay one group at fixed gaps; the leftover height goes
+            // above the cover and above the bottom row instead of opening a hole under the line.
+            Spacer(Modifier.height(12.dp))
             LyricLine(state)
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(14.dp))
             TitleRow(state, actions)
             Spacer(Modifier.height(16.dp))
             WavySeekBar(
@@ -176,7 +179,7 @@ private fun ClassicLayout(
             }
             Spacer(Modifier.height(16.dp))
             TransportRow(state, actions)
-            Spacer(Modifier.weight(0.6f))
+            Spacer(Modifier.weight(1f))
             BottomRow(state, actions)
             Spacer(Modifier.height(12.dp))
         }
@@ -313,7 +316,8 @@ private fun LyricLine(state: NowPlayingContentState) {
                 ?.stripRichSyncTimestamps()
                 .orEmpty()
         }
-    Box(Modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.Center) {
+    // Fixed height, so a song without synced lyrics keeps the same layout.
+    Box(Modifier.fillMaxWidth().height(24.dp), contentAlignment = Alignment.CenterStart) {
         Crossfade(targetState = line, animationSpec = tween(300), label = "classicLyricLine") { text ->
             LyricText(
                 text = text,
