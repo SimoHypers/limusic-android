@@ -8,9 +8,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.maxrave.simpmusic.ui.component.limusicTabIndex
 import com.maxrave.simpmusic.ui.navigation.destination.home.ExploreDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.screen.home.ExploreScreen
@@ -40,11 +42,20 @@ fun AppNavigationGraph(
     NavHost(
         navController,
         startDestination = startDestination,
+        // Opening a page slides it in from the right and back slides it out the same way. Switching
+        // tabs slides the way the tab bar reads; leaving a page for another tab only fades, since the
+        // page has no place in the bar.
         enterTransition = {
-            fadeIn() + slideInHorizontally { -it }
+            when (val dir = tabDirection(initialState.destination, targetState.destination)) {
+                0 -> fadeIn()
+                else -> fadeIn() + slideInHorizontally { it * dir }
+            }
         },
         exitTransition = {
-            fadeOut() + slideOutHorizontally { it }
+            when (val dir = tabDirection(initialState.destination, targetState.destination)) {
+                0 -> fadeOut()
+                else -> fadeOut() + slideOutHorizontally { -it * dir }
+            }
         },
         popEnterTransition = {
             fadeIn() + slideInHorizontally { -it }
@@ -122,5 +133,20 @@ fun AppNavigationGraph(
                 showNavBar(false)
             },
         )
+    }
+}
+
+/** 1 slides forward (from the right), -1 backward, 0 fades: a tab switch that starts on a page. */
+private fun tabDirection(
+    from: NavDestination,
+    to: NavDestination,
+): Int {
+    val fromTab = limusicTabIndex(from)
+    val toTab = limusicTabIndex(to)
+    return when {
+        toTab < 0 -> 1
+        fromTab < 0 -> 0
+        toTab < fromTab -> -1
+        else -> 1
     }
 }

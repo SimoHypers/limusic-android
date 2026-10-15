@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.simpmusic.ui.icon.Explore
 import com.maxrave.simpmusic.ui.icon.Home
 import com.maxrave.simpmusic.ui.icon.LibraryMusic
@@ -60,9 +60,13 @@ private val limusicTabs =
         LimusicTab(LibraryDestination, Res.string.library, SimpIcons.LibraryMusic),
     )
 
+/** Position of [destination] in the tab bar, or -1 when it is not a tab. */
+fun limusicTabIndex(destination: NavDestination): Int = limusicTabs.indexOfFirst { destination.hasRoute(it.destination::class) }
+
 /**
- * The bottom tabs. Tapping the tab already in front calls [onReselect] (scroll to top or refresh)
- * instead of navigating again.
+ * The bottom tabs. The tab you are in is the last tab on the back stack, so it stays lit on the
+ * album or artist pages opened from it. Tapping it there goes back to the tab's root; tapping it on
+ * the root calls [onReselect] (scroll to top or refresh).
  */
 @Composable
 fun LimusicNavigationBar(
@@ -70,21 +74,25 @@ fun LimusicNavigationBar(
     modifier: Modifier = Modifier,
     onReselect: (KClass<*>) -> Unit = {},
 ) {
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val hierarchy = backStackEntry?.destination?.hierarchy
+    val backStack by navController.currentBackStack.collectAsState()
+    val currentTab = backStack.lastOrNull { limusicTabIndex(it.destination) >= 0 }?.destination?.let(::limusicTabIndex) ?: -1
+    val onTabRoot = backStack.lastOrNull()?.destination?.let(::limusicTabIndex) == currentTab
     Column(modifier) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.background,
             tonalElevation = 0.dp,
         ) {
-            limusicTabs.forEach { tab ->
-                val selected = hierarchy?.any { it.hasRoute(tab.destination::class) } == true
+            limusicTabs.forEachIndexed { index, tab ->
+                val selected = index == currentTab
                 NavigationBarItem(
                     selected = selected,
                     onClick = {
-                        if (selected) {
+                        if (selected && onTabRoot) {
                             onReselect(tab.destination::class)
+                        } else if (selected) {
+                            // Restoring this tab's saved stack would bring the same page back, so pop to its root.
+                            navController.popBackStack(tab.destination, inclusive = false)
                         } else {
                             navController.navigate(tab.destination) {
                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
