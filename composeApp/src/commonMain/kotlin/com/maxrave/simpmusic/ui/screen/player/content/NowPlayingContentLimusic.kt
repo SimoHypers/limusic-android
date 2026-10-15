@@ -233,6 +233,11 @@ private fun CurrentArtwork(
                         .data(artworkUrl)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(artworkUrl + "BIGGER")
+                        // A fixed memory key, used as the placeholder too: when a queue reorder
+                        // (shuffle) rebuilds the pager page, the cover redraws from memory at once
+                        // instead of flashing the placeholder.
+                        .memoryCacheKey(artworkUrl + "BIGGER")
+                        .placeholderMemoryCacheKey(artworkUrl + "BIGGER")
                         .crossfade(400)
                         .build(),
                 contentDescription = null,
@@ -291,6 +296,8 @@ private fun ArtworkImage(
                 .data(url)
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .diskCacheKey(url)
+                .memoryCacheKey(url)
+                .placeholderMemoryCacheKey(url)
                 .build(),
         contentDescription = null,
         contentScale = ContentScale.Crop,

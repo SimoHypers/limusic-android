@@ -172,7 +172,9 @@ internal class MediaServiceHandlerImpl(
                     },
                 isLiked = false,
                 isNextAvailable = player.hasNextMediaItem(),
-                isPreviousAvailable = player.hasPreviousMediaItem(),
+                // Previous always does something once a track is loaded: past 3s or with nothing before it
+                // (shuffle puts the current song first), seekToPrevious restarts the song.
+                isPreviousAvailable = player.mediaItemCount > 0,
                 isCrossfading = false,
                 volume = 1f,
             ),
@@ -735,7 +737,9 @@ internal class MediaServiceHandlerImpl(
         _controlState.value =
             _controlState.value.copy(
                 isNextAvailable = player.hasNextMediaItem(),
-                isPreviousAvailable = player.hasPreviousMediaItem(),
+                // Previous always does something once a track is loaded: past 3s or with nothing before it
+                // (shuffle puts the current song first), seekToPrevious restarts the song.
+                isPreviousAvailable = player.mediaItemCount > 0,
             )
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -255,6 +256,23 @@ fun NowPlayingScreenContent(
             if (isUserDraggingActive) pendingUserSwipe = true
         }
     }
+
+    // ⓪ Same track, new page: a reorder (shuffle) or a trimmed radio history moves the playing
+    // track to another page without changing it. Jump in the SAME frame: ① is a LaunchedEffect and
+    // only runs on the next one, so for a frame the pager drew whatever cover the new order had put
+    // on its old page, or slid in from it. A plain holder, not state: it only remembers which track
+    // the last composition saw, and writing it must not recompose.
+    val lastTrackId = remember { arrayOfNulls<String>(1) }
+    val jumpTarget = currentOrderIndex
+    if (!isUserDraggingActive &&
+        jumpTarget in artworkQueue.indices &&
+        jumpTarget != artworkPagerState.currentPage &&
+        nowPlayingVideoId != null &&
+        nowPlayingVideoId == lastTrackId[0]
+    ) {
+        SideEffect { artworkPagerState.requestScrollToPage(jumpTarget) }
+    }
+    SideEffect { lastTrackId[0] = nowPlayingVideoId }
 
     // ① Player → Pager: animate to new track when player advances.
     //
