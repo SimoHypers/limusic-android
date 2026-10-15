@@ -37,6 +37,8 @@ import com.maxrave.discord.DiscordUser
 import com.maxrave.discord.discordAccessToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.simpmusic.lastfm.LASTFM_CONFIG_KEY
+import org.simpmusic.lastfm.LastfmProfile
+import org.simpmusic.lastfm.profile
 import org.simpmusic.lastfm.ScrobbleConfig
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -457,6 +459,16 @@ class SettingsViewModel(
             dataStoreManager.setLastfmSession(sessionKey = "", username = "")
         }
     }
+
+    /** The connected Last.fm account's name; empty when not connected. */
+    val lastfmUser: StateFlow<String> =
+        dataStoreManager.lastfmUsername.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
+    /** Avatar and counts off the public profile, for the Last.fm page's header. */
+    val lastfmProfile: StateFlow<LastfmProfile?> =
+        dataStoreManager.lastfmUsername
+            .map { name -> name.takeIf { it.isNotEmpty() }?.let { profile(it) } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setLastfmConfig(config: ScrobbleConfig) {
         viewModelScope.launch { dataStoreManager.putString(LASTFM_CONFIG_KEY, config.toJson()) }

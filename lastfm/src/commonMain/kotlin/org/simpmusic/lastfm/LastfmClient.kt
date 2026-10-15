@@ -214,6 +214,34 @@ internal object LastfmClient {
         return first?.ignoredOrNull() ?: LastfmOutcome.Ok
     }
 
+    /** `user.getInfo` sends every number as a string, and an unset avatar as "" in each size. */
+    suspend fun getProfile(
+        apiKey: String,
+        secret: String,
+        username: String,
+    ): LastfmProfile? {
+        val user = call(mapOf("method" to "user.getInfo", "api_key" to apiKey, "user" to username), secret)?.get("user") as? JsonObject ?: return null
+        val images = user["image"] as? JsonArray
+        // 174px: drawn at 64dp, so about right for a phone screen.
+        val image =
+            listOf("large", "extralarge", "medium").firstNotNullOfOrNull { size ->
+                images
+                    ?.map { it.jsonObject }
+                    ?.firstOrNull { it.stringOrNull("size") == size }
+                    ?.stringOrNull("#text")
+                    ?.takeIf { it.isNotEmpty() }
+            }
+        fun num(v: String?) = v?.toLongOrNull() ?: 0
+        return LastfmProfile(
+            image = image,
+            url = user.stringOrNull("url"),
+            scrobbles = num(user.stringOrNull("playcount")),
+            artists = num(user.stringOrNull("artist_count")),
+            tracks = num(user.stringOrNull("track_count")),
+            since = num((user["registered"] as? JsonObject)?.stringOrNull("unixtime")),
+        )
+    }
+
     suspend fun setLoved(
         apiKey: String,
         secret: String,

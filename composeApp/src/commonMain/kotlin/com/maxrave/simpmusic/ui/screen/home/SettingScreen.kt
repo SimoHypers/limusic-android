@@ -138,14 +138,13 @@ import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.AppLogDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.DiscordSettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.LastfmSettingsDestination
+import simpmusic.composeapp.generated.resources.lastfm_not_connected
+import simpmusic.composeapp.generated.resources.lastfm_paused
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsSectionDestination
 import com.maxrave.simpmusic.ui.icon.Discord
 import com.maxrave.simpmusic.ui.icon.Lastfm
 import simpmusic.composeapp.generated.resources.lastfm_approve_in_browser
-import simpmusic.composeapp.generated.resources.lastfm_connect
-import simpmusic.composeapp.generated.resources.lastfm_connect_hint
-import simpmusic.composeapp.generated.resources.lastfm_scrobble
-import simpmusic.composeapp.generated.resources.lastfm_scrobble_hint
 import simpmusic.composeapp.generated.resources.lastfm_scrobbling_as
 import simpmusic.composeapp.generated.resources.discord_not_signed_in
 import simpmusic.composeapp.generated.resources.discord_off
@@ -266,7 +265,6 @@ import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.limit_player_cache
 import simpmusic.composeapp.generated.resources.listening_history
 import simpmusic.composeapp.generated.resources.log_out
-import simpmusic.composeapp.generated.resources.log_out_from_lastfm
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_offset
@@ -1554,41 +1552,37 @@ fun SettingScreen(
                         if (viewModel.lastfmAvailable) {
                             val lastfmConnecting by sharedViewModel.lastfmConnecting.collectAsStateWithLifecycle()
                             val lastfmConfig by viewModel.lastfmConfig.collectAsStateWithLifecycle()
-                            val signOutLastfm = stringResource(Res.string.log_out_from_lastfm)
+                            val lastfmProfile by viewModel.lastfmProfile.collectAsStateWithLifecycle()
                             SettingGroup(title = null) {
                                 SettingItem(
-                                    title = if (lastfmLoggedIn) "Last.fm" else stringResource(Res.string.lastfm_connect),
+                                    title = "Last.fm",
                                     subtitle =
                                         when {
+                                            lastfmLoggedIn && !lastfmConfig.enabled -> stringResource(Res.string.lastfm_paused)
                                             lastfmLoggedIn -> stringResource(Res.string.lastfm_scrobbling_as, lastfmUsername)
                                             lastfmConnecting -> stringResource(Res.string.lastfm_approve_in_browser)
-                                            else -> stringResource(Res.string.lastfm_connect_hint)
+                                            else -> stringResource(Res.string.lastfm_not_connected)
                                         },
                                     smallSubtitle = true,
                                     leading = {
-                                        Box(
-                                            Modifier.size(40.dp).clip(CircleShape).background(Color(0xFFD51007)),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(SimpIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                        if (lastfmLoggedIn && lastfmProfile?.image != null) {
+                                            AsyncImage(
+                                                model = lastfmProfile?.image,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(40.dp).clip(CircleShape),
+                                            )
+                                        } else {
+                                            Box(
+                                                Modifier.size(40.dp).clip(CircleShape).background(LastfmRed),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(SimpIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                            }
                                         }
                                     },
-                                    onClick = {
-                                        when {
-                                            lastfmLoggedIn -> viewModel.confirmLogOut(confirmLabel = signOutLastfm) { viewModel.logOutLastfm() }
-                                            lastfmConnecting -> sharedViewModel.cancelLastfmConnect()
-                                            else -> sharedViewModel.connectLastfm { uriHandler.openUri(it) }
-                                        }
-                                    },
+                                    navigates = true,
+                                    onClick = { navController.navigate(LastfmSettingsDestination) },
                                 )
-                                if (lastfmLoggedIn) {
-                                    SettingItem(
-                                        title = stringResource(Res.string.lastfm_scrobble),
-                                        subtitle = stringResource(Res.string.lastfm_scrobble_hint),
-                                        smallSubtitle = true,
-                                        switch = (lastfmConfig.enabled to { on: Boolean -> viewModel.setLastfmConfig(lastfmConfig.copy(enabled = on)) }),
-                                    )
-                                }
                             }
                         }
                     }

@@ -137,6 +137,24 @@ suspend fun scrobble(
     return LastfmClient.scrobble(apiKey, sharedSecret, sessionKey, track, startedAtEpochSeconds)
 }
 
+/** A public profile, for the Last.fm page's account header. */
+data class LastfmProfile(
+    /** The avatar, or null for an account that never set one. */
+    val image: String?,
+    val url: String?,
+    val scrobbles: Long,
+    val artists: Long,
+    val tracks: Long,
+    /** Epoch seconds the account was created. */
+    val since: Long,
+)
+
+/** Null when Last.fm didn't answer: the page falls back to the name it already has. */
+suspend fun profile(username: String): LastfmProfile? {
+    if (!isLastfmAvailable()) return null
+    return LastfmClient.getProfile(apiKey, sharedSecret, username)
+}
+
 /** Mirrors a like onto Last.fm's loved tracks. */
 suspend fun setLoved(
     sessionKey: String,
