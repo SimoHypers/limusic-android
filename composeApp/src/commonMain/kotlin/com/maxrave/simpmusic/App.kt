@@ -138,7 +138,7 @@ fun App(
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
-    val artworkColors by viewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val artworkColors by viewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
     val artworkColor =
         rememberArtworkColor(
             url = (nowPlayingData?.songEntity?.thumbnails ?: nowPlayingData?.mediaItem?.metadata?.artworkUri).takeIf { artworkColors == TRUE },

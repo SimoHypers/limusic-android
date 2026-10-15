@@ -600,7 +600,7 @@ internal class DataStoreManagerImpl(
 
     override val artworkColors =
         settingsDataStore.data.map { preferences ->
-            preferences[ARTWORK_COLORS] ?: FALSE
+            preferences[ARTWORK_COLORS] ?: TRUE
         }
 
     override suspend fun setArtworkColors(enable: Boolean) {
