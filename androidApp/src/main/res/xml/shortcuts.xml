@@ -7,8 +7,8 @@
         android:shortcutShortLabel="@string/home">
         <intent
             android:targetClass="com.maxrave.simpmusic.MainActivity"
-            android:targetPackage="com.maxrave.simpmusic"
-            android:action="com.maxrave.simpmusic.action.HOME" />
+            android:targetPackage="com.limusic.android"
+            android:action="android.intent.action.MAIN" />
     </shortcut>
     <shortcut
         android:shortcutId="search"
@@ -17,8 +17,9 @@
         android:shortcutShortLabel="@string/search">
         <intent
             android:targetClass="com.maxrave.simpmusic.MainActivity"
-            android:targetPackage="com.maxrave.simpmusic"
-            android:action="com.maxrave.simpmusic.action.SEARCH" />
+            android:targetPackage="com.limusic.android"
+            android:action="android.intent.action.VIEW"
+            android:data="simpmusic://search" />
     </shortcut>
     <shortcut
         android:shortcutId="library"
@@ -27,7 +28,8 @@
         android:shortcutShortLabel="@string/library">
         <intent
             android:targetClass="com.maxrave.simpmusic.MainActivity"
-            android:targetPackage="com.maxrave.simpmusic"
-            android:action="com.maxrave.simpmusic.action.LIBRARY" />
+            android:targetPackage="com.limusic.android"
+            android:action="android.intent.action.VIEW"
+            android:data="simpmusic://library" />
     </shortcut>
 </shortcuts>

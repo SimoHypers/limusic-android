@@ -105,14 +105,13 @@ fun CreditScreen(
             fontSize = 13.sp,
         )
 
-        // Developer - clickable, opens dev blog
         Text(
-            text = stringResource(Res.string.maxrave_dev),
+            text = stringResource(Res.string.developer_name),
             style = typo().bodyMedium,
             textDecoration = TextDecoration.Underline,
             modifier =
                 Modifier.clickable {
-                    openUrl("https://maxrave.dev")
+                    openUrl("https://github.com/SimoHypers")
                 },
         )
 
@@ -132,44 +131,9 @@ fun CreditScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            // Website button
             TextButton(
                 onClick = {
-                    openUrl("https://simpmusic.org")
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.Start)
-                        .padding(horizontal = 25.dp)
-                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-            ) {
-                Text(text = stringResource(Res.string.website))
-            }
-
-            // Developer blog button
-            TextButton(
-                onClick = {
-                    openUrl("https://www.simpmusic.org/blogs")
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.Start)
-                        .padding(horizontal = 25.dp)
-                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-            ) {
-                Column {
-                    Text(text = stringResource(Res.string.developer_blog))
-                    Text(
-                        text = stringResource(Res.string.developer_blog_tagline),
-                        style = typo().bodySmall,
-                    )
-                }
-            }
-
-            // GitHub button
-            TextButton(
-                onClick = {
-                    openUrl("https://github.com/maxrave-dev/SimpMusic")
+                    openUrl("https://github.com/SimoHypers/Limusic")
                 },
                 modifier =
                     Modifier
@@ -179,11 +143,24 @@ fun CreditScreen(
             ) {
                 Text(text = stringResource(Res.string.github))
             }
+        }
 
-            // Issue tracker button
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // GPL-3.0 section 5(d): the original author's copyright notice stays visible in the app.
+        Text(
+            text = stringResource(Res.string.credit_based_on),
+            style = typo().bodyMedium,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 25.dp),
+            textAlign = TextAlign.Start,
+        )
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             TextButton(
                 onClick = {
-                    openUrl("https://github.com/maxrave-dev/SimpMusic/issues")
+                    openUrl("https://github.com/maxrave-dev")
                 },
                 modifier =
                     Modifier
@@ -191,21 +168,7 @@ fun CreditScreen(
                         .padding(horizontal = 25.dp)
                         .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
             ) {
-                Text(text = stringResource(Res.string.issue_tracker))
-            }
-
-            // Buy me a coffee button
-            TextButton(
-                onClick = {
-                    openUrl("https://github.com/sponsors/maxrave-dev")
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.Start)
-                        .padding(horizontal = 25.dp)
-                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-            ) {
-                Text(text = stringResource(Res.string.buy_me_a_coffee))
+                Text(text = "maxrave-dev")
             }
         }
 
@@ -237,7 +200,9 @@ fun CreditScreen(
 
         // Copyright text
         Text(
-            text = stringResource(Res.string.copyright, now().year.toString()),
+            text =
+                stringResource(Res.string.copyright, now().year.toString()) + "\n" +
+                    stringResource(Res.string.copyright_limusic, now().year.toString()),
             style = typo().bodySmall,
             modifier =
                 Modifier

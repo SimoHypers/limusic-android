@@ -66,6 +66,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -253,6 +254,11 @@ fun App(
                         data.getQueryParameter("id")?.let { albumId ->
                             navController.navigate(AlbumDestination(browseId = albumId))
                         }
+                    }
+
+                    // simpmusic://search → the search screen (the launcher shortcut)
+                    "search" -> {
+                        navController.navigate(SearchDestination)
                     }
 
                     // simpmusic://library                     → the Library tab

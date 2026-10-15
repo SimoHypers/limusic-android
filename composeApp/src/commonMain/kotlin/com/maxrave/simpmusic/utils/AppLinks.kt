@@ -4,7 +4,7 @@ import com.eygraber.uri.Uri
 import com.maxrave.common.LibraryChipType
 
 // Every path the deep-link router in App.kt opens; anything else gets its "link not supported" toast.
-private val APP_LINK_PATHS = setOf("notification", "watch", "playlist", "channel", "c", "album", "library")
+private val APP_LINK_PATHS = setOf("notification", "watch", "playlist", "channel", "c", "album", "library", "search")
 
 /**
  * Whether the screen a `simpmusic://` link opens exists for this user right now. The YouTube

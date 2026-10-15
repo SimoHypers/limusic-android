@@ -78,12 +78,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
@@ -284,7 +279,7 @@ import simpmusic.composeapp.generated.resources.lyrics_style
 import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
 import simpmusic.composeapp.generated.resources.lyrics_style_classic
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
-import simpmusic.composeapp.generated.resources.maxrave_dev
+import simpmusic.composeapp.generated.resources.developer_name
 import simpmusic.composeapp.generated.resources.monthly
 import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
@@ -1939,23 +1934,7 @@ fun SettingScreen(
                         SettingGroup(
                             title = stringResource(Res.string.backup),
                             footer = {
-                                val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
-                                val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
-                                Text(
-                                    buildAnnotatedString {
-                                        append(beforeUrl)
-                                        withLink(
-                                            LinkAnnotation.Url(
-                                                "https://www.simpmusic.org/tools",
-                                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-                                            ),
-                                        ) {
-                                            append("https://www.simpmusic.org/tools")
-                                        }
-                                        append(afterUrl)
-                                    },
-                                    style = typo().bodySmall,
-                                )
+                                Text(stringResource(Res.string.import_data_intro), style = typo().bodySmall)
                             },
                         ) {
                             SettingItem(
@@ -2110,9 +2089,9 @@ fun SettingScreen(
                             )
                             SettingItem(
                                 title = stringResource(Res.string.author),
-                                subtitle = stringResource(Res.string.maxrave_dev),
+                                subtitle = stringResource(Res.string.developer_name),
                                 onClick = {
-                                    uriHandler.openUri("https://github.com/maxrave-dev")
+                                    uriHandler.openUri("https://github.com/SimoHypers")
                                 },
                             )
                             SettingItem(
