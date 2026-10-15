@@ -12,19 +12,15 @@ kotlin {
         namespace = "org.simpmusic.listentogether"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                // The wire format is protobuf. kotlinx-serialization-protobuf produces the same
-                // bytes from @Serializable classes that protoc produces from listentogether.proto,
-                // which is what lets the whole codec live in commonMain — see docs/listen-together.md.
-                implementation(libs.kotlinx.serialization.protobuf)
-                // Gzip for the envelope's `compressed` flag. java.util.zip is JVM-only; okio ships
-                // GzipSource/GzipSink on every target this module builds for.
-                implementation(libs.okio)
+                // The wire format is JSON (Limusic's server).
+                implementation(libs.kotlinx.serialization.json)
                 // One multiplatform lock, for ServerClock. Metrolist guards it with @Synchronized,
                 // which does not exist in commonMain; atomicfu's SynchronizedObject compiles to the
                 // same JVM monitor and gives Native a real lock. Used as a plain library — the

@@ -734,8 +734,6 @@
     <string name="lt_just_asked">hat gerade darum gebeten beizutreten</string>
     <string name="lt_suggestions">Vorgeschlagener Song</string>
     <string name="lt_leave_room">Raum verlassen</string>
-    <string name="lt_credit_protocol">„Gemeinsam Hören“-Protokoll von Metrolist</string>
-    <string name="lt_credit_compatible">Der Raum ist mit Metrolist-Nutzern kompatibel</string>
     <string name="lt_server">Server</string>
     <string name="lt_custom_server">Benutzerdefinierter Server</string>
     <string name="lt_custom_server_desc">Gebe deine eigene wss:// Adresse ein</string>

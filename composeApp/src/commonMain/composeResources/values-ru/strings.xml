@@ -749,8 +749,6 @@
     <string name="lt_just_asked">только что попросил присоединиться</string>
     <string name="lt_suggestions">Предложенные треки</string>
     <string name="lt_leave_room">Покинуть комнату</string>
-    <string name="lt_credit_protocol">Протокол "Listen Together" от Metrolist</string>
-    <string name="lt_credit_compatible">Комнаты совместимы с клиентами Metrolist</string>
     <string name="lt_server">Сервер</string>
     <string name="lt_custom_server">Пользовательский сервер</string>
     <string name="lt_custom_server_desc">Введите свой собственный wss:// адрес</string>

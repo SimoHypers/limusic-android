@@ -734,8 +734,6 @@
     <string name="lt_just_asked">已要求加入</string>
     <string name="lt_suggestions">推薦的曲目</string>
     <string name="lt_leave_room">離開派對</string>
-    <string name="lt_credit_protocol">「共同聆聽」協定由Metrolist提供</string>
-    <string name="lt_credit_compatible">派對與Metrolist用戶端相容</string>
     <string name="lt_server">伺服器</string>
     <string name="lt_custom_server">自訂伺服器</string>
     <string name="lt_custom_server_desc">輸入您自己伺服器的 wss:// 位址</string>

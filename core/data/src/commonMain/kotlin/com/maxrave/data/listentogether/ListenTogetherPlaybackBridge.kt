@@ -365,6 +365,7 @@ class ListenTogetherPlaybackBridge(
         val data = handler.queueData.value as? QueueData.Data
         session.sendPlaybackAction(
             action = PlaybackActions.CHANGE_TRACK,
+            playing = handler.player.playWhenReady,
             trackId = item.mediaId,
             position = handler.player.currentPosition,
             trackInfo = item.toTrackInfo(),
@@ -395,6 +396,7 @@ class ListenTogetherPlaybackBridge(
                 val data = handler.queueData.value as? QueueData.Data
                 session.sendPlaybackAction(
                     action = PlaybackActions.CHANGE_TRACK,
+                    playing = handler.player.playWhenReady,
                     trackId = item.mediaId,
                     position = 0L,
                     trackInfo = item.toTrackInfo(),

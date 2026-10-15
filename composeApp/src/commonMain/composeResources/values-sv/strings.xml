@@ -727,8 +727,6 @@
     <string name="lt_just_asked">har precis bett om att få gå med</string>
     <string name="lt_suggestions">Föreslagna låtar</string>
     <string name="lt_leave_room">Lämna rummet</string>
-    <string name="lt_credit_protocol">Listen Together-protokollet från Metrolist</string>
-    <string name="lt_credit_compatible">Rummen är kompatibla med Metrolist-klienter</string>
     <string name="lt_server">Server</string>
     <string name="lt_custom_server">Anpassad server</string>
     <string name="lt_custom_server_desc">Ange en egen wss://-adress</string>

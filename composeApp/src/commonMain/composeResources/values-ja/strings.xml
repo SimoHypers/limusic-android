@@ -739,8 +739,6 @@
     <string name="lt_just_asked">参加を求められました</string>
     <string name="lt_suggestions">おすすめの曲</string>
     <string name="lt_leave_room">ルームから退出</string>
-    <string name="lt_credit_protocol">MetrolistによるListen Togetherプロトコル</string>
-    <string name="lt_credit_compatible">ルームはMetrolistクライアントと互換性があります</string>
     <string name="lt_server">サーバー</string>
     <string name="lt_custom_server">カスタムサーバー</string>
     <string name="lt_custom_server_desc">自分のアドレスを入力してください</string>

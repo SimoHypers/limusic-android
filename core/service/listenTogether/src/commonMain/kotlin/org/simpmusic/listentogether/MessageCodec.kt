@@ -1,163 +1,231 @@
-/*
- * Ported from Metrolist (GPL-3.0, the same licence as this project).
- * Metrolist Project (C) 2026 — Licensed under GPL-3.0 | See git history for contributors
- */
 package org.simpmusic.listentogether
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.protobuf.ProtoBuf
-import okio.Buffer
-import okio.GzipSink
-import okio.GzipSource
-import okio.buffer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
+import kotlinx.serialization.json.put
 
 /**
- * Turns a payload into the bytes that go on the socket, and back.
+ * Speaks Limusic's Listen Together protocol (`crates/listen-protocol` in the Limusic repo): one JSON
+ * object per text frame, tagged on `type`, snake_case fields.
  *
- * Wire format, exactly as Metrolist and the servers speak it: the payload is protobuf-encoded,
- * gzipped when it is worth it, then wrapped in an [Envelope] carrying the message type and a
- * `compressed` flag — and the envelope itself is protobuf.
- *
- * The 250-odd lines of `toProtoMessage` / `protoToX` in the original are absent here on purpose:
- * they exist to bridge hand-written Kotlin data classes to protoc-generated Java builders, and
- * `Protocol.kt`'s `@ProtoNumber` annotations remove that gap entirely. Same bytes, one model.
+ * The layer above was written against Metrolist's message model, and the two protocols share their
+ * design (host-led rooms, approval, suggestions, server-extrapolated position), so this translates
+ * between Limusic's JSON and the payload classes in Protocol.kt instead of rewriting the session.
  */
-@OptIn(ExperimentalSerializationApi::class)
-internal class MessageCodec(
-    private val compressionEnabled: Boolean = true,
-) {
-    /**
-     * `encodeDefaults = false` is not a preference — it is what proto3 means.
-     *
-     * A proto3 field holding its default value is simply absent from the wire, which is what
-     * `protoc` emits and what Go's `proto.Marshal` emits, so this is the setting that makes the
-     * "same bytes as protoc" claim in Protocol.kt actually true. With `true`, encoding any payload
-     * carrying a null message field — `PlaybackActionPayload.trackInfo` on every play, pause, seek
-     * and volume command — threw `'null' is not supported for optional properties in ProtoBuf`
-     * instead, so no transport command could be sent at all.
-     */
-    private val proto = ProtoBuf { encodeDefaults = false }
-
-    /** Encodes one message into a complete frame. */
+internal class MessageCodec {
+    /** One outgoing frame, or null for a message Limusic's server has no counterpart for. */
     fun encode(
         msgType: String,
         payload: Any?,
-    ): ByteArray {
-        val payloadBytes = payload?.let { encodePayload(it) } ?: ByteArray(0)
-        // Below the threshold gzip reliably makes the frame LARGER — its header alone is 10 bytes,
-        // and most of these messages are a handful of fields.
-        val compress = compressionEnabled && payloadBytes.size > COMPRESSION_THRESHOLD
-        val body = if (compress) gzip(payloadBytes) else payloadBytes
-        return proto.encodeToByteArray(
-            Envelope.serializer(),
-            Envelope(type = msgType, payload = body, compressed = compress),
+    ): String? {
+        val obj =
+            when (msgType) {
+                MessageTypes.CREATE_ROOM ->
+                    msg("create_room") { put("username", (payload as CreateRoomPayload).username) }
+                MessageTypes.JOIN_ROOM -> {
+                    val p = payload as JoinRoomPayload
+                    msg("join_room") {
+                        put("room_code", p.roomCode)
+                        put("username", p.username)
+                    }
+                }
+                MessageTypes.LEAVE_ROOM -> msg("leave_room")
+                MessageTypes.APPROVE_JOIN -> msg("approve_join") { put("user_id", (payload as ApproveJoinPayload).userId) }
+                MessageTypes.REJECT_JOIN -> msg("reject_join") { put("user_id", (payload as RejectJoinPayload).userId) }
+                MessageTypes.KICK_USER -> msg("kick_user") { put("user_id", (payload as KickUserPayload).userId) }
+                MessageTypes.TRANSFER_HOST -> msg("transfer_host") { put("user_id", (payload as TransferHostPayload).newHostId) }
+                MessageTypes.PLAYBACK_ACTION -> encodePlayback(payload as PlaybackActionPayload) ?: return null
+                MessageTypes.SUGGEST_TRACK -> {
+                    val track = (payload as SuggestTrackPayload).trackInfo ?: return null
+                    msg("suggest") { put("track", track.toJson()) }
+                }
+                MessageTypes.APPROVE_SUGGESTION ->
+                    msg("approve_suggestion") { put("id", (payload as ApproveSuggestionPayload).suggestionId) }
+                MessageTypes.REJECT_SUGGESTION ->
+                    msg("reject_suggestion") { put("id", (payload as RejectSuggestionPayload).suggestionId) }
+                MessageTypes.REQUEST_SYNC -> msg("request_sync")
+                MessageTypes.RECONNECT -> msg("reconnect") { put("session_token", (payload as ReconnectPayload).sessionToken) }
+                MessageTypes.PING -> msg("ping")
+                // buffer_ready, chat and the rest have no counterpart: Limusic rooms do not wait for
+                // everyone to buffer.
+                else -> return null
+            }
+        return obj.toString()
+    }
+
+    /**
+     * One incoming frame as (MessageTypes constant, payload), or null when it is not JSON. A type
+     * this client does not model comes back with a null payload, so a newer server cannot break it.
+     */
+    fun decode(text: String): Pair<String, Any?>? {
+        val o = runCatching { Json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return null
+        return when (val type = o.str("type")) {
+            "room_created" ->
+                MessageTypes.ROOM_CREATED to
+                    RoomCreatedPayload(roomCode = o.str("room_code"), userId = o.str("user_id"), sessionToken = o.str("session_token"))
+            "join_request" -> MessageTypes.JOIN_REQUEST to JoinRequestPayload(userId = o.str("user_id"), username = o.str("username"))
+            "join_approved" -> {
+                val state = o.obj("state")?.toRoomState()
+                MessageTypes.JOIN_APPROVED to
+                    JoinApprovedPayload(
+                        roomCode = state?.roomCode.orEmpty(),
+                        userId = o.str("user_id"),
+                        sessionToken = o.str("session_token"),
+                        state = state,
+                    )
+            }
+            "join_rejected" -> MessageTypes.JOIN_REJECTED to JoinRejectedPayload(reason = o.str("reason"))
+            "reconnected" -> {
+                val state = o.obj("state")?.toRoomState()
+                MessageTypes.RECONNECTED to
+                    ReconnectedPayload(
+                        roomCode = state?.roomCode.orEmpty(),
+                        userId = o.str("user_id"),
+                        state = state,
+                        isHost = o.bool("is_host"),
+                    )
+            }
+            "user_joined" -> {
+                val user = o.obj("user")
+                MessageTypes.USER_JOINED to UserJoinedPayload(userId = user?.str("user_id").orEmpty(), username = user?.str("username").orEmpty())
+            }
+            "user_left" -> MessageTypes.USER_LEFT to UserLeftPayload(userId = o.str("user_id"))
+            "user_disconnected" -> MessageTypes.USER_DISCONNECTED to UserDisconnectedPayload(userId = o.str("user_id"))
+            "user_reconnected" -> MessageTypes.USER_RECONNECTED to UserReconnectedPayload(userId = o.str("user_id"))
+            "host_changed" -> MessageTypes.HOST_CHANGED to HostChangedPayload(newHostId = o.str("host_id"))
+            "sync_playback" -> MessageTypes.SYNC_PLAYBACK to o.toPlayback()
+            "sync_state" -> {
+                val s = o.obj("state")?.toRoomState() ?: RoomState()
+                MessageTypes.SYNC_STATE to
+                    SyncStatePayload(
+                        currentTrack = s.currentTrack,
+                        isPlaying = s.isPlaying,
+                        position = s.position,
+                        lastUpdate = s.lastUpdate,
+                        queue = s.queue,
+                        volume = s.volume,
+                    )
+            }
+            "suggestion_received" -> {
+                val s = o.obj("suggestion")
+                MessageTypes.SUGGESTION_RECEIVED to
+                    SuggestionReceivedPayload(
+                        suggestionId = s?.str("id").orEmpty(),
+                        fromUserId = s?.str("from_user_id").orEmpty(),
+                        fromUsername = s?.str("from_username").orEmpty(),
+                        trackInfo = s?.obj("track")?.toTrack(),
+                    )
+            }
+            "suggestion_approved" -> MessageTypes.SUGGESTION_APPROVED to SuggestionApprovedPayload(suggestionId = o.str("id"))
+            "suggestion_rejected" ->
+                MessageTypes.SUGGESTION_REJECTED to SuggestionRejectedPayload(suggestionId = o.str("id"), reason = o.str("reason"))
+            "kicked" -> MessageTypes.KICKED to KickedPayload(reason = o.str("reason"))
+            "error" -> MessageTypes.ERROR to ErrorPayload(code = o.str("code"), message = o.str("message"))
+            "pong" -> MessageTypes.PONG to null
+            else -> type to null
+        }
+    }
+
+    private fun encodePlayback(p: PlaybackActionPayload): JsonObject? {
+        val kind =
+            when (p.action) {
+                PlaybackActions.PLAY, PlaybackActions.PAUSE, PlaybackActions.SEEK, PlaybackActions.CHANGE_TRACK,
+                PlaybackActions.SYNC_QUEUE, PlaybackActions.SET_VOLUME,
+                -> p.action
+                else -> return null
+            }
+        return msg("playback") {
+            put("kind", kind)
+            put("position_ms", p.position)
+            put("server_time_ms", 0)
+            p.trackInfo?.let { put("track", it.toJson()) }
+            if (kind == PlaybackActions.CHANGE_TRACK || kind == PlaybackActions.SYNC_QUEUE) {
+                put("queue", buildJsonArray { p.queue.forEach { add(it.toJson()) } })
+            }
+            // Limusic guests start or hold a new track from this flag alone; there is no PLAY after it.
+            put("playing", p.playing ?: (kind == PlaybackActions.PLAY))
+            put("volume", p.volume.toDouble())
+        }
+    }
+
+    private fun JsonObject.toPlayback(): PlaybackActionPayload {
+        val kind = str("kind")
+        val track = obj("track")?.toTrack()
+        val serverTime = long("server_time_ms")
+        return PlaybackActionPayload(
+            action = kind,
+            trackId = track?.id.orEmpty(),
+            position = long("position_ms"),
+            trackInfo = track,
+            queue = (this["queue"] as? JsonArray)?.map { it.jsonObject.toTrack() }.orEmpty(),
+            volume = (this["volume"]?.jsonPrimitive?.let { runCatching { it.double }.getOrNull() } ?: 0.0).toFloat(),
+            serverTime = serverTime,
+            capturedAtServerTime = serverTime,
+            // Only change_track carries a meaningful flag; play and pause say it with their kind.
+            playing = if (kind == PlaybackActions.CHANGE_TRACK) bool("playing") else null,
         )
     }
 
-    /**
-     * Unwraps a frame into its type and its still-encoded payload.
-     *
-     * Decompression failure returns the payload untouched rather than throwing: the flag is set by
-     * the sender, and a frame we cannot inflate is more likely mislabelled than fatal.
-     */
-    fun decode(data: ByteArray): Pair<String, ByteArray> {
-        val envelope = proto.decodeFromByteArray(Envelope.serializer(), data)
-        val body = if (envelope.compressed) gunzip(envelope.payload) ?: envelope.payload else envelope.payload
-        return envelope.type to body
-    }
+    private fun JsonObject.toRoomState() =
+        RoomState(
+            roomCode = str("room_code"),
+            hostId = str("host_id"),
+            users =
+                (this["users"] as? JsonArray)?.map {
+                    val u = it.jsonObject
+                    UserInfo(userId = u.str("user_id"), username = u.str("username"), isHost = u.bool("is_host"), isConnected = u.bool("is_connected"))
+                }.orEmpty(),
+            currentTrack = obj("current_track")?.toTrack(),
+            isPlaying = bool("is_playing"),
+            position = long("position_ms"),
+            lastUpdate = long("last_update_ms"),
+            volume = (this["volume"]?.jsonPrimitive?.let { runCatching { it.double }.getOrNull() } ?: 0.0).toFloat(),
+            queue = (this["queue"] as? JsonArray)?.map { it.jsonObject.toTrack() }.orEmpty(),
+        )
 
-    /**
-     * Decodes a payload once its type is known.
-     *
-     * An unknown type returns null instead of throwing — Metrolist may add message types before we
-     * do, and a client that dies on an unrecognised frame cannot share a room with a newer one.
-     * `chat` is deliberately in this list even though SimpMusic draws no chat UI: a Metrolist user
-     * in the room WILL send it.
-     */
-    fun decodePayload(
-        msgType: String,
-        payloadBytes: ByteArray,
-    ): Any? =
-        when (msgType) {
-            MessageTypes.CREATE_ROOM -> decode(CreateRoomPayload.serializer(), payloadBytes)
-            MessageTypes.JOIN_ROOM -> decode(JoinRoomPayload.serializer(), payloadBytes)
-            MessageTypes.APPROVE_JOIN -> decode(ApproveJoinPayload.serializer(), payloadBytes)
-            MessageTypes.REJECT_JOIN -> decode(RejectJoinPayload.serializer(), payloadBytes)
-            MessageTypes.PLAYBACK_ACTION, MessageTypes.SYNC_PLAYBACK ->
-                decode(PlaybackActionPayload.serializer(), payloadBytes)
-            MessageTypes.BUFFER_READY -> decode(BufferReadyPayload.serializer(), payloadBytes)
-            MessageTypes.KICK_USER -> decode(KickUserPayload.serializer(), payloadBytes)
-            MessageTypes.TRANSFER_HOST -> decode(TransferHostPayload.serializer(), payloadBytes)
-            MessageTypes.PING -> decode(PingPayload.serializer(), payloadBytes)
-            MessageTypes.PONG -> decode(PongPayload.serializer(), payloadBytes)
-            MessageTypes.RECONNECT -> decode(ReconnectPayload.serializer(), payloadBytes)
-            MessageTypes.SUGGEST_TRACK -> decode(SuggestTrackPayload.serializer(), payloadBytes)
-            MessageTypes.APPROVE_SUGGESTION -> decode(ApproveSuggestionPayload.serializer(), payloadBytes)
-            MessageTypes.REJECT_SUGGESTION -> decode(RejectSuggestionPayload.serializer(), payloadBytes)
+    private fun JsonObject.toTrack() =
+        TrackInfo(
+            id = str("id"),
+            title = str("title"),
+            artist = str("artist"),
+            duration = long("duration_ms"),
+            thumbnail = str("thumbnail"),
+            suggestedBy = str("queued_by"),
+        )
 
-            MessageTypes.ROOM_CREATED -> decode(RoomCreatedPayload.serializer(), payloadBytes)
-            MessageTypes.JOIN_REQUEST -> decode(JoinRequestPayload.serializer(), payloadBytes)
-            MessageTypes.JOIN_APPROVED -> decode(JoinApprovedPayload.serializer(), payloadBytes)
-            MessageTypes.JOIN_REJECTED -> decode(JoinRejectedPayload.serializer(), payloadBytes)
-            MessageTypes.USER_JOINED -> decode(UserJoinedPayload.serializer(), payloadBytes)
-            MessageTypes.USER_LEFT -> decode(UserLeftPayload.serializer(), payloadBytes)
-            MessageTypes.BUFFER_WAIT -> decode(BufferWaitPayload.serializer(), payloadBytes)
-            MessageTypes.BUFFER_COMPLETE -> decode(BufferCompletePayload.serializer(), payloadBytes)
-            MessageTypes.ERROR -> decode(ErrorPayload.serializer(), payloadBytes)
-            MessageTypes.HOST_CHANGED -> decode(HostChangedPayload.serializer(), payloadBytes)
-            MessageTypes.KICKED -> decode(KickedPayload.serializer(), payloadBytes)
-            MessageTypes.SYNC_STATE -> decode(SyncStatePayload.serializer(), payloadBytes)
-            MessageTypes.RECONNECTED -> decode(ReconnectedPayload.serializer(), payloadBytes)
-            MessageTypes.USER_RECONNECTED -> decode(UserReconnectedPayload.serializer(), payloadBytes)
-            MessageTypes.USER_DISCONNECTED -> decode(UserDisconnectedPayload.serializer(), payloadBytes)
-            MessageTypes.SUGGESTION_RECEIVED -> decode(SuggestionReceivedPayload.serializer(), payloadBytes)
-            MessageTypes.SUGGESTION_APPROVED -> decode(SuggestionApprovedPayload.serializer(), payloadBytes)
-            MessageTypes.SUGGESTION_REJECTED -> decode(SuggestionRejectedPayload.serializer(), payloadBytes)
-
-            MessageTypes.SERVER_CAPABILITIES -> decode(ServerCapabilities.serializer(), payloadBytes)
-
-            else -> null
+    private fun TrackInfo.toJson() =
+        buildJsonObject {
+            put("id", id)
+            put("title", title)
+            put("artist", artist)
+            if (thumbnail.isNotBlank()) put("thumbnail", thumbnail)
+            put("duration_ms", duration)
+            if (suggestedBy.isNotBlank()) put("queued_by", suggestedBy)
         }
 
-    private fun encodePayload(payload: Any): ByteArray =
-        when (payload) {
-            is CreateRoomPayload -> proto.encodeToByteArray(CreateRoomPayload.serializer(), payload)
-            is JoinRoomPayload -> proto.encodeToByteArray(JoinRoomPayload.serializer(), payload)
-            is LeaveRoomPayload -> ByteArray(0)
-            is ApproveJoinPayload -> proto.encodeToByteArray(ApproveJoinPayload.serializer(), payload)
-            is RejectJoinPayload -> proto.encodeToByteArray(RejectJoinPayload.serializer(), payload)
-            is PlaybackActionPayload -> proto.encodeToByteArray(PlaybackActionPayload.serializer(), payload)
-            is PingPayload -> proto.encodeToByteArray(PingPayload.serializer(), payload)
-            is BufferReadyPayload -> proto.encodeToByteArray(BufferReadyPayload.serializer(), payload)
-            is KickUserPayload -> proto.encodeToByteArray(KickUserPayload.serializer(), payload)
-            is TransferHostPayload -> proto.encodeToByteArray(TransferHostPayload.serializer(), payload)
-            is SuggestTrackPayload -> proto.encodeToByteArray(SuggestTrackPayload.serializer(), payload)
-            is ApproveSuggestionPayload -> proto.encodeToByteArray(ApproveSuggestionPayload.serializer(), payload)
-            is RejectSuggestionPayload -> proto.encodeToByteArray(RejectSuggestionPayload.serializer(), payload)
-            is ReconnectPayload -> proto.encodeToByteArray(ReconnectPayload.serializer(), payload)
-            is ClientCapabilities -> proto.encodeToByteArray(ClientCapabilities.serializer(), payload)
-            else -> ByteArray(0)
-        }
-
-    private fun <T> decode(
-        serializer: kotlinx.serialization.DeserializationStrategy<T>,
-        bytes: ByteArray,
-    ): T? =
-        runCatching { proto.decodeFromByteArray(serializer, bytes) }.getOrNull()
-
-    private fun gzip(data: ByteArray): ByteArray {
-        val sink = Buffer()
-        GzipSink(sink).buffer().use { it.write(data) }
-        return sink.readByteArray()
+    private fun msg(
+        type: String,
+        fields: JsonObjectBuilder.() -> Unit = {},
+    ) = buildJsonObject {
+        put("type", type)
+        fields()
     }
 
-    private fun gunzip(data: ByteArray): ByteArray? =
-        runCatching {
-            GzipSource(Buffer().apply { write(data) }).buffer().use { it.readByteArray() }
-        }.getOrNull()
+    private fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull.orEmpty()
 
-    companion object {
-        /** Gzip below this size costs more bytes than it saves. */
-        const val COMPRESSION_THRESHOLD = 100
-    }
+    private fun JsonObject.long(key: String) = this[key]?.jsonPrimitive?.let { runCatching { it.long }.getOrNull() } ?: 0L
+
+    private fun JsonObject.bool(key: String) = this[key]?.jsonPrimitive?.booleanOrNull ?: false
+
+    private fun JsonObject.obj(key: String) = this[key] as? JsonObject
 }

@@ -113,6 +113,7 @@ import simpmusic.composeapp.generated.resources.lt_connecting
 import simpmusic.composeapp.generated.resources.lt_create_room
 import simpmusic.composeapp.generated.resources.lt_credit_compatible
 import simpmusic.composeapp.generated.resources.lt_credit_protocol
+import simpmusic.composeapp.generated.resources.lt_server_limusic
 import simpmusic.composeapp.generated.resources.lt_disconnect
 import simpmusic.composeapp.generated.resources.lt_display_name
 import simpmusic.composeapp.generated.resources.lt_display_name_hint
@@ -546,7 +547,7 @@ private fun ConnectionLine(
         Column(Modifier.weight(1f)) {
             Text(label, style = typo().bodyMedium, color = accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "The Meowery · Poland",
+                stringResource(Res.string.lt_server_limusic),
                 style = typo().bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

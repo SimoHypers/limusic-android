@@ -567,8 +567,6 @@
     <string name="lt_just_asked">az önce katılmayı istedim</string>
     <string name="lt_suggestions">Önerilen parçalar</string>
     <string name="lt_leave_room">Odadan ayrıl</string>
-    <string name="lt_credit_protocol">Metrolist protokolü ile birlikte dinle</string>
-    <string name="lt_credit_compatible">Odalar Metrolist istemcileriyle uyumludur</string>
     <string name="lt_server">Sunucu</string>
     <string name="lt_custom_server">Özel sunucu</string>
     <string name="lt_custom_server_desc">Kendi wss:// adresinizi girin</string>

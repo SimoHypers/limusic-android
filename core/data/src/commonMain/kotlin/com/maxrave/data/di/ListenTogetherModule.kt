@@ -26,7 +26,6 @@ val listenTogetherModule =
     module {
         single {
             ListenTogetherClient(
-                clientVersion = "SimpMusic",
                 userAgent = get<AppIdentity>().userAgent,
                 // Read per connection attempt, so a server changed in settings applies next time.
                 serverUrl = {

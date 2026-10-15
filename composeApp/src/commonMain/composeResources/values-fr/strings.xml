@@ -742,8 +742,6 @@
     <string name="lt_just_asked">vient de demander à rejoindre le groupe</string>
     <string name="lt_suggestions">Titres recommandés</string>
     <string name="lt_leave_room">Quitter la salle</string>
-    <string name="lt_credit_protocol">Protocole « Écoutons Ensemble » de Metrolist</string>
-    <string name="lt_credit_compatible">Les salles sont compatibles avec les clients de Metrolist</string>
     <string name="lt_server">Serveur</string>
     <string name="lt_custom_server">Serveur personnalisé</string>
     <string name="lt_custom_server_desc">Saisissez votre propre adresse wss://</string>

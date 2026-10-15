@@ -741,8 +741,6 @@
     <string name="lt_just_asked">vừa xin vào phòng</string>
     <string name="lt_suggestions">Bài hát được đề xuất</string>
     <string name="lt_leave_room">Rời phòng</string>
-    <string name="lt_credit_protocol">Giao thức Nghe cùng nhau do Metrolist phát triển</string>
-    <string name="lt_credit_compatible">Phòng tương thích với ứng dụng Metrolist</string>
     <string name="lt_server">Máy chủ</string>
     <string name="lt_custom_server">Máy chủ tùy chỉnh</string>
     <string name="lt_custom_server_desc">Nhập địa chỉ wss:// của bạn</string>

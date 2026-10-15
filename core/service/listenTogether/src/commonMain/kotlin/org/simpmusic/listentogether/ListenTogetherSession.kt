@@ -216,10 +216,13 @@ class ListenTogetherSession(
         trackInfo: TrackInfo?,
         queue: List<TrackInfo> = emptyList(),
         queueTitle: String = "",
+        /** change_track only: whether the new track plays. */
+        playing: Boolean? = null,
     ) = launch {
         client.send(
             MessageTypes.PLAYBACK_ACTION,
             PlaybackActionPayload(
+                playing = playing,
                 action = action,
                 trackId = trackId,
                 position = position,
@@ -444,6 +447,8 @@ class ListenTogetherSession(
                         currentTrack = p.trackInfo ?: it.currentTrack,
                         isPlaying =
                             when (p.action) {
+                                // A Limusic host's track change says itself whether to play.
+                                PlaybackActions.CHANGE_TRACK -> p.playing ?: it.isPlaying
                                 PlaybackActions.PAUSE -> false
                                 PlaybackActions.PLAY -> true
                                 else -> it.isPlaying

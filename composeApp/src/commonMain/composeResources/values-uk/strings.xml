@@ -740,8 +740,6 @@
     <string name="lt_just_asked">щойно попросили приєднатися</string>
     <string name="lt_suggestions">Запропоновані доріжки</string>
     <string name="lt_leave_room">Вийти з кімнати</string>
-    <string name="lt_credit_protocol">Протокол «Слухати разом» від Metrolist</string>
-    <string name="lt_credit_compatible">Кімнати сумісні з клієнтами Metrolist</string>
     <string name="lt_server">Сервер</string>
     <string name="lt_custom_server">Інший сервер</string>
     <string name="lt_custom_server_desc">Введіть свою власну ws:// адресу</string>

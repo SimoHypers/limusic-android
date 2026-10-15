@@ -68,7 +68,14 @@ internal class ServerClock(
             previousOffset == null
         }
 
-    /** Server wall time now, or null until a first pong has landed. */
+    /** Sets the offset outright from a server time read just now (a server whose pong carries no times). */
+    fun assumeServerTime(serverNowMs: Long) =
+        synchronized(lock) {
+            serverOffsetMs = (serverNowMs - elapsedRealtime()).toDouble()
+            bestRoundTripMs = 0
+        }
+
+    /** Server wall time now, or null until the clock has been set. */
     fun now(): Long? = synchronized(lock) { serverOffsetMs?.let { (elapsedRealtime() + it).toLong() } }
 
     /**

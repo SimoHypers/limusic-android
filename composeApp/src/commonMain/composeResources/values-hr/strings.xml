@@ -716,8 +716,6 @@
     <string name="lt_just_asked">just asked to join</string>
     <string name="lt_suggestions">Suggested tracks</string>
     <string name="lt_leave_room">Leave room</string>
-    <string name="lt_credit_protocol">Listen Together protocol by Metrolist</string>
-    <string name="lt_credit_compatible">Rooms are compatible with Metrolist clients</string>
     <string name="lt_server">Poslužitelj</string>
     <string name="lt_custom_server">Prilagođeno server</string>
     <string name="lt_custom_server_desc">Enter your own wss:// address</string>

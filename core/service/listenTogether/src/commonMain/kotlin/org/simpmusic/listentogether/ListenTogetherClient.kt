@@ -1,11 +1,7 @@
 /*
- * The transport half of Listen Together, written against Metrolist's server
- * (MetrolistGroup/metroserver, GPL-3.0 — the same licence as this project) so that SimpMusic
- * clients share rooms with Metrolist clients.
- *
- * Every constant below that names a wire behaviour is read from that server rather than chosen:
- * see the companion object for where each one comes from. Guessing any of them produces a client
- * that connects and then silently never joins.
+ * The transport half of Listen Together, talking to Limusic's sync server (`crates/sync-server` in
+ * the Limusic repo) so Android and desktop share rooms. Originally written against Metrolist's
+ * server (GPL-3.0, the same licence as this project).
  */
 package org.simpmusic.listentogether
 
@@ -18,9 +14,8 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
-import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,9 +30,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -59,7 +54,6 @@ sealed interface ListenTogetherEvent {
      */
     data class Connected(
         val serverVersion: String,
-        val compressionEnabled: Boolean,
         val resumed: Boolean,
     ) : ListenTogetherEvent
 
@@ -69,7 +63,7 @@ sealed interface ListenTogetherEvent {
         val payload: Any?,
     ) : ListenTogetherEvent
 
-    /** The first pong landed, so [ListenTogetherClient.positionAt] now returns corrected values. */
+    /** The server clock is set, so [ListenTogetherClient.positionAt] now returns corrected values. */
     data object ClockReady : ListenTogetherEvent
 
     /**
@@ -83,8 +77,8 @@ sealed interface ListenTogetherEvent {
 }
 
 /**
- * Owns one WebSocket to a Listen Together server: the capability handshake, the frame loop, the
- * ping loop that calibrates [ServerClock], and reconnection with a stored session token.
+ * Owns one WebSocket to a Listen Together server: the frame loop, the keepalive ping, and
+ * reconnection with a stored session token.
  *
  * It deliberately holds no room state — that belongs to the layer above. The one piece of protocol
  * knowledge it does keep is the session token, because reconnection has to be transparent: it is
@@ -92,7 +86,6 @@ sealed interface ListenTogetherEvent {
  * connection.
  */
 class ListenTogetherClient(
-    private val clientVersion: String,
     /** Application identity for the HTTP upgrade request, separate from protocol capabilities. */
     userAgent: String,
     /**
@@ -126,23 +119,21 @@ class ListenTogetherClient(
     private val _events = MutableSharedFlow<ListenTogetherEvent>(extraBufferCapacity = 256)
     val events: SharedFlow<ListenTogetherEvent> = _events.asSharedFlow()
 
-    private var codec = MessageCodec(compressionEnabled = true)
+    private val codec = MessageCodec()
     private var session: DefaultClientWebSocketSession? = null
     private var connectionJob: Job? = null
-    private var handshake: CompletableDeferred<ServerCapabilities>? = null
 
     private var sessionToken: String? = null
-    private var pingSequence = 0L
     private var reconnectDelay = INITIAL_RECONNECT_DELAY
     private var reconnectAttempts = 0
     /** Set when the server tells us retrying cannot help — see [MessageTypes.ERROR] handling. */
     private var fatal = false
 
-    /** True between a completed handshake and the socket going down. */
+    /** True while the socket is open. */
     val isConnected: Boolean
-        get() = session?.isActive == true && handshake?.isCompleted == true
+        get() = session?.isActive == true
 
-    /** Server wall time now, or null until the first pong has landed. */
+    /** Server wall time now, or null before the first connection. */
     fun serverNow(): Long? = serverClock.now()
 
     /** See [ServerClock.positionAt]. Falls back to [position] whenever the clock cannot help. */
@@ -197,8 +188,10 @@ class ListenTogetherClient(
     ): Boolean {
         val live = session ?: return false
         if (!live.isActive) return false
+        // Nothing to send for a message the server has no counterpart for; that is not a failure.
+        val frame = codec.encode(msgType, payload) ?: return true
         return runCatching {
-            live.send(Frame.Binary(true, codec.encode(msgType, payload)))
+            live.send(Frame.Text(frame))
             true
         }.getOrElse { e ->
             Logger.w(TAG, "Send failed for $msgType: ${e.message}")
@@ -231,35 +224,13 @@ class ListenTogetherClient(
         Logger.i(TAG, "Connecting to $url")
         val live = client.webSocketSession(url)
         session = live
-        serverClock.reset()
-        val pending = CompletableDeferred<ServerCapabilities>()
-        handshake = pending
+        // Limusic's server stamps times with its wall clock and its pong carries none, so the
+        // device's own wall clock stands in for it, as on desktop.
+        serverClock.assumeServerTime(Clock.System.now().toEpochMilliseconds())
 
         try {
             coroutineScope {
                 val reader = launch { readFrames(live) }
-
-                // The handshake is an ordinary message, so it can only be answered once the reader
-                // is running — hence the reader starts first and completes `pending` from there.
-                send(
-                    MessageTypes.CLIENT_CAPABILITIES,
-                    ClientCapabilities(
-                        // The server rejects a client that says false, with `unsupported_client`.
-                        supportsProtobuf = true,
-                        supportsCompression = true,
-                        clientVersion = clientVersion,
-                    ),
-                )
-                val caps =
-                    withTimeoutOrNull(HANDSHAKE_TIMEOUT) { pending.await() }
-                        ?: throw IllegalStateException("Handshake timed out after $HANDSHAKE_TIMEOUT")
-
-                // Only narrows: a server that cannot inflate must not be sent gzip. Widening is
-                // pointless because the 100-byte threshold already suppresses useless compression.
-                if (!caps.supportsCompression) {
-                    Logger.w(TAG, "Server reports no compression support — sending uncompressed")
-                    codec = MessageCodec(compressionEnabled = false)
-                }
 
                 val token = sessionToken
                 if (token != null) {
@@ -267,25 +238,17 @@ class ListenTogetherClient(
                     send(MessageTypes.RECONNECT, ReconnectPayload(sessionToken = token))
                 }
 
-                // A completed handshake is what "connected" means, so the budget refills here and
-                // not merely when the socket opens — a server that accepts TCP but never answers
-                // must not buy itself unlimited retries.
+                // An open socket is what "connected" means here; there is no handshake.
                 reconnectDelay = INITIAL_RECONNECT_DELAY
                 reconnectAttempts = 0
-                _events.emit(
-                    ListenTogetherEvent.Connected(
-                        serverVersion = caps.serverVersion,
-                        compressionEnabled = caps.supportsCompression,
-                        resumed = token != null,
-                    ),
-                )
+                _events.emit(ListenTogetherEvent.Connected(serverVersion = "", resumed = token != null))
+                _events.emit(ListenTogetherEvent.ClockReady)
 
                 val pinger = launch { pingLoop() }
                 reader.join()
                 pinger.cancel()
             }
         } finally {
-            handshake = null
             session = null
             // NonCancellable because this runs on the disconnect() path too, where the job has
             // already been cancelled — and close() is itself a suspend call, so without this it
@@ -296,19 +259,15 @@ class ListenTogetherClient(
 
     private suspend fun readFrames(live: DefaultClientWebSocketSession) {
         for (frame in live.incoming) {
-            // Metrolist's server writes BinaryMessage exclusively; anything else is not ours.
-            if (frame !is Frame.Binary) continue
-            // Not `getOrElse { continue }`: Kotlin still forbids break/continue inside a lambda,
-            // even an inlined one, so the failure has to be unwrapped before the loop can skip.
-            val bytes = frame.readBytes()
-            val decoded = runCatching { codec.decode(bytes) }.getOrNull()
+            // Limusic's server writes text frames only.
+            if (frame !is Frame.Text) continue
+            val text = frame.readText()
+            val decoded = codec.decode(text)
             if (decoded == null) {
-                Logger.w(TAG, "Undecodable frame dropped (${bytes.size} bytes)")
+                Logger.w(TAG, "Undecodable frame dropped (${text.length} chars)")
                 continue
             }
-            val (type, payloadBytes) = decoded
-            val payload = codec.decodePayload(type, payloadBytes)
-            handleMessage(type, payload)
+            handleMessage(decoded.first, decoded.second)
         }
         Logger.i(TAG, "Read loop ended; socket closed")
     }
@@ -318,32 +277,8 @@ class ListenTogetherClient(
         payload: Any?,
     ) {
         when (type) {
-            MessageTypes.SERVER_CAPABILITIES -> {
-                val caps = payload as? ServerCapabilities
-                if (caps == null) {
-                    Logger.w(TAG, "Malformed server_capabilities")
-                    return
-                }
-                Logger.i(TAG, "Handshake complete — server version ${caps.serverVersion}")
-                handshake?.complete(caps)
-                // Internal to the handshake; the layer above has no use for it.
-                return
-            }
-
-            MessageTypes.PONG -> {
-                val pong = payload as? PongPayload ?: return
-                val firstSample =
-                    serverClock.recordPong(
-                        clientTime = pong.clientTime,
-                        serverReceiveTime = pong.serverReceiveTime,
-                        serverSendTime = pong.serverSendTime,
-                    )
-                if (firstSample) {
-                    Logger.i(TAG, "Server clock calibrated")
-                    _events.emit(ListenTogetherEvent.ClockReady)
-                }
-                return
-            }
+            // A keepalive answer and nothing else.
+            MessageTypes.PONG -> return
 
             // The token is what makes a drop survivable, so it is captured in passing rather than
             // asked of the layer above — which may not have been listening yet.
@@ -359,6 +294,8 @@ class ListenTogetherClient(
                     Logger.e(TAG, "Server rejected this client (${error.code}) — not retrying")
                     fatal = true
                 }
+                // A token the server no longer knows cannot resume anything.
+                if (error?.code == "session_expired") sessionToken = null
             }
 
             // A room we can no longer return to: the token is spent either way.
@@ -367,27 +304,9 @@ class ListenTogetherClient(
         _events.emit(ListenTogetherEvent.Message(type, payload))
     }
 
-    /**
-     * Feeds [ServerClock] and doubles as a liveness signal.
-     *
-     * The first few pings are close together because the clock is weighted, not averaged: one
-     * sample sets the offset and each later one moves it by at most a quarter, so a room joined
-     * during the first seconds would otherwise seek against a barely-calibrated clock. After that
-     * the interval opens up — the server's read deadline is 60s and any message refreshes it, so
-     * [PING_INTERVAL] is also what keeps an idle room's socket alive.
-     */
+    /** Keeps the socket alive: the server drops a connection that says nothing for 90s. */
     private suspend fun pingLoop() {
-        var sent = 0
-        while (true) {
-            val ok =
-                send(
-                    MessageTypes.PING,
-                    PingPayload(clientTime = elapsedRealtime(), sequence = ++pingSequence),
-                )
-            if (!ok) return
-            sent++
-            delay(if (sent < CALIBRATION_PINGS) CALIBRATION_PING_INTERVAL else PING_INTERVAL)
-        }
+        while (send(MessageTypes.PING)) delay(PING_INTERVAL)
     }
 
     private suspend fun scheduleReconnect() {
@@ -421,22 +340,14 @@ class ListenTogetherClient(
     }
 
     companion object {
-        /**
-         * The one public server, run by "Nyx" and already shared by several Metrolist forks.
-         * Rooms are only shared by clients pointed at the SAME server, so this default is what
-         * makes SimpMusic interoperable out of the box.
-         */
-        const val DEFAULT_SERVER_URL = "wss://metroserverx.meowery.eu/ws"
+        /** Limusic desktop's default server, so Android and desktop land in the same rooms. */
+        const val DEFAULT_SERVER_URL = "wss://fedora-1.tail9c4985.ts.net/ws"
 
         /** Anchors the default monotonic source; see [elapsedRealtime]. */
         private val PROCESS_START = TimeSource.Monotonic.markNow()
 
-        private val HANDSHAKE_TIMEOUT = 10.seconds
-
-        /** metroserver `client.go`: the read deadline is 60s and any inbound message refreshes it. */
-        private val PING_INTERVAL = 15.seconds
-        private val CALIBRATION_PING_INTERVAL = 1.seconds
-        private const val CALIBRATION_PINGS = 3
+        /** Desktop pings every 25s; the server's idle limit is 90s. */
+        private val PING_INTERVAL = 25.seconds
 
         private val INITIAL_RECONNECT_DELAY: Duration = 1.seconds
         private val MAX_RECONNECT_DELAY: Duration = 60.seconds
@@ -447,16 +358,11 @@ class ListenTogetherClient(
          * a little over half a minute of genuinely bad network before giving up rather than
          * retrying into a flat battery.
          *
-         * Counted attempts, not elapsed time: the budget refills only on a COMPLETED handshake, so
-         * a server that accepts the socket and then goes quiet still exhausts it.
+         * Counted attempts, not elapsed time: the budget refills when a socket opens.
          */
         private const val MAX_RECONNECT_ATTEMPTS = 5
 
-        /**
-         * Errors where reconnecting repeats the same rejection. Everything else the server sends —
-         * `rate_limited`, `invalid_payload`, `unknown_message_type` — is about one message, not the
-         * connection, and must NOT stop retrying.
-         */
-        private val NON_RECOVERABLE_ERROR_CODES = setOf("unsupported_client")
+        /** Errors where reconnecting repeats the same rejection. */
+        private val NON_RECOVERABLE_ERROR_CODES = setOf("server_full")
     }
 }

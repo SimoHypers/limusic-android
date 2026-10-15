@@ -696,8 +696,6 @@
     <string name="lt_join_requests">Preguntar para unirse</string>
     <string name="lt_just_asked">ya has preguntado para unirte</string>
     <string name="lt_leave_room">Dejar habitación</string>
-    <string name="lt_credit_protocol">Protocolo de escuchar juntos por Metrolist</string>
-    <string name="lt_credit_compatible">Las salas son compatibles con clientes de Metrolist</string>
     <string name="lt_server">Servidor</string>
     <string name="lt_custom_server">Servidor personalizado</string>
     <string name="lt_save_server">Guardar servidor</string>
