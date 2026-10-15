@@ -163,7 +163,6 @@
     <string name="send_back_listening_data_to_google">Gửi dữ liệu nghe nhạc về Google</string>
     <string name="your_youtube_playlists">Danh sách phát YouTube của bạn</string>
     <string name="no_YouTube_playlists">Không có danh sách phát YouTube nào</string>
-    <string name="save_to_local_playlist">Lưu vào danh sách phát nội bộ</string>
     <string name="added_local_playlist">Đã thêm danh sách phát nội bộ</string>
     <string name="sync">Đồng bộ đến YouTube Music</string>
     <string name="synced">Đã đồng bộ với YouTube Music</string>
@@ -171,7 +170,6 @@
     <string name="radio">Đài phát</string>
     <string name="auto_created_by_youtube_music">Tự động tạo bởi YouTube Music</string>
     <string name="start_radio">Bắt đầu đài phát</string>
-    <string name="saved_to_local_playlist">Đã lưu vào danh sách phát nội bộ</string>
     <string name="sync_playlist_warning">Limusic sẽ tự động tạo một danh sách phát trên YouTube Music. Bạn có chắc chắn?</string>
     <string name="syncing">Đang đồng bộ</string>
     <string name="unsync_playlist_warning">"Huỷ đồng bộ danh sách phát này? Điều này sẽ không xoá danh sách phát này trên YouTube Music"</string>

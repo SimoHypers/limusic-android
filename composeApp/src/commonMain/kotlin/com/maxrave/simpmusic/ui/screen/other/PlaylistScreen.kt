@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,8 +64,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -82,7 +78,6 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toBitmap
 import com.kyant.backdrop.highlight.Highlight
 import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.extension.barBlurStyle
@@ -127,7 +122,6 @@ import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListState
@@ -275,6 +269,8 @@ fun PlaylistScreen(
     var playlistBottomSheetShow by remember {
         mutableStateOf(false)
     }
+    // Set by the menu's Save to playlist once every page is in; non-null shows the picker.
+    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
 
     val onPlaylistItemClick: (videoId: String) -> Unit = { videoId ->
         viewModel.onUIEvent(
@@ -1297,28 +1293,37 @@ fun PlaylistScreen(
                     )
                 }
                 if (playlistBottomSheetShow) {
-                    Logger.w("PlaylistScreen", "PlaylistBottomSheet")
-                    val addToQueue = {
-                        viewModel.getFullTracks { track ->
-                            sharedViewModel.addListToQueue(
-                                track.toCollection(arrayListOf()),
-                            )
-                        }
-                    }
                     PlaylistBottomSheet(
                         onDismiss = { playlistBottomSheetShow = false },
-                        playlistId = data.id,
                         playlistName = data.title,
-                        isYourYouTubePlaylist = isYourYouTubePlaylist && !data.isRadio,
-                        onSaveToLocal = {
-                            viewModel.getFullTracks { track ->
-                                viewModel.saveToLocal(track)
-                            }
+                        shareLink = "https://music.youtube.com/playlist?list=${data.id.removePrefix("VL")}",
+                        onPlayNext = { viewModel.getFullTracks { sharedViewModel.playListNext(it) } },
+                        onAddToQueue = {
+                            viewModel.getFullTracks { sharedViewModel.addListToQueue(ArrayList(it)) }
                         },
-                        onEditTitle = { newTitle ->
-                            viewModel.updatePlaylistTitle(newTitle, data.id)
+                        onStartRadio = if (data.isRadio) null else ({ viewModel.onUIEvent(PlaylistUIEvent.StartRadio) }),
+                        onSaveToPlaylist = { viewModel.getFullTracks { saveTracks = it } },
+                        onEditTitle =
+                            if (isYourYouTubePlaylist && !data.isRadio) {
+                                { newTitle -> viewModel.updatePlaylistTitle(newTitle, data.id) }
+                            } else {
+                                null
+                            },
+                    )
+                }
+                saveTracks?.let { toSave ->
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = youTubePlaylists,
+                        onDismiss = { saveTracks = null },
+                        onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
+                        onYTPlaylistClick = { playlist ->
+                            selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
                         },
-                        onAddToQueue = if (data.isRadio) null else addToQueue,
                     )
                 }
                 AnimatedVisibility(

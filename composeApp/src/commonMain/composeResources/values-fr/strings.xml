@@ -165,7 +165,6 @@
     <string name="send_back_listening_data_to_google">Renvoyer les données d'écoute à Google</string>
     <string name="your_youtube_playlists">Vos Playlists YouTube</string>
     <string name="no_YouTube_playlists">Aucune playlist YouTube</string>
-    <string name="save_to_local_playlist">Enregistrer dans une playlist locale</string>
     <string name="added_local_playlist">Ajout d'une playlist locale</string>
     <string name="sync">Synchroniser avec YouTube Music</string>
     <string name="synced">Synchronisé avec YouTube Music</string>
@@ -173,7 +172,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Vidéo générée automatiquement par YouTube Music</string>
     <string name="start_radio">Lancer la radio</string>
-    <string name="saved_to_local_playlist">Ajouté à la playlist locale</string>
     <string name="sync_playlist_warning">Limusic va créer automatiquement une playlist YouTube Music. Êtes-vous sûr ?</string>
     <string name="syncing">Synchronisation</string>
     <string name="unsync_playlist_warning">"Désynchroniser cette playlist ? Cette playlist ne sera pas supprimée de YouTube Music."</string>

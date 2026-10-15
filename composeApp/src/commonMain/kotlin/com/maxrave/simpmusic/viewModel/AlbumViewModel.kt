@@ -27,12 +27,15 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist_is_empty
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.radio_not_available
 
 class AlbumViewModel(
     private val songRepository: SongRepository,
@@ -56,6 +59,7 @@ class AlbumViewModel(
                             _uiState.update {
                                 it.copy(
                                     browseId = browseId,
+                                    audioPlaylistId = data.audioPlaylistId,
                                     title = data.title,
                                     thumbnail = data.thumbnails?.lastOrNull()?.url,
                                     artist =
@@ -243,6 +247,18 @@ class AlbumViewModel(
         loadMediaItem(shuffleList[randomIndex], Config.ALBUM_CLICK, randomIndex)
     }
 
+    fun startRadio() {
+        val id = uiState.value.audioPlaylistId
+        if (id.isEmpty()) {
+            makeToast(getString(Res.string.radio_not_available))
+            return
+        }
+        playFromEndpoint(
+            YouTubeWatchEndpoint(playlistId = "RDAMPL$id"),
+            "\"${uiState.value.title}\" ${getString(Res.string.radio)}",
+        )
+    }
+
     fun downloadFullAlbum() {
         viewModelScope.launch {
             // Insert all song to database
@@ -281,6 +297,8 @@ class AlbumViewModel(
 
 data class AlbumUIState(
     val browseId: String = "",
+    /** The album's `OLAK5uy_…` playlist: its radio and its share link key off this, not [browseId]. */
+    val audioPlaylistId: String = "",
     val title: String = "",
     val thumbnail: String? = null,
     val colors: List<Color> = listOf(Color.Black, Color.Black),

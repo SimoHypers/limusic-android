@@ -158,7 +158,6 @@
     <string name="send_back_listening_data_to_google">將收聽資料傳回Google</string>
     <string name="your_youtube_playlists">您的YouTube播放清單</string>
     <string name="no_YouTube_playlists">目前沒有任何YouTube播放清單</string>
-    <string name="save_to_local_playlist">儲存到裝置播放清單</string>
     <string name="added_local_playlist">新增到裝置播放清單</string>
     <string name="sync">同步到YouTube Music</string>
     <string name="synced">已同步到YouTube Music</string>
@@ -166,7 +165,6 @@
     <string name="radio">電台</string>
     <string name="auto_created_by_youtube_music">由YouTube Music自動建立</string>
     <string name="start_radio">收聽電台</string>
-    <string name="saved_to_local_playlist">已儲存到裝置播放清單</string>
     <string name="sync_playlist_warning">Limusic將自動建立YouTube音樂播放清單。 你確定嗎？</string>
     <string name="syncing">正在同步</string>
     <string name="unsync_playlist_warning">"取消同步此播放清單？ 該播放清單不會從YouTube Music中刪除 "</string>

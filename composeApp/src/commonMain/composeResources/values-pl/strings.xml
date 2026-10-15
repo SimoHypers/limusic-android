@@ -146,7 +146,6 @@
     <string name="send_back_listening_data_to_google">Wyślij dane słuchania z powrotem do Google</string>
     <string name="your_youtube_playlists">Twoje playlisty YouTube</string>
     <string name="no_YouTube_playlists">Brak playlist YouTube</string>
-    <string name="save_to_local_playlist">Zapisz do lokalnej playlisty</string>
     <string name="added_local_playlist">Dodano lokalną playlistę</string>
     <string name="sync">Synchronizuj z YouTube Music</string>
     <string name="synced">Zsynchronizowano z YouTube Music</string>
@@ -154,7 +153,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Automatycznie utworzone przez muzykę YouTube</string>
     <string name="start_radio">Włącz radio</string>
-    <string name="saved_to_local_playlist">Zapisz do lokalnej playlisty</string>
     <string name="sync_playlist_warning">Limusic automatycznie utworzy listę odtwarzania muzyki YouTube. Jesteś pewny?</string>
     <string name="syncing">Synchronizuję</string>
     <string name="unsync_playlist_warning">"Odsynchronizować tą playlistę? Ta playlista nie zostanie usunięta z YouTube Music "</string>

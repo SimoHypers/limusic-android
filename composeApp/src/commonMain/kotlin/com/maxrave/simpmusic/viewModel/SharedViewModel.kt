@@ -95,6 +95,7 @@ import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
 import simpmusic.composeapp.generated.resources.login_success
+import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
@@ -1065,6 +1066,15 @@ class SharedViewModel(
 
     fun activityRecreateDone() {
         _recreateActivity.value = false
+    }
+
+    /** Each insert lands right after the playing track, so walking backwards keeps the list's order. */
+    // ponytail: one insert per track; a batch insert in the handler if a long playlist feels slow.
+    fun playListNext(listTrack: List<Track>) {
+        viewModelScope.launch {
+            listTrack.asReversed().forEach { mediaPlayerHandler.playNext(it) }
+            makeToast(getString(Res.string.play_next))
+        }
     }
 
     fun addListToQueue(listTrack: ArrayList<Track>) {

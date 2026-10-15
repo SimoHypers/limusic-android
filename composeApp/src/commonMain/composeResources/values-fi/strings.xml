@@ -140,7 +140,6 @@
     <string name="send_back_listening_data_to_google">Lähetä kuuntelutiedot Googlelle</string>
     <string name="your_youtube_playlists">YouTube-soittolistasi</string>
     <string name="no_YouTube_playlists">Ei YouTube-soittolistoja</string>
-    <string name="save_to_local_playlist">Tallenna paikalliseen soittolistaan</string>
     <string name="added_local_playlist">Lisätty paikallinen soittolista</string>
     <string name="sync">Synkronoi YouTube Musiciin</string>
     <string name="synced">Synkronoitu YouTube Musicin kanssa</string>
@@ -148,7 +147,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">YouTube Musicin automaattisesti luoma</string>
     <string name="start_radio">Käynnistä radio</string>
-    <string name="saved_to_local_playlist">Tallennettu paikalliseen soittolistaan</string>
     <string name="sync_playlist_warning">Limusic luo YouTube Musiciin soittolistan automaattisesti. Haluatko jatkaa?</string>
     <string name="syncing">Synkronoidaan</string>
     <string name="unsync_playlist_warning">"Poistetaanko soittolistan synkronointi käytöstä? Tätä soittolistaa ei poisteta YouTube Musicista "</string>

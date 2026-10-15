@@ -158,7 +158,6 @@
     <string name="send_back_listening_data_to_google">Skicka lyssningsdata till Google</string>
     <string name="your_youtube_playlists">Dina YouTube-spellistor</string>
     <string name="no_YouTube_playlists">Inga YouTube-spellistor</string>
-    <string name="save_to_local_playlist">Spara i lokal spellista</string>
     <string name="added_local_playlist">Har lagts till som lokal spellista</string>
     <string name="sync">Synkronisera med YouTube Music</string>
     <string name="synced">Synkroniserad med YouTube Music</string>
@@ -166,7 +165,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Skapad automatiskt av YouTube Music</string>
     <string name="start_radio">Starta radio</string>
-    <string name="saved_to_local_playlist">Sparad i lokal spellista</string>
     <string name="sync_playlist_warning">Limusic skapar automatiskt en spellista i YouTube Music. Är du säker?</string>
     <string name="syncing">Synkroniserar</string>
     <string name="unsync_playlist_warning">"Ta bort synkroniseringen av den här spellistan? Spellistan tas inte bort från YouTube Music "</string>

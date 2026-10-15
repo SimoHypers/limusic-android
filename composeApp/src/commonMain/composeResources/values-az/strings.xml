@@ -140,7 +140,6 @@
     <string name="send_back_listening_data_to_google">Dinləmə məlumatlarını Google-a geri göndər</string>
     <string name="your_youtube_playlists">YouTube Pleylistləriniz</string>
     <string name="no_YouTube_playlists">YouTube Pleylistləri Yoxdur</string>
-    <string name="save_to_local_playlist">Yerli pleylistə köçür</string>
     <string name="added_local_playlist">Yerli Pleylist Əlavə Edildi</string>
     <string name="sync">YouTube Music-ə uzlaşdır</string>
     <string name="synced">YouTube Music ilə uzlaşdırılıb</string>
@@ -148,7 +147,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">YouTube Music-dən birbaşa yaradılıb</string>
     <string name="start_radio">Radionu başlat</string>
-    <string name="saved_to_local_playlist">Yerli pleylistə köçürüldü</string>
     <string name="sync_playlist_warning">Limusic birbaşa YouTube Musiqi Pleylistini yaradacaq. Əminsiniz?</string>
     <string name="syncing">Sinxronlaşdırılır</string>
     <string name="unsync_playlist_warning">"Bu pleylist sinxronizasiya edilsin? Bu pleylist YouTube Music-dən silinməyəcək "</string>

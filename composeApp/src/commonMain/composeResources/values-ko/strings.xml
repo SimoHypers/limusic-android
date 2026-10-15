@@ -147,7 +147,6 @@
     <string name="send_back_listening_data_to_google">Google로 재생 데이터 전송</string>
     <string name="your_youtube_playlists">내 YouTube 재생목록</string>
     <string name="no_YouTube_playlists">YouTube 재생목록 없음</string>
-    <string name="save_to_local_playlist">로컬 재생목록에 저장</string>
     <string name="added_local_playlist">로컬 재생목록에 추가 완료</string>
     <string name="sync">YouTube Music에 동기화</string>
     <string name="synced">YouTube Music에 동기화 완료</string>
@@ -155,7 +154,6 @@
     <string name="radio">라디오</string>
     <string name="auto_created_by_youtube_music">YouTube Music이 자동 생성함</string>
     <string name="start_radio">라디오 시작</string>
-    <string name="saved_to_local_playlist">로컬 재생목록에 저장 완료</string>
     <string name="sync_playlist_warning">Limusic이 YouTube Music 재생목록을 자동으로 생성합니다. 확실하십니까?</string>
     <string name="syncing">동기화 중</string>
     <string name="unsync_playlist_warning">"이 재생목록의 동기화를 해제합니까? YouTube Music에서 이 재생목록이 제거되지 않습니다 "</string>

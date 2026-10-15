@@ -151,7 +151,6 @@
     <string name="send_back_listening_data_to_google">गूगल को लिसनिंग डेटा वापस भेजें</string>
     <string name="your_youtube_playlists">आपकी यूट्यूब प्लेलिस्ट</string>
     <string name="no_YouTube_playlists">कोई यूट्यूब प्लेलिस्ट नहीं</string>
-    <string name="save_to_local_playlist">स्थानीय प्लेलिस्ट में सहेजें</string>
     <string name="added_local_playlist">स्थानीय प्लेलिस्ट में जोड़ा गया</string>
     <string name="sync">यूट्यूब म्यूजिक के साथ सिंक करें</string>
     <string name="synced">यूट्यूब म्यूजिक के साथ सिंक किया गया</string>
@@ -159,7 +158,6 @@
     <string name="radio">रेडियो</string>
     <string name="auto_created_by_youtube_music">यूट्यूब म्यूजिक द्वारा स्वचालित रूप से बनाया गया</string>
     <string name="start_radio">रेडियो शुरू करें</string>
-    <string name="saved_to_local_playlist">स्थानीय प्लेलिस्ट में सहेजा गया</string>
     <string name="sync_playlist_warning">सिम्पम्यूजिक स्वचालित रूप से एक यूट्यूब म्यूजिक प्लेलिस्ट बनाएगा। क्या आप सुनिश्चित हैं?</string>
     <string name="syncing">सिंक हो रहा है</string>
     <string name="unsync_playlist_warning">"इस प्लेलिस्ट को असिंक करें? यह प्लेलिस्ट यूट्यूब म्यूजिक से नहीं हटाई जाएगी"</string>

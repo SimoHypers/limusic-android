@@ -5,7 +5,12 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.utils.toSongEntity
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.collectResource
 import com.maxrave.domain.utils.toTrack
@@ -18,6 +23,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_playlist
+import simpmusic.composeapp.generated.resources.adding_to_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.downloading
@@ -39,6 +45,7 @@ class SongSelectionViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
+    private val playlistRepository: PlaylistRepository by inject()
 
     val listLocalPlaylist: StateFlow<List<LocalPlaylistEntity>> =
         localPlaylistRepository
@@ -116,26 +123,77 @@ class SongSelectionViewModel(
         playlistId: Long,
         videoIds: List<String>,
     ) {
+        viewModelScope.launch { addSongsToPlaylist(playlistId, songsOf(videoIds)) }
+    }
+
+    /** Save to playlist from a playlist or album menu: the tracks need not be in the database yet. */
+    fun addTracksToPlaylist(
+        playlistId: Long,
+        tracks: List<Track>,
+    ) {
+        viewModelScope.launch { addSongsToPlaylist(playlistId, tracks.map { it.toSongEntity() }) }
+    }
+
+    private suspend fun addSongsToPlaylist(
+        playlistId: Long,
+        songs: List<SongEntity>,
+    ) {
+        val playlist = localPlaylistRepository.getAllLocalPlaylists().firstOrNull()?.find { it.id == playlistId }
+        val already = playlist?.tracks.orEmpty()
+        val toAdd = songs.filterNot { already.contains(it.videoId) }
+        if (toAdd.isEmpty()) return
+        var added = 0
+        toAdd.forEach { song ->
+            localPlaylistRepository
+                .addTrackToLocalPlaylist(
+                    id = playlistId,
+                    song = song,
+                    successMessage = getString(Res.string.added_to_playlist),
+                    updatedYtMessage = getString(Res.string.added_to_playlist),
+                    errorMessage = getString(Res.string.error),
+                ).collectResource(
+                    onSuccess = { added++ },
+                    onError = { },
+                )
+        }
+        // One toast for the batch: 25 songs would otherwise stack 25 toasts.
+        makeToast(
+            if (added > 0) getString(Res.string.added_to_playlist) else getString(Res.string.error),
+        )
+    }
+
+    private val _youTubePlaylists = MutableStateFlow<List<PlaylistsResult>>(emptyList())
+
+    /** Your YouTube playlists for the Save to playlist sheet, fetched when it opens. */
+    val youTubePlaylists: StateFlow<List<PlaylistsResult>> = _youTubePlaylists
+
+    fun loadYouTubePlaylists() {
         viewModelScope.launch {
-            val playlist = localPlaylistRepository.getAllLocalPlaylists().firstOrNull()?.find { it.id == playlistId }
-            val already = playlist?.tracks.orEmpty()
-            val toAdd = songsOf(videoIds).filterNot { already.contains(it.videoId) }
-            if (toAdd.isEmpty()) return@launch
-            var added = 0
-            toAdd.forEach { song ->
-                localPlaylistRepository
-                    .addTrackToLocalPlaylist(
-                        id = playlistId,
-                        song = song,
-                        successMessage = getString(Res.string.added_to_playlist),
-                        updatedYtMessage = getString(Res.string.added_to_playlist),
-                        errorMessage = getString(Res.string.error),
-                    ).collectResource(
-                        onSuccess = { added++ },
-                        onError = { },
-                    )
+            playlistRepository.getLibraryPlaylist().collect { list ->
+                // Liked Music is filled by liking, not by adding.
+                _youTubePlaylists.value = list?.filter { it.browseId != "VLLM" }.orEmpty()
             }
-            // One toast for the batch: 25 songs would otherwise stack 25 toasts.
+        }
+    }
+
+    /**
+     * One request per song, in order, like Limusic desktop: YouTube refuses a song the playlist
+     * already holds, and a refusal only skips that song.
+     */
+    // ponytail: runs in this screen's scope, so leaving the page mid-save stops it; move it to an
+    // app-wide scope if long playlists get saved and left often.
+    fun addTracksToYouTubePlaylist(
+        browseId: String,
+        tracks: List<Track>,
+    ) {
+        viewModelScope.launch {
+            makeToast(getString(Res.string.adding_to_playlist))
+            var added = 0
+            tracks.forEach { track ->
+                localPlaylistRepository
+                    .addYouTubePlaylistItem(youtubePlaylistId = browseId, videoId = track.videoId)
+                    .collectResource(onSuccess = { added++ }, onError = { })
+            }
             makeToast(
                 if (added > 0) getString(Res.string.added_to_playlist) else getString(Res.string.error),
             )

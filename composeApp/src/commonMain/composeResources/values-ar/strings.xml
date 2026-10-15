@@ -143,7 +143,6 @@
     <string name="send_back_listening_data_to_google">إرسال بيانات الاستماع مرة أخرى إلى جوجل</string>
     <string name="your_youtube_playlists">قوائم تشغيل YouTube الخاصة بك</string>
     <string name="no_YouTube_playlists">لا توجد قوائم تشغيل YouTube</string>
-    <string name="save_to_local_playlist">حفظ إلى قوائم التشغيل المحلية</string>
     <string name="added_local_playlist">تم إضافة قائمة تشغيل محلية</string>
     <string name="sync">مزامنة مع YouTube Music</string>
     <string name="synced">تمت المزامنة مع YouTube Music</string>
@@ -151,7 +150,6 @@
     <string name="radio">الراديو</string>
     <string name="auto_created_by_youtube_music">تم إنشاؤها تلقائيًّا بواسطة YouTube Music</string>
     <string name="start_radio">تشغيل الراديو</string>
-    <string name="saved_to_local_playlist">حفظ إلى قوائم التشغيل المحلية</string>
     <string name="sync_playlist_warning">Limusic سينشئ قائمة تشغيل YouTube Music تلقائيًّا. هل أنت متأكد؟</string>
     <string name="syncing">المزامنة جارية</string>
     <string name="unsync_playlist_warning">"إلغاء مزامنة قائمة التشغيل هذه؟ لن تتم إزالة قائمة التشغيل هذه من YouTube Music "</string>

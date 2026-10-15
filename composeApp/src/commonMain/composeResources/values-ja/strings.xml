@@ -163,7 +163,6 @@
     <string name="send_back_listening_data_to_google">Google に視聴データを送る</string>
     <string name="your_youtube_playlists">あなたのYouTubeの再生リスト</string>
     <string name="no_YouTube_playlists">YouTubeの再生リストなし</string>
-    <string name="save_to_local_playlist">端末内の再生リストに保存</string>
     <string name="added_local_playlist">端末内の再生リストに追加しました</string>
     <string name="sync">YouTube ミュージックと同期</string>
     <string name="synced">YouTube ミュージックと同期済み</string>
@@ -171,7 +170,6 @@
     <string name="radio">ラジオ</string>
     <string name="auto_created_by_youtube_music">YouTube Music により自動作成</string>
     <string name="start_radio">ラジオを再生</string>
-    <string name="saved_to_local_playlist">端末内の再生リストに保存しました</string>
     <string name="sync_playlist_warning">Limusic は YouTube ミュージックの再生リストを自動で作成します。よろしいですか？</string>
     <string name="syncing">同期中</string>
     <string name="unsync_playlist_warning">"この再生リストの同期を解除しますか？この再生リストはYouTubeミュージックから削除されません "</string>

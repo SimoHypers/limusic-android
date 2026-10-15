@@ -130,7 +130,6 @@ import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
-import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
@@ -222,6 +221,7 @@ import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.downloading_audio
 import simpmusic.composeapp.generated.resources.downloading_video
 import simpmusic.composeapp.generated.resources.edit_thumbnail
+import simpmusic.composeapp.generated.resources.edit_playlist
 import simpmusic.composeapp.generated.resources.edit_title
 import simpmusic.composeapp.generated.resources.endless_queue
 import simpmusic.composeapp.generated.resources.error_occurred
@@ -255,8 +255,6 @@ import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.save
-import simpmusic.composeapp.generated.resources.save_to_local_playlist
-import simpmusic.composeapp.generated.resources.saved_to_local_playlist
 import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
@@ -269,6 +267,7 @@ import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
 import simpmusic.composeapp.generated.resources.sort_by
+import simpmusic.composeapp.generated.resources.save_to_playlist
 import simpmusic.composeapp.generated.resources.start_radio
 import simpmusic.composeapp.generated.resources.sync
 import simpmusic.composeapp.generated.resources.sync_first
@@ -2683,19 +2682,22 @@ fun ArtistModalBottomSheet(
 
 @Composable
 @ExperimentalMaterial3Api
+/**
+ * The ⋮ menu of a YouTube playlist or an album, in Limusic desktop's order. A null action hides
+ * its row: a radio has no radio of its own, and only your own playlists can be edited.
+ */
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
-    playlistId: String,
     playlistName: String,
-    isYourYouTubePlaylist: Boolean,
-    onEditTitle: (newTitle: String) -> Unit = {},
-    onSaveToLocal: () -> Unit,
-    onAddToQueue: (() -> Unit)? = null,
-    localPlaylistRepository: LocalPlaylistRepository = koinInject(),
+    shareLink: String,
+    onPlayNext: () -> Unit,
+    onAddToQueue: () -> Unit,
+    onStartRadio: (() -> Unit)?,
+    onSaveToPlaylist: () -> Unit,
+    onEditTitle: ((newTitle: String) -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
-        var isSavedToLocal by remember { mutableStateOf(false) }
         val modelBottomSheetState =
             rememberModalBottomSheetState(skipPartiallyExpanded = true)
         val hideModalBottomSheet: () -> Unit =
@@ -2752,7 +2754,7 @@ fun PlaylistBottomSheet(
                                 if (newTitle.isBlank()) {
                                     showToast(playlistNameError, ToastGravity.Bottom)
                                 } else {
-                                    onEditTitle(newTitle)
+                                    onEditTitle?.invoke(newTitle)
                                     hideEditTitleBottomSheet()
                                     hideModalBottomSheet()
                                 }
@@ -2764,12 +2766,6 @@ fun PlaylistBottomSheet(
                         EndOfModalBottomSheet()
                     }
                 }
-            }
-        }
-
-        LaunchedEffect(true) {
-            localPlaylistRepository.getAllLocalPlaylists().collect {
-                isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
             }
         }
 
@@ -2795,39 +2791,24 @@ fun PlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    if (onAddToQueue != null) {
-                        ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) {
-                            onAddToQueue()
-                            hideModalBottomSheet()
-                        }
+                    val run: (() -> Unit) -> Unit = { action ->
+                        action()
+                        hideModalBottomSheet()
                     }
-                    if (isYourYouTubePlaylist) {
-                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
-                            showEditTitle = true
-                        }
-                        ActionButton(
-                            icon =
-                                if (isSavedToLocal) {
-                                    SimpIcons.SyncDisabled
-                                } else {
-                                    SimpIcons.Sync
-                                },
-                            text =
-                                if (isSavedToLocal) {
-                                    Res.string.saved_to_local_playlist
-                                } else {
-                                    Res.string.save_to_local_playlist
-                                },
-                            enable = !isSavedToLocal,
-                        ) {
-                            onSaveToLocal.invoke()
-                            hideModalBottomSheet()
-                        }
+                    ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
+                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
+                    if (onStartRadio != null) {
+                        ActionButton(icon = SimpIcons.Sensors, text = Res.string.start_radio) { run(onStartRadio) }
                     }
+                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
                     val shareTitle = stringResource(Res.string.share)
                     ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
-                        val url = "https://music.youtube.com/playlist?list=${playlistId.replaceFirst("VL", "")}"
-                        shareUrl(shareTitle, url)
+                        shareUrl(shareTitle, shareLink)
+                    }
+                    if (onEditTitle != null) {
+                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) {
+                            showEditTitle = true
+                        }
                     }
                     EndOfModalBottomSheet()
                 }

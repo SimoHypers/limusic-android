@@ -146,7 +146,6 @@
     <string name="send_back_listening_data_to_google">Изпращане данни на историята на Google</string>
     <string name="your_youtube_playlists">Твоите YouTube плейлисти</string>
     <string name="no_YouTube_playlists">Без YouTube плейлисти</string>
-    <string name="save_to_local_playlist">Запази в локален плейлист</string>
     <string name="added_local_playlist">Добавено към локален плейлист</string>
     <string name="sync">Синхронизирай с YouTube Music</string>
     <string name="synced">Синхронизирано с YouTube Music</string>
@@ -154,7 +153,6 @@
     <string name="radio">Радио</string>
     <string name="auto_created_by_youtube_music">Автоматично създадено от YouTube Music</string>
     <string name="start_radio">Стартирай радио</string>
-    <string name="saved_to_local_playlist">Запазено в локален плейлист</string>
     <string name="sync_playlist_warning">Limusic ще създаде YouTube Music Playlist автоматично. Сигурни ли сте?</string>
     <string name="syncing">Синхронизиране</string>
     <string name="unsync_playlist_warning">"Разсинхронизиране на този плейлист? Този плейлист ще бъде премахнат от YouTube Music "</string>

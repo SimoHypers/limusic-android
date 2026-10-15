@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -163,6 +162,8 @@ fun AlbumScreen(
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
     var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
     var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    // Set by the menu's Save to playlist; non-null shows the picker.
+    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
 
 
     LaunchedEffect(browseId) {
@@ -1040,14 +1041,31 @@ fun AlbumScreen(
                 if (albumBottomSheetShow) {
                     PlaylistBottomSheet(
                         onDismiss = { albumBottomSheetShow = false },
-                        playlistId = browseId,
                         playlistName = uiState.title,
-                        isYourYouTubePlaylist = false,
-                        onSaveToLocal = {},
-                        onAddToQueue = {
-                            sharedViewModel.addListToQueue(
-                                uiState.listTrack.toCollection(arrayListOf()),
-                            )
+                        shareLink =
+                            if (uiState.audioPlaylistId.isNotEmpty()) {
+                                "https://music.youtube.com/playlist?list=${uiState.audioPlaylistId}"
+                            } else {
+                                "https://music.youtube.com/browse/$browseId"
+                            },
+                        onPlayNext = { sharedViewModel.playListNext(uiState.listTrack) },
+                        onAddToQueue = { sharedViewModel.addListToQueue(ArrayList(uiState.listTrack)) },
+                        onStartRadio = { viewModel.startRadio() },
+                        onSaveToPlaylist = { saveTracks = uiState.listTrack },
+                    )
+                }
+                saveTracks?.let { toSave ->
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = youTubePlaylists,
+                        onDismiss = { saveTracks = null },
+                        onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
+                        onYTPlaylistClick = { playlist ->
+                            selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
                         },
                     )
                 }

@@ -149,7 +149,6 @@
     <string name="send_back_listening_data_to_google">Dinleme verilerini Google'a geri gönder</string>
     <string name="your_youtube_playlists">YouTube Oynatma Listeleriniz</string>
     <string name="no_YouTube_playlists">YouTube Oynatma Listesi yok</string>
-    <string name="save_to_local_playlist">Yerel oynatma listesine kaydet</string>
     <string name="added_local_playlist">Yerel Oynatma Listesi Eklendi</string>
     <string name="sync">YouTube Music'e eşitleyin</string>
     <string name="synced">YouTube Müzik ile eşitlendi</string>
@@ -157,7 +156,6 @@
     <string name="radio">Radyo</string>
     <string name="auto_created_by_youtube_music">YouTube Music tarafından otomatik olarak oluşturuldu</string>
     <string name="start_radio">Radyoyu başlat</string>
-    <string name="saved_to_local_playlist">Yerel oynatma listesine kaydedildi</string>
     <string name="sync_playlist_warning">Limusic otomatik olarak bir YouTube Müzik Çalma Listesi oluşturacaktır. Emin misin?</string>
     <string name="syncing">Eşitleniyor</string>
     <string name="unsync_playlist_warning">"Bu oynatma listesinin senkronizasyonu kaldırılsın mı? Oynatma listesi YouTube Music'ten kaldırılmayacak "</string>

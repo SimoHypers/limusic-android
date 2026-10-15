@@ -9,6 +9,7 @@ import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.data.model.browse.playlist.Author
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
@@ -20,7 +21,6 @@ import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
-import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.domain.utils.toListVideoId
 import com.maxrave.domain.utils.toPlaylistEntity
@@ -52,11 +52,9 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
-import simpmusic.composeapp.generated.resources.radio_not_available
 import simpmusic.composeapp.generated.resources.shuffle
 import simpmusic.composeapp.generated.resources.shuffle_not_available
 import simpmusic.composeapp.generated.resources.synced
-import simpmusic.composeapp.generated.resources.syncing
 import simpmusic.composeapp.generated.resources.view_count
 
 class PlaylistViewModel(
@@ -533,13 +531,10 @@ class PlaylistViewModel(
             }
 
             PlaylistUIEvent.StartRadio -> {
-                val radioEndpoint = data.radioEndpoint
-                if (radioEndpoint == null) {
-                    makeToast(
-                        getString(Res.string.radio_not_available),
-                    )
-                    return
-                } else {
+                // Without one from the page, the same radio Limusic desktop starts for a playlist.
+                val radioEndpoint =
+                    data.radioEndpoint ?: YouTubeWatchEndpoint(playlistId = "RDAMPL${data.id.removePrefix("VL")}")
+                run {
                     viewModelScope.launch {
                         songRepository.getRadioFromEndpoint(radioEndpoint).collectLatest { res ->
                             val result = res.data
@@ -612,29 +607,6 @@ class PlaylistViewModel(
                     }
                 }
             }
-        }
-    }
-
-    fun saveToLocal(tracks: List<Track>) {
-        viewModelScope.launch {
-            val data = uiState.value.data ?: return@launch
-            localPlaylistRepository
-                .syncYouTubePlaylistToLocalPlaylist(
-                    data,
-                    tracks,
-                    getString(Res.string.synced),
-                    getString(Res.string.error),
-                ).collectLatestResource(
-                    onSuccess = {
-                        makeToast(it)
-                    },
-                    onLoading = {
-                        makeToast(getString(Res.string.syncing))
-                    },
-                    onError = {
-                        makeToast(it)
-                    },
-                )
         }
     }
 

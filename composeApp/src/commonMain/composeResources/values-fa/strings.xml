@@ -147,7 +147,6 @@
     <string name="send_back_listening_data_to_google">ارسال داده‌های شنیداری به گوگل</string>
     <string name="your_youtube_playlists">فهرست‌های پخش یوتیوب شما</string>
     <string name="no_YouTube_playlists">هیچ فهرست پخشی در یوتیوب وجود ندارد</string>
-    <string name="save_to_local_playlist">نگه‌داری به فهرست پخش محلی</string>
     <string name="added_local_playlist">به فهرست پخش محلی افزوده شد</string>
     <string name="sync">همگام‌سازی با یوتیوب موزیک</string>
     <string name="synced">با یوتیوب موزیک همگام‌سازی شد</string>
@@ -155,7 +154,6 @@
     <string name="radio">رادیو</string>
     <string name="auto_created_by_youtube_music">به‌طور خودکار توسط یوتیوب موزیک ایجاد شده</string>
     <string name="start_radio">رادیو را شروع کنید</string>
-    <string name="saved_to_local_playlist">به فهرست پخش محلی نگه‌داری شد</string>
     <string name="sync_playlist_warning">Limusic به‌طور خودکار یک فهرست پخش یوتیوب موزیک ایجاد خواهد
     کرد. آیا مطمئن هستید؟</string>
     <string name="syncing">در حال همگام‌سازی</string>

@@ -144,7 +144,6 @@
     <string name="send_back_listening_data_to_google">Kirim kembali data pendengaran ke Google</string>
     <string name="your_youtube_playlists">Daftar Playlist Anda</string>
     <string name="no_YouTube_playlists">Tidak ada Playlist YouTube</string>
-    <string name="save_to_local_playlist">Simpan ke lokal playlist</string>
     <string name="added_local_playlist">Tambahkan ke lokal playlist</string>
     <string name="sync">Menyinkronkan ke YouTube Music</string>
     <string name="synced">Disinkronisasi dengan YouTube Music</string>
@@ -152,7 +151,6 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Otomatis dibuat oleh YouTube Music</string>
     <string name="start_radio">Putar radio</string>
-    <string name="saved_to_local_playlist">Disimpan ke lokal playlist</string>
     <string name="sync_playlist_warning">Limusic akan membuat Playlist YouTube Musik secara otomatis. Apakah Anda yakin?</string>
     <string name="syncing">Sinkronisasi</string>
     <string name="unsync_playlist_warning">"Membatalkan sinkronisasi playlist ini? Playlist ini tidak akan dihapus dari YouTube Music "</string>

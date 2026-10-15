@@ -144,7 +144,6 @@
     <string name="send_back_listening_data_to_google">שלח נתוני האזנה חזרה לגוגל</string>
     <string name="your_youtube_playlists">רשימות השמעה שלך ביוטיוב</string>
     <string name="no_YouTube_playlists">אין רשימות השמעה של יוטיוב</string>
-    <string name="save_to_local_playlist">שמור ברשימת השמעה מקומית</string>
     <string name="added_local_playlist">נוסף רשימת השמעה מקומית</string>
     <string name="sync">סנכרן עם יוטיוב מיוזיק</string>
     <string name="synced">מסונכרן עם יוטיוב מיוזיק</string>
@@ -152,7 +151,6 @@
     <string name="radio">רדיו</string>
     <string name="auto_created_by_youtube_music">נוצר אוטומטית על ידי יוטיוב מיוזיק</string>
     <string name="start_radio">הפעל רדיו</string>
-    <string name="saved_to_local_playlist">נשמר ברשימת השמעה מקומית</string>
     <string name="sync_playlist_warning">Limusic תיצור רשימת השמעה של יוטיוב מיוזיק באופן אוטומטי. האם אתה בטוח?</string>
     <string name="syncing">מסנכרן</string>
     <string name="unsync_playlist_warning">"לבטל את הסנכרון של הפלייליסט הזה? הפלייליסט הזה לא יוסר מיוטיוב מיוזיק "</string>
