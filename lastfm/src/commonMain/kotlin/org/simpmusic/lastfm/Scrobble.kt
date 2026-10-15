@@ -252,3 +252,36 @@ fun scrobbleAt(
     val cap = if (cfg.minutes > 0) cfg.minutes * 60.0 else Double.POSITIVE_INFINITY
     return minOf(share, cap).takeIf { it.isFinite() }
 }
+
+/**
+ * Ready-made rules, offered under "Add rule": desktop's list, in Kotlin's regex syntax (the same as
+ * Rust's for these). They are ordinary rules once added, so the user can read and change them.
+ * [id] names the label (`lastfm_preset_<id>`).
+ */
+data class ScrobblePreset(
+    val id: String,
+    val rule: ScrobbleRule,
+)
+
+val SCROBBLE_PRESETS =
+    listOf(
+        ScrobblePreset(
+            "video_tags",
+            ScrobbleRule(field = "title", find = """\s*[(\[](?:official\s+)?(?:music\s+|lyrics?\s+)?(?:video|audio|lyrics?|visuali[sz]er|hd|hq|4k)[)\]]"""),
+        ),
+        // The next two are Pano Scrobbler's presets of the same name.
+        ScrobblePreset(
+            "remastered",
+            ScrobbleRule(field = "title", find = """^(.+) [(\[/-][^()\[\]]*?re-?mastere?d?[^)\[\]]*?(?:[)\]/-]|$)""", replace = "$1"),
+        ),
+        ScrobblePreset(
+            "explicit",
+            ScrobbleRule(field = "title", find = """^(.*) (?:- |\(|\[|/)(?:explicit|clean)(?: .*?version| edit(?:ed)?)?[)\]]?$""", replace = "$1"),
+        ),
+        ScrobblePreset("topic", ScrobbleRule(field = "artist", find = """\s+-\s+topic$""")),
+        ScrobblePreset("vevo", ScrobbleRule(field = "artist", find = "vevo$")),
+    )
+
+/** Whether [find] compiles, and if not, the first line of why. */
+fun patternError(find: String): String? =
+    if (find.isEmpty()) null else runCatching { Regex(find) }.exceptionOrNull()?.let { (it.message ?: "invalid pattern").lineSequence().first() }

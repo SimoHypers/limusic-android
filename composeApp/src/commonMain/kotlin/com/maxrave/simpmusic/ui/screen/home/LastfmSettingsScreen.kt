@@ -27,6 +27,42 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
+import com.maxrave.simpmusic.ui.component.SettingSheet
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.Edit
+import org.simpmusic.lastfm.SCROBBLE_PRESETS
+import org.simpmusic.lastfm.ScrobblePreset
+import org.simpmusic.lastfm.ScrobbleRule
+import org.simpmusic.lastfm.patternError
+import simpmusic.composeapp.generated.resources.lastfm_add_rule
+import simpmusic.composeapp.generated.resources.lastfm_add_rule_hint
+import simpmusic.composeapp.generated.resources.lastfm_blank_rule
+import simpmusic.composeapp.generated.resources.lastfm_edit_rule
+import simpmusic.composeapp.generated.resources.lastfm_field_album
+import simpmusic.composeapp.generated.resources.lastfm_field_artist
+import simpmusic.composeapp.generated.resources.lastfm_field_title
+import simpmusic.composeapp.generated.resources.lastfm_find
+import simpmusic.composeapp.generated.resources.lastfm_find_hint
+import simpmusic.composeapp.generated.resources.lastfm_preset_explicit
+import simpmusic.composeapp.generated.resources.lastfm_preset_remastered
+import simpmusic.composeapp.generated.resources.lastfm_preset_topic
+import simpmusic.composeapp.generated.resources.lastfm_preset_vevo
+import simpmusic.composeapp.generated.resources.lastfm_preset_video_tags
+import simpmusic.composeapp.generated.resources.lastfm_remove
+import simpmusic.composeapp.generated.resources.lastfm_replace
+import simpmusic.composeapp.generated.resources.lastfm_replace_nothing
+import simpmusic.composeapp.generated.resources.lastfm_rule_applied
+import simpmusic.composeapp.generated.resources.lastfm_rule_error
+import simpmusic.composeapp.generated.resources.lastfm_rule_no_change
+import simpmusic.composeapp.generated.resources.lastfm_rule_preview
+import simpmusic.composeapp.generated.resources.lastfm_rules
+import simpmusic.composeapp.generated.resources.lastfm_rules_hint
+import simpmusic.composeapp.generated.resources.save
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -148,6 +184,8 @@ fun LastfmSettingsScreen(
             ScrobbleTrack(it.videoId, it.title, it.artistName.orEmpty(), it.albumName, MusicVideoType.isVideoSong(it.videoType))
         } ?: SAMPLE
     val disconnectLabel = stringResource(Res.string.log_out_from_lastfm)
+    var presetSheet by remember { mutableStateOf(false) }
+    var ruleSheet by remember { mutableStateOf<Int?>(null) }
 
     Column(
         Modifier
@@ -247,10 +285,236 @@ fun LastfmSettingsScreen(
                     )
                 }
             }
+            Rules(cfg = cfg, track = track, onAdd = { presetSheet = true }, onEdit = { ruleSheet = it }, onChange = ::set)
             Spacer(Modifier.height(innerPadding.calculateBottomPadding() + 24.dp))
         }
     }
+    if (presetSheet) {
+        PresetSheet(
+            cfg = cfg,
+            onPick = { rule ->
+                presetSheet = false
+                set(cfg.copy(rules = cfg.rules + rule))
+            },
+            onBlank = {
+                presetSheet = false
+                ruleSheet = NEW_RULE
+            },
+            onDismiss = { presetSheet = false },
+        )
+    }
+    ruleSheet?.let { i ->
+        RuleSheet(
+            rule = cfg.rules.getOrNull(i) ?: ScrobbleRule(),
+            isNew = i == NEW_RULE,
+            track = track,
+            onSave = { rule ->
+                ruleSheet = null
+                set(cfg.copy(rules = if (i == NEW_RULE) cfg.rules + rule else cfg.rules.toMutableList().also { it[i] = rule }))
+            },
+            onRemove = {
+                ruleSheet = null
+                set(cfg.copy(rules = cfg.rules.toMutableList().also { it.removeAt(i) }))
+            },
+            onDismiss = { ruleSheet = null },
+        )
+    }
     SettingAlertDialog(viewModel)
+}
+
+private const val NEW_RULE = -1
+
+private val FIELDS =
+    mapOf(
+        "title" to Res.string.lastfm_field_title,
+        "artist" to Res.string.lastfm_field_artist,
+        "album" to Res.string.lastfm_field_album,
+    )
+
+private val PRESET_LABELS =
+    mapOf(
+        "video_tags" to Res.string.lastfm_preset_video_tags,
+        "remastered" to Res.string.lastfm_preset_remastered,
+        "explicit" to Res.string.lastfm_preset_explicit,
+        "topic" to Res.string.lastfm_preset_topic,
+        "vevo" to Res.string.lastfm_preset_vevo,
+    )
+
+/** The preset a rule still is, if it was added from one and left alone. */
+private fun presetOf(rule: ScrobbleRule): ScrobblePreset? = SCROBBLE_PRESETS.firstOrNull { it.rule.copy(enabled = rule.enabled) == rule }
+
+/**
+ * The rule list. Each row says what it does (a preset's name, or its pattern), whether it changed the
+ * track playing right now, and whether its pattern is broken; the switch turns it off without
+ * losing it.
+ */
+@Composable
+private fun Rules(
+    cfg: ScrobbleConfig,
+    track: ScrobbleTrack,
+    onAdd: () -> Unit,
+    onEdit: (Int) -> Unit,
+    onChange: (ScrobbleConfig) -> Unit,
+) {
+    val applied = remember(track, cfg) { resolve(track, cfg).rules }
+    SettingGroup(
+        title = stringResource(Res.string.lastfm_rules),
+        footer = { Text(stringResource(Res.string.lastfm_rules_hint), style = typo().bodySmall) },
+    ) {
+        cfg.rules.forEachIndexed { i, rule ->
+            val preset = presetOf(rule)
+            val error = patternError(rule.find)
+            SettingItem(
+                title = preset?.let { stringResource(PRESET_LABELS.getValue(it.id)) } ?: "${i + 1}. ${stringResource(FIELDS[rule.field] ?: Res.string.lastfm_field_title)}",
+                subtitle =
+                    if (preset != null) {
+                        stringResource(FIELDS[rule.field] ?: Res.string.lastfm_field_title)
+                    } else {
+                        "${rule.find.ifEmpty { "…" }}  →  ${rule.replace.ifEmpty { stringResource(Res.string.lastfm_replace_nothing) }}"
+                    },
+                smallSubtitle = true,
+                switch = rule.enabled to { on: Boolean -> onChange(cfg.copy(rules = cfg.rules.toMutableList().also { it[i] = rule.copy(enabled = on) })) },
+                otherView =
+                    when {
+                        error != null -> {
+                            { Text(stringResource(Res.string.lastfm_rule_error, error), style = typo().bodySmall, color = MaterialTheme.colorScheme.error) }
+                        }
+                        i in applied -> {
+                            { Pill(stringResource(Res.string.lastfm_rule_applied)) }
+                        }
+                        else -> null
+                    },
+                onClick = { onEdit(i) },
+            )
+        }
+        SettingItem(
+            title = stringResource(Res.string.lastfm_add_rule),
+            subtitle = stringResource(Res.string.lastfm_add_rule_hint),
+            smallSubtitle = true,
+            leading = { Icon(SimpIcons.Add, contentDescription = null) },
+            onClick = onAdd,
+        )
+    }
+}
+
+@Composable
+private fun Pill(text: String) {
+    Text(
+        text,
+        style = typo().labelSmall,
+        color = LastfmRed,
+        modifier = Modifier.clip(CircleShape).background(LastfmRed.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 2.dp),
+    )
+}
+
+/** "Add rule": desktop's presets, one tap each, or a blank rule to write. */
+@Composable
+private fun PresetSheet(
+    cfg: ScrobbleConfig,
+    onPick: (ScrobbleRule) -> Unit,
+    onBlank: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    SettingSheet(title = stringResource(Res.string.lastfm_add_rule), onDismiss = onDismiss) { colors ->
+        Column {
+            SCROBBLE_PRESETS.forEach { preset ->
+                val added = cfg.rules.any { presetOf(it)?.id == preset.id }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(enabled = !added) { onPick(preset.rule) }
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(PRESET_LABELS.getValue(preset.id)),
+                        style = typo().bodyMedium,
+                        color = if (added) colors.disabled else colors.content,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (added) Icon(SimpIcons.Check, contentDescription = null, tint = colors.disabled, modifier = Modifier.size(18.dp))
+                }
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onBlank)
+                    .padding(vertical = 12.dp, horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(SimpIcons.Edit, contentDescription = null, tint = colors.content, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(10.dp))
+                Text(stringResource(Res.string.lastfm_blank_rule), style = typo().bodyMedium, color = colors.content)
+            }
+        }
+    }
+}
+
+/**
+ * One rule, edited as a draft: nothing saves until Save, and the bottom of the sheet shows what this
+ * rule alone makes of the playing track, so a pattern can be tried before it goes live.
+ */
+@Composable
+private fun RuleSheet(
+    rule: ScrobbleRule,
+    isNew: Boolean,
+    track: ScrobbleTrack,
+    onSave: (ScrobbleRule) -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var field by remember { mutableStateOf(rule.field) }
+    var find by remember { mutableStateOf(rule.find) }
+    var replace by remember { mutableStateOf(rule.replace) }
+    val draft = rule.copy(field = field, find = find, replace = replace, enabled = true)
+    val error = patternError(find)
+    SettingSheet(title = stringResource(if (isNew) Res.string.lastfm_add_rule else Res.string.lastfm_edit_rule), onDismiss = onDismiss) { colors ->
+        Choices(selected = field, options = FIELDS.map { (id, res) -> id to stringResource(res) }) { field = it }
+        OutlinedTextField(
+            value = find,
+            onValueChange = { find = it },
+            label = { Text(stringResource(Res.string.lastfm_find)) },
+            textStyle = typo().bodyMedium.copy(fontFamily = FontFamily.Monospace, color = colors.content),
+            isError = error != null,
+            supportingText = { Text(error?.let { stringResource(Res.string.lastfm_rule_error, it) } ?: stringResource(Res.string.lastfm_find_hint)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = replace,
+            onValueChange = { replace = it },
+            label = { Text(stringResource(Res.string.lastfm_replace)) },
+            textStyle = typo().bodyMedium.copy(fontFamily = FontFamily.Monospace, color = colors.content),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (find.isNotEmpty() && error == null) {
+            val before = mapOf("title" to track.title, "artist" to track.byline, "album" to track.album.orEmpty())
+            val r = remember(draft, track) { resolve(track, ScrobbleConfig(rules = listOf(draft))) }
+            val after = mapOf("title" to r.title, "artist" to r.artist, "album" to r.album)
+            Column {
+                Text(stringResource(Res.string.lastfm_rule_preview).uppercase(), style = typo().labelSmall, color = colors.subtitle)
+                val changed = FIELDS.keys.filter { before[it] != after[it] }
+                if (changed.isEmpty()) {
+                    Text(stringResource(Res.string.lastfm_rule_no_change), style = typo().bodySmall, color = colors.subtitle)
+                }
+                changed.forEach { f ->
+                    Text(before.getValue(f), style = typo().bodySmall, color = colors.subtitle, textDecoration = TextDecoration.LineThrough)
+                    Text(after.getValue(f).ifEmpty { "…" }, style = typo().bodyMedium, color = LastfmRed)
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (!isNew) {
+                TextButton(onClick = onRemove) { Text(stringResource(Res.string.lastfm_remove), color = MaterialTheme.colorScheme.error) }
+            }
+            Spacer(Modifier.weight(1f))
+            Button(onClick = { onSave(draft.copy(enabled = rule.enabled || isNew)) }, enabled = find.isNotEmpty() && error == null) {
+                Text(stringResource(Res.string.save))
+            }
+        }
+    }
 }
 
 @Composable

@@ -15,28 +15,22 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,13 +66,11 @@ import com.maxrave.discord.button
 import com.maxrave.discord.line1Slot
 import com.maxrave.discord.link
 import com.maxrave.discord.text
-import com.maxrave.simpmusic.ui.component.EndOfModalBottomSheet
+import com.maxrave.simpmusic.ui.component.SettingSheet
 import com.maxrave.simpmusic.ui.component.SettingGroup
 import com.maxrave.simpmusic.ui.component.SettingItem
-import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Discord
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.theme.AppThemeContent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -732,121 +724,90 @@ private fun PartSheet(
     onChange: (DiscordConfig) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AppThemeContent {
-        val colors = rememberSurfaceDarkColors()
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        // The app name saves when the sheet closes, not per keystroke: each save re-pushes the card.
-        var appName by remember { mutableStateOf(cfg.appName) }
-        val close = {
-            if (part == CardPart.HEADER && appName.trim() != cfg.appName) onChange(cfg.copy(appName = appName.trim()))
-            onDismiss()
+    // The app name saves when the sheet closes, not per keystroke: each save re-pushes the card.
+    var appName by remember { mutableStateOf(cfg.appName) }
+    val close = {
+        if (part == CardPart.HEADER && appName.trim() != cfg.appName) onChange(cfg.copy(appName = appName.trim()))
+        onDismiss()
+    }
+    val title =
+        when (part) {
+            CardPart.HEADER -> Res.string.discord_app_name
+            CardPart.STATUS -> Res.string.discord_status_line
+            CardPart.LINE1 -> Res.string.discord_line1
+            CardPart.LINE2 -> Res.string.discord_line2
+            CardPart.LINE3 -> Res.string.discord_line3
+            CardPart.ARTWORK -> Res.string.discord_artwork
+            CardPart.BAR -> Res.string.discord_timeline
+            CardPart.BUTTONS -> Res.string.discord_buttons
         }
-        ModalBottomSheet(
-            onDismissRequest = close,
-            sheetState = sheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = colors.container),
-            ) {
-                Column(
-                    Modifier.fillMaxWidth().imePadding().padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Spacer(Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.align(Alignment.CenterHorizontally).width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    val title =
-                        when (part) {
-                            CardPart.HEADER -> Res.string.discord_app_name
-                            CardPart.STATUS -> Res.string.discord_status_line
-                            CardPart.LINE1 -> Res.string.discord_line1
-                            CardPart.LINE2 -> Res.string.discord_line2
-                            CardPart.LINE3 -> Res.string.discord_line3
-                            CardPart.ARTWORK -> Res.string.discord_artwork
-                            CardPart.BAR -> Res.string.discord_timeline
-                            CardPart.BUTTONS -> Res.string.discord_buttons
-                        }
-                    Text(stringResource(title), style = typo().titleMedium, color = colors.content)
-                    when (part) {
-                        CardPart.HEADER -> {
-                            Hint(stringResource(Res.string.discord_app_name_hint), colors.subtitle)
-                            OutlinedTextField(
-                                value = appName,
-                                onValueChange = { appName = it.take(64) },
-                                placeholder = { Text("Limusic") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            TextButton(onClick = close, modifier = Modifier.align(Alignment.End)) {
-                                Text(stringResource(Res.string.discord_done))
-                            }
-                        }
-                        CardPart.STATUS -> {
-                            Hint(stringResource(Res.string.discord_status_line_hint), colors.subtitle)
-                            Choices(
-                                selected = cfg.statusLine,
-                                options =
-                                    listOf(
-                                        "app" to stringResource(Res.string.discord_status_app),
-                                        "line1" to "${stringResource(Res.string.discord_line1)} · ${stringResource(CONTENT.getValue(cfg.line1))}",
-                                        "line2" to
-                                            "${stringResource(Res.string.discord_line2)} · ${stringResource(CONTENT[cfg.line2] ?: Res.string.discord_content_off)}",
-                                    ),
-                            ) { onChange(cfg.copy(statusLine = it)) }
-                        }
-                        CardPart.LINE1 -> {
-                            Choices(cfg.line1, contentOptions("title", "artist", "album")) { onChange(cfg.copy(line1 = it)) }
-                            SwitchRow(stringResource(Res.string.discord_link), stringResource(Res.string.discord_link_hint), cfg.linkLine1, colors) {
-                                onChange(cfg.copy(linkLine1 = it))
-                            }
-                        }
-                        CardPart.LINE2 -> {
-                            Choices(cfg.line2, contentOptions("artist", "artist_album", "album", "title", "off")) { onChange(cfg.copy(line2 = it)) }
-                            if (cfg.line2 != "off") {
-                                SwitchRow(stringResource(Res.string.discord_link), stringResource(Res.string.discord_link_hint), cfg.linkLine2, colors) {
-                                    onChange(cfg.copy(linkLine2 = it))
-                                }
-                            }
-                        }
-                        CardPart.LINE3 -> {
-                            Hint(stringResource(Res.string.discord_line3_hint), colors.subtitle)
-                            Choices(cfg.line3, contentOptions("album", "artist", "title", "off")) { onChange(cfg.copy(line3 = it)) }
-                        }
-                        CardPart.ARTWORK -> {
-                            SwitchRow(stringResource(Res.string.discord_artwork), null, cfg.cover, colors) { onChange(cfg.copy(cover = it)) }
-                            if (cfg.cover) {
-                                SwitchRow(stringResource(Res.string.discord_badge), stringResource(Res.string.discord_badge_hint), cfg.badge, colors) {
-                                    onChange(cfg.copy(badge = it))
-                                }
-                                SwitchRow(stringResource(Res.string.discord_link_cover), null, cfg.linkCover, colors) {
-                                    onChange(cfg.copy(linkCover = it))
-                                }
-                            }
-                        }
-                        CardPart.BAR ->
-                            SwitchRow(stringResource(Res.string.discord_timeline), stringResource(Res.string.discord_timeline_hint), cfg.timestamps, colors) {
-                                onChange(cfg.copy(timestamps = it))
-                            }
-                        CardPart.BUTTONS -> {
-                            val options = listOf("listen", "album", "artist", "app", "off").map { it to stringResource(BUTTONS.getValue(it)) }
-                            Text(stringResource(Res.string.discord_button1), style = typo().labelMedium, color = colors.content)
-                            Choices(cfg.button1, options) { onChange(cfg.copy(button1 = it)) }
-                            Text(stringResource(Res.string.discord_button2), style = typo().labelMedium, color = colors.content)
-                            Choices(cfg.button2, options) { onChange(cfg.copy(button2 = it)) }
-                        }
-                    }
-                    EndOfModalBottomSheet()
+    SettingSheet(title = stringResource(title), onDismiss = close) { colors ->
+        when (part) {
+            CardPart.HEADER -> {
+                Hint(stringResource(Res.string.discord_app_name_hint), colors.subtitle)
+                OutlinedTextField(
+                    value = appName,
+                    onValueChange = { appName = it.take(64) },
+                    placeholder = { Text("Limusic") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                TextButton(onClick = close, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(Res.string.discord_done))
                 }
+            }
+            CardPart.STATUS -> {
+                Hint(stringResource(Res.string.discord_status_line_hint), colors.subtitle)
+                Choices(
+                    selected = cfg.statusLine,
+                    options =
+                        listOf(
+                            "app" to stringResource(Res.string.discord_status_app),
+                            "line1" to "${stringResource(Res.string.discord_line1)} · ${stringResource(CONTENT.getValue(cfg.line1))}",
+                            "line2" to
+                                "${stringResource(Res.string.discord_line2)} · ${stringResource(CONTENT[cfg.line2] ?: Res.string.discord_content_off)}",
+                        ),
+                ) { onChange(cfg.copy(statusLine = it)) }
+            }
+            CardPart.LINE1 -> {
+                Choices(cfg.line1, contentOptions("title", "artist", "album")) { onChange(cfg.copy(line1 = it)) }
+                SwitchRow(stringResource(Res.string.discord_link), stringResource(Res.string.discord_link_hint), cfg.linkLine1, colors) {
+                    onChange(cfg.copy(linkLine1 = it))
+                }
+            }
+            CardPart.LINE2 -> {
+                Choices(cfg.line2, contentOptions("artist", "artist_album", "album", "title", "off")) { onChange(cfg.copy(line2 = it)) }
+                if (cfg.line2 != "off") {
+                    SwitchRow(stringResource(Res.string.discord_link), stringResource(Res.string.discord_link_hint), cfg.linkLine2, colors) {
+                        onChange(cfg.copy(linkLine2 = it))
+                    }
+                }
+            }
+            CardPart.LINE3 -> {
+                Hint(stringResource(Res.string.discord_line3_hint), colors.subtitle)
+                Choices(cfg.line3, contentOptions("album", "artist", "title", "off")) { onChange(cfg.copy(line3 = it)) }
+            }
+            CardPart.ARTWORK -> {
+                SwitchRow(stringResource(Res.string.discord_artwork), null, cfg.cover, colors) { onChange(cfg.copy(cover = it)) }
+                if (cfg.cover) {
+                    SwitchRow(stringResource(Res.string.discord_badge), stringResource(Res.string.discord_badge_hint), cfg.badge, colors) {
+                        onChange(cfg.copy(badge = it))
+                    }
+                    SwitchRow(stringResource(Res.string.discord_link_cover), null, cfg.linkCover, colors) {
+                        onChange(cfg.copy(linkCover = it))
+                    }
+                }
+            }
+            CardPart.BAR ->
+                SwitchRow(stringResource(Res.string.discord_timeline), stringResource(Res.string.discord_timeline_hint), cfg.timestamps, colors) {
+                    onChange(cfg.copy(timestamps = it))
+                }
+            CardPart.BUTTONS -> {
+                val options = listOf("listen", "album", "artist", "app", "off").map { it to stringResource(BUTTONS.getValue(it)) }
+                Text(stringResource(Res.string.discord_button1), style = typo().labelMedium, color = colors.content)
+                Choices(cfg.button1, options) { onChange(cfg.copy(button1 = it)) }
+                Text(stringResource(Res.string.discord_button2), style = typo().labelMedium, color = colors.content)
+                Choices(cfg.button2, options) { onChange(cfg.copy(button2 = it)) }
             }
         }
     }
@@ -865,7 +826,7 @@ private fun Hint(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Choices(
+internal fun Choices(
     selected: String,
     options: List<Pair<String, String>>,
     onPick: (String) -> Unit,

@@ -151,4 +151,24 @@ class ScrobbleTest {
         assertTrue("\"from_artist\":\"x\"" in cfg.toJson())
         assertEquals(cfg, ScrobbleConfig.parse(cfg.toJson()))
     }
+
+    /** The owner's case: official music videos scrobbled with "(Official Music Video)" in the title. */
+    @Test
+    fun thePresetsCleanWhatYouTubeAdds() {
+        val cfg = ScrobbleConfig(rules = SCROBBLE_PRESETS.map { it.rule })
+        fun title(t: String) = resolve(track(t, listOf("A")), cfg).title
+        assertEquals("Blinding Lights", title("Blinding Lights (Official Music Video)"))
+        assertEquals("Blinding Lights", title("Blinding Lights [Official Video]"))
+        assertEquals("Blinding Lights", title("Blinding Lights (Lyrics)"))
+        assertEquals("Blinding Lights", title("Blinding Lights (Official Audio)"))
+        assertEquals("Blinding Lights", title("Blinding Lights (Official Visualizer)"))
+        assertEquals("Here Comes the Sun", title("Here Comes the Sun - Remastered 2009"))
+        assertEquals("HUMBLE.", title("HUMBLE. (Explicit)"))
+        assertEquals("Blinding Lights - Chromatics Remix", title("Blinding Lights - Chromatics Remix"), "a real dash stays")
+        assertEquals("The Weeknd", resolve(track("x", listOf("The Weeknd - Topic")), cfg).artist)
+        assertEquals("TheWeeknd", resolve(track("x", listOf("TheWeekndVEVO")), cfg).artist)
+        assertTrue(SCROBBLE_PRESETS.all { patternError(it.rule.find) == null })
+        assertEquals(null, patternError(""))
+        assertTrue(patternError("(unclosed") != null)
+    }
 }
