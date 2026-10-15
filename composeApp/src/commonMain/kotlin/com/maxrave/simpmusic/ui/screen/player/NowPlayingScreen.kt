@@ -796,6 +796,7 @@ fun NowPlayingScreenContent(
             },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
+            onShowInfo = { showInfoBottomSheet = true },
         )
     }
 

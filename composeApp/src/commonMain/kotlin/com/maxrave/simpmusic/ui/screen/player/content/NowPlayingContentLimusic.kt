@@ -1,7 +1,11 @@
 package com.maxrave.simpmusic.ui.screen.player.content
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,16 +25,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,31 +42,36 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.lengthLabel
+import com.maxrave.simpmusic.ui.component.LyricText
+import com.maxrave.simpmusic.ui.component.SleepTimerBottomSheet
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Fullscreen
-import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
-import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Repeat
 import com.maxrave.simpmusic.ui.icon.RepeatOne
@@ -73,20 +79,41 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.SkipPrevious
+import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.now_playing
+import simpmusic.composeapp.generated.resources.share
+import simpmusic.composeapp.generated.resources.sleep_timer_warning
+import simpmusic.composeapp.generated.resources.yes
 
-private val ArtworkShape = RoundedCornerShape(10.dp)
+private val ArtworkShape = RoundedCornerShape(16.dp)
+private val TonalShape = RoundedCornerShape(16.dp)
+private val SmallShape = RoundedCornerShape(12.dp)
 
 /**
- * The Limusic full player: the artwork large, then title and artist with the like button, the seek
- * bar and the shuffle / previous / play / next / repeat row. Lyrics, queue and the rest sit behind
- * buttons below rather than in place of the artwork. The ground is the artwork's own colour fading
- * into the app background, as on the desktop app.
+ * The Classic full player, the default: a large cover with the current lyric line under it, title
+ * and artist with share / like / more, the wavy seek bar, a row of rounded transport buttons, and
+ * Queue / sleep timer / Lyrics at the bottom. Colours come from the cover (the M3 Expressive
+ * style's artwork scheme) over the artwork-tinted ground.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingContentLimusic(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    NowPlayingExpressiveTheme(state = state) {
+        ClassicLayout(state, actions)
+    }
+}
+
+@Composable
+private fun ClassicLayout(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
@@ -110,7 +137,7 @@ fun NowPlayingContentLimusic(
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp),
         ) {
-            PlayerTopRow(state, actions)
+            TopRow(state, actions)
             Spacer(Modifier.weight(1f))
             HorizontalPager(
                 state = state.artworkPagerState,
@@ -129,21 +156,35 @@ fun NowPlayingContentLimusic(
                     ArtworkImage(url = url, modifier = Modifier.fillMaxSize())
                 }
             }
+            LyricLine(state)
             Spacer(Modifier.weight(1f))
             TitleRow(state, actions)
-            Spacer(Modifier.height(12.dp))
-            SeekBar(state, actions)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
+            WavySeekBar(
+                progressFraction = state.sliderValue / 100f,
+                isPlaying = state.controllerState.isPlaying,
+                activeColor = if (state.timelineState.isCrossfading) state.sliderTrackColor else MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.secondaryContainer,
+                thumbColor = MaterialTheme.colorScheme.primary,
+                onSliderChange = actions.onSliderChange,
+                onSliderChangeFinished = actions.onSliderChangeFinished,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                Text(state.timelineState.elapsedLabel(state.sliderValue / 100f), style = typo().bodySmall, modifier = Modifier.weight(1f))
+                Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
+            }
+            Spacer(Modifier.height(16.dp))
             TransportRow(state, actions)
             Spacer(Modifier.weight(0.6f))
-            SecondaryActions(actions)
+            BottomRow(state, actions)
             Spacer(Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-private fun PlayerTopRow(
+private fun TopRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
@@ -156,20 +197,18 @@ private fun PlayerTopRow(
         IconButton(onClick = actions.onDismiss) {
             Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
-        Text(
-            text = state.screenData.playlistName,
-            style = typo().bodyMedium,
-            maxLines = 1,
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp)
-                    .basicMarquee(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
-        IconButton(onClick = actions.onShowMoreSheet) {
-            Icon(SimpIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
+        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(Res.string.now_playing), style = typo().bodyMedium, color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                text = state.screenData.playlistName,
+                style = typo().bodyMedium,
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.basicMarquee(),
+            )
         }
+        // Balances the chevron so the title sits in the true centre.
+        Spacer(Modifier.width(48.dp))
     }
 }
 
@@ -258,16 +297,50 @@ private fun ArtworkImage(
     )
 }
 
+/** The synced line playing now, under the cover, as the M3 Expressive style shows it. */
+@Composable
+private fun LyricLine(state: NowPlayingContentState) {
+    val lyrics = state.screenData.lyricsData?.lyrics
+    val synced = lyrics != null && lyrics.syncType != null && lyrics.syncType != "UNSYNCED" && lyrics.lines != null
+    val line =
+        if (!synced || state.currentLyricLineIndex < 0) {
+            ""
+        } else {
+            lyrics
+                ?.lines
+                ?.getOrNull(state.currentLyricLineIndex)
+                ?.words
+                ?.stripRichSyncTimestamps()
+                .orEmpty()
+        }
+    Box(Modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.Center) {
+        Crossfade(targetState = line, animationSpec = tween(300), label = "classicLyricLine") { text ->
+            LyricText(
+                text = text,
+                style = typo().labelSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
+            )
+        }
+    }
+}
+
 @Composable
 private fun TitleRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val liked = state.controllerState.isLiked
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = state.screenData.nowPlayingTitle,
                 style = typo().titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 modifier = Modifier.basicMarquee(),
             )
@@ -282,149 +355,120 @@ private fun TitleRow(
                         .clickable(onClick = actions.onNavigateToArtist),
             )
         }
-        IconButton(onClick = { actions.onUIEvent(UIEvent.ToggleLike) }) {
-            Icon(
-                imageVector = if (state.controllerState.isLiked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
-                contentDescription = null,
-                tint = if (state.controllerState.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-            )
+        FilledButton(if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder, Modifier.size(52.dp), TonalShape) {
+            actions.onUIEvent(UIEvent.ToggleLike)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SeekBar(
-    state: NowPlayingContentState,
-    actions: NowPlayingContentActions,
-) {
-    val accent = MaterialTheme.colorScheme.primary
-    val colors =
-        SliderDefaults.colors(
-            thumbColor = accent,
-            activeTrackColor = accent,
-            inactiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.18f),
-        )
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-        Slider(
-            // A fraction, as the other styles do: sliderValue lives on a 0..100 scale.
-            value = state.sliderValue / 100f,
-            onValueChange = { actions.onSliderChange(it * 100f) },
-            onValueChangeFinished = actions.onSliderChangeFinished,
-            colors = colors,
-            track = { sliderState ->
-                SliderDefaults.Track(
-                    sliderState = sliderState,
-                    modifier = Modifier.height(4.dp),
-                    colors = colors,
-                    thumbTrackGapSize = 0.dp,
-                    drawStopIndicator = null,
-                    drawTick = { _, _ -> },
-                )
-            },
-            thumb = {
-                Box(
-                    Modifier
-                        .size(12.dp)
-                        .background(accent, CircleShape),
-                )
-            },
-            modifier = Modifier.fillMaxWidth().height(24.dp),
-        )
-    }
-    Row(Modifier.fillMaxWidth()) {
-        Text(state.timelineState.elapsedLabel(state.sliderValue / 100f), style = typo().bodySmall, modifier = Modifier.weight(1f))
-        Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
-    }
-}
-
+/** Previous, play / pause, next: three pills in the cover's colour, play the widest. */
 @Composable
 private fun TransportRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
     val control = state.controllerState
-    val onBackground = MaterialTheme.colorScheme.onBackground
-    val accent = MaterialTheme.colorScheme.primary
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TransportButton(SimpIcons.Shuffle, tint = if (control.isShuffle) accent else onBackground) {
-            actions.onUIEvent(UIEvent.Shuffle)
-        }
-        TransportButton(SimpIcons.SkipPrevious, size = 36.dp, enabled = control.isPreviousAvailable) {
+        FilledButton(SimpIcons.SkipPrevious, Modifier.width(76.dp).height(58.dp), CircleShape, iconSize = 30.dp, enabled = control.isPreviousAvailable) {
             actions.onUIEvent(UIEvent.Previous)
         }
-        Box(
-            Modifier
-                .size(68.dp)
-                .clip(CircleShape)
-                .background(accent)
-                .clickable { actions.onUIEvent(UIEvent.PlayPause) },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = if (control.isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(36.dp),
-            )
-        }
-        TransportButton(SimpIcons.SkipNext, size = 36.dp, enabled = control.isNextAvailable) {
+        FilledButton(
+            if (control.isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+            Modifier.width(116.dp).height(72.dp),
+            CircleShape,
+            iconSize = 38.dp,
+        ) { actions.onUIEvent(UIEvent.PlayPause) }
+        FilledButton(SimpIcons.SkipNext, Modifier.width(76.dp).height(58.dp), CircleShape, iconSize = 30.dp, enabled = control.isNextAvailable) {
             actions.onUIEvent(UIEvent.Next)
-        }
-        TransportButton(
-            if (control.repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
-            tint = if (control.repeatState is RepeatState.None) onBackground else accent,
-        ) {
-            actions.onUIEvent(UIEvent.Repeat)
         }
     }
 }
 
+/** Queue, sleep timer, Lyrics, shuffle, repeat as outlined squares; the song menu on the right. */
 @Composable
-private fun TransportButton(
+private fun BottomRow(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    val handler = koinInject<MediaPlayerHandler>()
+    val sleepTimer by handler.sleepTimerState.collectAsStateWithLifecycle()
+    val timerOn = sleepTimer.timeRemaining > 0 || sleepTimer.timeRemaining == -1
+    var picking by remember { mutableStateOf(false) }
+    var confirmingOff by remember { mutableStateOf(false) }
+    val control = state.controllerState
+
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedButton(SimpIcons.QueueMusic, onClick = actions.onShowQueue)
+        OutlinedButton(SimpIcons.AccessAlarm, active = timerOn) { if (timerOn) confirmingOff = true else picking = true }
+        OutlinedButton(SimpIcons.Lyrics, onClick = actions.onShowFullscreenLyrics)
+        OutlinedButton(SimpIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
+        OutlinedButton(
+            if (control.repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
+            active = control.repeatState !is RepeatState.None,
+        ) { actions.onUIEvent(UIEvent.Repeat) }
+        Spacer(Modifier.weight(1f))
+        FilledButton(SimpIcons.MoreVert, Modifier.size(46.dp), CircleShape, onClick = actions.onShowMoreSheet)
+    }
+
+    if (picking) {
+        SleepTimerBottomSheet(onDismiss = { picking = false }) { minutes -> handler.sleepStart(minutes) }
+    }
+    if (confirmingOff) {
+        AlertDialog(
+            onDismissRequest = { confirmingOff = false },
+            text = { Text(stringResource(Res.string.sleep_timer_warning)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    handler.sleepStop()
+                    confirmingOff = false
+                }) { Text(stringResource(Res.string.yes)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmingOff = false }) { Text(stringResource(Res.string.cancel)) } },
+        )
+    }
+}
+
+/** Filled with the cover's colour: like, the transport pills, the song menu. */
+@Composable
+private fun FilledButton(
     icon: ImageVector,
-    size: Dp = 26.dp,
-    tint: Color = MaterialTheme.colorScheme.onBackground,
+    modifier: Modifier,
+    shape: Shape,
+    iconSize: Dp = 24.dp,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(52.dp)) {
-        Icon(icon, contentDescription = null, tint = if (enabled) tint else tint.copy(alpha = 0.35f), modifier = Modifier.size(size))
-    }
-}
-
-/** What used to compete with the artwork for space: each opens its own sheet or page. */
-@Composable
-private fun SecondaryActions(actions: NowPlayingContentActions) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+    Box(
+        modifier
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.4f))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        SecondaryButton(SimpIcons.Lyrics, actions.onShowFullscreenLyrics)
-        SecondaryButton(SimpIcons.QueueMusic, actions.onShowQueue)
-        SecondaryButton(SimpIcons.PlaylistAdd, actions.onShowAddToPlaylist)
-        SecondaryButton(SimpIcons.Info, actions.onShowInfo)
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(iconSize))
     }
 }
 
+/** A small outlined square; [active] lights it in the cover's colour (shuffle on, a timer running). */
 @Composable
-private fun SecondaryButton(
+private fun OutlinedButton(
     icon: ImageVector,
+    active: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     Box(
         Modifier
-            .width(64.dp)
-            .height(40.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f))
+            .size(44.dp)
+            .clip(SmallShape)
+            .border(1.dp, color.copy(alpha = if (active) 0.9f else 0.3f), SmallShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
     }
 }

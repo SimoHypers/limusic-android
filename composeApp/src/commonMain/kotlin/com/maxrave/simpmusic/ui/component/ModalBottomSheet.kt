@@ -170,6 +170,7 @@ import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
@@ -197,6 +198,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.song_info
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.add_to_queue_disabled_endless
@@ -1311,12 +1313,14 @@ fun NowPlayingBottomSheet(
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
+    /** Set from the full player: adds a "Song info" row. */
+    onShowInfo: (() -> Unit)? = null,
 ) {
     // The menu follows the app theme even when opened from the player or an album page.
     AppThemeContent {
         NowPlayingBottomSheetContent(
             onDismiss, navController, song, viewModel, setSleepTimerEnable, onNavigateToOtherScreen,
-            onDelete, onLibraryDelete, queuePosition, dataStoreManager,
+            onDelete, onLibraryDelete, queuePosition, dataStoreManager, onShowInfo,
         )
     }
 }
@@ -1334,6 +1338,7 @@ private fun NowPlayingBottomSheetContent(
     onLibraryDelete: (() -> Unit)?,
     queuePosition: QueuePosition?,
     dataStoreManager: DataStoreManager,
+    onShowInfo: (() -> Unit)?,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
@@ -1737,6 +1742,12 @@ private fun NowPlayingBottomSheetContent(
                         text = Res.string.share,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
+                    }
+                    if (onShowInfo != null) {
+                        ActionButton(icon = SimpIcons.Info, text = Res.string.song_info) {
+                            hideModalBottomSheet()
+                            onShowInfo()
+                        }
                     }
                     EndOfModalBottomSheet()
                 }
