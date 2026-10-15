@@ -92,6 +92,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
@@ -2085,6 +2086,8 @@ fun PlaybackSpeedPitchBottomSheet(
 @Composable
 fun SleepTimerBottomSheet(
     onDismiss: () -> Unit,
+    /** Highlights and the Set button; the full player passes its cover colour. */
+    accent: Color = seed,
     onSetTimer: (minutes: Int) -> Unit,
 ) {
     AppThemeContent {
@@ -2158,7 +2161,7 @@ fun SleepTimerBottomSheet(
                         Image(
                             imageVector = SimpIcons.AccessAlarm,
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(seed),
+                            colorFilter = ColorFilter.tint(accent),
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -2190,19 +2193,19 @@ fun SleepTimerBottomSheet(
                                     shape = RoundedCornerShape(12.dp),
                                     colors =
                                         ButtonDefaults.outlinedButtonColors(
-                                            containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                            containerColor = if (isSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
                                         ),
                                     border =
                                         BorderStroke(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) seed else rememberSurfaceDarkColors().disabled,
+                                            color = if (isSelected) accent else rememberSurfaceDarkColors().disabled,
                                         ),
                                     contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                                 ) {
                                     Text(
                                         text = preset.label,
                                         style = typo().bodySmall,
-                                        color = if (isSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                        color = if (isSelected) accent else rememberSurfaceDarkColors().subtitle,
                                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                                     )
                                 }
@@ -2228,19 +2231,19 @@ fun SleepTimerBottomSheet(
                             shape = RoundedCornerShape(12.dp),
                             colors =
                                 ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                    containerColor = if (isEndSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
                                 ),
                             border =
                                 BorderStroke(
                                     width = if (isEndSelected) 1.5.dp else 1.dp,
-                                    color = if (isEndSelected) seed else rememberSurfaceDarkColors().disabled,
+                                    color = if (isEndSelected) accent else rememberSurfaceDarkColors().disabled,
                                 ),
                             contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                         ) {
                             Text(
                                 text = "End of song",
                                 style = typo().bodySmall,
-                                color = if (isEndSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                color = if (isEndSelected) accent else rememberSurfaceDarkColors().subtitle,
                                 fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
                             )
                         }
@@ -2256,19 +2259,19 @@ fun SleepTimerBottomSheet(
                             shape = RoundedCornerShape(12.dp),
                             colors =
                                 ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                    containerColor = if (isCustomSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
                                 ),
                             border =
                                 BorderStroke(
                                     width = if (isCustomSelected) 1.5.dp else 1.dp,
-                                    color = if (isCustomSelected) seed else rememberSurfaceDarkColors().disabled,
+                                    color = if (isCustomSelected) accent else rememberSurfaceDarkColors().disabled,
                                 ),
                             contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                         ) {
                             Text(
                                 text = "Custom",
                                 style = typo().bodySmall,
-                                color = if (isCustomSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                color = if (isCustomSelected) accent else rememberSurfaceDarkColors().subtitle,
                                 fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
                             )
                         }
@@ -2353,15 +2356,17 @@ fun SleepTimerBottomSheet(
                         shape = RoundedCornerShape(12.dp),
                         colors =
                             ButtonDefaults.buttonColors(
-                                containerColor = seed,
-                                disabledContainerColor = seed.copy(alpha = 0.3f),
+                                containerColor = accent,
+                                disabledContainerColor = accent.copy(alpha = 0.3f),
                             ),
                         enabled = isSetEnabled,
                     ) {
                         Text(
                             text = stringResource(Res.string.set),
                             style = typo().labelSmall,
-                            color = rememberSurfaceDarkColors().content,
+                            // Plain black or white, whichever reads on the accent: a pale cover colour
+                            // needs black, the app's red and darker covers need white.
+                            color = if (accent.luminance() > 0.4f) Color.Black else Color.White,
                             modifier = Modifier.padding(vertical = 4.dp),
                         )
                     }

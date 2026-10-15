@@ -415,7 +415,10 @@ private fun BottomRow(
     }
 
     if (picking) {
-        SleepTimerBottomSheet(onDismiss = { picking = false }) { minutes -> handler.sleepStart(minutes) }
+        SleepTimerBottomSheet(
+            onDismiss = { picking = false },
+            accent = MaterialTheme.colorScheme.primary,
+        ) { minutes -> handler.sleepStart(minutes) }
     }
     if (confirmingOff) {
         AlertDialog(
