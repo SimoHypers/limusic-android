@@ -73,6 +73,7 @@ import com.maxrave.discord.DiscordConfig
 import com.maxrave.discord.DiscordPresence
 import com.maxrave.discord.DiscordTrack
 import com.maxrave.discord.discordAccessToken
+import org.simpmusic.lastfm.ScrobbleTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -459,6 +460,15 @@ internal class MediaServiceHandlerImpl(
                         ?: mediaItem.metadata.artworkUri,
             ),
         )
+        val scrobbleTrack =
+            ScrobbleTrack(
+                videoId = videoId,
+                title = track?.title ?: mediaItem.metadata.title.orEmpty(),
+                artists = track?.artists?.map { it.name } ?: listOfNotNull(mediaItem.metadata.artist),
+                album = track?.album?.name ?: mediaItem.metadata.albumTitle,
+                isVideo = MusicVideoType.isVideoSong(track?.videoType),
+            )
+        coroutineScope.launch { lastfmScrobbler.onTrackStarted(scrobbleTrack) }
         _nowPlayingState.update {
             it.copy(
                 mediaItem = mediaItem,
@@ -508,10 +518,7 @@ internal class MediaServiceHandlerImpl(
                                     ),
                             )
                         }
-                        reportDiscordTrack(songEntity.copy(thumbnails = thumbUrl), restart = false)
-                        // Launched separately: "now playing" is a network round trip, and this job
-                        // still has the rest of the track state to publish.
-                        coroutineScope.launch { lastfmScrobbler.onTrackStarted(songEntity) }
+                        reportTrack(songEntity.copy(thumbnails = thumbUrl), restart = false)
                     } else {
                         _controlState.update { it.copy(isLiked = false) }
                         var thumbUrl =
@@ -535,10 +542,7 @@ internal class MediaServiceHandlerImpl(
                                 songEntity = songEntity,
                             )
                         }
-                        reportDiscordTrack(songEntity, restart = false)
-                        // Launched separately: "now playing" is a network round trip, and this job
-                        // still has the rest of the track state to publish.
-                        coroutineScope.launch { lastfmScrobbler.onTrackStarted(songEntity) }
+                        reportTrack(songEntity, restart = false)
                     }
                 }
                 songEntityJob?.cancel()
@@ -2532,7 +2536,11 @@ internal class MediaServiceHandlerImpl(
             PlayerConstants.STATE_READY -> {
                 Logger.d(TAG, "onPlaybackStateChanged: Ready")
                 _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
-                if (player.duration > 0) discord.setDuration(player.duration)
+                if (player.duration > 0) {
+                    discord.setDuration(player.duration)
+                    val ms = player.duration
+                    coroutineScope.launch { lastfmScrobbler.onDuration(ms) }
+                }
             }
 
             else -> {
@@ -2592,7 +2600,7 @@ internal class MediaServiceHandlerImpl(
         } else if (mediaItem != null) {
             // Repeat-one replays the same mediaId without reloading now-playing data: tell Discord the
             // track started over, or its bar keeps the previous play's timeline.
-            nowPlayingState.value.songEntity?.let { reportDiscordTrack(it, restart = true) }
+            nowPlayingState.value.songEntity?.let { reportTrack(it, restart = true) }
         }
         queueData.value.data.listTracks.let { list ->
             if ((list.size > 3 || runBlocking { dataStoreManager.endlessQueue.first() == TRUE }) &&
@@ -2613,10 +2621,23 @@ internal class MediaServiceHandlerImpl(
     }
 
     /** The database's view of the track: a restart (repeat-one) or fuller data for the one playing. */
-    private fun reportDiscordTrack(
+    private fun reportTrack(
         song: SongEntity,
         restart: Boolean,
     ) {
+        val scrobbleTrack =
+            ScrobbleTrack(
+                videoId = song.videoId,
+                title = song.title,
+                artists = song.artistName.orEmpty(),
+                album = song.albumName,
+                isVideo = MusicVideoType.isVideoSong(song.videoType),
+            )
+        // Launched: now-playing is a network round trip. Main is a single queue, so these keep their
+        // order with the start and the length reported around them.
+        coroutineScope.launch {
+            if (restart) lastfmScrobbler.onTrackStarted(scrobbleTrack, restart = true) else lastfmScrobbler.updateTrack(scrobbleTrack)
+        }
         val track =
             DiscordTrack(
                 videoId = song.videoId,

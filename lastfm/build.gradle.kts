@@ -12,6 +12,7 @@ kotlin {
         namespace = "org.simpmusic.lastfm"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     sourceSets {
@@ -27,6 +28,12 @@ kotlin {
                 // MD5 for api_sig. okio hashes on every target this module builds for,
                 // so no expect/actual is needed just to sign a request.
                 implementation(libs.okio)
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
             }
         }
     }

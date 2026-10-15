@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
-import com.maxrave.simpmusic.ui.screen.login.LastfmLoginScreen
 import com.maxrave.simpmusic.ui.screen.login.LoginScreen
 
 fun NavGraphBuilder.loginScreenGraph(
@@ -17,15 +15,6 @@ fun NavGraphBuilder.loginScreenGraph(
 ) {
     composable<LoginDestination> {
         LoginScreen(
-            innerPadding = innerPadding,
-            navController = navController,
-            hideBottomNavigation = hideBottomBar,
-            showBottomNavigation = showBottomBar,
-        )
-    }
-
-    composable<LastfmLoginDestination> {
-        LastfmLoginScreen(
             innerPadding = innerPadding,
             navController = navController,
             hideBottomNavigation = hideBottomBar,

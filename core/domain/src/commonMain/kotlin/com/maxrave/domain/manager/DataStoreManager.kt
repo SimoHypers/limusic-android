@@ -422,9 +422,6 @@ interface DataStoreManager {
         username: String,
     )
 
-    val lastfmScrobbleEnabled: Flow<String>
-
-    suspend fun setLastfmScrobbleEnabled(enabled: Boolean)
 
     // Auto Backup
     val autoBackupEnabled: Flow<String>

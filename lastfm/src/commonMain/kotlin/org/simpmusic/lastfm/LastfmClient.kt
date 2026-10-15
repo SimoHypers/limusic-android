@@ -113,24 +113,38 @@ internal object LastfmClient {
         return LastfmOutcome.Ignored(code, ignored.stringOrNull("#text").orEmpty())
     }
 
+    suspend fun getToken(
+        apiKey: String,
+        secret: String,
+    ): String? {
+        val response = call(mapOf("method" to "auth.getToken", "api_key" to apiKey), secret) ?: return null
+        response.asErrorOrNull()?.let {
+            Logger.e(TAG, "auth.getToken failed: ${it.code} ${it.message}")
+            return null
+        }
+        return response.stringOrNull("token")
+    }
+
     suspend fun getSession(
         apiKey: String,
         secret: String,
         token: String,
-    ): LastfmSession? {
+    ): LastfmAuth {
         val response =
             call(
                 mapOf("method" to "auth.getSession", "api_key" to apiKey, "token" to token),
                 secret,
-            ) ?: return null
+            ) ?: return LastfmAuth.Pending
         response.asErrorOrNull()?.let {
+            // 14: not approved yet. 11 and 16: Last.fm is briefly down. Both mean ask again.
+            if (it.code == 14 || it.retryable) return LastfmAuth.Pending
             Logger.e(TAG, "auth.getSession failed: ${it.code} ${it.message}")
-            return null
+            return LastfmAuth.Failed(it.message)
         }
-        val session = response["session"]?.jsonObject ?: return null
-        val name = session.stringOrNull("name") ?: return null
-        val key = session.stringOrNull("key") ?: return null
-        return LastfmSession(username = name, sessionKey = key)
+        val session = response["session"]?.jsonObject ?: return LastfmAuth.Failed("Last.fm sent a malformed session")
+        val name = session.stringOrNull("name") ?: return LastfmAuth.Failed("Last.fm sent a malformed session")
+        val key = session.stringOrNull("key") ?: return LastfmAuth.Failed("Last.fm sent a malformed session")
+        return LastfmAuth.Approved(LastfmSession(username = name, sessionKey = key))
     }
 
     suspend fun updateNowPlaying(

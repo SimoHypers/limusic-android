@@ -65,6 +65,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -89,13 +90,18 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
 import com.maxrave.discord.DiscordOAuth
-import org.simpmusic.lastfm.completeLogin
+import org.simpmusic.lastfm.LastfmAuth
+import org.simpmusic.lastfm.authorizeUrl
+import org.simpmusic.lastfm.checkApproval
+import org.simpmusic.lastfm.requestToken
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.discord_login_failed
+import simpmusic.composeapp.generated.resources.lastfm_connect_timeout
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
+import simpmusic.composeapp.generated.resources.lastfm_scrobbling_as
 import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
@@ -530,33 +536,56 @@ class SharedViewModel(
         _intent.value = intent
     }
 
+    private val _lastfmConnecting = MutableStateFlow(false)
+
+    /** A Last.fm sign-in is waiting for the user to approve it in the browser. */
+    val lastfmConnecting: StateFlow<Boolean> = _lastfmConnecting
+    private var lastfmAuthJob: Job? = null
+
     /**
-     * Finishes a Last.fm login from the `wordbyword://lastfm-auth` callback.
-     *
-     * It lands here, and not on the login screen, because the callback arrives at the app rather
-     * than at any one screen: the user left for their browser, and the screen they left from may
-     * not even exist any more if the process was killed. Routing the token onwards through
-     * navigation would push a second copy of the login screen on top of the one already open.
-     *
-     * The screen learns it succeeded by watching the stored session key, not by being told.
+     * Desktop's Last.fm sign-in: a request token, the approve page opened with it, then a check every
+     * 5s for 5 minutes. It lives here rather than on a screen because the user leaves for the browser
+     * and the screen they left from may be gone when they come back.
      */
-    fun completeLastfmLogin(token: String) {
-        if (token.isEmpty()) return
-        viewModelScope.launch {
-            val session = completeLogin(token)
-            if (session != null) {
-                dataStoreManager.setLastfmSession(
-                    sessionKey = session.sessionKey,
-                    username = session.username,
-                )
-                makeToast(getString(Res.string.login_success))
-            } else {
-                makeToast(getString(Res.string.lastfm_login_failed))
+    fun connectLastfm(openUrl: (String) -> Unit) {
+        lastfmAuthJob?.cancel()
+        lastfmAuthJob =
+            viewModelScope.launch {
+                _lastfmConnecting.value = true
+                try {
+                    val token = requestToken()
+                    if (token == null) {
+                        makeToast(getString(Res.string.lastfm_login_failed))
+                        return@launch
+                    }
+                    openUrl(authorizeUrl(token))
+                    repeat(60) {
+                        delay(5_000)
+                        when (val auth = checkApproval(token)) {
+                            is LastfmAuth.Approved -> {
+                                dataStoreManager.setLastfmSession(auth.session.sessionKey, auth.session.username)
+                                makeToast(getString(Res.string.lastfm_scrobbling_as, auth.session.username))
+                                return@launch
+                            }
+                            is LastfmAuth.Failed -> {
+                                makeToast("Last.fm: ${auth.message}")
+                                return@launch
+                            }
+                            LastfmAuth.Pending -> Unit
+                        }
+                    }
+                    makeToast(getString(Res.string.lastfm_connect_timeout))
+                } finally {
+                    _lastfmConnecting.value = false
+                }
             }
-        }
     }
 
-    /** Finishes a Discord sign-in from the `limusic://discord-auth` redirect, like the Last.fm callback above. */
+    fun cancelLastfmConnect() {
+        lastfmAuthJob?.cancel()
+    }
+
+    /** Finishes a Discord sign-in from the `limusic://discord-auth` redirect, the way the Last.fm callback used to. */
     fun completeDiscordLogin(
         code: String?,
         state: String?,

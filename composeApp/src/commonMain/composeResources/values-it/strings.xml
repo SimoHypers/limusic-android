@@ -366,8 +366,6 @@
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Nessun mix trovato</string>
     <string name="log_out_from_discord">Disconnetti da Discord</string>
-    <string name="lastfm_paste_callback_confirm">Continua con questo collegamento</string>
-    <string name="logged_in_as">Accesso effettuato come %1$s</string>
     <string name="youtube_liked_music">Musica apprezzata su YouTube</string>
     <string name="keep_your_youtube_playlist_offline">Mostra la tua playlist di YouTube quando offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Salva la tua playlist di YouTube in locale per mantenerla anche senza connessione</string>

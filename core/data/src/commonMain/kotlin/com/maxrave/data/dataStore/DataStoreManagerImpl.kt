@@ -1154,19 +1154,6 @@ internal class DataStoreManagerImpl(
         Logger.i("Auth", if (sessionKey.isEmpty()) "Last.fm: session cleared" else "Last.fm: session saved")
     }
 
-    override val lastfmScrobbleEnabled: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[LASTFM_SCROBBLE_ENABLED] ?: TRUE
-        }
-
-    override suspend fun setLastfmScrobbleEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[LASTFM_SCROBBLE_ENABLED] = if (enabled) TRUE else FALSE
-            }
-        }
-    }
-
     // Auto Backup
     override val autoBackupEnabled: Flow<String> =
         settingsDataStore.data.map { preferences ->
@@ -1305,7 +1292,6 @@ internal class DataStoreManagerImpl(
 
         val LASTFM_SESSION_KEY = stringPreferencesKey("lastfm_session_key")
         val LASTFM_USERNAME = stringPreferencesKey("lastfm_username")
-        val LASTFM_SCROBBLE_ENABLED = stringPreferencesKey("lastfm_scrobble_enabled")
 
 
 

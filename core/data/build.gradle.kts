@@ -3,13 +3,6 @@
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
-val isFullBuild: Boolean =
-    try {
-        extra["isFullBuild"] == "true"
-    } catch (e: Exception) {
-        false
-    }
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -53,12 +46,7 @@ kotlin {
                 implementation(projects.discord)
                 implementation(projects.listenTogether)
 
-                // Last.fm (gated: real scrobbler for full builds, no-op stub for FOSS builds)
-                if (isFullBuild) {
-                    implementation(projects.lastfm)
-                } else {
-                    implementation(projects.lastfmEmpty)
-                }
+                implementation(projects.lastfm)
 
                 implementation(libs.kotlin.stdlib)
                 // Add KMP dependencies here

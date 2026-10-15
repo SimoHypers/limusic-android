@@ -36,6 +36,8 @@ import com.maxrave.discord.DiscordOAuth
 import com.maxrave.discord.DiscordUser
 import com.maxrave.discord.discordAccessToken
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.simpmusic.lastfm.LASTFM_CONFIG_KEY
+import org.simpmusic.lastfm.ScrobbleConfig
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -172,8 +174,12 @@ class SettingsViewModel(
     private val _lastfmLoggedIn = MutableStateFlow(false)
     val lastfmLoggedIn: StateFlow<Boolean> = _lastfmLoggedIn
 
-    private val _lastfmScrobbleEnabled = MutableStateFlow(false)
-    val lastfmScrobbleEnabled: StateFlow<Boolean> = _lastfmScrobbleEnabled
+    /** The scrobbling settings, live from DataStore while a page shows them. */
+    val lastfmConfig: StateFlow<ScrobbleConfig> =
+        dataStoreManager
+            .getString(LASTFM_CONFIG_KEY)
+            .map { ScrobbleConfig.parse(it) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScrobbleConfig())
 
     private val _keepYouTubePlaylistOffline = MutableStateFlow<Boolean>(false)
     val keepYouTubePlaylistOffline: StateFlow<Boolean> = _keepYouTubePlaylistOffline
@@ -256,7 +262,6 @@ class SettingsViewModel(
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
         getLastfmSession()
-        getLastfmScrobbleEnabled()
         getKeepYouTubePlaylistOffline()
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
@@ -450,25 +455,11 @@ class SettingsViewModel(
     fun logOutLastfm() {
         viewModelScope.launch {
             dataStoreManager.setLastfmSession(sessionKey = "", username = "")
-            // Scrobbling is gated on the session, so logging out must clear it here — the same
-            // teardown setSpotifyLogIn and logOutDiscord already do. Doing it from the Settings
-            // row instead only works if the user happens to open Settings and scroll to that row.
-            dataStoreManager.setLastfmScrobbleEnabled(false)
         }
     }
 
-    private fun getLastfmScrobbleEnabled() {
-        viewModelScope.launch {
-            dataStoreManager.lastfmScrobbleEnabled.collect { enabled ->
-                _lastfmScrobbleEnabled.value = enabled == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setLastfmScrobbleEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setLastfmScrobbleEnabled(enabled)
-        }
+    fun setLastfmConfig(config: ScrobbleConfig) {
+        viewModelScope.launch { dataStoreManager.putString(LASTFM_CONFIG_KEY, config.toJson()) }
     }
 
     fun logOutDiscord() {

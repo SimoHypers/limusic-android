@@ -83,32 +83,34 @@ fun configLastfm(
  */
 fun isLastfmAvailable(): Boolean = apiKey.isNotEmpty() && sharedSecret.isNotEmpty()
 
-/**
- * Step one: where to send the user so they can grant access.
- *
- * This is Last.fm's **web** flow, and the missing `token` parameter is the whole point of it.
- * Last.fm generates the token itself and redirects to the callback registered on the API account
- * with `?token=` appended. The desktop flow — call `auth.getToken` first, then open this URL with
- * `&token=` already on it — tells Last.fm the app is holding the token, so it renders a "return to
- * the application" page and never calls the callback at all.
- *
- * No `cb` parameter is passed either: the callback on the API account is the one to use.
- */
-fun authorizeUrl(): String? {
-    if (!isLastfmAvailable()) return null
-    return "https://www.last.fm/api/auth/?api_key=$apiKey"
+/** Where a sign-in stands while the user approves it in the browser. */
+sealed interface LastfmAuth {
+    data class Approved(
+        val session: LastfmSession,
+    ) : LastfmAuth
+
+    /** Not approved yet, or Last.fm was briefly unreachable: ask again. */
+    data object Pending : LastfmAuth
+
+    data class Failed(
+        val message: String,
+    ) : LastfmAuth
 }
 
 /**
- * Step two: trade the token that came back on the callback for a session key.
- *
- * A token is user- and account-specific, lives 60 minutes, and is consumed by this call — so a
- * failure here means sending the user through [authorizeUrl] again, not retrying the same token.
+ * Step one of desktop's flow: a request token, valid for 60 minutes. The app opens [authorizeUrl]
+ * with it and polls [checkApproval] until the user approves. Unlike Last.fm's web flow, no callback
+ * URL has to be registered on the API account, so desktop's key works here unchanged.
  */
-suspend fun completeLogin(token: String): LastfmSession? {
+suspend fun requestToken(): String? {
     if (!isLastfmAvailable()) return null
-    return LastfmClient.getSession(apiKey, sharedSecret, token)
+    return LastfmClient.getToken(apiKey, sharedSecret)
 }
+
+fun authorizeUrl(token: String): String = "https://www.last.fm/api/auth/?api_key=$apiKey&token=$token"
+
+/** Step two, repeated: has the user approved [token] yet? */
+suspend fun checkApproval(token: String): LastfmAuth = LastfmClient.getSession(apiKey, sharedSecret, token)
 
 /** Tells Last.fm what is playing right now. Does not affect charts, and is not worth retrying. */
 suspend fun updateNowPlaying(
