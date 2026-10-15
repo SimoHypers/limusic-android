@@ -124,7 +124,6 @@
     <string name="login_success">Accesso effettuato</string>
     <string name="login_failed">Accesso non riuscito</string>
     <string name="log_out">Disconnetti da YouTube</string>
-    <string name="logged_in">Autenticato</string>
     <string name="playlist">Playlist</string>
     <string name="balance_media_loudness">Bilancia il volume dei contenuti multimediali</string>
     <string name="normalize_volume">Normalizza il volume</string>
@@ -366,11 +365,6 @@
     <string name="mix_for_you">Mix per te</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Nessun mix trovato</string>
-    <string name="discord_integration">Integrazione con Discord</string>
-    <string name="log_in_to_discord">Accedi con Discord</string>
-    <string name="intro_login_to_discord">Accedi per abilitare Discord Rich Presence</string>
-    <string name="enable_rich_presence">Abilita Rich Presence</string>
-    <string name="rich_presence_info">Mostra le info della tua sessione nel tuo profilo di Discord</string>
     <string name="log_out_from_discord">Disconnetti da Discord</string>
     <string name="lastfm_paste_callback_confirm">Continua con questo collegamento</string>
     <string name="logged_in_as">Accesso effettuato come %1$s</string>

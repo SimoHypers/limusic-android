@@ -106,7 +106,6 @@
     <string name="log_in">Daxil ol</string>
     <string name="login_success">Uğurlu giriş</string>
     <string name="log_out">YouTube-dan çıx</string>
-    <string name="logged_in">Giriş edildi</string>
     <string name="playlist">Səsləndirmə siyahısı</string>
     <string name="balance_media_loudness">Media səs ucalığın yaxşılaşdır</string>
     <string name="normalize_volume">Səs səviyyəsini normallaşdır</string>

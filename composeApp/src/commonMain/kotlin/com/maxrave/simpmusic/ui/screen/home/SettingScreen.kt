@@ -137,8 +137,13 @@ import com.maxrave.simpmusic.ui.icon.Smartphone
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.AppLogDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.DiscordSettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsSectionDestination
-import com.maxrave.discord.DiscordOAuth
+import com.maxrave.simpmusic.ui.icon.Discord
+import simpmusic.composeapp.generated.resources.discord_not_signed_in
+import simpmusic.composeapp.generated.resources.discord_off
+import simpmusic.composeapp.generated.resources.discord_showing
+import simpmusic.composeapp.generated.resources.discord_showing_as
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
@@ -222,11 +227,9 @@ import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.description_and_licenses
 import simpmusic.composeapp.generated.resources.developer_option
-import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_animated_artwork
-import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.equalizer
 import simpmusic.composeapp.generated.resources.equalizer_description
@@ -244,7 +247,6 @@ import simpmusic.composeapp.generated.resources.import_progress_songs
 import simpmusic.composeapp.generated.resources.import_reading_file
 import simpmusic.composeapp.generated.resources.import_result
 import simpmusic.composeapp.generated.resources.import_result_skipped
-import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
 import simpmusic.composeapp.generated.resources.invalid_host
 import simpmusic.composeapp.generated.resources.invalid_language_code
@@ -260,13 +262,10 @@ import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.lastfm_integration
 import simpmusic.composeapp.generated.resources.limit_player_cache
 import simpmusic.composeapp.generated.resources.listening_history
-import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_lastfm
 import simpmusic.composeapp.generated.resources.log_out
-import simpmusic.composeapp.generated.resources.log_out_from_discord
 import simpmusic.composeapp.generated.resources.log_out_from_lastfm
 import simpmusic.composeapp.generated.resources.log_out_warning
-import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_offset
@@ -317,7 +316,6 @@ import simpmusic.composeapp.generated.resources.radio_audio_only_description
 import simpmusic.composeapp.generated.resources.requires_android_12
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
-import simpmusic.composeapp.generated.resources.rich_presence_info
 import simpmusic.composeapp.generated.resources.romanization_belarusian
 import simpmusic.composeapp.generated.resources.romanization_bulgarian
 import simpmusic.composeapp.generated.resources.romanization_chinese
@@ -1528,35 +1526,29 @@ fun SettingScreen(
                         }
                     }
                     SettingsSection.INTEGRATIONS -> {
-                        SettingGroup(title = stringResource(Res.string.discord_integration)) {
+                        val discordPage by viewModel.discordPage.collectAsStateWithLifecycle()
+                        val discordUser by viewModel.discordUser.collectAsStateWithLifecycle()
+                        SettingGroup(title = null) {
                             SettingItem(
-                                title =
-                                    if (discordLoggedIn) {
-                                        stringResource(Res.string.log_out_from_discord)
-                                    } else {
-                                        stringResource(Res.string.log_in_to_discord)
-                                    },
+                                title = "Discord",
                                 subtitle =
-                                    if (discordLoggedIn) {
-                                        stringResource(Res.string.logged_in)
-                                    } else {
-                                        stringResource(Res.string.intro_login_to_discord)
+                                    when {
+                                        !discordPage.signedIn -> stringResource(Res.string.discord_not_signed_in)
+                                        !discordPage.enabled -> stringResource(Res.string.discord_off)
+                                        discordUser != null -> stringResource(Res.string.discord_showing_as, discordUser!!.name)
+                                        else -> stringResource(Res.string.discord_showing)
                                     },
-                                onClick = {
-                                    if (discordLoggedIn) {
-                                        viewModel.confirmLogOut(
-                                            confirmLabel = runBlocking { getString(Res.string.log_out_from_discord) },
-                                        ) { viewModel.logOutDiscord() }
-                                    } else {
-                                        uriHandler.openUri(DiscordOAuth.authorizeUrl())
+                                smallSubtitle = true,
+                                leading = {
+                                    Box(
+                                        Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF5865F2)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(SimpIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                                     }
                                 },
-                            )
-                            SettingItem(
-                                title = stringResource(Res.string.enable_rich_presence),
-                                subtitle = stringResource(Res.string.rich_presence_info),
-                                switch = (richPresenceEnabled to { viewModel.setDiscordRichPresenceEnabled(it) }),
-                                isEnable = discordLoggedIn,
+                                navigates = true,
+                                onClick = { navController.navigate(DiscordSettingsDestination) },
                             )
                         }
                         // Hidden entirely when the build carries no Last.fm credentials — a FOSS build, or a full
@@ -2131,43 +2123,7 @@ fun SettingScreen(
             showLoadingDialog.second,
         )
     }
-    val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
-    if (basisAlertData != null) {
-        val alertBasicState = basisAlertData ?: return
-        AlertDialog(
-            onDismissRequest = { viewModel.setBasicAlertData(null) },
-            title = {
-                Text(
-                    text = alertBasicState.title,
-                    style = typo().titleSmall,
-                )
-            },
-            text = {
-                if (alertBasicState.message != null) {
-                    Text(text = alertBasicState.message)
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        alertBasicState.confirm.second.invoke()
-                        viewModel.setBasicAlertData(null)
-                    },
-                ) {
-                    Text(text = alertBasicState.confirm.first)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.setBasicAlertData(null)
-                    },
-                ) {
-                    Text(text = alertBasicState.dismiss)
-                }
-            },
-        )
-    }
+    SettingAlertDialog(viewModel)
     if (showColorPickerDialog) {
         val presetColors =
             listOf(
@@ -2715,7 +2671,7 @@ fun SettingScreen(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SettingTopBar(
+internal fun SettingTopBar(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -2839,4 +2795,46 @@ private fun ImportProgressDialog(
             }
         },
     )
+}
+
+/** The confirm dialog SettingsViewModel asks for (sign-outs and the like), on whichever page asked. */
+@Composable
+internal fun SettingAlertDialog(viewModel: SettingsViewModel) {
+    val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
+    if (basisAlertData != null) {
+        val alertBasicState = basisAlertData ?: return
+        AlertDialog(
+            onDismissRequest = { viewModel.setBasicAlertData(null) },
+            title = {
+                Text(
+                    text = alertBasicState.title,
+                    style = typo().titleSmall,
+                )
+            },
+            text = {
+                if (alertBasicState.message != null) {
+                    Text(text = alertBasicState.message)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        alertBasicState.confirm.second.invoke()
+                        viewModel.setBasicAlertData(null)
+                    },
+                ) {
+                    Text(text = alertBasicState.confirm.first)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.setBasicAlertData(null)
+                    },
+                ) {
+                    Text(text = alertBasicState.dismiss)
+                }
+            },
+        )
+    }
 }

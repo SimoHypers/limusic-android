@@ -111,7 +111,6 @@
     <string name="login_success">Zalogowano pomyślnie</string>
     <string name="login_failed">Logowanie nie powiodło się</string>
     <string name="log_out">Wyloguj się z YouTube</string>
-    <string name="logged_in">Zalogowano</string>
     <string name="playlist">Playlista</string>
     <string name="balance_media_loudness">Wyrównaj głośność mediów</string>
     <string name="normalize_volume">Normalizuj głośność</string>
@@ -301,11 +300,6 @@
     <string name="explicit_content_blocked">Wulgarna treść będzie pomijana</string>
     <string name="mix_for_you">Miks dla Ciebie</string>
     <string name="no_mixes_found">Nie znaleziono miksów</string>
-    <string name="discord_integration">Integracja z Discord</string>
-    <string name="log_in_to_discord">Zaloguj się na Discordzie</string>
-    <string name="intro_login_to_discord">Zaloguj się, aby włączyć Discord Rich Presence</string>
-    <string name="enable_rich_presence">Włącz Discord Rich Presence</string>
-    <string name="rich_presence_info">Pokaż informacje o sesji multimedialnej w profilu Discorda</string>
     <string name="youtube_liked_music">Polubiona muzyka YouTube</string>
     <string name="keep_your_youtube_playlist_offline">Pokazuj swoją playlistę YouTube w trybie offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Zapisz swoją playlistę YT do lokalnej i zachowaj, aby pokazywała się w trybie offline</string>

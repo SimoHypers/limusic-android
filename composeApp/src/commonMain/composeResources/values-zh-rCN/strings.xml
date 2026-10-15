@@ -111,7 +111,6 @@
     <string name="login_success">登录成功</string>
     <string name="login_failed">登录失败</string>
     <string name="log_out">从 YouTube 退出</string>
-    <string name="logged_in">已登录</string>
     <string name="playlist">歌单</string>
     <string name="balance_media_loudness">平衡媒体响度</string>
     <string name="normalize_volume">标准化音量</string>
@@ -309,11 +308,6 @@
     <string name="explicit_content_blocked">限制级内容已跳过</string>
     <string name="mix_for_you">为您准备的音乐</string>
     <string name="no_mixes_found">未找到歌曲</string>
-    <string name="discord_integration">Discord 集成</string>
-    <string name="log_in_to_discord">登录 Discord</string>
-    <string name="intro_login_to_discord">登录以启用 Discord 丰富媒体状态</string>
-    <string name="enable_rich_presence">启用丰富的临场效果</string>
-    <string name="rich_presence_info">在 Discord 个人资料上显示媒体会话信息</string>
     <string name="log_out_from_discord">登出 Discord</string>
     <string name="log_in_to_lastfm">登录到 Last.fm</string>
     <string name="log_out_from_lastfm">登出 Last.fm</string>

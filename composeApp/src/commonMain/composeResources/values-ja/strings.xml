@@ -122,7 +122,6 @@
     <string name="login_success">ログイン成功</string>
     <string name="login_failed">ログイン失敗</string>
     <string name="log_out">YouTubeからログアウト</string>
-    <string name="logged_in">ログインしました</string>
     <string name="playlist">再生リスト</string>
     <string name="balance_media_loudness">メディアの音の大きさの均衡をとる</string>
     <string name="normalize_volume">音量を均一化</string>
@@ -377,11 +376,6 @@
     <string name="mix_for_you">あなたのミックス</string>
     <string name="mix">ミックス</string>
     <string name="no_mixes_found">ミックスが見つかりませんでした</string>
-    <string name="discord_integration">Discord連携</string>
-    <string name="log_in_to_discord">Discordにログイン</string>
-    <string name="intro_login_to_discord">ログインしてDiscord Rich Presenceを有効にします</string>
-    <string name="enable_rich_presence">Rich Presence を有効にする</string>
-    <string name="rich_presence_info">Discordのプロフィールにメディアセッション情報を表示します</string>
     <string name="log_out_from_discord">Discordからログアウト</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Last.fmにログイン</string>

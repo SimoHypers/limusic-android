@@ -106,7 +106,6 @@
     <string name="log_in">Kirjaudu sisään</string>
     <string name="login_success">Sisäänkirjautuminen onnistui</string>
     <string name="log_out">Kirjaudu ulos YouTubesta</string>
-    <string name="logged_in">Kirjauduttu sisään</string>
     <string name="playlist">Soittolista</string>
     <string name="balance_media_loudness">Tasapainota äänenvoimakkuus</string>
     <string name="normalize_volume">Normalisoi äänenvoimakkuus</string>

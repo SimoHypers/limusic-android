@@ -30,7 +30,15 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import com.maxrave.discord.DISCORD_CONFIG_KEY
+import com.maxrave.discord.DiscordConfig
+import com.maxrave.discord.DiscordOAuth
+import com.maxrave.discord.DiscordUser
+import com.maxrave.discord.discordAccessToken
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -481,6 +489,30 @@ class SettingsViewModel(
                 _richPresenceEnabled.value = enabled == DataStoreManager.TRUE
             }
         }
+    }
+
+    /** Everything the Discord page draws from, live from DataStore while the page is open. */
+    val discordPage: StateFlow<DiscordPageState> =
+        combine(
+            dataStoreManager.discordToken,
+            dataStoreManager.richPresenceEnabled,
+            dataStoreManager.getString(DISCORD_CONFIG_KEY),
+        ) { token, enabled, config ->
+            DiscordPageState(
+                signedIn = token.isNotEmpty(),
+                enabled = enabled == DataStoreManager.TRUE,
+                config = DiscordConfig.parse(config),
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DiscordPageState())
+
+    /** Who is signed in, for the account row. Null while loading, signed out, or unreachable. */
+    val discordUser: StateFlow<DiscordUser?> =
+        dataStoreManager.discordToken
+            .map { token -> if (token.isEmpty()) null else dataStoreManager.discordAccessToken()?.let { DiscordOAuth.user(it) } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setDiscordConfig(config: DiscordConfig) {
+        viewModelScope.launch { dataStoreManager.putString(DISCORD_CONFIG_KEY, config.toJson()) }
     }
 
     fun setDiscordRichPresenceEnabled(enabled: Boolean) {
@@ -1577,3 +1609,9 @@ const val EQUALIZER_BAND_COUNT = 10
 
 /** Band centre labels, for display only — the backend owns the actual frequencies. */
 val EQUALIZER_BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
+
+data class DiscordPageState(
+    val signedIn: Boolean = false,
+    val enabled: Boolean = false,
+    val config: DiscordConfig = DiscordConfig(),
+)

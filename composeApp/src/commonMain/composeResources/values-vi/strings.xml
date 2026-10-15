@@ -122,7 +122,6 @@
     <string name="login_success">Đăng nhập thành công</string>
     <string name="login_failed">Đăng nhập thất bại</string>
     <string name="log_out">Đăng xuất khỏi YouTube</string>
-    <string name="logged_in">Đã đăng nhập</string>
     <string name="playlist">Danh sách phát</string>
     <string name="balance_media_loudness">Cân bằng độ lớn của âm thanh</string>
     <string name="normalize_volume">Cân bằng âm lượng</string>
@@ -377,11 +376,6 @@
     <string name="mix_for_you">Mix cho bạn</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Không có bản mix nào</string>
-    <string name="discord_integration">Tích hợp Discord</string>
-    <string name="log_in_to_discord">Đăng nhập vào Discord</string>
-    <string name="intro_login_to_discord">Đăng nhập đề bật Discord Rich Presence</string>
-    <string name="enable_rich_presence">Kích hoạt Rich Presence</string>
-    <string name="rich_presence_info">Hiển thị phiên phát nhạc trên tài khoản Discord</string>
     <string name="log_out_from_discord">Đăng xuất khỏi Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Đăng nhập vào Last.fm</string>

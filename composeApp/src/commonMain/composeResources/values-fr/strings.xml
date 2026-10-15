@@ -124,7 +124,6 @@
     <string name="login_success">Connexion réussie</string>
     <string name="login_failed">Échec de la connexion</string>
     <string name="log_out">Se déconnecter de YouTube</string>
-    <string name="logged_in">Connecté</string>
     <string name="playlist">Playlist</string>
     <string name="balance_media_loudness">Équilibrer le volume des médias</string>
     <string name="normalize_volume">Égaliser le volume</string>
@@ -379,11 +378,6 @@
     <string name="mix_for_you">Un mix rien que pour vous</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Aucun mix trouvé</string>
-    <string name="discord_integration">Intégration Discord</string>
-    <string name="log_in_to_discord">Se connecter à Discord</string>
-    <string name="intro_login_to_discord">Connectez-vous pour activer la fonctionnalité « Rich Presence » sur Discord</string>
-    <string name="enable_rich_presence">Activer « Rich Presence »</string>
-    <string name="rich_presence_info">Afficher les informations relatives à la session multimédia sur votre profil Discord</string>
     <string name="log_out_from_discord">Se déconnecter de Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Se connecter à Last.fm</string>

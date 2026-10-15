@@ -111,7 +111,6 @@
     <string name="login_success">Oturum açma başarılı</string>
     <string name="login_failed">Giriş başarısız oldu</string>
     <string name="log_out">YouTube'dan çıkış yap</string>
-    <string name="logged_in">Oturum açıldı</string>
     <string name="playlist">Oynatma listesi</string>
     <string name="balance_media_loudness">Medya ses yüksekliğini dengeleyin</string>
     <string name="normalize_volume">Sesi Normalleştir</string>
@@ -327,10 +326,6 @@
     <string name="mix_for_you">Senin için karıştır</string>
     <string name="mix">Karıştır</string>
     <string name="no_mixes_found">Karışım bulunamadı</string>
-    <string name="discord_integration">Discord entegrasyonu</string>
-    <string name="log_in_to_discord">Discord'a giriş yapın</string>
-    <string name="intro_login_to_discord">Oturum açarak Discord'da etkinlik gösterimini etkinleştirin</string>
-    <string name="rich_presence_info">Discord profilinizde medya oturumu bilgilerini gösterin</string>
     <string name="log_out_from_discord">Discord oturumunu kapat</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Last.fm ile oturum aç</string>

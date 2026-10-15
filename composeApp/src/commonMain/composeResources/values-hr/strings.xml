@@ -111,7 +111,6 @@
     <string name="login_success">Login success</string>
     <string name="login_failed">Login failed</string>
     <string name="log_out">Log out from YouTube</string>
-    <string name="logged_in">Logged in</string>
     <string name="playlist">Popis za reprodukciju</string>
     <string name="balance_media_loudness">Balance media loudness</string>
     <string name="normalize_volume">Nermalize Volume</string>
@@ -361,11 +360,6 @@
     <string name="mix_for_you">Mix for you</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Ne mixes found</string>
-    <string name="discord_integration">Discord integration</string>
-    <string name="log_in_to_discord">Log in to Discord</string>
-    <string name="intro_login_to_discord">Log in to enable Discord Rich Presence</string>
-    <string name="enable_rich_presence">Omogući rich presence</string>
-    <string name="rich_presence_info">Prikaži media session info on your Discord profile</string>
     <string name="log_out_from_discord">Log out from Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Log in to Last.fm</string>

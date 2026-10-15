@@ -111,7 +111,6 @@
     <string name="login_success">Sessió iniciada correctament</string>
     <string name="login_failed">No s'ha pogut iniciar la sessió</string>
     <string name="log_out">Tanqueu la sessió de YouTube</string>
-    <string name="logged_in">Sessió iniciada</string>
     <string name="playlist">Llista de reproducció</string>
     <string name="balance_media_loudness">Equilibra la sonoritat de l'àudio</string>
     <string name="normalize_volume">Normalitza el volum</string>
@@ -300,11 +299,6 @@
     <string name="explicit_content_blocked">El contingut explícit serà saltat</string>
     <string name="mix_for_you">Mescla per a vostè</string>
     <string name="no_mixes_found">No s'han trobat mescles</string>
-    <string name="discord_integration">Integració amb Discord</string>
-    <string name="log_in_to_discord">Inicia sessió a Discord</string>
-    <string name="intro_login_to_discord">Inicia sessió per activar el Rich Presence de Discord</string>
-    <string name="enable_rich_presence">Activa el Rich Presence</string>
-    <string name="rich_presence_info">Mostra la informació de la sessió multimèdia al teu perfil de Discord</string>
     <string name="youtube_liked_music">Música que t'agrada de YouTube</string>
     <string name="keep_your_youtube_playlist_offline">Continua mostrant la teva llista de reproducció de YouTube sense connexió</string>
     <string name="keep_your_youtube_playlist_offline_description">Desa la teva llista de reproducció de YT al dispositiu per continuar mostrant-la sense connexió</string>

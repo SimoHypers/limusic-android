@@ -106,7 +106,6 @@
     <string name="log_in">התחבר</string>
     <string name="login_success">התחבר בהצלחה</string>
     <string name="log_out">התנתק מיוטיוב</string>
-    <string name="logged_in">מחובר</string>
     <string name="playlist">רשימת השמעה</string>
     <string name="balance_media_loudness">איזון עוצמת מדיה</string>
     <string name="normalize_volume">נרמל את עוצמת הקול</string>

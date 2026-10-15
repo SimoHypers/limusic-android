@@ -117,7 +117,6 @@
     <string name="login_success">Inloggningen lyckades</string>
     <string name="login_failed">Inloggningen misslyckades</string>
     <string name="log_out">Logga ut från YouTube</string>
-    <string name="logged_in">Inloggad</string>
     <string name="playlist">Spellista</string>
     <string name="balance_media_loudness">Jämna ut medievolymen</string>
     <string name="normalize_volume">Normalisera volymen</string>
@@ -372,11 +371,6 @@
     <string name="mix_for_you">Mix för dig</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Inga mixar hittades</string>
-    <string name="discord_integration">Discord-integrering</string>
-    <string name="log_in_to_discord">Logga in på Discord</string>
-    <string name="intro_login_to_discord">Logga in för att aktivera Discord Rich Presence</string>
-    <string name="enable_rich_presence">Aktivera Rich Presence</string>
-    <string name="rich_presence_info">Visa information om mediesessionen i din Discord-profil</string>
     <string name="log_out_from_discord">Logga ut från Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Logga in på Last.fm</string>

@@ -108,7 +108,6 @@
     <string name="login_success">تم تسجيل الدخول بنجاح</string>
     <string name="login_failed">فشل الدخول</string>
     <string name="log_out">تسجيل الخروج من YouTube</string>
-    <string name="logged_in">تم تسجيل الدخول</string>
     <string name="playlist">قائمة التشغيل</string>
     <string name="balance_media_loudness">توازن شدة الصوت في الوسائط</string>
     <string name="normalize_volume">ضبط الصوت</string>

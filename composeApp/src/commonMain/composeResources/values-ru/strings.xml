@@ -128,7 +128,6 @@
     <string name="login_success">Вход успешно выполнен</string>
     <string name="login_failed">Ошибка авторизации</string>
     <string name="log_out">Выйти из YouTube</string>
-    <string name="logged_in">Вход выполнен</string>
     <string name="playlist">Плейлист</string>
     <string name="balance_media_loudness">Баланс медиа громкости</string>
     <string name="normalize_volume">Нормализовать громкость</string>
@@ -383,11 +382,6 @@
     <string name="mix_for_you">Миксы для вас</string>
     <string name="mix">Микс</string>
     <string name="no_mixes_found">Не найдено миксов</string>
-    <string name="discord_integration">Интеграция Discord</string>
-    <string name="log_in_to_discord">Войти в Discord</string>
-    <string name="intro_login_to_discord">Войдите, чтобы включить Discord Rich Presence</string>
-    <string name="enable_rich_presence">Включить Rich Presence</string>
-    <string name="rich_presence_info">Показывать информацию о медиа-сессии в вашем профиле Discord</string>
     <string name="log_out_from_discord">Выйти из аккаунта Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Войти в аккаунт Last.fm</string>

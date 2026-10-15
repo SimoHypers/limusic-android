@@ -107,7 +107,6 @@
     <string name="log_in">Inloggen</string>
     <string name="login_success">Inloggen succesvol</string>
     <string name="log_out">Uitloggen bij YouTube</string>
-    <string name="logged_in">Ingelogd</string>
     <string name="playlist">Afspeellijst</string>
     <string name="balance_media_loudness">Media-volume balanceren</string>
     <string name="normalize_volume">Volume normaliseren</string>

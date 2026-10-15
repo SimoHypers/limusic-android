@@ -111,7 +111,6 @@
     <string name="login_success">Berhasil masuk</string>
     <string name="login_failed">Gagal masuk</string>
     <string name="log_out">Keluar dari YouTube</string>
-    <string name="logged_in">Sudah masuk</string>
     <string name="playlist">Daftar putar</string>
     <string name="balance_media_loudness">Seimbangkan kenyaringan media</string>
     <string name="normalize_volume">Normalisasi Volume</string>
@@ -314,11 +313,6 @@
     <string name="explicit_content_blocked">Konten dewasa dilewati</string>
     <string name="mix_for_you">Campuran untuk Anda</string>
     <string name="no_mixes_found">Tidak ditemukan campuran</string>
-    <string name="discord_integration">Integrasi Discord</string>
-    <string name="log_in_to_discord">Masuk ke Discord</string>
-    <string name="intro_login_to_discord">Masuk untuk mengaktifkan Discord Rich Presence</string>
-    <string name="enable_rich_presence">Aktifkan rich presence</string>
-    <string name="rich_presence_info">Tampilkan informasi sesi media di profil Discord Anda</string>
     <string name="youtube_liked_music">Musik yang Disukai di YouTube</string>
     <string name="keep_your_youtube_playlist_offline">Tetap tampilkan daftar putar YouTube Anda saat offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Simpan daftar putar YouTube Anda ke lokal dan simpan untuk ditampilkan saat offline</string>

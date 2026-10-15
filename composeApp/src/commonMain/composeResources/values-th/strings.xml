@@ -111,7 +111,6 @@
     <string name="login_success">เข้าสู่ระบบสำเร็จ</string>
     <string name="login_failed">เข้าสู่ระบบไม่สำเร็จ</string>
     <string name="log_out">ออกจากระบบ YouTube</string>
-    <string name="logged_in">เข้าสู่ระบบแล้ว</string>
     <string name="playlist">เพลย์ลิสต์</string>
     <string name="balance_media_loudness">ปรับสมดุลความดังของสื่อ</string>
     <string name="normalize_volume">ปรับระดับเสียงให้เท่ากัน</string>
@@ -327,11 +326,6 @@
     <string name="explicit_content_blocked">เนื้อหาที่ไม่เหมาะสมถูกข้าม</string>
     <string name="mix_for_you">มิกซ์สำหรับคุณ</string>
     <string name="no_mixes_found">ไม่พบมิกซ์</string>
-    <string name="discord_integration">เชื่อมต่อ Discord</string>
-    <string name="log_in_to_discord">เข้าสู่ระบบ Discord</string>
-    <string name="intro_login_to_discord">เข้าสู่ระบบเพื่อเปิดใช้งาน Discord Rich Presence</string>
-    <string name="enable_rich_presence">เปิดใช้งาน Rich Presence</string>
-    <string name="rich_presence_info">แสดงข้อมูลการเล่นสื่อบนโปรไฟล์ Discord ของคุณ</string>
     <string name="youtube_liked_music">เพลงที่ถูกใจบน YouTube</string>
     <string name="keep_your_youtube_playlist_offline">แสดงเพลย์ลิสต์ YouTube แม้ไม่ได้เชื่อมต่ออินเทอร์เน็ต</string>
     <string name="keep_your_youtube_playlist_offline_description">จัดเก็บเพลย์ลิสต์ YouTube ในเครื่องเพื่อใช้งานแบบออฟไลน์</string>

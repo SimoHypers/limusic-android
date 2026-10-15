@@ -111,7 +111,6 @@
     <string name="login_success">Успешно вписване</string>
     <string name="login_failed">Влизането неуспешно</string>
     <string name="log_out">Изход от YouTube</string>
-    <string name="logged_in">Вписан</string>
     <string name="playlist">Плейлист</string>
     <string name="balance_media_loudness">Балансиране на звука на медията</string>
     <string name="normalize_volume">Нормализиране на звукът</string>

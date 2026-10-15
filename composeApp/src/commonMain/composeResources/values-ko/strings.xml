@@ -111,7 +111,6 @@
     <string name="login_success">로그인 성공</string>
     <string name="login_failed">로그인 실패</string>
     <string name="log_out">YouTube에서 로그아웃</string>
-    <string name="logged_in">로그인 완료</string>
     <string name="playlist">재생목록</string>
     <string name="balance_media_loudness">미디어 음량 균형 맞추기</string>
     <string name="normalize_volume">음량 평준화</string>
@@ -318,11 +317,6 @@
     <string name="explicit_content_blocked">연령 제한 콘텐츠 건너뜀</string>
     <string name="mix_for_you">당신을 위한 믹스</string>
     <string name="no_mixes_found">믹스 없음</string>
-    <string name="discord_integration">Discord 연동</string>
-    <string name="log_in_to_discord">Discord에 로그인</string>
-    <string name="intro_login_to_discord">로그인하여 Discord에 상태 표시</string>
-    <string name="enable_rich_presence">상태 표시 켜기</string>
-    <string name="rich_presence_info">Discord 프로필에 미디어 세션 정보를 표시합니다</string>
     <string name="log_out_from_discord">Discord 에서 로그아웃</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Last.fm에 로그인</string>

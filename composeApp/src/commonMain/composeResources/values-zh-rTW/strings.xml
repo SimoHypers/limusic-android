@@ -117,7 +117,6 @@
     <string name="login_success">登入成功</string>
     <string name="login_failed">登入失敗</string>
     <string name="log_out">登出 YouTube</string>
-    <string name="logged_in">已登入</string>
     <string name="playlist">播放清單</string>
     <string name="balance_media_loudness">平衡媒體音量</string>
     <string name="normalize_volume">音量平衡</string>
@@ -372,11 +371,6 @@
     <string name="mix_for_you">為您準備</string>
     <string name="mix">混音</string>
     <string name="no_mixes_found">找不到合輯</string>
-    <string name="discord_integration">Discord 整合</string>
-    <string name="log_in_to_discord">登入到Discord</string>
-    <string name="intro_login_to_discord">登入以啟用 Discord 富媒體狀態</string>
-    <string name="enable_rich_presence">啟用豐富的臨場感</string>
-    <string name="rich_presence_info">在您的 Discord 個人資料中顯示媒體見面會訊息</string>
     <string name="log_out_from_discord">登出 Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">登入 Last.fm</string>

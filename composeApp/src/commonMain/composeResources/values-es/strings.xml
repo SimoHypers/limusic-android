@@ -117,7 +117,6 @@
     <string name="login_success">Inicio de sesión correcto</string>
     <string name="login_failed">Error al iniciar sesión</string>
     <string name="log_out">Cerrar sesión de YouTube</string>
-    <string name="logged_in">Sesión iniciada</string>
     <string name="playlist">Listas</string>
     <string name="balance_media_loudness">Equilibrar el volumen de los medios</string>
     <string name="normalize_volume">Normalizar volumen</string>
@@ -368,11 +367,6 @@
     <string name="mix_for_you">Mezclar para ti</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">No se encontraron mezclas</string>
-    <string name="discord_integration">Integración con Discord</string>
-    <string name="log_in_to_discord">Iniciar sesión en Discord</string>
-    <string name="intro_login_to_discord">Inicia sesión para habilitar la presencia enriquecida de Discord</string>
-    <string name="enable_rich_presence">Habilitar presencia enriquecida</string>
-    <string name="rich_presence_info">Mostrar información de sesión multimedia en tu perfil de Discord</string>
     <string name="log_out_from_discord">Cerrar sesión en Discord</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Iniciar sesión en Last.fm</string>

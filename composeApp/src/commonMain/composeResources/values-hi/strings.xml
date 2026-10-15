@@ -116,7 +116,6 @@
     <string name="login_success">लॉग इन सफल</string>
     <string name="login_failed">लॉगिन असफल</string>
     <string name="log_out">YouTube से लॉग आउट करें</string>
-    <string name="logged_in">लॉग इन किया</string>
     <string name="playlist">प्लेलिस्ट</string>
     <string name="balance_media_loudness">मीडिया की आवाज संतुलित करें</string>
     <string name="normalize_volume">वॉल्यूम सामान्य करें</string>

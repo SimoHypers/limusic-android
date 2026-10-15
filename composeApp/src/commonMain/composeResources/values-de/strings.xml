@@ -119,7 +119,6 @@
     <string name="login_success">Erfolgreich angemeldet</string>
     <string name="login_failed">Anmelden fehlgeschlagen</string>
     <string name="log_out">Melde dich von YouTube/YTM ab</string>
-    <string name="logged_in">Angemeldet</string>
     <string name="playlist">Playlist</string>
     <string name="balance_media_loudness">Medienlautstärke ausgleichen</string>
     <string name="normalize_volume">Lautstärke normalisieren</string>
@@ -373,11 +372,6 @@
     <string name="mix_for_you">Mix für Dich</string>
     <string name="mix">Mix</string>
     <string name="no_mixes_found">Keine Mixes gefunden</string>
-    <string name="discord_integration">Discord-Integration</string>
-    <string name="log_in_to_discord">Bei Discord anmelden</string>
-    <string name="intro_login_to_discord">Melde dich an, um Discord Rich-Präsenz zu aktivieren</string>
-    <string name="enable_rich_presence">Aktivitätsstatus aktivieren</string>
-    <string name="rich_presence_info">Medien-Session-Informationen auf deinem Discord-Profil anzeigen</string>
     <string name="log_out_from_discord">Von Discord abmelden</string>
     <string name="lastfm_integration">Last.fm</string>
     <string name="log_in_to_lastfm">Bei Last.fm anmelden</string>
