@@ -22,6 +22,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.hct.Hct
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.manager.DataStoreManager
@@ -78,6 +80,12 @@ val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
  * Provided by [AppTheme], consumed by [ForceDarkContent]; null only outside of [AppTheme].
  */
 val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
+
+/**
+ * True while "Adapt colors to artwork" has a cover colour, so the app's own schemes (including the
+ * forced dark one the players get) already come from the playing cover.
+ */
+val LocalArtworkColors = staticCompositionLocalOf { false }
 
 /** The app's own scheme and whether it is dark, so [AppThemeContent] can undo [ForceDarkContent]. */
 private val LocalAppScheme = staticCompositionLocalOf<Pair<ColorScheme, Boolean>?> { null }
@@ -188,6 +196,9 @@ fun AppTheme(
     themeMode: String = DataStoreManager.THEME_MODE_DARK,
     themeColorSource: String = DataStoreManager.THEME_COLOR_DEFAULT,
     customThemeColor: Color? = null,
+    // "Adapt colors to artwork": the playing cover's colour, null while the switch is off, nothing
+    // plays or the cover has no colour. Layered over the colour source, which comes back untouched.
+    artworkColor: Color? = null,
     liquidGlassEnabled: Boolean = true,
     content:
         @Composable()
@@ -201,16 +212,24 @@ fun AppTheme(
             null
         }
     val seedColor =
-        if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
-            customThemeColor ?: seed
-        } else {
-            seed
-        }
+        artworkColor
+            ?: if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                customThemeColor ?: seed
+            } else {
+                seed
+            }
     // The default is Limusic's own palette. A wallpaper or custom colour generates a scheme from
     // that seed instead, on Limusic's neutrals so the app keeps its ground either way.
     val limusicScheme = if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme
     val colorScheme =
         when {
+            artworkColor != null ->
+                rememberDynamicColorScheme(
+                    seedColor = artworkColor,
+                    isDark = isDark,
+                    style = PaletteStyle.TonalSpot,
+                    modifyColorScheme = { it.withLimusicNeutrals(isDark).withArtworkFills(artworkColor, isDark) },
+                )
             wallpaperScheme != null -> wallpaperScheme.withLimusicNeutrals(isDark)
             themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM ->
                 rememberDynamicColorScheme(
@@ -225,14 +244,16 @@ fun AppTheme(
     val forcedDarkScheme =
         if (isDark) {
             colorScheme
-        } else if (themeColorSource == DataStoreManager.THEME_COLOR_DEFAULT) {
+        } else if (themeColorSource == DataStoreManager.THEME_COLOR_DEFAULT && artworkColor == null) {
             LimusicDarkColorScheme
         } else {
             rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = true,
                 style = PaletteStyle.TonalSpot,
-                modifyColorScheme = { it.withLimusicNeutrals(true) },
+                modifyColorScheme = { scheme ->
+                    scheme.withLimusicNeutrals(true).let { if (artworkColor != null) it.withArtworkFills(artworkColor, true) else it }
+                },
             )
         }
     SystemBarAppearanceEffect(isDark)
@@ -251,6 +272,7 @@ fun AppTheme(
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
                 LocalAppFonts provides fonts,
                 LocalAppScheme provides (colorScheme to isDark),
+                LocalArtworkColors provides (artworkColor != null),
                 content = content,
             )
         },
@@ -382,6 +404,39 @@ private fun ColorScheme.withLimusicNeutrals(isDark: Boolean): ColorScheme {
         outlineVariant = base.outlineVariant,
         inverseSurface = base.inverseSurface,
         inverseOnSurface = base.inverseOnSurface,
+    )
+}
+
+/**
+ * Desktop's artwork tint: the Limusic fills (background, surfaces, containers) turned to the cover's
+ * hue at their own tone. Text and outlines stay as they are, as on desktop, where tinting them too
+ * made the page hard to read.
+ */
+private fun ColorScheme.withArtworkFills(
+    artwork: Color,
+    isDark: Boolean,
+): ColorScheme {
+    val hue = Hct.fromInt(artwork.toArgb()).hue
+    // ponytail: one chroma for every fill, roughly desktop's oklch 0.03-0.04. Turn these down
+    // together if a saturated cover is too much; per-role values only if one surface reads wrong.
+    val chroma = if (isDark) 10.0 else 6.0
+
+    // Light tones stop at 98: pure white has no room for a hue (desktop's light page is 0.985 too).
+    fun Color.tint(): Color {
+        val tone = Hct.fromInt(toArgb()).tone
+        return Color(Hct.from(hue, chroma, if (isDark) tone else minOf(tone, 98.0)).toInt())
+    }
+    return copy(
+        background = background.tint(),
+        surface = surface.tint(),
+        surfaceVariant = surfaceVariant.tint(),
+        surfaceBright = surfaceBright.tint(),
+        surfaceDim = surfaceDim.tint(),
+        surfaceContainerLowest = surfaceContainerLowest.tint(),
+        surfaceContainerLow = surfaceContainerLow.tint(),
+        surfaceContainer = surfaceContainer.tint(),
+        surfaceContainerHigh = surfaceContainerHigh.tint(),
+        surfaceContainerHighest = surfaceContainerHighest.tint(),
     )
 }
 

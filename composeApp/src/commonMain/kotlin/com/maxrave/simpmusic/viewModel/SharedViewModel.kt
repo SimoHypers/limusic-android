@@ -1139,6 +1139,8 @@ class SharedViewModel(
 
     fun getCustomThemeColor() = dataStoreManager.customThemeColor
 
+    fun getArtworkColors() = dataStoreManager.artworkColors
+
     fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
 
     fun getLyricsStyle() = dataStoreManager.lyricsStyle
@@ -1160,6 +1162,12 @@ class SharedViewModel(
     fun setThemeColorSource(source: String) {
         viewModelScope.launch {
             dataStoreManager.setThemeColorSource(source)
+        }
+    }
+
+    fun setArtworkColors(enable: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setArtworkColors(enable)
         }
     }
 

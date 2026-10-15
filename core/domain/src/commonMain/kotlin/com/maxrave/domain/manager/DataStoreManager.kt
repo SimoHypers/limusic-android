@@ -337,6 +337,11 @@ interface DataStoreManager {
 
     suspend fun setThemeColorSource(source: String)
 
+    /** "Adapt colors to artwork": the playing cover's colour layered over the theme colour. */
+    val artworkColors: Flow<String>
+
+    suspend fun setArtworkColors(enable: Boolean)
+
     /** Seed color for the custom theme as an 8-digit ARGB hex string (e.g. "FF8ECAE6"). */
     val customThemeColor: Flow<String>
 

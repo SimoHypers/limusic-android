@@ -80,6 +80,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.SkipPrevious
 import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
+import com.maxrave.simpmusic.ui.theme.LocalArtworkColors
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.stringResource
@@ -107,8 +108,14 @@ fun NowPlayingContentLimusic(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    NowPlayingExpressiveTheme(state = state) {
+    // With "Adapt colors to artwork" on, the player takes the same cover colours as the rest of
+    // the app, so opening it doesn't change the accent.
+    if (LocalArtworkColors.current) {
         ClassicLayout(state, actions)
+    } else {
+        NowPlayingExpressiveTheme(state = state) {
+            ClassicLayout(state, actions)
+        }
     }
 }
 

@@ -598,6 +598,19 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val artworkColors =
+        settingsDataStore.data.map { preferences ->
+            preferences[ARTWORK_COLORS] ?: FALSE
+        }
+
+    override suspend fun setArtworkColors(enable: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[ARTWORK_COLORS] = if (enable) TRUE else FALSE
+            }
+        }
+    }
+
     override val customThemeColor =
         settingsDataStore.data.map { preferences ->
             preferences[CUSTOM_THEME_COLOR] ?: DataStoreManager.DEFAULT_THEME_COLOR_HEX
@@ -1261,6 +1274,7 @@ internal class DataStoreManagerImpl(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val THEME_COLOR_SOURCE = stringPreferencesKey("theme_color_source")
         val CUSTOM_THEME_COLOR = stringPreferencesKey("custom_theme_color")
+        val ARTWORK_COLORS = stringPreferencesKey("artwork_colors")
         val NOW_PLAYING_STYLE = stringPreferencesKey("now_playing_style")
         val LYRICS_STYLE = stringPreferencesKey("lyrics_style")
         val ROMANIZATION_LANGUAGES = stringPreferencesKey("romanization_languages")

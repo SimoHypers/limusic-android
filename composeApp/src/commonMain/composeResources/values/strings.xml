@@ -305,6 +305,8 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Custom</string>
     <string name="custom_color">Custom color</string>
+    <string name="artwork_colors">Adapt colors to artwork</string>
+    <string name="artwork_colors_description">While a song plays, the accent and backgrounds take their color from its cover</string>
     <string name="relax">Relax</string>
     <string name="sleep">Sleep</string>
     <string name="energize">Energize</string>

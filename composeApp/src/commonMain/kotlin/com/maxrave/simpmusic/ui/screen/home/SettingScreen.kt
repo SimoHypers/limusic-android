@@ -216,6 +216,8 @@ import simpmusic.composeapp.generated.resources.crossfade_duration
 import simpmusic.composeapp.generated.resources.crossfade_skip_album
 import simpmusic.composeapp.generated.resources.crossfade_skip_album_description
 import simpmusic.composeapp.generated.resources.custom_color
+import simpmusic.composeapp.generated.resources.artwork_colors
+import simpmusic.composeapp.generated.resources.artwork_colors_description
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.description_and_licenses
@@ -501,6 +503,7 @@ fun SettingScreen(
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val artworkColors by sharedViewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
     val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
     val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
@@ -1010,6 +1013,12 @@ fun SettingScreen(
                                     onClick = { showColorPickerDialog = true },
                                 )
                             }
+                            SettingItem(
+                                title = stringResource(Res.string.artwork_colors),
+                                subtitle = stringResource(Res.string.artwork_colors_description),
+                                smallSubtitle = true,
+                                switch = ((artworkColors == DataStoreManager.TRUE) to { sharedViewModel.setArtworkColors(it) }),
+                            )
                             if (getPlatform() == Platform.Android) {
                                 SettingItem(
                                     title = stringResource(Res.string.enable_liquid_glass_effect),

@@ -41,6 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import coil3.SingletonImageLoader
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import com.materialkolor.ktx.themeColorOrNull
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.expect.ui.toReadableBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -133,6 +141,11 @@ fun App(
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val artworkColors by viewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val artworkColor =
+        rememberArtworkColor(
+            url = (nowPlayingData?.songEntity?.thumbnails ?: nowPlayingData?.mediaItem?.metadata?.artworkUri).takeIf { artworkColors == TRUE },
+        )
     // MiniPlayer visibility: derived, never stored.
     //
     // This used to be a rememberSaveable Boolean written by a LaunchedEffect. Two things went
@@ -386,6 +399,7 @@ fun App(
         themeMode = themeMode,
         themeColorSource = themeColorSource,
         customThemeColor = parseThemeColorHex(customThemeColorHex),
+        artworkColor = artworkColor,
         // Desktop is unconditionally true — the liquid-glass setting row is Android-only, and the
         // Desktop capsule player is glass by design. Same rule as MiniPlayer's useGlassSurface.
         liquidGlassEnabled = isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop,
@@ -751,3 +765,34 @@ fun App(
         )
     }
 }
+
+/**
+ * The colour of the cover at [url], for "Adapt colors to artwork"; null when [url] is null. Picked
+ * the way the M3 Expressive player seeds its scheme. A colourless cover, or one that fails to load,
+ * keeps the previous colour instead of flashing back to the theme between tracks, as on desktop.
+ * The mini player has already loaded the same cover, so this is a disk-cache read.
+ */
+@Composable
+private fun rememberArtworkColor(url: String?): Color? {
+    val context = LocalPlatformContext.current
+    var color by remember { mutableStateOf<Color?>(null) }
+    LaunchedEffect(url) {
+        if (url == null) {
+            color = null
+            return@LaunchedEffect
+        }
+        val image =
+            SingletonImageLoader
+                .get(context)
+                .execute(ImageRequest.Builder(context).data(url).size(ARTWORK_SEED_PX).build())
+                .image ?: return@LaunchedEffect
+        // ponytail: decoded on the track change, not one track early as desktop does; prewarm the
+        // next cover if the colour visibly lands after the artwork.
+        withContext(Dispatchers.Default) {
+            runCatching { image.toImageBitmap().toReadableBitmap(ARTWORK_SEED_PX, ARTWORK_SEED_PX).themeColorOrNull() }.getOrNull()
+        }?.let { color = it }
+    }
+    return color
+}
+
+private const val ARTWORK_SEED_PX = 112
