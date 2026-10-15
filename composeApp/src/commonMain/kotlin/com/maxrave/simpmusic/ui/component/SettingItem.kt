@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -33,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 
@@ -45,6 +49,9 @@ fun SettingItem(
     onClick: (() -> Unit)? = null,
     switch: Pair<Boolean, ((Boolean) -> Unit)>? = null,
     otherView: @Composable (() -> Unit)? = null,
+    // A 40dp slot before the text (an icon or an avatar), and a chevron for rows that open a page.
+    leading: @Composable (() -> Unit)? = null,
+    navigates: Boolean = false,
 ) {
     // isEnable only greys the row out; it deliberately writes nothing.
     //
@@ -64,7 +71,7 @@ fun SettingItem(
             // so a row hidden by a condition never leaves a stray line at the top of the card.
             .drawBehind {
                 val y = SettingDividerThickness.toPx() / 2
-                val inset = SettingRowPaddingHorizontal.toPx()
+                val inset = (if (leading != null) SettingRowPaddingHorizontal * 2 + SettingLeadingSize else SettingRowPaddingHorizontal).toPx()
                 val rtl = layoutDirection == LayoutDirection.Rtl
                 drawLine(
                     color = dividerColor,
@@ -96,6 +103,10 @@ fun SettingItem(
                     ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (leading != null) {
+                Box(Modifier.size(SettingLeadingSize), contentAlignment = Alignment.Center) { leading() }
+                Spacer(Modifier.width(SettingRowPaddingHorizontal))
+            }
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
@@ -145,6 +156,10 @@ fun SettingItem(
                     enabled = isEnable,
                 )
             }
+            if (navigates) {
+                Spacer(Modifier.width(10.dp))
+                Icon(SimpIcons.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(14.dp))
+            }
         }
     }
 }
@@ -155,19 +170,22 @@ fun SettingItem(
  */
 @Composable
 fun SettingGroup(
-    title: String,
+    // Null leaves the card without a header.
+    title: String?,
     modifier: Modifier = Modifier,
     footer: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val cardColor = settingGroupColor()
     Column(modifier.fillMaxWidth().padding(top = 24.dp)) {
-        Text(
-            text = title.toUpperCase(Locale.current),
-            // The headers' size from before the groups; only the weight drops, so they step back.
-            style = typo().labelMedium.copy(fontWeight = FontWeight.Normal),
-            modifier = Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, bottom = 8.dp),
-        )
+        if (title != null) {
+            Text(
+                text = title.toUpperCase(Locale.current),
+                // The headers' size from before the groups; only the weight drops, so they step back.
+                style = typo().labelMedium.copy(fontWeight = FontWeight.Normal),
+                modifier = Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, bottom = 8.dp),
+            )
+        }
         Column(
             modifier =
                 Modifier
@@ -203,3 +221,4 @@ private fun settingGroupColor(): Color =
 private val SettingGroupShape = RoundedCornerShape(20.dp)
 private val SettingRowPaddingHorizontal = 16.dp
 private val SettingDividerThickness = 0.5.dp
+private val SettingLeadingSize = 40.dp

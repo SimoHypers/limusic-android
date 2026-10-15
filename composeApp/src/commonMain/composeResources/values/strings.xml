@@ -997,4 +997,16 @@
     <string name="log_stack_trace_lines">Stack trace · %1$s lines</string>
     <string name="log_hide_stack_trace">Hide stack trace</string>
     <string name="log_export_failed">Could not export the log</string>
+    <string name="settings_general">General</string>
+    <string name="settings_general_hint">Language, region, proxy</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_hint">Theme, colour, player style</string>
+    <string name="settings_playback_hint">Quality, equalizer, crossfade</string>
+    <string name="settings_lyrics_hint">Style, romanization, offset</string>
+    <string name="settings_integrations">Integrations</string>
+    <string name="settings_integrations_hint">Discord, Last.fm</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_data_hint">Downloads, cache, history, backup</string>
+    <string name="settings_downloads">Downloads</string>
+    <string name="settings_about_hint">Version, credits, app log</string>
 </resources>
