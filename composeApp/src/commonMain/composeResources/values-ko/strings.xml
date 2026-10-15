@@ -283,7 +283,6 @@
     <string name="favorite_podcasts">즐겨 찾는 팟캐스트</string>
     <string name="no_favorite_podcasts">즐겨 찾는 팟캐스트 없음</string>
     <string name="your_youtube_cookie">내 YouTube 쿠키</string>
-    <string name="your_discord_token">내 Discord 토큰</string>
     <string name="can_not_be_empty">비워둘 수 없습니다</string>
     <string name="processing">처리 중</string>
     <string name="download_this_song_video_file_to_your_device">이 음악/동영상 파일을 기기로 다운로드</string>

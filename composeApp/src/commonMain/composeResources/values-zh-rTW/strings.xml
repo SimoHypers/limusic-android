@@ -329,7 +329,6 @@
     <string name="favorite_podcasts">我的最愛 Podcast</string>
     <string name="no_favorite_podcasts">沒有收藏的 Podcast</string>
     <string name="your_youtube_cookie">您的 YouTube Cookie</string>
-    <string name="your_discord_token">你的 Discord token</string>
     <string name="can_not_be_empty">不能為空</string>
     <string name="processing">處理中</string>
     <string name="download_this_song_video_file_to_your_device">下載此歌曲/影片檔案到您的裝置</string>

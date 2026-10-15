@@ -328,7 +328,6 @@
     <string name="favorite_podcasts">Podcast preferiti</string>
     <string name="no_favorite_podcasts">Nessun podcast preferito</string>
     <string name="your_youtube_cookie">Il tuo cookie di YouTube</string>
-    <string name="your_discord_token">Il tuo token di Discord</string>
     <string name="can_not_be_empty">Il campo non può essere vuoto</string>
     <string name="processing">In elaborazione</string>
     <string name="download_this_song_video_file_to_your_device">Scarica questa canzone/file video sul tuo dispositivo</string>

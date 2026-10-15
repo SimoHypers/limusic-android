@@ -46,7 +46,7 @@ include(
     ":cast-empty",
     ":lastfm",
     ":lastfm-empty",
-    ":kizzy",
+    ":discord",
     ":listenTogether",
 )
 
@@ -60,7 +60,7 @@ project(":ktorExt").projectDir = File(serviceDir, "ktorExt")
 project(":autoEqService").projectDir = File(serviceDir, "autoEqService")
 project(":lyricsService").projectDir = File(serviceDir, "lyricsService")
 project(":kotlinYtmusicScraper").projectDir = File(serviceDir, "kotlinYtmusicScraper")
-project(":kizzy").projectDir = File(serviceDir, "kizzy")
+project(":discord").projectDir = File(serviceDir, "discord")
 project(":listenTogether").projectDir = File(serviceDir, "listenTogether")
 
 // media modules

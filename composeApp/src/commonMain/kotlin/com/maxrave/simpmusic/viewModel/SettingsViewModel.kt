@@ -465,7 +465,7 @@ class SettingsViewModel(
 
     fun logOutDiscord() {
         viewModelScope.launch {
-            dataStoreManager.setDiscordToken("")
+            dataStoreManager.setDiscordTokens("", "", 0)
             // Turn Rich Presence off on logout: without a token it can't run, and leaving the flag on
             // would both strand the user (the toggle greys out when logged out) and let the player keep
             // a dead RPC alive (issue #2157). The existing richPresenceEnabled collector refreshes the UI.

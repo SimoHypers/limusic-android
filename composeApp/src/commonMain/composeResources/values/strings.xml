@@ -371,7 +371,6 @@
     <string name="favorite_podcasts">Favorite Podcasts</string>
     <string name="no_favorite_podcasts">No favorite podcasts</string>
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
-    <string name="your_discord_token">Your Discord token</string>
     <string name="can_not_be_empty">Can not be empty</string>
     <string name="processing">Processing</string>
     <string name="download_this_song_video_file_to_your_device">Download this song/video file to your device</string>
@@ -431,6 +430,7 @@
     <string name="lastfm_login_step_1">Open the Last.fm page and grant Limusic access to your account.</string>
     <string name="lastfm_login_step_2">Limusic opens again on its own once you have granted access.</string>
     <string name="lastfm_open_authorize_page">Open Last.fm</string>
+    <string name="discord_login_failed">Could not sign in to Discord. Please try again.</string>
     <string name="lastfm_login_failed">Could not log in to Last.fm. Please try again.</string>
     <string name="lastfm_paste_callback_title">Did not come back automatically?</string>
     <string name="lastfm_paste_callback_hint">Paste the link your browser was redirected to</string>

@@ -187,6 +187,14 @@ fun App(
                 navController.navigate(
                     NotificationDestination,
                 )
+            } else if (data.scheme == "limusic" && data.host == "discord-auth") {
+                // Discord's authorize page sends the user back here with ?code=&state= (or ?error=).
+                viewModel.setIntent(null)
+                viewModel.completeDiscordLogin(
+                    data.getQueryParameter("code"),
+                    data.getQueryParameter("state"),
+                    data.getQueryParameter("error_description") ?: data.getQueryParameter("error"),
+                )
             } else if (data.scheme == "wordbyword" && data.host == "lastfm-auth") {
                 // Last.fm sends the user back here after they approve access, carrying the request
                 // token: wordbyword://lastfm-auth?token=xxx. The callback is fixed on the API

@@ -392,9 +392,20 @@ interface DataStoreManager {
 
     suspend fun setExplicitContentEnabled(enabled: Boolean)
 
+    /** Discord OAuth access token; empty when signed out. */
     val discordToken: Flow<String>
 
-    suspend fun setDiscordToken(token: String)
+    val discordRefreshToken: Flow<String>
+
+    /** Epoch seconds the access token expires at. */
+    val discordTokenExpiresAt: Flow<Long>
+
+    /** Written together; empty strings sign out. */
+    suspend fun setDiscordTokens(
+        access: String,
+        refresh: String,
+        expiresAt: Long,
+    )
 
     val richPresenceEnabled: Flow<String>
 

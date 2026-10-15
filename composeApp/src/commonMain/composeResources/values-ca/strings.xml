@@ -266,7 +266,6 @@
     <string name="favorite_podcasts">Podcasts preferits</string>
     <string name="no_favorite_podcasts">No hi ha podcasts preferits</string>
     <string name="your_youtube_cookie">La seva cookie de YouTube</string>
-    <string name="your_discord_token">El teu token de Discord</string>
     <string name="can_not_be_empty">No pot estar buit</string>
     <string name="processing">Processant</string>
     <string name="download_this_song_video_file_to_your_device">Descarrega aquesta cançó/vídeo al seu dispositiu</string>

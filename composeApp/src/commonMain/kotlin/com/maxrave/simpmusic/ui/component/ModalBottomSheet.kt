@@ -267,7 +267,6 @@ import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.update_playlist
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
-import simpmusic.composeapp.generated.resources.your_discord_token
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_cookie
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
@@ -3065,11 +3064,8 @@ sealed class DevLogInType {
 
     data object YouTube : DevLogInType()
 
-    data object Discord : DevLogInType()
-
     suspend fun getTitle(): String =
         when (this) {
             is YouTube -> getString(Res.string.your_youtube_cookie)
-            is Discord -> getString(Res.string.your_discord_token)
         }
 }

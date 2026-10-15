@@ -50,7 +50,7 @@ kotlin {
                 implementation(projects.autoEqService)
                 implementation(projects.lyricsService)
                 implementation(projects.kotlinYtmusicScraper)
-                implementation(projects.kizzy)
+                implementation(projects.discord)
                 implementation(projects.listenTogether)
 
                 // Last.fm (gated: real scrobbler for full builds, no-op stub for FOSS builds)

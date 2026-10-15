@@ -275,7 +275,6 @@
     <string name="favorite_podcasts">最喜爱的播客</string>
     <string name="no_favorite_podcasts">没有最喜爱的播客</string>
     <string name="your_youtube_cookie">您的 YouTube Cookie</string>
-    <string name="your_discord_token">您的 Discord 令牌</string>
     <string name="can_not_be_empty">不能为空</string>
     <string name="processing">正在处理</string>
     <string name="download_this_song_video_file_to_your_device">将此歌曲/视频文件下载到您的设备</string>

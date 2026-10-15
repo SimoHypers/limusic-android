@@ -164,6 +164,18 @@
                 <data android:scheme="simpmusic" />
             </intent-filter>
 
+            <!-- Discord OAuth redirect, registered on the Discord application. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="discord-auth"
+                    android:scheme="limusic" />
+            </intent-filter>
+
             <!-- Last.fm auth callback. The scheme is fixed by the callback URL registered on the
                  Last.fm API account, so it is not "simpmusic". -->
             <intent-filter>

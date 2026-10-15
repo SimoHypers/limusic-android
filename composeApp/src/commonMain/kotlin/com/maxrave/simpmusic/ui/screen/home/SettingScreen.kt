@@ -138,7 +138,7 @@ import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.AppLogDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsSectionDestination
-import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
+import com.maxrave.discord.DiscordOAuth
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
@@ -1548,7 +1548,7 @@ fun SettingScreen(
                                             confirmLabel = runBlocking { getString(Res.string.log_out_from_discord) },
                                         ) { viewModel.logOutDiscord() }
                                     } else {
-                                        navController.navigate(DiscordLoginDestination)
+                                        uriHandler.openUri(DiscordOAuth.authorizeUrl())
                                     }
                                 },
                             )

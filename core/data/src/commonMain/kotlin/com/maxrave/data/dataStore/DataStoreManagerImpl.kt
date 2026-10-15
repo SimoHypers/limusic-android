@@ -1086,13 +1086,29 @@ internal class DataStoreManagerImpl(
             preferences[DISCORD_TOKEN] ?: ""
         }
 
-    override suspend fun setDiscordToken(token: String) {
+    override val discordRefreshToken: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[DISCORD_REFRESH_TOKEN] ?: ""
+        }
+
+    override val discordTokenExpiresAt: Flow<Long> =
+        settingsDataStore.data.map { preferences ->
+            preferences[DISCORD_TOKEN_EXPIRES_AT] ?: 0L
+        }
+
+    override suspend fun setDiscordTokens(
+        access: String,
+        refresh: String,
+        expiresAt: Long,
+    ) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[DISCORD_TOKEN] = token
+                settings[DISCORD_TOKEN] = access
+                settings[DISCORD_REFRESH_TOKEN] = refresh
+                settings[DISCORD_TOKEN_EXPIRES_AT] = expiresAt
             }
         }
-        Logger.i("Auth", if (token.isEmpty()) "Discord: token cleared" else "Discord: token saved")
+        Logger.i("Auth", if (access.isEmpty()) "Discord: token cleared" else "Discord: token saved")
     }
 
     override val richPresenceEnabled: Flow<String> =
@@ -1283,6 +1299,8 @@ internal class DataStoreManagerImpl(
         val EXPLICIT_CONTENT_ENABLED = stringPreferencesKey("explicit_content_enabled")
 
         val DISCORD_TOKEN = stringPreferencesKey("discord_token")
+        val DISCORD_REFRESH_TOKEN = stringPreferencesKey("discord_refresh_token")
+        val DISCORD_TOKEN_EXPIRES_AT = longPreferencesKey("discord_token_expires_at")
         val RICH_PRESENCE = stringPreferencesKey("rich_presence")
 
         val LASTFM_SESSION_KEY = stringPreferencesKey("lastfm_session_key")

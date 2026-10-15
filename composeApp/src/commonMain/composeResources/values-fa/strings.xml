@@ -264,7 +264,6 @@
     <string name="favorite_podcasts">پادکست‌های مورد علاقه</string>
     <string name="no_favorite_podcasts">پادکست مورد علاقه‌ای وجود ندارد</string>
     <string name="your_youtube_cookie">کوکی یوتیوب شما</string>
-    <string name="your_discord_token">توکن دیسکورد شما</string>
     <string name="can_not_be_empty">نمی تواند خالی باشد</string>
     <string name="processing">در حال پردازش</string>
     <string name="download_this_song_video_file_to_your_device">این فایل آهنگ/ویدیو را روی دستگاه خود دانلود کنید</string>

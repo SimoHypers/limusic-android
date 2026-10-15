@@ -28,7 +28,7 @@ kotlin {
                 implementation(libs.atomicfu)
                 // Transport. ktorExt already carries `api(ktor-client-core)` and the per-platform
                 // engine actual (OkHttp on Android/JVM, Darwin on iOS), so depending on it is what
-                // keeps the engine choice in one place — the same route kizzy's Discord gateway
+                // keeps the engine choice in one place — the same route the Discord gateway
                 // takes. Coroutines arrive transitively with ktor-client-core, which is why no
                 // module here declares them: the version catalog has no coroutines-core entry.
                 implementation(projects.ktorExt)

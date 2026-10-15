@@ -38,12 +38,6 @@ class LogInViewModel(
         }
     }
 
-    fun saveDiscordToken(token: String) {
-        viewModelScope.launch {
-            dataStoreManager.setDiscordToken(token)
-        }
-    }
-
     private val _lastfmState: MutableStateFlow<LastfmLoginState> = MutableStateFlow(LastfmLoginState.Idle)
     val lastfmState: StateFlow<LastfmLoginState> get() = _lastfmState.asStateFlow()
 

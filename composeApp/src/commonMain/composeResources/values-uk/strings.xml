@@ -332,7 +332,6 @@
     <string name="favorite_podcasts">Улюблені подкасти</string>
     <string name="no_favorite_podcasts">Немає улюблених подкастів</string>
     <string name="your_youtube_cookie">Ваш YouTube cookie</string>
-    <string name="your_discord_token">Ваш Discord токен</string>
     <string name="can_not_be_empty">Не може бути порожнім</string>
     <string name="processing">Обробка</string>
     <string name="download_this_song_video_file_to_your_device">Завантажити цю пісню/відео файл на ваш пристрій</string>

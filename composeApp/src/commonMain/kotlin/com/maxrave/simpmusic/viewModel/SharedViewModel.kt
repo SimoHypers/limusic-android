@@ -88,11 +88,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
+import com.maxrave.discord.DiscordOAuth
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.discord_login_failed
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
 import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
@@ -550,6 +552,31 @@ class SharedViewModel(
                 makeToast(getString(Res.string.login_success))
             } else {
                 makeToast(getString(Res.string.lastfm_login_failed))
+            }
+        }
+    }
+
+    /** Finishes a Discord sign-in from the `limusic://discord-auth` redirect, like the Last.fm callback above. */
+    fun completeDiscordLogin(
+        code: String?,
+        state: String?,
+        error: String?,
+    ) {
+        viewModelScope.launch {
+            // Discord refused before any code was issued (a scope the app may not ask for, a
+            // redirect it doesn't know): its own words are more use than ours.
+            if (error != null) {
+                Logger.w("Auth", "Discord: authorize refused: $error")
+                makeToast("Discord: $error")
+                return@launch
+            }
+            val tokens = code?.let { DiscordOAuth.complete(it, state) }
+            if (tokens != null) {
+                dataStoreManager.setDiscordTokens(tokens.access, tokens.refresh, tokens.expiresAt)
+                dataStoreManager.setRichPresenceEnabled(true)
+                makeToast(getString(Res.string.login_success))
+            } else {
+                makeToast(getString(Res.string.discord_login_failed))
             }
         }
     }

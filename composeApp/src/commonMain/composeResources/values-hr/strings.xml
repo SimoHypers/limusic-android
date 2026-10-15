@@ -321,7 +321,6 @@
     <string name="favorite_podcasts">Omiljeno Podcasts</string>
     <string name="no_favorite_podcasts">Ne favorite podcasts</string>
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
-    <string name="your_discord_token">Your Discord token</string>
     <string name="can_not_be_empty">Can not be empty</string>
     <string name="processing">Processing</string>
     <string name="download_this_song_video_file_to_your_device">Preuzmi this song/video file to your device</string>

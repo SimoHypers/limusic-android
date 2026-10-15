@@ -1619,6 +1619,10 @@ internal class CrossfadeExoPlayerAdapter(
         // Cancel previous load
         currentLoadJob?.cancel()
 
+        // The position poll skips PREPARING, so without this the new track would report the old
+        // one's position until its audio starts: the seek bar flashes it, and Discord's card would
+        // start the new song minutes in.
+        cachedPosition = startPositionMs
         currentLoadJob =
             coroutineScope.launch {
                 try {

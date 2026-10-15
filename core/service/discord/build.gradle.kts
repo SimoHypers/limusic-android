@@ -9,39 +9,30 @@ plugins {
 
 kotlin {
     android {
-        namespace = "com.my.kizzy"
+        namespace = "com.maxrave.discord"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                // Add KMP dependencies here
                 implementation(projects.common)
                 implementation(projects.domain)
                 implementation(projects.ktorExt)
-                implementation(libs.ktor.client.encoding)
                 implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktor.client.content.negotiation)
-                implementation(libs.ktor.serialization.kotlinx.protobuf)
-                implementation(libs.ktor.client.logging)
-
-                implementation(libs.kotlin.reflect)
-                implementation(libs.kotlin.test)
-
-                implementation(libs.common)
-
-                implementation(libs.logging)
+                implementation(libs.kotlinx.serialization.json)
                 implementation(libs.okio)
             }
         }
 
-        androidMain {
-            dependencies {}
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
         }
-
     }
 }
 
