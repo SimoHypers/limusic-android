@@ -13,6 +13,5 @@ fun configCrashlytics(applicationContext: Context, dsn: String) {
     Logger.d("Crashlytics", "NON-SENTRY start app")
 }
 
-fun pushPlayerError(error: PlayerError) {
-    Logger.e("Crashlytics", "NON-SENTRY Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
-}
+// The player already logs its error under "Player Error"; nothing is sent anywhere.
+fun pushPlayerError(error: PlayerError) = Unit

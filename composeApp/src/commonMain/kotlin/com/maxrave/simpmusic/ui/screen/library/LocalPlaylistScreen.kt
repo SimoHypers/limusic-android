@@ -348,7 +348,7 @@ fun LocalPlaylistScreen(
 
     LaunchedEffect(key1 = id) {
         if (id != uiState.id) {
-            Logger.w("PlaylistScreen", "new id: $id")
+            Logger.d("PlaylistScreen", "new id: $id")
             viewModel.setOffset(0)
             viewModel.removeListSuggestion()
             viewModel.updatePlaylistState(id, true)
@@ -907,7 +907,7 @@ fun LocalPlaylistScreen(
                                                                         Modifier
                                                                             .fillMaxSize()
                                                                             .clickable {
-                                                                                Logger.w("PlaylistScreen", "downloadState: $downloadState")
+                                                                                Logger.d("PlaylistScreen", "downloadState: $downloadState")
                                                                                 viewModel.downloadFullPlaylist()
                                                                             },
                                                                     contentAlignment = Alignment.Center,
@@ -1152,7 +1152,7 @@ fun LocalPlaylistScreen(
                                                                 Modifier
                                                                     .fillMaxSize()
                                                                     .clickable {
-                                                                        Logger.w("PlaylistScreen", "downloadState: $downloadState")
+                                                                        Logger.d("PlaylistScreen", "downloadState: $downloadState")
                                                                         viewModel.downloadFullPlaylist()
                                                                     },
                                                             contentAlignment = Alignment.Center,
@@ -1331,7 +1331,7 @@ fun LocalPlaylistScreen(
                             songEntity = item,
                             onMoreClickListener = { onItemMoreClick(it) },
                             onClickListener = {
-                                Logger.w("PlaylistScreen", "index: $index")
+                                Logger.d("PlaylistScreen", "index: $index")
                                 onPlaylistItemClick(it)
                             },
                             onAddToQueue = {
@@ -1354,7 +1354,7 @@ fun LocalPlaylistScreen(
                             songEntity = item,
                             onMoreClickListener = { onItemMoreClick(it) },
                             onClickListener = {
-                                Logger.w("PlaylistScreen", "index: $index")
+                                Logger.d("PlaylistScreen", "index: $index")
                                 onPlaylistItemClick(it)
                             },
                             onAddToQueue = {

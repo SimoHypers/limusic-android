@@ -144,11 +144,11 @@ internal class PlaylistRepositoryImpl(
                     youTube
                         .next(endpoint = WatchEndpoint(playlistId = radioId))
                         .onSuccess { next ->
-                            Logger.w("Radio", "Title: ${next.title}")
+                            Logger.d("Radio", "Title: ${next.title}")
                             val data: ArrayList<SongItem> = arrayListOf()
                             data.addAll(next.items)
                             var continuation = next.continuation
-                            Logger.w("Radio", "data: ${data.size}")
+                            Logger.d("Radio", "data: ${data.size}")
                             var count = 0
                             while (continuation != null && count < 3) {
                                 youTube
@@ -161,7 +161,7 @@ internal class PlaylistRepositoryImpl(
                                         if (data.size >= 50) {
                                             count = 3
                                         }
-                                        Logger.w("Radio", "data: ${data.size}")
+                                        Logger.d("Radio", "data: ${data.size}")
                                         count++
                                     }.onFailure {
                                         count = 3
@@ -171,7 +171,7 @@ internal class PlaylistRepositoryImpl(
                             if (originalTrack != null) {
                                 listTrackResult.add(0, originalTrack.toTrack())
                             }
-                            Logger.w("Repository", "data: ${data.size}")
+                            Logger.d("Repository", "data: ${data.size}")
                             val playlistBrowse =
                                 PlaylistBrowse(
                                     author = Author(id = "", name = "YouTube Music"),
@@ -194,7 +194,7 @@ internal class PlaylistRepositoryImpl(
                                     tracks = listTrackResult,
                                     year = now().year.toString(),
                                 )
-                            Logger.w("Repository", "playlistBrowse: $playlistBrowse")
+                            Logger.d("Repository", "playlistBrowse: $playlistBrowse")
                             emit(Resource.Success<Pair<PlaylistBrowse, String?>>(Pair(playlistBrowse, continuation)))
                         }.onFailure { exception ->
                             exception.printStackTrace()
@@ -398,7 +398,7 @@ internal class PlaylistRepositoryImpl(
                                             ?.appendContinuationItemsAction
                                             ?.continuationItems
                                             ?.apply {
-                                                Logger.w("getPlaylistData", "dataMore: ${this.size}")
+                                                Logger.d("getPlaylistData", "dataMore: ${this.size}")
                                             }?.mapNotNull {
                                                 NextPage.fromMusicResponsiveListItemRenderer(
                                                     it.musicResponsiveListItemRenderer ?: return@mapNotNull null,
@@ -592,7 +592,7 @@ internal class PlaylistRepositoryImpl(
                             ?.items
                     val listItem = mutableListOf<PlaylistsResult>()
                     if (input.isNullOrEmpty()) {
-                        Logger.w("Library", "No playlists found")
+                        Logger.d("Library", "No playlists found")
                         emit(null)
                         return@onSuccess
                     }
@@ -619,7 +619,7 @@ internal class PlaylistRepositoryImpl(
                             .nextYouTubePlaylists(continuation)
                             .onSuccess { nextData ->
                                 continuation = nextData.second
-                                Logger.w("Library", "continuation: $continuation")
+                                Logger.d("Library", "continuation: $continuation")
                                 val nextInput = nextData.first
                                 listItem.addAll(
                                     parseNextLibraryPlaylist(nextInput),
@@ -711,7 +711,7 @@ internal class PlaylistRepositoryImpl(
                             ?.items
                     val listItem = mutableListOf<PlaylistsResult>()
                     if (input.isNullOrEmpty()) {
-                        Logger.w("Mixed For You", "No playlists found")
+                        Logger.d("Mixed For You", "No playlists found")
                         emit(null)
                         return@onSuccess
                     }
@@ -738,7 +738,7 @@ internal class PlaylistRepositoryImpl(
                             .nextYouTubePlaylists(continuation)
                             .onSuccess { nextData ->
                                 continuation = nextData.second
-                                Logger.w("Mixed For You", "continuation: $continuation")
+                                Logger.d("Mixed For You", "continuation: $continuation")
                                 val nextInput = nextData.first
                                 listItem.addAll(
                                     parseNextLibraryPlaylist(nextInput),

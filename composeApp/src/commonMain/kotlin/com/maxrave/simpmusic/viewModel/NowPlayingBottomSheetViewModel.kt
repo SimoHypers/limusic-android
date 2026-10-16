@@ -21,7 +21,6 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.collectResource
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -155,7 +154,7 @@ class NowPlayingBottomSheetViewModel(
         getSongAsFlow =
             viewModelScope.launch {
                 songRepository.getSongAsFlow(videoId).collectLatest { song ->
-                    log("getSongEntityFlow: $song", LogLevel.WARN)
+                    log("getSongEntityFlow: $song")
                     if (song != null) {
                         _uiState.update { state ->
                             state.copy(

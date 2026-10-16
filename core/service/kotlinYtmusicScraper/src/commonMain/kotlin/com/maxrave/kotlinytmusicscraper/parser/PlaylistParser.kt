@@ -346,7 +346,7 @@ fun MusicShelfRenderer.Content.toSongItem(): SongItem? {
         artists =
             flexColumns
                 .apply {
-                    Logger.w(
+                    Logger.d(
                         "PlaylistParser",
                         "Artists: ${this.map {
                             it.musicResponsiveListItemFlexColumnRenderer.text
@@ -358,7 +358,7 @@ fun MusicShelfRenderer.Content.toSongItem(): SongItem? {
                 }.filter {
                     it.musicResponsiveListItemFlexColumnRenderer.isArtist()
                 }.apply {
-                    Logger.w(
+                    Logger.d(
                         "PlaylistParser",
                         "Artists after filter: ${this.map {
                             it.musicResponsiveListItemFlexColumnRenderer.text

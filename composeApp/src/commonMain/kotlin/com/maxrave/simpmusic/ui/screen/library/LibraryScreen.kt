@@ -149,7 +149,7 @@ fun LibraryScreen(
     var showAddSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(nowPlaying) {
-        Logger.w("LibraryScreen", "Check nowPlaying: $nowPlaying")
+        Logger.d("LibraryScreen", "Check nowPlaying: $nowPlaying")
         viewModel.getRecentlyAdded()
     }
 

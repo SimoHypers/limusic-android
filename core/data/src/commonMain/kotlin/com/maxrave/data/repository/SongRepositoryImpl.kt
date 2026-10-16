@@ -28,6 +28,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.logger.Logger
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -405,7 +406,7 @@ internal class SongRepositoryImpl(
                                     ?.appendContinuationItemsAction
                                     ?.continuationItems
                                     ?.apply {
-                                        Logger.w(TAG, "getContinueTrack -> dataMore: ${this.size}")
+                                        Logger.d(TAG, "getContinueTrack -> dataMore: ${this.size}")
                                     }?.mapNotNull {
                                         NextPage.fromMusicResponsiveListItemRenderer(
                                             it.musicResponsiveListItemRenderer ?: return@mapNotNull null,
@@ -420,6 +421,7 @@ internal class SongRepositoryImpl(
                                 ),
                             )
                         }.onFailure {
+                            if (it is CancellationException) throw it
                             Logger.e(TAG, "getContinueTrack -> Error: ${it.message}")
                             emit(Pair(null, null))
                         }

@@ -125,7 +125,7 @@ internal class SearchRepositoryImpl(
                         println(query)
                         val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
                         var countinueParam = result.continuation
-                        Logger.w("Podcast", "result: $result")
+                        Logger.d("Podcast", "result: $result")
                         parsePodcast(result.listPodcast).let { list ->
                             listPlaylist.addAll(list)
                         }

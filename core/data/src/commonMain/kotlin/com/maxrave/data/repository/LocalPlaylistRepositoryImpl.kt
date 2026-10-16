@@ -402,7 +402,7 @@ internal class LocalPlaylistRepositoryImpl(
                             ),
                         )
                     }
-                    if (list.isEmpty()) Logger.w(TAG, "syncLocalPlaylistToYouTubePlaylist: SetVideoIds Empty list")
+                    if (list.isEmpty()) Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: SetVideoIds Empty list")
                     localDataSource.updateLocalPlaylistYouTubePlaylistId(playlistId, ytId)
                     localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(playlistId, Synced)
                     // Carry a cover the user picked over to the new YouTube playlist. Without this
@@ -526,7 +526,7 @@ internal class LocalPlaylistRepositoryImpl(
                                 .toMutableSet()
                                 .subtract(tracks.toMutableSet())
                         val newTrackList = list.filter { newTrack.contains(it.first.id) }
-                        Logger.w(TAG, "updateListTrackSynced: newTrackList ${newTrackList.map { it.first.title }}")
+                        Logger.d(TAG, "updateListTrackSynced: newTrackList ${newTrackList.map { it.first.title }}")
                         newTrackList.forEach { new ->
                             localDataSource.insertSong(new.first.toTrack().toSongEntity())
                             Logger.i(TAG, "insertSong: ${new.first.toTrack().toSongEntity()}")
@@ -798,7 +798,7 @@ internal class LocalPlaylistRepositoryImpl(
                                             ?.appendContinuationItemsAction
                                             ?.continuationItems
                                             ?.apply {
-                                                Logger.w("getPlaylistData", "dataMore: ${this.size}")
+                                                Logger.d("getPlaylistData", "dataMore: ${this.size}")
                                             }?.mapNotNull {
                                                 NextPage.fromMusicResponsiveListItemRenderer(
                                                     it.musicResponsiveListItemRenderer ?: return@mapNotNull null,

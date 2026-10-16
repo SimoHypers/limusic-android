@@ -37,7 +37,7 @@ actual fun getDatabaseBuilder(converters: Converters) : RoomDatabase.Builder<Mus
                                 val input = cursor.getText(8)
                                 val tracks =
                                     json.decodeFromString<ArrayList<String?>?>(input)
-                                Logger.w("MIGRATION_5_6", "tracks: $tracks")
+                                Logger.d("MIGRATION_5_6", "tracks: $tracks")
                                 tracks?.mapIndexed { index, track ->
                                     if (track != null) {
                                         playlistSongMaps.add(

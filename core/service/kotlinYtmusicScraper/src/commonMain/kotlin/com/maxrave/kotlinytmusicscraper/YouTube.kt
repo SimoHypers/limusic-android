@@ -1162,14 +1162,19 @@ class YouTube {
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
-        Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
+            // A refusal is only visible here; the caller just says "No URL found". A bot check reads
+            // "Sign in to confirm you're not a bot".
+            Logger.w(TAG, "Player refused $videoId: ${tempRes.playabilityStatus.status} ${tempRes.playabilityStatus.reason}")
             return null
         } else {
             sigResponse = tempRes
         }
         val streamsList = ytMusic.getNewPipePlayer(videoId).orderByAudioTrack(preferredAudioLanguage)
-        if (streamsList.isEmpty()) return null
+        if (streamsList.isEmpty()) {
+            Logger.w(TAG, "PipePipe returned no streams for $videoId")
+            return null
+        }
 
         decodedSigResponse =
             sigResponse.copy(

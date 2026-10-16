@@ -64,7 +64,7 @@ fun MoreAlbumsScreen(
     val hazeState = rememberHazeState()
 
     LaunchedEffect(id, type) {
-        Logger.w("MoreAlbumsScreen", "id: $id, type: $type")
+        Logger.d("MoreAlbumsScreen", "id: $id, type: $type")
         if (id != null) {
             if (type != null) {
                 when (type) {

@@ -75,7 +75,7 @@ internal class CommonRepositoryImpl(
                         Logger.d("YouTube", "New cookie")
                         localDataSource.getUsedGoogleAccount()?.netscapeCookie?.let {
                             writeTextToFile(it, cookiePath)
-                            Logger.w("YouTube", "Wrote cookie to file")
+                            Logger.d("YouTube", "Wrote cookie to file")
                         }
                     }
                 }
@@ -86,7 +86,7 @@ internal class CommonRepositoryImpl(
                         Logger.d("YouTube", "New pageId")
                         localDataSource.getUsedGoogleAccount()?.netscapeCookie?.let {
                             writeTextToFile(it, cookiePath)
-                            Logger.w("YouTube", "Wrote cookie to file")
+                            Logger.d("YouTube", "Wrote cookie to file")
                         }
                     }
                 }

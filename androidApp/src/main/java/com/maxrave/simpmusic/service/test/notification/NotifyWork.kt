@@ -36,12 +36,12 @@ class NotifyWork(
 
     override suspend fun doWork(): Result =
         withContext(Dispatchers.IO) {
-            Logger.w("NotifyWork", "doWork: ")
+            Logger.d("NotifyWork", "doWork: ")
             val artistList: List<ArtistEntity> = artistRepository.getFollowedArtists().lastOrNull() ?: listOf()
             val listFollowedArtistSingleAndAlbum =
                 albumRepository.getAllFollowedArtistSingleAndAlbums().lastOrNull() ?: listOf()
-            Logger.w("NotifyWork", "doWork: $artistList")
-            Logger.w("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
+            Logger.d("NotifyWork", "doWork: $artistList")
+            Logger.d("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
             artistList.forEach { art ->
                 combine(
                     albumRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM),
@@ -96,7 +96,7 @@ class NotifyWork(
                     )
                 }
             }
-            Logger.w("NotifyWork", "doWork: $mapOfNotification")
+            Logger.d("NotifyWork", "doWork: $mapOfNotification")
             NotificationHandler.createNotificationChannel(applicationContext)
             mapOfNotification.forEach { noti ->
                 if (noti.album.isNotEmpty() || noti.single.isNotEmpty()) {

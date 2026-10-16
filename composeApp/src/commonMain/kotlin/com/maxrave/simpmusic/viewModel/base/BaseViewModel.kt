@@ -68,7 +68,7 @@ abstract class BaseViewModel :
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
-        log("ViewModel cleared", LogLevel.WARN)
+        log("ViewModel cleared")
     }
 
     init {

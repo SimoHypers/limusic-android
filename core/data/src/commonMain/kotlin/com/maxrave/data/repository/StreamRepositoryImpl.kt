@@ -72,7 +72,7 @@ internal class StreamRepositoryImpl(
                                 cpn = triple.first,
                             ),
                         )
-                        Logger.w("UpdateFormat", "Updated format for $videoId")
+                        Logger.d("UpdateFormat", "Updated format for $videoId")
                     }.onFailure { throwable ->
                         Logger.e("UpdateFormat", "Error: ${throwable.message}")
                     }
@@ -264,7 +264,7 @@ internal class StreamRepositoryImpl(
                     }
                 }.onFailure {
                     it.printStackTrace()
-                    Logger.e("Stream", "Error: ${it.message}")
+                    Logger.e("Stream", "Error for $videoId: $it")
                     emit(null)
                 }
         }.flowOn(Dispatchers.IO)
@@ -331,7 +331,7 @@ internal class StreamRepositoryImpl(
 
     override fun getFullMetadata(videoId: String): Flow<Resource<Track>> =
         flow {
-            Logger.w("getFullMetadata", "videoId: $videoId")
+            Logger.d("getFullMetadata", "videoId: $videoId")
             youTube
                 .getFullMetadata(videoId)
                 .onSuccess {

@@ -259,7 +259,7 @@ fun MiniPlayer(
                                             coroutineScope.launch {
                                                 change.consume()
                                                 offsetY.animateTo(offsetY.value + 2 * dragAmount)
-                                                Logger.w("MiniPlayer", "Dragged ${offsetY.value}")
+                                                Logger.d("MiniPlayer", "Dragged ${offsetY.value}")
                                             }
                                         }
                                     },
@@ -269,7 +269,7 @@ fun MiniPlayer(
                                         }
                                     },
                                     onDragEnd = {
-                                        Logger.w("MiniPlayer", "Drag Ended")
+                                        Logger.d("MiniPlayer", "Drag Ended")
                                         coroutineScope.launch {
                                             if (offsetY.value > 70) {
                                                 onClose()
@@ -305,11 +305,11 @@ fun MiniPlayer(
                                                 coroutineScope.launch {
                                                     change.consume()
                                                     offsetX.animateTo(offsetX.value + dragAmount * 2)
-                                                    Logger.w("MiniPlayer", "Dragged ${offsetX.value}")
+                                                    Logger.d("MiniPlayer", "Dragged ${offsetX.value}")
                                                 }
                                             },
                                             onDragCancel = {
-                                                Logger.w("MiniPlayer", "Drag Cancelled")
+                                                Logger.d("MiniPlayer", "Drag Cancelled")
                                                 coroutineScope.launch {
                                                     if (offsetX.value > 200) {
                                                         sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -320,7 +320,7 @@ fun MiniPlayer(
                                                 }
                                             },
                                             onDragEnd = {
-                                                Logger.w("MiniPlayer", "Drag Ended")
+                                                Logger.d("MiniPlayer", "Drag Ended")
                                                 coroutineScope.launch {
                                                     if (offsetX.value > 200) {
                                                         sharedViewModel.onUIEvent(UIEvent.Previous)

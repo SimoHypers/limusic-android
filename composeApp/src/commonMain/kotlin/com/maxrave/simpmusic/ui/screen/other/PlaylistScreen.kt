@@ -293,7 +293,7 @@ fun PlaylistScreen(
 
     LaunchedEffect(key1 = id) {
         if (id != uiState.data?.id) {
-            Logger.w(tag, "new id: $id")
+            Logger.d(tag, "new id: $id")
             viewModel.getData(id)
         }
     }
@@ -353,7 +353,7 @@ fun PlaylistScreen(
     Crossfade(
         targetState = uiState,
     ) { state ->
-        Logger.w(tag, "State hash: ${state.hashCode()}")
+        Logger.d(tag, "State hash: ${state.hashCode()}")
         when (state) {
             is PlaylistUIState.Success -> {
                 val data = state.data
@@ -747,7 +747,7 @@ fun PlaylistScreen(
                                                                                             Modifier
                                                                                                 .fillMaxSize()
                                                                                                 .clickable {
-                                                                                                    Logger.w(
+                                                                                                    Logger.d(
                                                                                                         "PlaylistScreen",
                                                                                                         "downloadState: $downloadState",
                                                                                                     )
@@ -960,7 +960,7 @@ fun PlaylistScreen(
                                                                                     Modifier
                                                                                         .fillMaxSize()
                                                                                         .clickable {
-                                                                                            Logger.w(
+                                                                                            Logger.d(
                                                                                                 "PlaylistScreen",
                                                                                                 "downloadState: $downloadState",
                                                                                             )
@@ -1048,7 +1048,7 @@ fun PlaylistScreen(
                                         track = item,
                                         onMoreClickListener = { onItemMoreClick(it) },
                                         onClickListener = {
-                                            Logger.w("PlaylistScreen", "index: $index")
+                                            Logger.d("PlaylistScreen", "index: $index")
                                             onPlaylistItemClick(it)
                                         },
                                         onAddToQueue = {
@@ -1069,7 +1069,7 @@ fun PlaylistScreen(
                                         track = item,
                                         onMoreClickListener = { onItemMoreClick(it) },
                                         onClickListener = {
-                                            Logger.w("PlaylistScreen", "index: $index")
+                                            Logger.d("PlaylistScreen", "index: $index")
                                             onPlaylistItemClick(it)
                                         },
                                         onAddToQueue = {

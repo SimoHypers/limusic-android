@@ -606,7 +606,7 @@ fun App(
                 }
 
                 if (sleepTimerState.isDone) {
-                    Logger.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
+                    Logger.d("MainActivity", "Sleep Timer Done: $sleepTimerState")
                     AlertDialog(
                         properties =
                             DialogProperties(

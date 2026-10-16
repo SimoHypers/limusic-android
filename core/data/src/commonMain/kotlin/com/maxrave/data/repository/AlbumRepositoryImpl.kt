@@ -124,7 +124,7 @@ internal class AlbumRepositoryImpl(
                 youTube
                     .browse(browseId = browseId, params = params)
                     .onSuccess { data ->
-                        Logger.w(TAG, "getAlbumMore -> result: $data")
+                        Logger.d(TAG, "getAlbumMore -> result: $data")
                         val items =
                             (data.items.firstOrNull()?.items ?: emptyList()).mapNotNull { item ->
                                 item as? AlbumItem

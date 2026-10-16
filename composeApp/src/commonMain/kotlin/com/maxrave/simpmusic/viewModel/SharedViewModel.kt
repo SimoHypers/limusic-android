@@ -274,8 +274,8 @@ class SharedViewModel(
                             log("Timeline job ${(it.first.total.toString() + it.second.songEntity?.videoId).hashCode()}")
                             if (timeline.total > 0 && nowPlaying.songEntity != null) {
                                 if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
-                                    Logger.w(tag, "Duration is ${timeline.total}")
-                                    Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
+                                    Logger.d(tag, "Duration is ${timeline.total}")
+                                    Logger.d(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                     getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                                 }
                                 nowPlaying.songEntity?.let { song ->
@@ -487,9 +487,9 @@ class SharedViewModel(
                 }
             val controllerJob =
                 launch {
-                    Logger.w(tag, "ControllerJob is running")
+                    Logger.d(tag, "ControllerJob is running")
                     mediaPlayerHandler.controlState.collectLatest {
-                        Logger.w(tag, "ControlState is $it")
+                        Logger.d(tag, "ControlState is $it")
                         _controllerState.value = it
                         // Propagate crossfade state to timeline so UI can react
                         _timeline.update { timeline ->
@@ -673,7 +673,7 @@ class SharedViewModel(
         videoId: String,
         duration: Int,
     ) {
-        Logger.w(tag, "Start getCanvas: $videoId $duration")
+        Logger.d(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
             if (dataStoreManager.amAnimatedArtwork.first() != TRUE) return@launch
@@ -879,7 +879,7 @@ class SharedViewModel(
                     .getSongById(track.videoId)
                     .collect { songEntity ->
                         if (songEntity != null) {
-                            Logger.w("Check like", "loadMediaItemFromTrack ${songEntity.liked}")
+                            Logger.d("Check like", "loadMediaItemFromTrack ${songEntity.liked}")
                             _liked.value = songEntity.liked
                         }
                     }
@@ -986,7 +986,7 @@ class SharedViewModel(
                 }
 
                 UIEvent.ToggleLike -> {
-                    Logger.w(tag, "ToggleLike")
+                    Logger.d(tag, "ToggleLike")
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
                 }
 
@@ -1001,7 +1001,7 @@ class SharedViewModel(
         }
 
     override fun onCleared() {
-        Logger.w("Check onCleared", "onCleared")
+        Logger.d("Check onCleared", "onCleared")
     }
 
     fun getLocation() {

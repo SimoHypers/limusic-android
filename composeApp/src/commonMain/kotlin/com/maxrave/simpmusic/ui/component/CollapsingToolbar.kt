@@ -132,7 +132,7 @@ fun CollapsingToolbarParallaxEffect(
 
     LaunchedEffect(bitmap) {
         val bm = bitmap
-        Logger.w("ArtistScreen", "Bitmap: $bm")
+        Logger.d("ArtistScreen", "Bitmap: $bm")
         if (bm != null) {
             paletteState.generate(bm)
         }
@@ -143,7 +143,7 @@ fun CollapsingToolbarParallaxEffect(
             .distinctUntilChanged()
             .collectLatest {
                 color = it.getColorFromPalette()
-                Logger.w("ArtistScreen", "Color: $color")
+                Logger.d("ArtistScreen", "Color: $color")
             }
     }
 

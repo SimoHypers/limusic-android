@@ -101,10 +101,10 @@ fun MediaPlayerView(
             object : Player.Listener {
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
                     super.onVideoSizeChanged(videoSize)
-                    Logger.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
+                    Logger.d("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
                     if (videoSize.width != 0 && videoSize.height != 0) {
                         val h = (videoSize.width.toFloat() / videoSize.height) * screenSize.hPX
-                        Logger.w("MediaPlayerView", "Calculated width: $h")
+                        Logger.d("MediaPlayerView", "Calculated width: $h")
                         widthPx = h.roundToInt()
                     }
                 }
@@ -383,7 +383,7 @@ fun MediaPlayerViewWithSubtitle(
         onDispose {
             shouldEnterPipMode = false
             player.removeListener(playerListener)
-            Logger.w("MediaPlayerView", "Disposing ExoPlayer")
+            Logger.d("MediaPlayerView", "Disposing ExoPlayer")
             if (shouldPip && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val builder = PictureInPictureParams.Builder()
 
@@ -405,7 +405,7 @@ fun MediaPlayerViewWithSubtitle(
     val presentationState = rememberPresentationState(player)
 
     LaunchedEffect(shouldEnterPipMode) {
-        Logger.w("MediaPlayerView", "shouldEnterPipMode: $shouldEnterPipMode")
+        Logger.d("MediaPlayerView", "shouldEnterPipMode: $shouldEnterPipMode")
     }
 
     if (shouldPip && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {

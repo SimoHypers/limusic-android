@@ -115,7 +115,7 @@ internal class CastHandoffManager(
         val startPositionMs = adapter.currentPosition
         val playWhenReady = adapter.isPlaying || adapter.playWhenReady
         val deviceName = currentCastDeviceName()
-        Logger.w(TAG, "Cast connected to ${deviceName ?: "unknown"} — handing off index=$startIndex pos=${startPositionMs}ms")
+        Logger.i(TAG, "Cast connected to ${deviceName ?: "unknown"} — handing off index=$startIndex pos=${startPositionMs}ms")
         adapter.setCastActive(sessionPlayer, deviceName)
         lastKnownRemotePositionMs = startPositionMs
         startPositionPolling()
@@ -125,7 +125,7 @@ internal class CastHandoffManager(
     }
 
     private fun onCastDisconnected() {
-        Logger.w(TAG, "Cast disconnected — resuming locally at ${lastKnownRemotePositionMs}ms")
+        Logger.i(TAG, "Cast disconnected — resuming locally at ${lastKnownRemotePositionMs}ms")
         stopPositionPolling()
         pushJob?.cancel()
         pushJob = null

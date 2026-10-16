@@ -122,7 +122,7 @@ internal object KuromojiDictionary {
                 if (!staging.renameTo(directory)) {
                     throw IOException("could not move the staged dictionary into $directory")
                 }
-                Logger.w(TAG, "Japanese dictionary installed into $directory")
+                Logger.i(TAG, "Japanese dictionary installed into $directory")
                 Result.success(Unit)
             } catch (cancellation: CancellationException) {
                 // Cancellation is the caller's business, never a FAILED state — but the partial

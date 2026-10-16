@@ -47,7 +47,7 @@ class MoodViewModel(
 //                _moodsMomentObject.value = values
 //            }
             homeRepository.getMoodData(params).collect { values ->
-                Logger.w("MoodViewModel", "getMood: $values")
+                Logger.d("MoodViewModel", "getMood: $values")
                 when (values) {
                     is Resource.Success -> {
                         _moodsMomentObject.value = values.data

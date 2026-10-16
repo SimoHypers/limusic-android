@@ -250,7 +250,7 @@ class LocalPlaylistViewModel(
         filterState: FilterState,
     ) {
         viewModelScope.launch {
-            Logger.w("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
+            Logger.d("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
             modifications.value = listOf()
             localPlaylistRepository
                 .getTracksPaging(
@@ -282,7 +282,7 @@ class LocalPlaylistViewModel(
                         ?.filterNotNull()
                         ?.map { it.first.videoId }
                         ?: emptyList()
-                Logger.w(tag, "applyActions: $loadState")
+                Logger.d(tag, "applyActions: $loadState")
                 if (loadState?.refresh is LoadState.NotLoading &&
                     loadState.append is LoadState.NotLoading &&
                     !list.contains(actions.item.first.videoId)
@@ -780,7 +780,7 @@ class LocalPlaylistViewModel(
                     )
                 }
                 setFilter(ev.filterState)
-                Logger.w("PlaylistScreen", "new filterState: ${ev.filterState}")
+                Logger.d("PlaylistScreen", "new filterState: ${ev.filterState}")
                 getTracksPagingState(uiState.value.id, ev.filterState)
             }
 

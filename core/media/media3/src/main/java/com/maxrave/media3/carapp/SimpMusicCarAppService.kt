@@ -78,7 +78,7 @@ internal class SimpMusicCarSession : Session() {
     }
 
     override fun onNewIntent(intent: Intent) {
-        Logger.w(TAG, "onNewIntent action=${intent.action}")
+        Logger.d(TAG, "onNewIntent action=${intent.action}")
         // System intents asking the app to surface its playback screen
         if (intent.action == ACTION_SHOW_MEDIA_PLAYBACK || intent.action == ACTION_MEDIA_SHOW_PLAYBACK_VIEW) {
             val screenManager = carContext.getCarService(ScreenManager::class.java)

@@ -67,14 +67,14 @@ internal class SimpleMediaService :
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        Logger.w("Service", "Simple Media Service Bound")
+        Logger.d("Service", "Simple Media Service Bound")
         return super.onBind(intent) ?: binder
     }
 
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
-        Logger.w("Service", "Simple Media Service Created")
+        Logger.d("Service", "Simple Media Service Created")
 
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
@@ -121,7 +121,7 @@ internal class SimpleMediaService :
         flags: Int,
         startId: Int,
     ): Int {
-        Logger.w("Service", "Simple Media Service Received Action: ${intent?.action}")
+        Logger.d("Service", "Simple Media Service Received Action: ${intent?.action}")
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -137,7 +137,7 @@ internal class SimpleMediaService :
 
     @UnstableApi
     fun release() {
-        Logger.w("Service", "Starting release process")
+        Logger.d("Service", "Starting release process")
         runBlocking {
             try {
                 // Release MediaSession (don't release player - CrossfadeExoPlayerAdapter manages it)
@@ -150,7 +150,7 @@ internal class SimpleMediaService :
                 // Release handler (contains coroutines and jobs, which also releases the adapter)
                 simpleMediaServiceHandler.release()
                 mediaSession = null
-                Logger.w("Service", "Simple Media Service Released")
+                Logger.d("Service", "Simple Media Service Released")
             } catch (e: Exception) {
                 Logger.e("Service", "Error during release")
             }
@@ -160,20 +160,20 @@ internal class SimpleMediaService :
     @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
-        Logger.w("Service", "Simple Media Service Destroyed")
+        Logger.d("Service", "Simple Media Service Destroyed")
         if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
             release()
         }
     }
 
     override fun onTrimMemory(level: Int) {
-        Logger.w("Service", "Simple Media Service Trim Memory Level: $level")
+        Logger.d("Service", "Simple Media Service Trim Memory Level: $level")
         simpleMediaServiceHandler.mayBeSaveRecentSong()
     }
 
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Logger.w("Service", "Simple Media Service Task Removed")
+        Logger.d("Service", "Simple Media Service Task Removed")
         if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
             release()
             super.onTaskRemoved(rootIntent)

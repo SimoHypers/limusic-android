@@ -224,7 +224,7 @@ object SUPPORTED_LANGUAGE {
                 },
             )
         Logger.d("Config", "getLanguageFromCode: $code")
-        Logger.w("Config", "getLanguageFromCode: ${items.getOrNull(index)}")
+        Logger.d("Config", "getLanguageFromCode: ${items.getOrNull(index)}")
         if (index == -1) {
             return "English"
         }
@@ -237,7 +237,7 @@ object SUPPORTED_LANGUAGE {
         if (index == -1) {
             return "en-US"
         }
-        Logger.w("Config", "getCodeFromLanguage: ${codes.getOrNull(index)}")
+        Logger.d("Config", "getCodeFromLanguage: ${codes.getOrNull(index)}")
         return (codes.getOrNull(index) ?: "en-US")
     }
 }

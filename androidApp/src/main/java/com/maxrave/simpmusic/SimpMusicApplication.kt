@@ -112,7 +112,7 @@ class SimpMusicApplication :
     override fun onTerminate() {
         super.onTerminate()
 
-        Logger.w("Terminate", "Checking")
+        Logger.d("Terminate", "Checking")
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

@@ -7,6 +7,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -71,22 +72,29 @@ internal object LastfmClient {
     private suspend fun call(
         params: Map<String, String>,
         secret: String,
-    ): JsonObject? =
-        runCatching {
-            val signed = params + ("api_sig" to sign(params, secret)) + ("format" to "json")
-            val body =
-                client
-                    .submitForm(
+    ): JsonObject? {
+        val method = params["method"]
+        val (status, body) =
+            runCatching {
+                val signed = params + ("api_sig" to sign(params, secret)) + ("format" to "json")
+                val response =
+                    client.submitForm(
                         url = ENDPOINT,
                         formParameters =
                             Parameters.build {
                                 signed.forEach { (key, value) -> append(key, value) }
                             },
-                    ).bodyAsText()
-            json.parseToJsonElement(body).jsonObject
-        }.onFailure {
-            Logger.e(TAG, "Request failed: ${it.message}")
-        }.getOrNull()
+                    )
+                response.status.value to response.bodyAsText()
+            }.onFailure {
+                if (it is CancellationException) throw it
+                Logger.e(TAG, "$method: request failed: ${it.message}")
+            }.getOrNull() ?: return null
+        return runCatching { json.parseToJsonElement(body).jsonObject }
+            .onFailure {
+                Logger.e(TAG, "$method: HTTP $status, unreadable body: ${body.take(200)}")
+            }.getOrNull()
+    }
 
     /** Reads a field that Last.fm may send as either a JSON string or a JSON number. */
     private fun JsonObject.intOrNull(key: String): Int? = this[key]?.jsonPrimitive?.content?.toIntOrNull()
@@ -164,7 +172,7 @@ internal object LastfmClient {
                 track.albumArtist?.takeIf { it.isNotBlank() }?.let { put("albumArtist", it) }
                 track.durationSeconds?.takeIf { it > 0 }?.let { put("duration", it.toString()) }
             }
-        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "Network error")
+        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "No usable response")
         response.asErrorOrNull()?.let { return it }
         val nowPlaying = response["nowplaying"]?.jsonObject ?: return LastfmOutcome.Ok
         return nowPlaying.ignoredOrNull() ?: LastfmOutcome.Ok
@@ -200,7 +208,7 @@ internal object LastfmClient {
                 track.durationSeconds?.takeIf { it > 0 }?.let { put("duration[0]", it.toString()) }
                 put("chosenByUser[0]", "1")
             }
-        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "Network error")
+        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "No usable response")
         response.asErrorOrNull()?.let { return it }
 
         val scrobbles = response["scrobbles"]?.jsonObject ?: return LastfmOutcome.Ok
@@ -258,7 +266,7 @@ internal object LastfmClient {
                 "artist" to artist,
                 "track" to track,
             )
-        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "Network error")
+        val response = call(params, secret) ?: return LastfmOutcome.Error(-1, "No usable response")
         return response.asErrorOrNull() ?: LastfmOutcome.Ok
     }
 }

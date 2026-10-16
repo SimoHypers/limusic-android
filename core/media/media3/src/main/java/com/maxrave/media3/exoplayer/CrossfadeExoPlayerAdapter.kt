@@ -486,7 +486,7 @@ internal class CrossfadeExoPlayerAdapter(
         if (remotePlayer != null) {
             if (castRemotePlayer === remotePlayer) return
             castRemotePlayer = remotePlayer
-            Logger.w(TAG, "Cast session active on ${deviceName ?: "unknown device"} — local playback suspended")
+            Logger.i(TAG, "Cast session active on ${deviceName ?: "unknown device"} — local playback suspended")
             coroutineScope.launch {
                 // Kill anything that makes local noise or wastes battery while remote.
                 crossfadeJob?.cancel()
@@ -508,7 +508,7 @@ internal class CrossfadeExoPlayerAdapter(
         } else {
             if (castRemotePlayer == null) return
             castRemotePlayer = null
-            Logger.w(TAG, "Cast session ended — back to local playback")
+            Logger.i(TAG, "Cast session ended — back to local playback")
             listeners.forEach { it.onCastStateChanged(GenericCastState.NOT_CASTING) }
         }
     }
@@ -658,7 +658,7 @@ internal class CrossfadeExoPlayerAdapter(
                 }
 
                 else -> {
-                    Logger.w(TAG, "Play: Called in invalid state: $internalState")
+                    Logger.d(TAG, "Play: Called in invalid state: $internalState")
                 }
             }
         }
@@ -702,7 +702,7 @@ internal class CrossfadeExoPlayerAdapter(
                     }
 
                     else -> {
-                        Logger.w(TAG, "Pause: Called in invalid state: $internalState")
+                        Logger.d(TAG, "Pause: Called in invalid state: $internalState")
                     }
                 }
             } finally {
@@ -1407,7 +1407,7 @@ internal class CrossfadeExoPlayerAdapter(
     override var volume: Float
         get() = internalVolume
         set(value) {
-            Logger.w(TAG, "Setting volume to $value")
+            Logger.d(TAG, "Setting volume to $value")
             internalVolume = value.coerceIn(0f, 1f)
             castRemotePlayer?.volume = internalVolume
             currentPlayer?.volume = internalVolume
@@ -1848,7 +1848,7 @@ internal class CrossfadeExoPlayerAdapter(
                     // again builds an HLS source instead — see LiveStreamDetectedException. Not a
                     // retry, and not counted as one: it is a different source, not the same one again.
                     if (error.isLiveStreamDetected() && currentVideoId != null) {
-                        Logger.w(TAG, "$currentVideoId is a live stream; loading it again as HLS")
+                        Logger.i(TAG, "$currentVideoId is a live stream; loading it again as HLS")
                         coroutineScope.launch {
                             precachedPlayers.remove(currentVideoId)?.player?.release()
                             loadAndPlayTrackInternal(localCurrentMediaItemIndex, 0L, shouldPlay = true)

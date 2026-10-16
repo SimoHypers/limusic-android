@@ -86,7 +86,7 @@ internal class SimpleMediaSessionCallback(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
     ): MediaSession.ConnectionResult {
-        Logger.w(TAG, "onConnect: ${controller.packageName}")
+        Logger.d(TAG, "onConnect: ${controller.packageName}")
         val sessionCommands =
             MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS
                 .buildUpon()
@@ -114,7 +114,7 @@ internal class SimpleMediaSessionCallback(
         controller: MediaSession.ControllerInfo,
         playerCommand: Int,
     ): Int {
-        Logger.w(TAG, "Player Command $playerCommand")
+        Logger.d(TAG, "Player Command $playerCommand")
         scope.launch {
             when (playerCommand) {
                 COMMAND_SEEK_TO_NEXT -> {
@@ -213,7 +213,7 @@ internal class SimpleMediaSessionCallback(
         controller: MediaSession.ControllerInfo,
         isForPlayback: Boolean,
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-        Logger.w(TAG, "onPlaybackResumption: ${controller.packageName}, isForPlayback=$isForPlayback")
+        Logger.d(TAG, "onPlaybackResumption: ${controller.packageName}, isForPlayback=$isForPlayback")
         if (isForPlayback) resumeSavedQueue()
         return Futures.immediateFuture(
             MediaSession.MediaItemsWithStartPosition(emptyList(), C.INDEX_UNSET, C.TIME_UNSET),
@@ -223,7 +223,7 @@ internal class SimpleMediaSessionCallback(
     private fun resumeSavedQueue() {
         scope.launch {
             if (!mediaPlayerHandler.restoreQueueAndPlay()) {
-                Logger.w(TAG, "onPlaybackResumption: nothing to resume")
+                Logger.d(TAG, "onPlaybackResumption: nothing to resume")
             }
         }
     }
@@ -732,7 +732,7 @@ internal class SimpleMediaSessionCallback(
                         val playlistId = path.getOrNull(3) ?: return@future defaultResult
                         Logger.d(TAG, "onSetMediaItems playlistId: $playlistId")
                         val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
-                        Logger.w(TAG, "onSetMediaItems playlistEntity: $playlistEntity")
+                        Logger.d(TAG, "onSetMediaItems playlistEntity: $playlistEntity")
                         val tracks = playlistEntity?.tracks
                         if (tracks.isNullOrEmpty()) {
                             defaultResult

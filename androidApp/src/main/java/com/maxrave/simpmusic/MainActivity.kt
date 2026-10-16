@@ -66,12 +66,12 @@ class MainActivity : AppCompatActivity() {
             ) {
 //                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
                 setServiceActivitySession(this@MainActivity, MainActivity::class.java, service)
-                Logger.w("MainActivity", "onServiceConnected: ")
+                Logger.d("MainActivity", "onServiceConnected: ")
                 mBound = true
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                Logger.w("MainActivity", "onServiceDisconnected: ")
+                Logger.d("MainActivity", "onServiceDisconnected: ")
                 mBound = false
             }
         }
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         val shouldStopMusicService = viewModel.shouldStopMusicService()
-        Logger.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+        Logger.d("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
 
         // Always unbind service if it was bound to prevent MusicBinder leak
         if (shouldStopMusicService && shouldUnbind && isFinishing) {

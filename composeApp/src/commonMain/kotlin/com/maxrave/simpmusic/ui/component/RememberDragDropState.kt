@@ -145,7 +145,7 @@ class DragDropState internal constructor(
     fun onDragInterrupted(end: Boolean = false) {
         currentSwapFromTo?.let { (from, to) ->
             if (from != to && from >= 0 && to >= 0 && end) {
-                Logger.w("QueueBottomSheet", "onDragInterrupted: $from, $to")
+                Logger.d("QueueBottomSheet", "onDragInterrupted: $from, $to")
                 onSwap(from, to)
             }
             currentIndexOfDraggedItem = to
@@ -181,7 +181,7 @@ class DragDropState internal constructor(
                     .filterNot { item -> item.offsetEnd < startOffset || item.offset > endOffset || hovered.index == item.index }
                     .apply {
                         forEach { item ->
-                            Logger.w("QueueBottomSheet", "onDrag: ${item.index}")
+                            Logger.d("QueueBottomSheet", "onDrag: ${item.index}")
                         }
                     }.firstOrNull { item ->
                         val delta = (startOffset - hovered.offset)

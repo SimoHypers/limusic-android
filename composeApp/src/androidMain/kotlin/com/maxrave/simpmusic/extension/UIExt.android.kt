@@ -42,7 +42,7 @@ actual fun getScreenSizeInfo(): ScreenSizeInfo {
     return remember(configuration) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = activity?.windowManager?.currentWindowMetrics
-            Logger.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
+            Logger.d("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
             ScreenSizeInfo(
                 hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
                 wDP = with(localDensity) { (windowMetrics?.bounds?.width())?.toDp()?.value?.toInt() ?: 0 },
@@ -52,7 +52,7 @@ actual fun getScreenSizeInfo(): ScreenSizeInfo {
         } else {
             val point = Point()
             activity?.windowManager?.defaultDisplay?.getRealSize(point)
-            Logger.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
+            Logger.d("getScreenSizeInfo", "WindowMetrics: ${point.y}")
             ScreenSizeInfo(
                 hDP =
                     with(localDensity) {

@@ -2213,7 +2213,7 @@ fun SettingScreen(
                     minActiveState = Lifecycle.State.RESUMED,
                 )
                 LaunchedEffect(googleAccounts) {
-                    Logger.w(
+                    Logger.d(
                         "SettingScreen",
                         "LaunchedEffect: ${
                             googleAccounts.data?.map {

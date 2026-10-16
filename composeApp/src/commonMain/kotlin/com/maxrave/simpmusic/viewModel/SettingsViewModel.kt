@@ -1026,7 +1026,7 @@ class SettingsViewModel(
     fun changeLanguage(code: String) {
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
-            Logger.w("SettingsViewModel", "changeLanguage: $code")
+            Logger.d("SettingsViewModel", "changeLanguage: $code")
             getLanguage()
             changeLanguageNative(code)
         }

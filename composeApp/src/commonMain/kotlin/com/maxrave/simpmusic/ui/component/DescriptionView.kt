@@ -147,24 +147,24 @@ fun DescriptionView(
                             detectTapGestures { offset ->
                                 layoutResult?.let { layoutResult ->
                                     val position = layoutResult.getOffsetForPosition(offset)
-                                    Logger.w("DescriptionView", "Position: $position")
+                                    Logger.d("DescriptionView", "Position: $position")
                                     annotatedString
                                         .toAnnotatedString()
                                         .getStringAnnotations(
                                             start = position,
                                             end = position,
                                         ).firstOrNull { annotation ->
-                                            Logger.w("DescriptionView", "Annotation: ${annotation.tag}")
+                                            Logger.d("DescriptionView", "Annotation: ${annotation.tag}")
                                             annotation.tag.startsWith("CLICKABLE_USER_")
                                         }?.let { annotation ->
                                             when (annotation.tag) {
                                                 "CLICKABLE_USER_TIME" -> {
-                                                    Logger.w("DescriptionView", "Time clicked: ${annotation.item}")
+                                                    Logger.d("DescriptionView", "Time clicked: ${annotation.item}")
                                                     onTimeClicked(annotation.item)
                                                 }
 
                                                 "CLICKABLE_USER_URL" -> {
-                                                    Logger.w("DescriptionView", "URL clicked: ${annotation.item}")
+                                                    Logger.d("DescriptionView", "URL clicked: ${annotation.item}")
                                                     onURLClicked(annotation.item)
                                                 }
                                             }
