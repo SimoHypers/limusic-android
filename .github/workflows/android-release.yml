@@ -1,0 +1,148 @@
+name: Android release
+
+# Builds and signs the release APKs for a release that ALREADY EXISTS (scripts/release.sh creates
+# it), attaches them, and marks the release "Latest" unless it is a release candidate. Until the
+# APKs are attached the release stays not-Latest, so /releases/latest keeps pointing at a complete
+# one.
+#
+# DISPATCH ONLY, ON PURPOSE. Actions caches are ref-scoped: a run reads caches from its own ref and
+# the default branch. A release-triggered run executes on the tag ref, writes a cache no later run
+# can read, and pays a cold Gradle build every time. A dispatched run executes on dev, so the cache
+# is shared, while the checkout below still pins the build to the tag. Publishing a release from
+# the GitHub UI therefore builds nothing: use scripts/release.sh, or dispatch this by hand:
+#   Actions > Android release > Run workflow > tag = v0.2.0
+#
+# Requires repo secrets:
+#   SIGNING_KEYSTORE_BASE64, SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
+#   LASTFM_API_KEY, LASTFM_SECRET (optional: without them the build hides Last.fm)
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build (e.g. v0.2.0)
+        required: true
+        type: string
+      dry_run:
+        description: Build and run every check, but attach nothing to the release
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write # upload assets onto the release
+
+concurrency:
+  group: android-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  # The certificate every installed copy was signed with. Android refuses an update signed by any
+  # other key, so a build that doesn't match must never reach a release.
+  CERT_SHA256: 731e7326ea012e79a14e0df2317de14932cf0dd9b16f42ee8fb78e9e7d0906f8
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      # Actions are pinned to commit SHAs: tags are mutable, and this job holds the signing key.
+      # To bump one, read the SHA off the action's release and update the pin and comment together.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      # The tag is the contract: the APKs come from the source it points at, and the app reports
+      # version-name. A dry run may disagree, since that is how this workflow gets tested against a
+      # branch; it uploads nothing.
+      - name: Check the tag matches the app version
+        run: |
+          VERSION="$(sed -n 's/^version-name *= *"\(.*\)"/\1/p' gradle/libs.versions.toml)"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "v$VERSION" != "${{ inputs.tag }}" ]; then
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "::warning::dry run: built ref is ${{ inputs.tag }} but version-name is $VERSION"
+            else
+              echo "::error::version-name is $VERSION but the tag is ${{ inputs.tag }}. Was the bump committed before the release?"
+              exit 1
+            fi
+          fi
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+
+      - name: Write signing config and local.properties
+        env:
+          KEYSTORE: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          [ -n "$KEYSTORE" ] || { echo "::error::SIGNING_KEYSTORE_BASE64 is not set"; exit 1; }
+          echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/limusic.jks"
+          cat > "$RUNNER_TEMP/signing.properties" <<EOF
+          storeFile=$RUNNER_TEMP/limusic.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          {
+            echo "sdk.dir=$ANDROID_HOME"
+            echo "limusic.signing=$RUNNER_TEMP/signing.properties"
+            echo "LASTFM_API_KEY=$LASTFM_API_KEY"
+            echo "LASTFM_SECRET=$LASTFM_SECRET"
+          } > local.properties
+          [ -n "$LASTFM_API_KEY" ] || echo "::warning::LASTFM_API_KEY is not set, this build hides Last.fm"
+
+      # Heap caps: private-repo runners have ~7 GB, and an uncapped Gradle + Kotlin daemon pair
+      # gets killed.
+      - name: Build release APKs
+        run: >
+          ./gradlew --no-daemon
+          -Dorg.gradle.jvmargs="-Xmx4g -XX:+UseParallelGC -Dfile.encoding=UTF-8"
+          -Pkotlin.daemon.jvmargs=-Xmx2g
+          :androidApp:assembleRelease
+
+      - name: Check the signing certificate and rename
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          mkdir out
+          for abi in arm64-v8a armeabi-v7a x86_64 universal; do
+            apk="androidApp/build/outputs/apk/release/androidApp-$abi-release.apk"
+            [ -f "$apk" ] || { echo "::error::missing $apk"; exit 1; }
+            cert="$("$APKSIGNER" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)"
+            [ "$cert" = "$CERT_SHA256" ] || { echo "::error::$apk is signed with $cert, not the Limusic key"; exit 1; }
+            cp "$apk" "out/limusic-$VERSION-$abi.apk"
+          done
+          ls -l out
+
+      - name: Attach to the release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          for i in 1 2 3; do
+            gh release upload "$TAG" out/*.apk --clobber --repo "$GITHUB_REPOSITORY" && break
+            [ "$i" = 3 ] && exit 1
+            sleep 20
+          done
+          if [[ "$VERSION" == *-* ]]; then
+            echo "release candidate: stays a prerelease, not Latest"
+          else
+            gh release edit "$TAG" --latest --repo "$GITHUB_REPOSITORY"
+          fi
+
+      - name: Keep the APKs on a dry run
+        if: ${{ inputs.dry_run }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: limusic-apks
+          path: out/*.apk
+          retention-days: 3

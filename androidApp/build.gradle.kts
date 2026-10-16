@@ -13,6 +13,18 @@ val limusicSigning: Properties? =
         ?.takeIf { it.exists() }
         ?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
 
+// version-name in libs.versions.toml is the only version. The code follows from it, so an RC always
+// ranks below its release and Android never sees a downgrade: 1.2.3 -> 1020399, 1.2.3-rc.4 -> 1020304.
+// Ceiling: minor and patch below 100, rc below 99.
+fun versionCodeOf(name: String): Int {
+    val m =
+        Regex("""(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?""").matchEntire(name)
+            ?: error("version-name must be X.Y.Z or X.Y.Z-rc.N, got $name")
+    val (major, minor, patch, rc) = m.destructured
+    require(minor.toInt() < 100 && patch.toInt() < 100 && (rc.toIntOrNull() ?: 0) < 99) { "version-name $name is past the versionCode ceiling" }
+    return major.toInt() * 1_000_000 + minor.toInt() * 10_000 + patch.toInt() * 100 + (rc.toIntOrNull() ?: 99)
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -28,13 +40,10 @@ android {
         applicationId = "com.limusic.android"
         minSdk = 26
         targetSdk = 36
-        versionCode =
-            libs.versions.version.code
-                .get()
-                .toInt()
         versionName =
             libs.versions.version.name
                 .get()
+        versionCode = versionCodeOf(versionName!!)
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
 

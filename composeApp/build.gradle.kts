@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -156,12 +155,7 @@ buildkonfig {
         val versionName =
             libs.versions.version.name
                 .get()
-        val versionCode =
-            libs.versions.version.code
-                .get()
-                .toInt()
         buildConfigField(STRING, "versionName", versionName)
-        buildConfigField(INT, "versionCode", "$versionCode")
         // No crash reporting in this app; kept so configCrashlytics keeps its signature.
         buildConfigField(STRING, "sentryDsn", "")
 
