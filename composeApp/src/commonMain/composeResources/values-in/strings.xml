@@ -15,9 +15,7 @@
     <string name="favorite">Favorit</string>
     <string name="followed">Diikuti</string>
     <string name="most_played">Paling Sering Diputar</string>
-    <string name="favorite_playlists">Daftar Favorit</string>
     <string name="no_favorite_playlists">Tidak ada Daftar Favorit</string>
-    <string name="downloaded_playlists">Daftar Diunduh</string>
     <string name="no_playlists_downloaded">Tidak ada Daftar Diunduh</string>
     <string name="your_playlists">Daftar Putar Lokal anda</string>
     <string name="no_playlists_added">Tidak ada Daftar Putar yang di tambahkan</string>
@@ -140,7 +138,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Unggah riwayat yang didengarkan Anda ke server YouTube Music, ini akan membuat sistem rekomendasi YT Music menjadi lebih baik. Hanya berfungsi jika masuk</string>
     <string name="send_back_listening_data_to_google">Kirim kembali data pendengaran ke Google</string>
     <string name="your_youtube_playlists">Daftar Playlist Anda</string>
-    <string name="no_YouTube_playlists">Tidak ada Playlist YouTube</string>
     <string name="added_local_playlist">Tambahkan ke lokal playlist</string>
     <string name="sync">Menyinkronkan ke YouTube Music</string>
     <string name="synced">Disinkronisasi dengan YouTube Music</string>
@@ -160,8 +157,6 @@
     <string name="invalid_language_code">Kode bahasa tidak valid</string>
     <string name="limit_player_cache">Batasi Cache Pemutar</string>
     <string name="unlimited">Tanpa Batas</string>
-    <string name="third_party_libraries">Pustaka pihak ketiga</string>
-    <string name="description_and_licenses">Deskripsi dan lisensi</string>
     <string name="author">Penulis</string>
     <string name="other_app">Aplikasi lainnya</string>
     <string name="database">Database app</string>

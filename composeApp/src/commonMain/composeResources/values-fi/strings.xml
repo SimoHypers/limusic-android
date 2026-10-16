@@ -15,9 +15,7 @@
     <string name="favorite">Suosikki</string>
     <string name="followed">Seuratut</string>
     <string name="most_played">Toistetuimmat</string>
-    <string name="favorite_playlists">Suosikkisoittolistat</string>
     <string name="no_favorite_playlists">Ei suosikkisoittolistoja</string>
-    <string name="downloaded_playlists">Ladatut soittolistat</string>
     <string name="no_playlists_downloaded">Ei ladattuja soittolistoja</string>
     <string name="your_playlists">Paikalliset soittolistat</string>
     <string name="no_playlists_added">Ei lisättyjä soittolistoja</string>
@@ -136,7 +134,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Lataamalla kuunteluhistoria YouTube Music -palvelimelle parannetaan YT Music -suosituksia. Toimii vain sisäänkirjautuneena</string>
     <string name="send_back_listening_data_to_google">Lähetä kuuntelutiedot Googlelle</string>
     <string name="your_youtube_playlists">YouTube-soittolistasi</string>
-    <string name="no_YouTube_playlists">Ei YouTube-soittolistoja</string>
     <string name="added_local_playlist">Lisätty paikallinen soittolista</string>
     <string name="sync">Synkronoi YouTube Musiciin</string>
     <string name="synced">Synkronoitu YouTube Musicin kanssa</string>
@@ -156,8 +153,6 @@
     <string name="invalid_language_code">Virheellinen kielikoodi</string>
     <string name="limit_player_cache">Rajoita soittimen välimuistia</string>
     <string name="unlimited">Rajoittamaton</string>
-    <string name="third_party_libraries">Kolmansien osapuolten kirjastot</string>
-    <string name="description_and_licenses">Kuvaus ja lisenssit</string>
     <string name="author">Tekijä</string>
     <string name="other_app">Muut sovellukset</string>
     <string name="database">Sovellustietokanta</string>

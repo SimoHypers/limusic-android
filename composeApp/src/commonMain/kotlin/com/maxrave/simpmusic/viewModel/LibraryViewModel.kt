@@ -83,15 +83,10 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist.asStateFlow()
 
-
-    private val _listCanvasSong: MutableStateFlow<LocalResource<List<SongEntity>>> =
-        MutableStateFlow(LocalResource.Loading())
-    val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong.asStateFlow()
-
     private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
     val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
 
-    /** Counts and newest artwork for the four Your library cards; null until the first read lands. */
+    /** Counts and newest artwork for the four All tab tiles; null until the first read lands. */
     private val _libraryOverview: MutableStateFlow<LibraryOverview?> = MutableStateFlow(null)
     val libraryOverview: StateFlow<LibraryOverview?> get() = _libraryOverview.asStateFlow()
 
@@ -230,17 +225,9 @@ class LibraryViewModel(
         }
     }
 
-    fun getCanvasSong() {
-        _listCanvasSong.value = LocalResource.Loading()
-        viewModelScope.launch {
-            songRepository.getCanvasSong(max = 5).collect { data ->
-                _listCanvasSong.value = LocalResource.Success(data)
-            }
-        }
-    }
-
+    // No reset to Loading: Library re-reads this on every visit, and a re-read must not blank the
+    // list it is about to replace.
     fun getLocalPlaylist() {
-        _yourLocalPlaylist.value = LocalResource.Loading()
         viewModelScope.launch {
             localPlaylistRepository.getAllLocalPlaylists().collect { values ->
 //                    _listLocalPlaylist.postValue(values)

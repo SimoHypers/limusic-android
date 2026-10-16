@@ -15,9 +15,7 @@
     <string name="favorite">مورد علاقه</string>
     <string name="followed">دنبال شده</string>
     <string name="most_played">بیشترین پخش شده</string>
-    <string name="favorite_playlists">پلی‌لیست های مورد علاقه</string>
     <string name="no_favorite_playlists">هیچ پلی‌لیست مورد علاقه‌ای نیست</string>
-    <string name="downloaded_playlists">پلی‌لیست های دانلود شده</string>
     <string name="no_playlists_downloaded">هیچ پلی‌لیستی دانلود نشده</string>
     <string name="your_playlists">پلی‌لیست های محلی شما</string>
     <string name="no_playlists_added">هیچ پلی‌لیستی اضافه نشده</string>
@@ -143,7 +141,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">تاریخچه شنیداری خود را به سرور یوتیوب موزیک بارگذاری کنید، این کار باعث بهبود سامانه پیشنهاد یوتیوب موزیک می‌شود. فقط در صورت ورود به سامانه کار می‌کند</string>
     <string name="send_back_listening_data_to_google">ارسال داده‌های شنیداری به گوگل</string>
     <string name="your_youtube_playlists">فهرست‌های پخش یوتیوب شما</string>
-    <string name="no_YouTube_playlists">هیچ فهرست پخشی در یوتیوب وجود ندارد</string>
     <string name="added_local_playlist">به فهرست پخش محلی افزوده شد</string>
     <string name="sync">همگام‌سازی با یوتیوب موزیک</string>
     <string name="synced">با یوتیوب موزیک همگام‌سازی شد</string>
@@ -165,8 +162,6 @@
     <string name="invalid_language_code">کد زبان نامعتبر است</string>
     <string name="limit_player_cache">محدود کردن نهان‌گاه(Cache) پخش‌کننده</string>
     <string name="unlimited">نامحدود</string>
-    <string name="third_party_libraries">کتابخانه‌های شخص ثالث</string>
-    <string name="description_and_licenses">توضیحات و مجوزها</string>
     <string name="author">نویسنده</string>
     <string name="other_app">برنامه دیگر</string>
     <string name="database">پایگاه داده برنامه</string>
@@ -260,7 +255,6 @@
     <string name="radio_not_available">نقطه پایانی رادیو در دسترس نیست</string>
     <string name="no_results_found">نتیجه ای پیدا نشد</string>
     <string name="ai">هوش مصنوعی</string>
-    <string name="favorite_podcasts">پادکست‌های مورد علاقه</string>
     <string name="no_favorite_podcasts">پادکست مورد علاقه‌ای وجود ندارد</string>
     <string name="your_youtube_cookie">کوکی یوتیوب شما</string>
     <string name="can_not_be_empty">نمی تواند خالی باشد</string>

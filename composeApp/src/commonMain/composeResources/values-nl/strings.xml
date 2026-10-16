@@ -15,9 +15,7 @@
     <string name="favorite">Favorieten</string>
     <string name="followed">Gevolgd</string>
     <string name="most_played">Meest afgespeeld</string>
-    <string name="favorite_playlists">Favoriete afspeellijsten</string>
     <string name="no_favorite_playlists">Geen favoriete afspeellijsten</string>
-    <string name="downloaded_playlists">Gedownloade afspeellijsten</string>
     <string name="no_playlists_downloaded">Geen afspeellijsten gedownload</string>
     <string name="your_playlists">Lokale afspeellijsten</string>
     <string name="no_playlists_added">Geen afspeellijsten toegevoegd</string>
@@ -130,7 +128,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube-muziekserver, het zal de aanbeveling van YT Music systeem verbeteren. Het werkt alleen als je ingelogd bent</string>
     <string name="send_back_listening_data_to_google">Stuur luistergegevens terug naar Google</string>
     <string name="your_youtube_playlists">Je YouTube-afspeellijsten</string>
-    <string name="no_YouTube_playlists">Geen YouTube-afspeellijsten</string>
     <string name="added_local_playlist">Lokale afspeellijst toegevoegd</string>
     <string name="sync">Synchroniseer met YouTube Muziek</string>
     <string name="synced">Gesynchroniseerd met YouTube Music</string>

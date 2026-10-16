@@ -1,10 +1,26 @@
 package com.maxrave.simpmusic.ui.screen.library
 
+import com.maxrave.domain.data.type.PlaylistType
+import com.maxrave.simpmusic.ui.component.LibrarySectionHeader
+import com.maxrave.simpmusic.ui.component.PlaylistShelf
+import com.maxrave.simpmusic.ui.component.RecentlyAddedList
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.GridView
+import com.maxrave.simpmusic.ui.icon.AutoAwesome
+import com.maxrave.simpmusic.ui.icon.Bookmark
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.Podcasts
+import simpmusic.composeapp.generated.resources.all
+import simpmusic.composeapp.generated.resources.playlists
+import simpmusic.composeapp.generated.resources.library_mixes
+import simpmusic.composeapp.generated.resources.library_saved
+import simpmusic.composeapp.generated.resources.library_downloads
+import simpmusic.composeapp.generated.resources.podcasts
 import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
-import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -72,9 +88,6 @@ import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.GridLibraryPlaylist
-import com.maxrave.simpmusic.ui.component.LibraryItem
-import com.maxrave.simpmusic.ui.component.LibraryItemState
-import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
@@ -97,21 +110,14 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.create
-import simpmusic.composeapp.generated.resources.downloaded_playlists
-import simpmusic.composeapp.generated.resources.favorite_playlists
-import simpmusic.composeapp.generated.resources.favorite_podcasts
 import simpmusic.composeapp.generated.resources.library
-import simpmusic.composeapp.generated.resources.mix_for_you
-import simpmusic.composeapp.generated.resources.no_YouTube_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
+import simpmusic.composeapp.generated.resources.no_mixes_found
 import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
-import simpmusic.composeapp.generated.resources.your_library
-import simpmusic.composeapp.generated.resources.your_playlists
-import simpmusic.composeapp.generated.resources.your_youtube_playlists
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,7 +133,6 @@ fun LibraryScreen(
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
-    val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
@@ -174,27 +179,37 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(currentFilter) {
+    // Local first, then the account's: the shelf on All and the Playlists grid show both.
+    val allPlaylists: List<PlaylistType> =
+        remember(yourLocalPlaylist, youTubePlaylist, loggedIn) {
+            yourLocalPlaylist.data.orEmpty() + if (loggedIn) youTubePlaylist.data.orEmpty() else emptyList()
+        }
+    val playlistsLoading = yourLocalPlaylist is LocalResource.Loading || (loggedIn && youTubePlaylist is LocalResource.Loading)
+    val mixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
+    val loadPlaylists = { force: Boolean ->
+        viewModel.getLocalPlaylist()
+        if (loggedIn && (force || youTubePlaylist.data.isNullOrEmpty())) viewModel.getYouTubePlaylist()
+    }
+
+    LaunchedEffect(currentFilter, loggedIn) {
         when (currentFilter) {
+            // The account's playlists joined the Playlists chip. A saved choice or a link asking
+            // for the old chip lands there instead.
             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> {
-                if (youTubePlaylist.data.isNullOrEmpty()) {
-                    viewModel.getYouTubePlaylist()
-                }
+                viewModel.setCurrentScreen(LibraryChipType.LOCAL_PLAYLIST)
             }
 
-            // Mix for you opens its own page, so the filter never stays here. A persisted value from
-            // an older build is sent back to the default.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
-                viewModel.setCurrentScreen(LibraryChipType.YOUR_LIBRARY)
+                if (loggedIn && mixForYou.data.isNullOrEmpty()) viewModel.getYouTubeMixedForYou()
             }
 
             LibraryChipType.YOUR_LIBRARY -> {
-                viewModel.getCanvasSong()
                 viewModel.getRecentlyAdded()
+                loadPlaylists(false)
             }
 
             LibraryChipType.LOCAL_PLAYLIST -> {
-                viewModel.getLocalPlaylist()
+                loadPlaylists(false)
             }
 
             LibraryChipType.FAVORITE_PLAYLIST -> {
@@ -256,32 +271,20 @@ fun LibraryScreen(
                         item {
                             LibraryTilingBox(navController, libraryOverview)
                         }
-
-                        if (!listCanvasSong.data.isNullOrEmpty()) {
-                            item {
-                                LibraryItem(
-                                    state =
-                                        LibraryItemState(
-                                            type = LibraryItemType.CanvasSong,
-                                            data = listCanvasSong.data ?: emptyList(),
-                                            isLoading = listCanvasSong is LocalResource.Loading,
-                                        ),
-                                    navController = navController,
-                                )
-                            }
-                        }
-
                         item {
-                            LibraryItem(
-                                state =
-                                    LibraryItemState(
-                                        type =
-                                            LibraryItemType.RecentlyAdded(
-                                                playingVideoId = nowPlaying,
-                                            ),
-                                        data = recentlyAdded.data ?: emptyList(),
-                                        isLoading = recentlyAdded is LocalResource.Loading,
-                                    ),
+                            LibrarySectionHeader(
+                                icon = SimpIcons.QueueMusic,
+                                title = stringResource(Res.string.playlists),
+                                modifier = Modifier.padding(top = 20.dp),
+                                onMore = { viewModel.setCurrentScreen(LibraryChipType.LOCAL_PLAYLIST) },
+                            )
+                            PlaylistShelf(navController, allPlaylists, loading = playlistsLoading, onNewPlaylist = { showAddSheet = true })
+                        }
+                        item {
+                            RecentlyAddedList(
+                                data = recentlyAdded.data ?: emptyList(),
+                                playingVideoId = nowPlaying,
+                                isLoading = recentlyAdded is LocalResource.Loading,
                                 navController = navController,
                                 selectionState = selectionState,
                             )
@@ -293,34 +296,33 @@ fun LibraryScreen(
                 }
             }
 
-            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> {
+            // Nothing to draw: the effect above sends this filter on to Playlists.
+            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> Unit
+
+            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
                 GridLibraryPlaylist(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
-                    youTubePlaylist,
-                    emptyText = Res.string.no_YouTube_playlists,
+                    mixForYou,
+                    emptyText = Res.string.no_mixes_found,
                     onScrolling = onScrolling,
                 ) {
-                    viewModel.getYouTubePlaylist()
+                    viewModel.getYouTubeMixedForYou()
                 }
             }
-
-            // Nothing to draw: MixForYouScreen owns this content, and the effect above bounces the
-            // filter back to YOUR_LIBRARY the moment it lands here.
-            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> Unit
 
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
-                    yourLocalPlaylist,
+                    if (playlistsLoading) LocalResource.Loading() else LocalResource.Success(allPlaylists),
                     onScrolling = onScrolling,
                     emptyText = Res.string.no_playlists_added,
                     createNewPlaylist = {
                         showAddSheet = true
                     },
                 ) {
-                    viewModel.getLocalPlaylist()
+                    loadPlaylists(true)
                 }
             }
 
@@ -448,6 +450,9 @@ fun LibraryScreen(
             },
     ) {
         LimusicTabTopBar(title = stringResource(Res.string.library)) {
+            RippleIconButton(imageVector = SimpIcons.Add, tint = MaterialTheme.colorScheme.onBackground) {
+                showAddSheet = true
+            }
             RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
             }
@@ -483,31 +488,18 @@ fun LibraryScreen(
                     .background(Color.Transparent),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            LibraryChipType.entries.forEach { type ->
-                // Both come from the signed-in YouTube account.
-                if ((type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST || type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) && !loggedIn) {
+            LibraryChips.forEach { (type, icon, label) ->
+                // Mixes come from the signed-in YouTube account.
+                if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU && !loggedIn) {
                     return@forEach
                 }
                 Chip(
                     isAnimated = false,
                     isSelected = type == currentFilter,
-                    text =
-                        when (type) {
-                            LibraryChipType.YOUR_LIBRARY -> stringResource(Res.string.your_library)
-                            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(Res.string.your_youtube_playlists)
-                            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(Res.string.mix_for_you)
-                            LibraryChipType.LOCAL_PLAYLIST -> stringResource(Res.string.your_playlists)
-                            LibraryChipType.FAVORITE_PLAYLIST -> stringResource(Res.string.favorite_playlists)
-                            LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
-                            LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
-                        },
+                    text = stringResource(label),
+                    icon = icon,
                 ) {
-                    // Mix for you is a page of its own rather than a filter of this one.
-                    if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) {
-                        navController.navigate(MixForYouDestination)
-                    } else {
-                        viewModel.setCurrentScreen(type)
-                    }
+                    viewModel.setCurrentScreen(type)
                 }
             }
         }
@@ -561,3 +553,14 @@ fun LibraryScreen(
  * 48dp icon buttons) + 16 = 822dp — so this must follow if that row changes.
  */
 private val YOUR_LIBRARY_MAX_WIDTH = 842.dp
+
+/** The chip row, in the order it reads. */
+private val LibraryChips =
+    listOf(
+        Triple(LibraryChipType.YOUR_LIBRARY, SimpIcons.GridView, Res.string.all),
+        Triple(LibraryChipType.LOCAL_PLAYLIST, SimpIcons.QueueMusic, Res.string.playlists),
+        Triple(LibraryChipType.YOUTUBE_MIX_FOR_YOU, SimpIcons.AutoAwesome, Res.string.library_mixes),
+        Triple(LibraryChipType.FAVORITE_PLAYLIST, SimpIcons.Bookmark, Res.string.library_saved),
+        Triple(LibraryChipType.DOWNLOADED_PLAYLIST, SimpIcons.DownloadForOffline, Res.string.library_downloads),
+        Triple(LibraryChipType.FAVORITE_PODCAST, SimpIcons.Podcasts, Res.string.podcasts),
+    )

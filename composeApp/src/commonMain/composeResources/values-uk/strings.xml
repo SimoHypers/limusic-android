@@ -24,9 +24,7 @@
     <string name="favorite">Улюблене</string>
     <string name="followed">Підписки</string>
     <string name="most_played">Найчастіше програванні</string>
-    <string name="favorite_playlists">Улюблені списки</string>
     <string name="no_favorite_playlists">Немає улюблених списків</string>
-    <string name="downloaded_playlists">Завантажені списки</string>
     <string name="no_playlists_downloaded">Списки не завантажено</string>
     <string name="your_playlists">Ваші локальні списки</string>
     <string name="no_playlists_added">Списки не додані</string>
@@ -157,7 +155,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Завантажує вашу історію прослуховувань на сервер YouTube Music, вона покращить рекомендацію YT Музики. Працює тільки якщо увійти в систему</string>
     <string name="send_back_listening_data_to_google">Надсилати дані прослуховування у Google</string>
     <string name="your_youtube_playlists">Ваші YouTube плейлисти</string>
-    <string name="no_YouTube_playlists">Немає YouTube плейлистів</string>
     <string name="added_local_playlist">Додано локальний плейлист</string>
     <string name="sync">Синхронізувати з YouTube Music</string>
     <string name="synced">Синхронізовано з YouTube Music</string>
@@ -177,8 +174,6 @@
     <string name="invalid_language_code">Невірний код мови</string>
     <string name="limit_player_cache">Обмежити кеш плеєра</string>
     <string name="unlimited">Необмежено</string>
-    <string name="third_party_libraries">Сторонні бібліотеки</string>
-    <string name="description_and_licenses">Опис і ліцензії</string>
     <string name="author">Автор</string>
     <string name="other_app">Інші додатки</string>
     <string name="database">База даних застосунку</string>
@@ -328,7 +323,6 @@
     <string name="radio_not_available">Кінцева точка радіо не доступна</string>
     <string name="no_results_found">Результатів не знайдено</string>
     <string name="ai">ШІ</string>
-    <string name="favorite_podcasts">Улюблені подкасти</string>
     <string name="no_favorite_podcasts">Немає улюблених подкастів</string>
     <string name="your_youtube_cookie">Ваш YouTube cookie</string>
     <string name="can_not_be_empty">Не може бути порожнім</string>
@@ -367,7 +361,6 @@
     <string name="no_playlist_found">Локальних плейлистів не знайдено. Для початку створіть їх</string>
     <string name="list_all_cookies_of_this_page">Список усіх cookies цієї сторінки</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
-    <string name="your_library">Ваша бібліотека</string>
     <string name="play_explicit_content">Відтворювати відвертий контент</string>
     <string name="play_explicit_content_description">Ввімкнути відтворення відвертого контенту</string>
     <string name="explicit_content_blocked">Відвертий контент пропускається</string>

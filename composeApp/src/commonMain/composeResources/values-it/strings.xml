@@ -12,11 +12,6 @@
         <item quantity="one">%1$d brano</item>
         <item quantity="other">%1$d brani</item>
     </plurals>
-    <plurals name="library_artist_count">
-        <item quantity="one">%1$d artista</item>
-        <item quantity="other">%1$d artisti</item>
-    </plurals>
-    <string name="library_favorite_empty_hint">Tocca il cuore su un brano per tenerlo qui.</string>
     <string name="like">Mi piace</string>
     <string name="download">Scarica</string>
     <string name="downloaded">Scaricato/i</string>
@@ -27,9 +22,7 @@
     <string name="favorite">Preferiti</string>
     <string name="followed">Seguiti</string>
     <string name="most_played">Più ascoltati</string>
-    <string name="favorite_playlists">Playlist preferite</string>
     <string name="no_favorite_playlists">Nessuna playlist preferita</string>
-    <string name="downloaded_playlists">Playlist scaricate</string>
     <string name="no_playlists_downloaded">Nessuna playlist scaricata</string>
     <string name="your_playlists">Le tue playlist</string>
     <string name="no_playlists_added">Nessuna playlist aggiunta</string>
@@ -161,7 +154,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Carica la tua cronologia di ascolto sul server YouTube Music, migliorerà il sistema di consigli di YT Music. Funzionante solo se loggato</string>
     <string name="send_back_listening_data_to_google">Invia i dati di ascolto a Google</string>
     <string name="your_youtube_playlists">Le tue playlist di YouTube</string>
-    <string name="no_YouTube_playlists">Nessuna playlist di YouTube</string>
     <string name="added_local_playlist">Aggiunta playlist locale</string>
     <string name="sync">Sincronizza con YouTube Music</string>
     <string name="synced">Sincronizzato con YouTube Music</string>
@@ -181,8 +173,6 @@
     <string name="invalid_language_code">Codice lingua non valido</string>
     <string name="limit_player_cache">Limita la cache del lettore</string>
     <string name="unlimited">Illimitato</string>
-    <string name="third_party_libraries">Librerie di terze parti</string>
-    <string name="description_and_licenses">Descrizione e licenze</string>
     <string name="author">Autore</string>
     <string name="other_app">Altre app</string>
     <string name="database">Database delle applicazioni</string>
@@ -324,7 +314,6 @@
     <string name="radio_not_available">L'endpoint radio non è disponibile</string>
     <string name="no_results_found">Nessun risultato trovato</string>
     <string name="ai">IA</string>
-    <string name="favorite_podcasts">Podcast preferiti</string>
     <string name="no_favorite_podcasts">Nessun podcast preferito</string>
     <string name="your_youtube_cookie">Il tuo cookie di YouTube</string>
     <string name="can_not_be_empty">Il campo non può essere vuoto</string>
@@ -358,7 +347,6 @@
     <string name="no_playlist_found">Nessuna playlist locale trovata, per favore creane prima una</string>
     <string name="list_all_cookies_of_this_page">Elenca tutti i cookie di questa pagina</string>
     <string name="copied_to_clipboard">Copiato negli appunti</string>
-    <string name="your_library">La tua libreria</string>
     <string name="play_explicit_content">Riproduci contenuti espliciti</string>
     <string name="play_explicit_content_description">Abilita la riproduzione di contenuti espliciti</string>
     <string name="explicit_content_blocked">Il contenuto esplicito è saltato</string>

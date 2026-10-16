@@ -15,9 +15,7 @@
     <string name="favorite">Sevimli</string>
     <string name="followed">İzlənilir</string>
     <string name="most_played">Ən çox oynadılan</string>
-    <string name="favorite_playlists">Sevimli Səsləndirmə Siyahıları</string>
     <string name="no_favorite_playlists">Sevimli səsləndirmə siyahısı boş</string>
-    <string name="downloaded_playlists">Endirilmiş Pleylistlər</string>
     <string name="no_playlists_downloaded">Pleylist endirilməyib</string>
     <string name="your_playlists">Yerli Pleylistləriniz</string>
     <string name="no_playlists_added">Pleylist əlavə edilməyib</string>
@@ -136,7 +134,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Dinləmə tarixçənizi YouTube Music serverinə yükləyin, bu, YT Music tövsiyə sistemini yaxşılaşdıracaq. Yalnız daxil olunarsa işləyir</string>
     <string name="send_back_listening_data_to_google">Dinləmə məlumatlarını Google-a geri göndər</string>
     <string name="your_youtube_playlists">YouTube Pleylistləriniz</string>
-    <string name="no_YouTube_playlists">YouTube Pleylistləri Yoxdur</string>
     <string name="added_local_playlist">Yerli Pleylist Əlavə Edildi</string>
     <string name="sync">YouTube Music-ə uzlaşdır</string>
     <string name="synced">YouTube Music ilə uzlaşdırılıb</string>
@@ -156,8 +153,6 @@
     <string name="invalid_language_code">Yanlış dil kodu</string>
     <string name="limit_player_cache">Oynadıcı Keşkəsinə Hədd Qoy</string>
     <string name="unlimited">Məhdudiyyətsiz</string>
-    <string name="third_party_libraries">Üçüncü tərəf kitabxanaları</string>
-    <string name="description_and_licenses">Açıqlama və lisenziyalar</string>
     <string name="author">Yaradıcı</string>
     <string name="other_app">Digər tətbiq</string>
     <string name="database">Tətbiq məlumat bazası</string>

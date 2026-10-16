@@ -1,15 +1,19 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -18,6 +22,8 @@ fun Chip(
     isAnimated: Boolean = false,
     isSelected: Boolean = false,
     text: String,
+    // Shown in both states, so unlike a check mark it never changes the chip's width on a tap.
+    icon: ImageVector? = null,
     onClick: () -> Unit,
 ) {
     InfiniteBorderAnimationView(
@@ -50,11 +56,14 @@ fun Chip(
                         // matching `on` token — a hand-picked white would read on one theme and
                         // vanish on the other.
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
                     ),
                 onClick = { onClick.invoke() },
                 label = {
                     Text(text, maxLines = 1)
                 },
+                leadingIcon = icon?.let { { Icon(it, contentDescription = null, modifier = Modifier.size(18.dp)) } },
                 border =
                     FilterChipDefaults.filterChipBorder(
                         enabled = true,

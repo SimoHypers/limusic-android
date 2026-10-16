@@ -15,9 +15,7 @@
     <string name="favorite">즐겨찾기</string>
     <string name="followed">팔로우됨</string>
     <string name="most_played">가장 많이 재생한 노래</string>
-    <string name="favorite_playlists">즐겨 찾은 재생 목록</string>
     <string name="no_favorite_playlists">즐겨 찾은 재생 목록 없음</string>
-    <string name="downloaded_playlists">저장한 재생 목록</string>
     <string name="no_playlists_downloaded">저장한 재생 목록 없음</string>
     <string name="your_playlists">내 로컬 재생 목록</string>
     <string name="no_playlists_added">추가된 재생 목록 없음</string>
@@ -143,7 +141,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">청취 기록을 YouTube Music 서버에 업로드하면 YouTube Music 추천 시스템 개선에 도움이 됩니다. 로그인한 상태에서만 작동합니다</string>
     <string name="send_back_listening_data_to_google">Google로 재생 데이터 전송</string>
     <string name="your_youtube_playlists">내 YouTube 재생목록</string>
-    <string name="no_YouTube_playlists">YouTube 재생목록 없음</string>
     <string name="added_local_playlist">로컬 재생목록에 추가 완료</string>
     <string name="sync">YouTube Music에 동기화</string>
     <string name="synced">YouTube Music에 동기화 완료</string>
@@ -163,8 +160,6 @@
     <string name="invalid_language_code">잘못된 언어 코드</string>
     <string name="limit_player_cache">플레이어 캐시 제한</string>
     <string name="unlimited">무제한</string>
-    <string name="third_party_libraries">서드파티 라이브러리</string>
-    <string name="description_and_licenses">설명 및 라이선스</string>
     <string name="author">제작자</string>
     <string name="other_app">다른 앱</string>
     <string name="database">앱 데이터베이스</string>
@@ -279,7 +274,6 @@
     <string name="radio_not_available">라디오 엔드포인트 사용 불가</string>
     <string name="no_results_found">결과 없음</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">즐겨 찾는 팟캐스트</string>
     <string name="no_favorite_podcasts">즐겨 찾는 팟캐스트 없음</string>
     <string name="your_youtube_cookie">내 YouTube 쿠키</string>
     <string name="can_not_be_empty">비워둘 수 없습니다</string>
@@ -311,7 +305,6 @@
     <string name="no_playlist_found">로컬 재생목록이 없습니다. 먼저 하나 만들어 주십시오</string>
     <string name="list_all_cookies_of_this_page">이 페이지의 모든 쿠키 나열</string>
     <string name="copied_to_clipboard">클립보드에 복사 완료</string>
-    <string name="your_library">내 라이브러리</string>
     <string name="play_explicit_content">연령 제한 콘텐츠 재생</string>
     <string name="play_explicit_content_description">연령 제한 콘텐츠 재생 활성화</string>
     <string name="explicit_content_blocked">연령 제한 콘텐츠 건너뜀</string>

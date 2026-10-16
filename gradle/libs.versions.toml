@@ -37,7 +37,6 @@ easypermissions = "3.0.0"
 datastore-preferences = "1.2.1"
 paging = "3.5.2"
 customactivityoncrash = "2.4.0"
-aboutlibraries = "15.2.0" # BUG Can not upgrade version
 ktor = "3.6.0"
 brotli = "0.1.2"
 ksoup = "0.6.0"
@@ -155,8 +154,6 @@ easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref 
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
-aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
-aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 car-app-core = { group = "androidx.car.app", name = "app", version.ref = "car-app" }
 car-app-projected = { group = "androidx.car.app", name = "app-projected", version.ref = "car-app" }
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidx-media" }
@@ -264,8 +261,6 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
-aboutlibraries-multiplatform = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 room = { id = "androidx.room", version.ref = "room" }
 sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle-android" }
 

@@ -15,9 +15,7 @@
     <string name="favorite">Omiljen</string>
     <string name="followed">Pratim</string>
     <string name="most_played">Najviše poslušano</string>
-    <string name="favorite_playlists">Omiljeni popisi za reprodukciju</string>
     <string name="no_favorite_playlists">Nema omiljenih popisa za reprodukciju</string>
-    <string name="downloaded_playlists">Preuzeti popisi za reprodukciju</string>
     <string name="no_playlists_downloaded">Nema preuzetih popisa za reprodukciju</string>
     <string name="your_playlists">Vaši lokalni popisi za reprodukciju</string>
     <string name="no_playlists_added">Nema dodanih popisa za reprodukciju</string>
@@ -148,7 +146,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
     <string name="your_youtube_playlists">Your YouTube Popisi za reprodukciju</string>
-    <string name="no_YouTube_playlists">Ne YouTube Popisi za reprodukciju</string>
     <string name="added_local_playlist">Dodajed Local Popis za reprodukciju</string>
     <string name="sync">Sync to YouTube Music</string>
     <string name="synced">Synced with YouTube Music</string>
@@ -168,8 +165,6 @@
     <string name="invalid_language_code">Invalid language code</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Unlimited</string>
-    <string name="third_party_libraries">Third party libraries</string>
-    <string name="description_and_licenses">Opis and licenses</string>
     <string name="author">Author</string>
     <string name="other_app">Other app</string>
     <string name="database">App database</string>
@@ -317,7 +312,6 @@
     <string name="radio_not_available">Radio Endpoint is not available</string>
     <string name="no_results_found">Ne results found</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Omiljeno Podcasts</string>
     <string name="no_favorite_podcasts">Ne favorite podcasts</string>
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
     <string name="can_not_be_empty">Can not be empty</string>
@@ -353,7 +347,6 @@
     <string name="no_playlist_found">Ne local playlists found, please create one first</string>
     <string name="list_all_cookies_of_this_page">List all cookies of this page</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Omogući to play explicit content</string>
     <string name="explicit_content_blocked">Explicit content is skipped</string>

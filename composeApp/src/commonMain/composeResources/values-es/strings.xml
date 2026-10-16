@@ -21,9 +21,7 @@
     <string name="favorite">Favorito</string>
     <string name="followed">Seguido</string>
     <string name="most_played">Más reproducidas</string>
-    <string name="favorite_playlists">Listas de reproducción favoritas</string>
     <string name="no_favorite_playlists">No hay listas de reproducción favoritas</string>
-    <string name="downloaded_playlists">Listas de reproducción descargadas</string>
     <string name="no_playlists_downloaded">No hay listas de reproducción descargadas</string>
     <string name="your_playlists">Tus listas de reproducción locales</string>
     <string name="no_playlists_added">No hay listas de reproducción añadidas</string>
@@ -154,7 +152,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Sube tu historial de escucha al servidor de música de YouTube, mejorará el sistema de recomendaciones de YT Music. Solo funciona si inicias sesión</string>
     <string name="send_back_listening_data_to_google">Enviar métricas de reproducción a Google</string>
     <string name="your_youtube_playlists">Tus listas de reproducción de YouTube</string>
-    <string name="no_YouTube_playlists">No hay listas de YouTube</string>
     <string name="added_local_playlist">Lista de reproducción local añadida</string>
     <string name="sync">Sincronizar con YouTube Music</string>
     <string name="synced">Sincronizado con YouTube Music</string>
@@ -174,8 +171,6 @@
     <string name="invalid_language_code">Código de idioma no válido</string>
     <string name="limit_player_cache">Limitar caché del reproductor</string>
     <string name="unlimited">Ilimitado</string>
-    <string name="third_party_libraries">Bibliotecas de terceros</string>
-    <string name="description_and_licenses">Descripción y licencias</string>
     <string name="author">Autor</string>
     <string name="other_app">Otra aplicación</string>
     <string name="database">Base de datos de la aplicación</string>
@@ -324,7 +319,6 @@
     <string name="radio_not_available">El endpoint de radio no está disponible</string>
     <string name="no_results_found">No hay resultados</string>
     <string name="ai">IA</string>
-    <string name="favorite_podcasts">Podcasts favoritos</string>
     <string name="no_favorite_podcasts">No hay podcasts favoritos</string>
     <string name="your_youtube_cookie">Tu Cookie de YouTube</string>
     <string name="can_not_be_empty">No puede estar vacío</string>
@@ -360,7 +354,6 @@
     <string name="no_playlist_found">No se encontraron listas de reproducción locales, crea una primero</string>
     <string name="list_all_cookies_of_this_page">Listar todas las cookies de esta página</string>
     <string name="copied_to_clipboard">Copiado al portapapeles</string>
-    <string name="your_library">Mi biblioteca</string>
     <string name="play_explicit_content">Reproducir contenido explícito</string>
     <string name="play_explicit_content_description">Habilitar la reproducción de contenido explícito</string>
     <string name="explicit_content_blocked">Omitir contenido explícito</string>

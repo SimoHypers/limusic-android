@@ -12,11 +12,6 @@
         <item quantity="one">%1$d titre</item>
         <item quantity="other">%1$d titres</item>
     </plurals>
-    <plurals name="library_artist_count">
-        <item quantity="one">%1$d artiste</item>
-        <item quantity="other">%1$d artistes</item>
-    </plurals>
-    <string name="library_favorite_empty_hint">Appuyez sur le cœur à côté d'un titre pour le conserver ici.</string>
     <string name="like">J'aime</string>
     <string name="download">Télécharger</string>
     <string name="downloaded">Téléchargés</string>
@@ -27,9 +22,7 @@
     <string name="favorite">Favoris</string>
     <string name="followed">Suivi</string>
     <string name="most_played">Les Plus Écoutés</string>
-    <string name="favorite_playlists">Playlists Préférées</string>
     <string name="no_favorite_playlists">Aucune playlist préférée</string>
-    <string name="downloaded_playlists">Playlists Téléchargées</string>
     <string name="no_playlists_downloaded">Aucune liste de lecture téléchargée</string>
     <string name="your_playlists">Vos Playlists</string>
     <string name="no_playlists_added">Aucune playlist n'a été ajoutée</string>
@@ -161,7 +154,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Envoyez votre historique d'écoute vers le serveur de YouTube Music : cela permettra d'améliorer le système de recommandations de YouTube Music. Cette fonctionnalité ne fonctionne que si vous êtes connecté.</string>
     <string name="send_back_listening_data_to_google">Renvoyer les données d'écoute à Google</string>
     <string name="your_youtube_playlists">Vos Playlists YouTube</string>
-    <string name="no_YouTube_playlists">Aucune playlist YouTube</string>
     <string name="added_local_playlist">Ajout d'une playlist locale</string>
     <string name="sync">Synchroniser avec YouTube Music</string>
     <string name="synced">Synchronisé avec YouTube Music</string>
@@ -181,8 +173,6 @@
     <string name="invalid_language_code">Code de langue invalide</string>
     <string name="limit_player_cache">Limiter la mémoire cache du lecteur</string>
     <string name="unlimited">Illimité</string>
-    <string name="third_party_libraries">Bibliothèques tierces</string>
-    <string name="description_and_licenses">Description et licences</string>
     <string name="author">Auteur</string>
     <string name="other_app">Autre application</string>
     <string name="database">Base de données d'applications</string>
@@ -332,7 +322,6 @@
     <string name="radio_not_available">Le service Radio Endpoint n'est pas disponible</string>
     <string name="no_results_found">Aucun résultat trouvé</string>
     <string name="ai">IA</string>
-    <string name="favorite_podcasts">Podcasts Préférés</string>
     <string name="no_favorite_podcasts">Aucun podcast préféré</string>
     <string name="your_youtube_cookie">Votre cookie YouTube</string>
     <string name="can_not_be_empty">Ne peut pas être vide</string>
@@ -371,7 +360,6 @@
     <string name="no_playlist_found">Aucune playlist locale n'a été trouvée. Veuillez d'abord en créer une.</string>
     <string name="list_all_cookies_of_this_page">Afficher la liste de tous les cookies de cette page</string>
     <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
-    <string name="your_library">Votre Bibliothèque</string>
     <string name="play_explicit_content">Lire le contenu explicite</string>
     <string name="play_explicit_content_description">Activer la lecture de contenu explicite</string>
     <string name="explicit_content_blocked">Le contenu explicite est ignoré</string>

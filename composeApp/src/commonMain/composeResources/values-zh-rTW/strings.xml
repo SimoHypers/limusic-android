@@ -21,9 +21,7 @@
     <string name="favorite">我的最愛</string>
     <string name="followed">訂閱內容</string>
     <string name="most_played">最常播放</string>
-    <string name="favorite_playlists">收藏播放清單</string>
     <string name="no_favorite_playlists">無收藏播放清單</string>
-    <string name="downloaded_playlists">已下載播放清單</string>
     <string name="no_playlists_downloaded">未下載播放清單</string>
     <string name="your_playlists">裝置播放清單</string>
     <string name="no_playlists_added">沒有裝置中的播放清單</string>
@@ -154,7 +152,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">將您的收聽記錄上傳到YouTube Music伺服器，獲得更合口味的音樂推薦 (需要登入)</string>
     <string name="send_back_listening_data_to_google">將收聽資料傳回Google</string>
     <string name="your_youtube_playlists">您的YouTube播放清單</string>
-    <string name="no_YouTube_playlists">目前沒有任何YouTube播放清單</string>
     <string name="added_local_playlist">新增到裝置播放清單</string>
     <string name="sync">同步到YouTube Music</string>
     <string name="synced">已同步到YouTube Music</string>
@@ -174,8 +171,6 @@
     <string name="invalid_language_code">無效的語言代碼</string>
     <string name="limit_player_cache">限制播放器快取大小</string>
     <string name="unlimited">無限制</string>
-    <string name="third_party_libraries">第三方程式庫</string>
-    <string name="description_and_licenses">開放原始碼軟體的授權詳細資料</string>
     <string name="author">作者</string>
     <string name="other_app">其他應用程式</string>
     <string name="database">應用程式資料庫</string>
@@ -325,7 +320,6 @@
     <string name="radio_not_available">隨機播放節點無法使用</string>
     <string name="no_results_found">這裏什麽都沒有呢</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">我的最愛 Podcast</string>
     <string name="no_favorite_podcasts">沒有收藏的 Podcast</string>
     <string name="your_youtube_cookie">您的 YouTube Cookie</string>
     <string name="can_not_be_empty">不能為空</string>
@@ -364,7 +358,6 @@
     <string name="no_playlist_found">沒有本地播放清單，請先創建一個</string>
     <string name="list_all_cookies_of_this_page">列出本頁面的所有 Cookies</string>
     <string name="copied_to_clipboard">已複製至剪貼簿</string>
-    <string name="your_library">我的音樂庫</string>
     <string name="play_explicit_content">播放露骨內容</string>
     <string name="play_explicit_content_description">允許播放露骨內容</string>
     <string name="explicit_content_blocked">露骨內容已被跳過</string>

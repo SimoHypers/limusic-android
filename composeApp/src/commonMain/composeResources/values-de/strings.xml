@@ -22,9 +22,7 @@
     <string name="favorite">Favoriten</string>
     <string name="followed">Gefolgt</string>
     <string name="most_played">Meistgespielt</string>
-    <string name="favorite_playlists">Lieblings-Playlists</string>
     <string name="no_favorite_playlists">Keine Lieblings-Playlists</string>
-    <string name="downloaded_playlists">Heruntergeladene Playlists</string>
     <string name="no_playlists_downloaded">Keine Playlists heruntergeladen</string>
     <string name="your_playlists">Deine lokalen Playlists</string>
     <string name="no_playlists_added">Keine Playlists hinzugefügt</string>
@@ -155,7 +153,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Lade deinen Hörverlauf auf die YouTube Music-Server hoch. Dadurch wird das YT Music-Empfehlungssystem verbessert. Funktioniert nur, wenn du angemeldet bist</string>
     <string name="send_back_listening_data_to_google">Hördaten an Google zurücksenden</string>
     <string name="your_youtube_playlists">Deine YouTube-Playlists</string>
-    <string name="no_YouTube_playlists">Keine YouTube-Playlists</string>
     <string name="added_local_playlist">Lokale Playlist hinzugefügt</string>
     <string name="sync">Mit YouTube Music synchronisieren</string>
     <string name="synced">Mit YouTube Music synchronisiert</string>
@@ -175,8 +172,6 @@
     <string name="invalid_language_code">Ungültiger Sprachcode</string>
     <string name="limit_player_cache">Player-Cache begrenzen</string>
     <string name="unlimited">Unbegrenzt</string>
-    <string name="third_party_libraries">Bibliotheken von Drittanbietern</string>
-    <string name="description_and_licenses">Beschreibung und Lizenzen</string>
     <string name="author">Autor</string>
     <string name="other_app">Andere App</string>
     <string name="database">App-Datenbank</string>
@@ -326,7 +321,6 @@
     <string name="radio_not_available">Radio Endpunkt ist nicht verfügbar</string>
     <string name="no_results_found">Keine Ergebnisse</string>
     <string name="ai">KI</string>
-    <string name="favorite_podcasts">Lieblings-Podcasts</string>
     <string name="no_favorite_podcasts">Keine Lieblings-Podcasts</string>
     <string name="your_youtube_cookie">Dein YouTube Cookie</string>
     <string name="can_not_be_empty">Darf nicht leer sein</string>
@@ -365,7 +359,6 @@
     <string name="no_playlist_found">Keine lokalen Playlisten gefunden, bitte erstelle zuerst eine</string>
     <string name="list_all_cookies_of_this_page">Alle Cookies dieser Seite auflisten</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
-    <string name="your_library">Deine Bibliothek</string>
     <string name="play_explicit_content">Expliziten Inhalt abspielen</string>
     <string name="play_explicit_content_description">Aktivieren, um explizite Inhalte abzuspielen</string>
     <string name="explicit_content_blocked">Expliziter Inhalt blockiert</string>

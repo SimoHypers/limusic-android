@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.aboutlibraries.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.build.config)
 }
@@ -122,8 +121,6 @@ kotlin {
             implementation(libs.androidx.paging.common)
             implementation(libs.paging.compose)
 
-            implementation(libs.aboutlibraries)
-            implementation(libs.aboutlibraries.compose.m3)
 
             // Koin
             implementation(libs.koin.core)
@@ -167,26 +164,11 @@ buildkonfig {
     }
 }
 
-aboutLibraries {
-    collect.configPath = file("../config")
-    export {
-        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
-        prettyPrint = true
-        excludeFields = listOf("generated")
-    }
-    library {
-        // Enable the duplication mode, allows to merge, or link dependencies which relate
-        duplicationMode = com.mikepenz.aboutlibraries.plugin.DuplicateMode.MERGE
-        // Configure the duplication rule, to match "duplicates" with
-        duplicationRule = com.mikepenz.aboutlibraries.plugin.DuplicateRule.SIMPLE
-    }
-}
-
 // Wire BuildKonfig output as input to AGP ArtProfile prepare tasks.
 // Required by Gradle 9 strict task dependency validation. BuildKonfig 0.21.0
 // migrated to AGP 9.2.1 + Gradle 9.4.1 but doesn't auto-wire
 // generateBuildKonfig output to AGP's prepare*ArtProfile tasks.
-// Refs: moko-resources#421, AboutLibraries#936.
+// Refs: moko-resources#421.
 afterEvaluate {
     tasks
         .matching { it.name.startsWith("prepare") && it.name.endsWith("ArtProfile") }

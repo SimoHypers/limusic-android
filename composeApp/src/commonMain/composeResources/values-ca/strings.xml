@@ -15,9 +15,7 @@
     <string name="favorite">Afegir a preferits</string>
     <string name="followed">Seguits</string>
     <string name="most_played">Més reproduïdes</string>
-    <string name="favorite_playlists">Llistes preferides</string>
     <string name="no_favorite_playlists">No hi ha llistes de reproducció preferides</string>
-    <string name="downloaded_playlists">Llistes de reproducció baixades</string>
     <string name="no_playlists_downloaded">No s'ha baixat cap llista de reproducció</string>
     <string name="your_playlists">Les vostres llistes de reproducció locals</string>
     <string name="no_playlists_added">No s'han afegit llistes de reproducció</string>
@@ -143,7 +141,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Puja el seu historial de reproduccions als servidors de YouTube Music, la qual cosa millorarà el sistema de recomanacions de YT Music. Només funciona amb la sessió iniciada.</string>
     <string name="send_back_listening_data_to_google">Envia les dades de reproducció a Google</string>
     <string name="your_youtube_playlists">Les vostres llistes de reproducció de YouTube</string>
-    <string name="no_YouTube_playlists">No hi ha playlists de YouTube</string>
     <string name="added_local_playlist">Afegit a la llista de reproducció local</string>
     <string name="sync">Sincronitza amb YouTube Music</string>
     <string name="synced">Sincronitzat amb YouTube Music</string>
@@ -163,8 +160,6 @@
     <string name="invalid_language_code">Invalid language code</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Sense límit</string>
-    <string name="third_party_libraries">Llibreries de tercers</string>
-    <string name="description_and_licenses">Descripció i llicències</string>
     <string name="author">Autor</string>
     <string name="other_app">Una altre applicació</string>
     <string name="database">Base de dades d'aplicacions</string>
@@ -262,7 +257,6 @@
     <string name="radio_not_available">L'endpoint de la ràdio no està disponible</string>
     <string name="no_results_found">No s'ha trobat cap resultat</string>
     <string name="ai">IA</string>
-    <string name="favorite_podcasts">Podcasts preferits</string>
     <string name="no_favorite_podcasts">No hi ha podcasts preferits</string>
     <string name="your_youtube_cookie">La seva cookie de YouTube</string>
     <string name="can_not_be_empty">No pot estar buit</string>
@@ -293,7 +287,6 @@
     <string name="no_playlist_found">No s'han trobat llistes de reproducció locals, per favor, creï'n una primer.</string>
     <string name="list_all_cookies_of_this_page">Fes un llistat de totes les cookies d'aquesta web</string>
     <string name="copied_to_clipboard">S'ha copiat al porta-retalls</string>
-    <string name="your_library">La seva biblioteca</string>
     <string name="play_explicit_content">Reprodueix el contingut explícit</string>
     <string name="play_explicit_content_description">Activa per reproduir contingut explícit</string>
     <string name="explicit_content_blocked">El contingut explícit serà saltat</string>

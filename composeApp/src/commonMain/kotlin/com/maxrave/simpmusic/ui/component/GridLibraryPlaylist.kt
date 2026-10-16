@@ -1,10 +1,11 @@
 package com.maxrave.simpmusic.ui.component
 
+import com.maxrave.simpmusic.extension.shimmer
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.height
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -36,7 +35,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -48,20 +46,14 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.isScrollingUp
-import com.maxrave.simpmusic.ui.icon.Add
-import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
-import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.create
 import kotlin.math.roundToInt
 
 /**
@@ -124,16 +116,22 @@ internal inline fun <reified T> GridLibraryPlaylist(
                 }
             }
     }
+    // The last list that landed stays on screen while a refresh runs, so pulling to refresh never
+    // blanks the grid; skeleton tiles stand in only before anything has landed at all.
+    var last by remember { mutableStateOf<List<T>?>(null) }
+    LaunchedEffect(data) { if (data is LocalResource.Success) last = data.data }
+    val list: List<T>? = if (data is LocalResource.Success) data.data else last
+    val skeleton = list == null && data is LocalResource.Loading
     val pullToRefreshState = rememberPullToRefreshState()
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
         state = pullToRefreshState,
         onRefresh = onReload,
-        isRefreshing = data is LocalResource.Loading,
+        isRefreshing = data is LocalResource.Loading && !skeleton,
         indicator = {
             PullToRefreshDefaults.Indicator(
                 state = pullToRefreshState,
-                isRefreshing = data is LocalResource.Loading,
+                isRefreshing = data is LocalResource.Loading && !skeleton,
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
@@ -146,11 +144,9 @@ internal inline fun <reified T> GridLibraryPlaylist(
             )
         },
     ) {
-        Crossfade(targetState = data) { data ->
-            val list = (data as? LocalResource.Success)?.data ?: emptyList()
-            // A header counts as content: a tab whose list is empty but whose header is the
-            // point of the tab must not fall through to the empty text and hide it.
-            if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null || header != null) {
+        val empty = !skeleton && list.isNullOrEmpty() && createNewPlaylist == null && header == null
+        Crossfade(targetState = empty) { empty ->
+            if (!empty) {
                 LazyVerticalGrid(
                     columns = LibraryGridCells,
                     contentPadding = contentPadding,
@@ -163,112 +159,18 @@ internal inline fun <reified T> GridLibraryPlaylist(
                     }
                     if (createNewPlaylist != null) {
                         item {
-                            Box(
-                                modifier =
-                                    Modifier.clickable {
-                                        createNewPlaylist()
-                                    },
-                            ) {
-                                Column(
-                                    modifier =
-                                        Modifier
-                                            .padding(10.dp),
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .angledGradientBackground(
-                                                colors =
-                                                    listOf(
-                                                        seed,
-                                                        Color.White.copy(alpha = 0.8f),
-                                                    ),
-                                                degrees = 45f,
-                                            ),
-                                        Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(84.dp),
-                                            imageVector = SimpIcons.Add,
-                                            tint = Color.White,
-                                            contentDescription = null,
-                                        )
-                                    }
-                                    Text(
-                                        text = stringResource(Res.string.create),
-                                        style = typo().titleSmall,
-                                        // Sits on the page background, not on the tile, so it has
-                                        // to follow the theme — hard-coded white vanished in light
-                                        // theme while every other tile label stayed readable.
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        maxLines = 1,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                                .padding(top = 8.dp)
-                                                .basicMarquee(
-                                                    iterations = Int.MAX_VALUE,
-                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                ).focusable(),
-                                    )
-                                }
-                            }
+                            NewPlaylistTile(createNewPlaylist, Modifier.fillMaxWidth())
                         }
                     }
-                    items(list) { item ->
+                    if (skeleton) {
+                        items(12) { PlaylistTileSkeleton(Modifier.fillMaxWidth()) }
+                    }
+                    items(list.orEmpty()) { item ->
                         if (item !is PlaylistType) {
                             return@items
                         }
                         HomeItemContentPlaylist(
-                            onClick = {
-                                when (item) {
-
-                                    is LocalPlaylistEntity -> {
-                                        navController.navigate(
-                                            LocalPlaylistDestination(
-                                                item.id,
-                                            ),
-                                        )
-                                    }
-
-                                    is PlaylistsResult -> {
-                                        navController.navigate(
-                                            PlaylistDestination(
-                                                item.browseId,
-                                                isYourYouTubePlaylist = true,
-                                            ),
-                                        )
-                                    }
-
-                                    is AlbumEntity -> {
-                                        navController.navigate(
-                                            AlbumDestination(
-                                                item.browseId,
-                                            ),
-                                        )
-                                    }
-
-                                    is PlaylistEntity -> {
-                                        navController.navigate(
-                                            PlaylistDestination(
-                                                item.id,
-                                            ),
-                                        )
-                                    }
-
-                                    is PodcastsEntity -> {
-                                        navController.navigate(
-                                            PodcastDestination(
-                                                podcastId = item.podcastId,
-                                            ),
-                                        )
-                                    }
-
-                                }
-                            },
+                            onClick = { navController.openLibraryItem(item) },
                             data = item,
                             thumbSize = 132.dp,
                             // The cell decides the width now, so the artwork follows it instead of
@@ -281,10 +183,6 @@ internal inline fun <reified T> GridLibraryPlaylist(
                         EndOfPage()
                     }
                 }
-            } else if (data is LocalResource.Loading) {
-                CenterLoadingBox(
-                    Modifier.fillMaxSize(),
-                )
             } else {
                 Box(
                     Modifier
@@ -300,5 +198,26 @@ internal inline fun <reified T> GridLibraryPlaylist(
                 }
             }
         }
+    }
+}
+
+/** Opens whatever a Library grid or shelf holds on its own page. */
+fun NavController.openLibraryItem(item: PlaylistType) {
+    when (item) {
+        is LocalPlaylistEntity -> navigate(LocalPlaylistDestination(item.id))
+        is PlaylistsResult -> navigate(PlaylistDestination(item.browseId, isYourYouTubePlaylist = true))
+        is AlbumEntity -> navigate(AlbumDestination(item.browseId))
+        is PlaylistEntity -> navigate(PlaylistDestination(item.id))
+        is PodcastsEntity -> navigate(PodcastDestination(podcastId = item.podcastId))
+    }
+}
+
+/** A playlist tile still loading: the artwork square and a title line, padded like the real card. */
+@Composable
+internal fun PlaylistTileSkeleton(modifier: Modifier = Modifier) {
+    Column(modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)) {
+        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)).shimmer())
+        Box(Modifier.padding(top = 10.dp).fillMaxWidth(0.7f).height(14.dp).clip(RoundedCornerShape(50)).shimmer())
+        Box(Modifier.padding(top = 6.dp).fillMaxWidth(0.45f).height(11.dp).clip(RoundedCornerShape(50)).shimmer())
     }
 }

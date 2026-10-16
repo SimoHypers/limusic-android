@@ -15,9 +15,7 @@
     <string name="favorite">مفضل</string>
     <string name="followed">متابِع</string>
     <string name="most_played">الأكثر تشغيلًا</string>
-    <string name="favorite_playlists">قوائم التشغيل المفضلة</string>
     <string name="no_favorite_playlists">لا توجد قوائم تشغيل مفضلة</string>
-    <string name="downloaded_playlists">قوائم التشغيل المحمّلة</string>
     <string name="no_playlists_downloaded">لم يتم تنزيل قوائم تشغيل</string>
     <string name="your_playlists">قوائمك للتشغيل المحلية</string>
     <string name="no_playlists_added">لم يتم إضافة قوائم تشغيل</string>
@@ -139,7 +137,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">تحميل سجل الاستماع الخاص بك إلى خادم YouTube Music، سوف يجعل نظام توصية YT Music أفضل. يعمل فقط في حالة تسجيل الدخول</string>
     <string name="send_back_listening_data_to_google">إرسال بيانات الاستماع مرة أخرى إلى جوجل</string>
     <string name="your_youtube_playlists">قوائم تشغيل YouTube الخاصة بك</string>
-    <string name="no_YouTube_playlists">لا توجد قوائم تشغيل YouTube</string>
     <string name="added_local_playlist">تم إضافة قائمة تشغيل محلية</string>
     <string name="sync">مزامنة مع YouTube Music</string>
     <string name="synced">تمت المزامنة مع YouTube Music</string>
@@ -159,8 +156,6 @@
     <string name="invalid_language_code">رمز اللغة غير صحيح</string>
     <string name="limit_player_cache">الحد الأقصى لذاكرة التخزين المؤقت للمشغل</string>
     <string name="unlimited">غير محدود</string>
-    <string name="third_party_libraries">مكتبات Third party</string>
-    <string name="description_and_licenses">الوصف و التراخيص</string>
     <string name="author">المؤلف</string>
     <string name="other_app">تطبيق آخر</string>
     <string name="database">قاعدة بيانات التطبيق</string>

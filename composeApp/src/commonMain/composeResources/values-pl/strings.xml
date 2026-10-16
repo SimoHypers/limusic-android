@@ -15,9 +15,7 @@
     <string name="favorite">Ulubione</string>
     <string name="followed">Obserwowane</string>
     <string name="most_played">Najczęściej grane</string>
-    <string name="favorite_playlists">Ulubione playlisty</string>
     <string name="no_favorite_playlists">Brak ulubionych playlist</string>
-    <string name="downloaded_playlists">Pobrane playlisty</string>
     <string name="no_playlists_downloaded">Nie pobrano playlist</string>
     <string name="your_playlists">Twoje lokalne playlisty</string>
     <string name="no_playlists_added">Nie dodano playlist</string>
@@ -142,7 +140,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Prześlij historię słuchania na serwer YouTube Music, poprawi to system rekomendacji muzyki. Działa tylko wtedy, gdy zalogowany</string>
     <string name="send_back_listening_data_to_google">Wyślij dane słuchania z powrotem do Google</string>
     <string name="your_youtube_playlists">Twoje playlisty YouTube</string>
-    <string name="no_YouTube_playlists">Brak playlist YouTube</string>
     <string name="added_local_playlist">Dodano lokalną playlistę</string>
     <string name="sync">Synchronizuj z YouTube Music</string>
     <string name="synced">Zsynchronizowano z YouTube Music</string>
@@ -162,8 +159,6 @@
     <string name="invalid_language_code">Niepoprawny kod języka</string>
     <string name="limit_player_cache">Limit pamięci podręcznej odtwarzacza</string>
     <string name="unlimited">Nieograniczone</string>
-    <string name="third_party_libraries">Biblioteki zewnętrzne</string>
-    <string name="description_and_licenses">Opis i licencje</string>
     <string name="author">Autor</string>
     <string name="other_app">Inne aplikacje</string>
     <string name="database">Baza aplikacji</string>
@@ -268,7 +263,6 @@
     <string name="radio_not_available">Punkt końcowy radia nie jest dostępny</string>
     <string name="no_results_found">Nie znaleziono wyników</string>
     <string name="ai">Sztuczna Inteligencja</string>
-    <string name="favorite_podcasts">Ulubione podcasty</string>
     <string name="no_favorite_podcasts">Brak ulubionych podcastów</string>
     <string name="your_youtube_cookie">Twoje pliki cookie YouTube</string>
     <string name="can_not_be_empty">Nie może być puste</string>
@@ -294,7 +288,6 @@
     <string name="no_playlist_found">Nie znaleziono lokalnych playlist, proszę utworzyć przynajmniej jedną</string>
     <string name="list_all_cookies_of_this_page">Lista wszystkich plików cookie na tej stronie</string>
     <string name="copied_to_clipboard">Skopiowane do schowka</string>
-    <string name="your_library">Twoja biblioteka</string>
     <string name="play_explicit_content">Odtwarzaj obraźliwe treści</string>
     <string name="play_explicit_content_description">Włącz, aby móc odtwarzać wulgarne lub obraźliwe treści</string>
     <string name="explicit_content_blocked">Wulgarna treść będzie pomijana</string>

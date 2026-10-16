@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -47,7 +46,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,7 +53,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -70,7 +67,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -160,12 +156,6 @@ import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.mikepenz.aboutlibraries.entity.Library
-import com.mikepenz.aboutlibraries.ui.compose.ChipColors
-import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
-import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -173,7 +163,6 @@ import dev.chrisbanes.haze.rememberHazeState
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -230,7 +219,6 @@ import simpmusic.composeapp.generated.resources.artwork_colors
 import simpmusic.composeapp.generated.resources.artwork_colors_description
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
-import simpmusic.composeapp.generated.resources.description_and_licenses
 import simpmusic.composeapp.generated.resources.developer_option
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
@@ -364,7 +352,6 @@ import simpmusic.composeapp.generated.resources.theme_color_wallpaper
 import simpmusic.composeapp.generated.resources.theme_mode_dark
 import simpmusic.composeapp.generated.resources.theme_mode_light
 import simpmusic.composeapp.generated.resources.theme_mode_system
-import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_your_system_equalizer
@@ -521,9 +508,6 @@ fun SettingScreen(
         rememberHazeState()
 
     var showYouTubeAccountDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -2082,13 +2066,6 @@ fun SettingScreen(
                                     uriHandler.openUri("https://github.com/SimoHypers")
                                 },
                             )
-                            SettingItem(
-                                title = stringResource(Res.string.third_party_libraries),
-                                subtitle = stringResource(Res.string.description_and_licenses),
-                                onClick = {
-                                    showThirdPartyLibraries = true
-                                },
-                            )
                         }
                         SettingGroup(title = stringResource(Res.string.developer_option)) {
                             SettingItem(
@@ -2547,99 +2524,6 @@ fun SettingScreen(
                 }
             },
         )
-    }
-
-    if (showThirdPartyLibraries) {
-        val libraries by produceLibraries {
-            Res.readBytes("files/aboutlibraries.json").decodeToString()
-        }
-        val lazyListState = rememberLazyListState()
-        val canScrollBackward by remember {
-            derivedStateOf {
-                lazyListState.canScrollBackward
-            }
-        }
-        val sheetState =
-            rememberModalBottomSheetState(
-                skipPartiallyExpanded = true,
-                confirmValueChange = {
-                    !canScrollBackward
-                },
-            )
-        val coroutineScope = rememberCoroutineScope()
-        ModalBottomSheet(
-            modifier =
-                Modifier
-                    .fillMaxHeight(),
-            onDismissRequest = {
-                showThirdPartyLibraries = false
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = {},
-            scrimColor = Color.Black.copy(alpha = .5f),
-            sheetState = sheetState,
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-            shape = RectangleShape,
-        ) {
-            // Capture theme colors here: the ChipColors getters below run outside composition.
-            val surfaceContainerHighestColor = MaterialTheme.colorScheme.surfaceContainerHighest
-            val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-            LibrariesContainer(
-                libraries?.copy(
-                    libraries =
-                        libraries
-                            ?.libraries
-                            ?.distinctBy {
-                                it.name
-                            }?.toImmutableList() ?: emptyList<Library>().toImmutableList(),
-                ),
-                Modifier.fillMaxSize(),
-                lazyListState = lazyListState,
-                contentPadding = innerPadding,
-                colors =
-                    LibraryDefaults.libraryColors(
-                        licenseChipColors =
-                            object : ChipColors {
-                                override val containerColor: Color
-                                    get() = surfaceContainerHighestColor
-                                override val contentColor: Color
-                                    get() = onSurfaceColor
-                            },
-                    ),
-                header = {
-                    item {
-                        TopAppBar(
-                            windowInsets = WindowInsets(0, 0, 0, 0),
-                            title = {
-                                Text(
-                                    text =
-                                        stringResource(
-                                            Res.string.third_party_libraries,
-                                        ),
-                                    style = typo().titleMedium,
-                                )
-                            },
-                            navigationIcon = {
-                                Box(Modifier.padding(horizontal = 5.dp)) {
-                                    RippleIconButton(
-                                        SimpIcons.ArrowBackIosNew,
-                                        Modifier
-                                            .size(32.dp),
-                                        true,
-                                        tint = MaterialTheme.colorScheme.onSurface,
-                                    ) {
-                                        coroutineScope.launch {
-                                            sheetState.hide()
-                                            showThirdPartyLibraries = false
-                                        }
-                                    }
-                                }
-                            },
-                        )
-                    }
-                },
-            )
-        }
     }
 
     // The pinned copy of the toolbar, frosted: the frost waits for the Devices group to go under it,

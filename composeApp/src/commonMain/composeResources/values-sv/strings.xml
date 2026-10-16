@@ -21,9 +21,7 @@
     <string name="favorite">Favorit</string>
     <string name="followed">Följer</string>
     <string name="most_played">Mest spelade</string>
-    <string name="favorite_playlists">Favoritspellistor</string>
     <string name="no_favorite_playlists">Inga favoritspellistor</string>
-    <string name="downloaded_playlists">Hämtade spellistor</string>
     <string name="no_playlists_downloaded">Inga spellistor har hämtats</string>
     <string name="your_playlists">Dina lokala spellistor</string>
     <string name="no_playlists_added">Inga spellistor har lagts till</string>
@@ -154,7 +152,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Ladda upp din lyssningshistorik till YouTube Music-servern för att förbättra YouTube Musics rekommendationssystem. Fungerar endast när du är inloggad</string>
     <string name="send_back_listening_data_to_google">Skicka lyssningsdata till Google</string>
     <string name="your_youtube_playlists">Dina YouTube-spellistor</string>
-    <string name="no_YouTube_playlists">Inga YouTube-spellistor</string>
     <string name="added_local_playlist">Har lagts till som lokal spellista</string>
     <string name="sync">Synkronisera med YouTube Music</string>
     <string name="synced">Synkroniserad med YouTube Music</string>
@@ -174,8 +171,6 @@
     <string name="invalid_language_code">Ogiltig språkkod</string>
     <string name="limit_player_cache">Begränsa spelarens cache</string>
     <string name="unlimited">Obegränsat</string>
-    <string name="third_party_libraries">Tredjepartsbibliotek</string>
-    <string name="description_and_licenses">Beskrivning och licenser</string>
     <string name="author">Upphovsperson</string>
     <string name="other_app">Annan app</string>
     <string name="database">Appens databas</string>
@@ -325,7 +320,6 @@
     <string name="radio_not_available">Radiofunktionen är inte tillgänglig</string>
     <string name="no_results_found">Inga resultat hittades</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Favoritpoddar</string>
     <string name="no_favorite_podcasts">Inga favoritpoddar</string>
     <string name="your_youtube_cookie">Din YouTube-cookie</string>
     <string name="can_not_be_empty">Får inte vara tomt</string>
@@ -364,7 +358,6 @@
     <string name="no_playlist_found">Inga lokala spellistor hittades. Skapa en först.</string>
     <string name="list_all_cookies_of_this_page">Visa alla kakor på den här sidan</string>
     <string name="copied_to_clipboard">Kopierat till urklipp</string>
-    <string name="your_library">Ditt bibliotek</string>
     <string name="play_explicit_content">Spela upp explicit innehåll</string>
     <string name="play_explicit_content_description">Aktivera uppspelning av explicit innehåll</string>
     <string name="explicit_content_blocked">Explicit innehåll hoppas över</string>

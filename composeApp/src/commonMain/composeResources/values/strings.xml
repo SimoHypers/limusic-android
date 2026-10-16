@@ -12,14 +12,18 @@
         <item quantity="one">%1$d song</item>
         <item quantity="other">%1$d songs</item>
     </plurals>
-    <plurals name="library_artist_count">
-        <item quantity="one">%1$d artist</item>
-        <item quantity="other">%1$d artists</item>
-    </plurals>
-    <string name="library_favorite_empty_hint">Tap the heart on any song to keep it here.</string>
     <string name="like">Like</string>
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
+    <string name="library_mixes">Mixes</string>
+    <string name="library_saved">Saved</string>
+    <string name="library_downloads">Downloads</string>
+    <string name="new_playlist">New playlist</string>
+    <string name="see_all">See all</string>
+    <plurals name="library_followed_count">
+        <item quantity="one">%1$d followed</item>
+        <item quantity="other">%1$d followed</item>
+    </plurals>
     <string name="downloading">Downloading</string>
     <string name="show">Show</string>
     <string name="na_na">NA:NA</string>
@@ -27,9 +31,7 @@
     <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>
     <string name="most_played">Most Played</string>
-    <string name="favorite_playlists">Favorite Playlists</string>
     <string name="no_favorite_playlists">No favorite playlists</string>
-    <string name="downloaded_playlists">Downloaded Playlists</string>
     <string name="no_playlists_downloaded">No playlists downloaded</string>
     <string name="your_playlists">Your Local Playlists</string>
     <string name="no_playlists_added">No playlists added</string>
@@ -174,7 +176,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
-    <string name="no_YouTube_playlists">No YouTube Playlists</string>
     <string name="added_local_playlist">Added Local Playlist</string>
     <string name="sync">Sync to YouTube Music</string>
     <string name="synced">Synced with YouTube Music</string>
@@ -194,8 +195,6 @@
     <string name="invalid_language_code">Invalid language code</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Unlimited</string>
-    <string name="third_party_libraries">Third party libraries</string>
-    <string name="description_and_licenses">Description and licenses</string>
     <string name="author">Author</string>
     <string name="other_app">Other app</string>
     <string name="database">App database</string>
@@ -367,7 +366,6 @@
     <string name="radio_not_available">Radio Endpoint is not available</string>
     <string name="no_results_found">No results found</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Favorite Podcasts</string>
     <string name="no_favorite_podcasts">No favorite podcasts</string>
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
     <string name="can_not_be_empty">Can not be empty</string>
@@ -406,7 +404,6 @@
     <string name="no_playlist_found">No local playlists found, please create one first</string>
     <string name="list_all_cookies_of_this_page">List all cookies of this page</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>
     <string name="explicit_content_blocked">Explicit content is skipped</string>

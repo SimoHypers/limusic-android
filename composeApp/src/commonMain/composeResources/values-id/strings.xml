@@ -15,9 +15,7 @@
     <string name="favorite">Favorit</string>
     <string name="followed">Diikuti</string>
     <string name="most_played">Paling Sering Diputar</string>
-    <string name="favorite_playlists">Daftar putar Favorit</string>
     <string name="no_favorite_playlists">Tidak ada daftar putar favorit</string>
-    <string name="downloaded_playlists">Daftar putar Diunduh</string>
     <string name="no_playlists_downloaded">Tidak ada daftar putar diunduh</string>
     <string name="your_playlists">Daftar Putar Lokal Anda</string>
     <string name="no_playlists_added">Tidak ada daftar putar yang ditambahkan</string>
@@ -145,7 +143,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Unggah riwayat yang Anda dengarkan ke server YouTube Music, ini akan membuat sistem rekomendasi YT Music menjadi lebih baik. Hanya berfungsi jika masuk</string>
     <string name="send_back_listening_data_to_google">Kirim kembali data yang didengarkan ke Google</string>
     <string name="your_youtube_playlists">Daftar Putar YouTube Anda</string>
-    <string name="no_YouTube_playlists">Tidak ada Daftar Putar YouTube</string>
     <string name="added_local_playlist">Tambahkan ke daftar putar lokal</string>
     <string name="sync">Sinkronkan ke YouTube Music</string>
     <string name="synced">Disinkronkan dengan YouTube Music</string>
@@ -165,8 +162,6 @@
     <string name="invalid_language_code">Kode bahasa tidak sah</string>
     <string name="limit_player_cache">Batasi Tembolok Pemutar</string>
     <string name="unlimited">Tanpa Batas</string>
-    <string name="third_party_libraries">Pustaka pihak ketiga</string>
-    <string name="description_and_licenses">Deskripsi dan lisensi</string>
     <string name="author">Penulis</string>
     <string name="other_app">Aplikasi lainnya</string>
     <string name="database">Database aplikasi</string>
@@ -276,7 +271,6 @@
     <string name="radio_not_available">Endpoint radio tidak tersedia</string>
     <string name="no_results_found">Hasil tidak ditemukan</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Podcast favorit</string>
     <string name="no_favorite_podcasts">Tidak ada podcast favorit</string>
     <string name="your_youtube_cookie">Cookie YouTube Anda</string>
     <string name="can_not_be_empty">Tidak boleh kosong</string>
@@ -307,7 +301,6 @@
     <string name="no_playlist_found">Tidak ada daftar putar lokal yang ditemukan, silakan buat terlebih dahulu</string>
     <string name="list_all_cookies_of_this_page">Daftar semua cookie dari halaman ini</string>
     <string name="copied_to_clipboard">Disalin ke papan klip</string>
-    <string name="your_library">Pustaka Anda</string>
     <string name="play_explicit_content">Putar konten dewasa</string>
     <string name="play_explicit_content_description">Aktifkan untuk memutar konten dewasa</string>
     <string name="explicit_content_blocked">Konten dewasa dilewati</string>

@@ -15,9 +15,7 @@
     <string name="favorite">Favori</string>
     <string name="followed">Takip edilenler</string>
     <string name="most_played">En Çok Oynatılanlar</string>
-    <string name="favorite_playlists">Favori Oynatma Listeleri</string>
     <string name="no_favorite_playlists">Favori oynatma listesi yok</string>
-    <string name="downloaded_playlists">İndirilen Oynatma Listeleri</string>
     <string name="no_playlists_downloaded">Oynatma listesi indirilmedi</string>
     <string name="your_playlists">Yerel Oynatma Listeleriniz</string>
     <string name="no_playlists_added">Oynatma listesi eklenmedi</string>
@@ -145,7 +143,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Dinleme geçmişinizi YouTube Müzik sunucusuna yükleyin, YT Müzik öneri sistemini daha iyi hale getirecektir. Sadece giriş yapıldığında çalışır</string>
     <string name="send_back_listening_data_to_google">Dinleme verilerini Google'a geri gönder</string>
     <string name="your_youtube_playlists">YouTube Oynatma Listeleriniz</string>
-    <string name="no_YouTube_playlists">YouTube Oynatma Listesi yok</string>
     <string name="added_local_playlist">Yerel Oynatma Listesi Eklendi</string>
     <string name="sync">YouTube Music'e eşitleyin</string>
     <string name="synced">YouTube Müzik ile eşitlendi</string>
@@ -165,8 +162,6 @@
     <string name="invalid_language_code">Geçersiz dil kodu</string>
     <string name="limit_player_cache">Oynatıcı Önbelleğini Sınırla</string>
     <string name="unlimited">Sınırsız</string>
-    <string name="third_party_libraries">Üçüncü taraf kütüphaneleri</string>
-    <string name="description_and_licenses">Açıklama ve lisanslar</string>
     <string name="author">Yazar</string>
     <string name="other_app">Diğer uygulamalar</string>
     <string name="database">Uygulama veritabanı</string>
@@ -288,7 +283,6 @@
     <string name="radio_not_available">Radyo uç noktası mevcut değil</string>
     <string name="no_results_found">Hiçbir sonuç bulunamadı</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Favori Podcast'ler</string>
     <string name="no_favorite_podcasts">Favori podcast yok</string>
     <string name="your_youtube_cookie">YouTube Çereziniz</string>
     <string name="can_not_be_empty">Boş olamaz</string>
@@ -319,7 +313,6 @@
     <string name="no_playlist_found">Yerel çalma listesi bulunamadı, lütfen önce bir tane oluşturun</string>
     <string name="list_all_cookies_of_this_page">Bu sayfadaki tüm çerezleri listele</string>
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
-    <string name="your_library">Kitaplığınız</string>
     <string name="play_explicit_content">Uygunsuz içeriği oynat</string>
     <string name="play_explicit_content_description">Uygunsuz içeriği oynatmayı etkinleştir</string>
     <string name="explicit_content_blocked">Açık içerik atlandı</string>

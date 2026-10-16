@@ -11,10 +11,6 @@
     <plurals name="liked_songs_count">
         <item quantity="other">%1$d bài hát</item>
     </plurals>
-    <plurals name="library_artist_count">
-        <item quantity="other">%1$d nghệ sĩ</item>
-    </plurals>
-    <string name="library_favorite_empty_hint">Chạm vào biểu tượng trái tim trên bất kỳ bài hát nào để lưu lại tại đây.</string>
     <string name="like">Thích</string>
     <string name="download">Tải xuống</string>
     <string name="downloaded">Đã tải xuống</string>
@@ -25,9 +21,7 @@
     <string name="favorite">Yêu thích</string>
     <string name="followed">Đã theo dõi</string>
     <string name="most_played">Phát nhiều nhất</string>
-    <string name="favorite_playlists">Danh sách phát yêu thích</string>
     <string name="no_favorite_playlists">Không có danh sách phát yêu thích nào</string>
-    <string name="downloaded_playlists">Danh sách phát đã tải xuống</string>
     <string name="no_playlists_downloaded">Không có danh sách phát đã tải nào</string>
     <string name="your_playlists">Danh sách phát nội bộ của bạn</string>
     <string name="no_playlists_added">Không có danh sách phát nào được thêm</string>
@@ -159,7 +153,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Tải lên dữ liệu lịch sử phát lại tới YouTube Music, giúp hệ thống gợi ý hoạt động tốt hơn. Hoạt động khi đã đăng nhập</string>
     <string name="send_back_listening_data_to_google">Gửi dữ liệu nghe nhạc về Google</string>
     <string name="your_youtube_playlists">Danh sách phát YouTube của bạn</string>
-    <string name="no_YouTube_playlists">Không có danh sách phát YouTube nào</string>
     <string name="added_local_playlist">Đã thêm danh sách phát nội bộ</string>
     <string name="sync">Đồng bộ đến YouTube Music</string>
     <string name="synced">Đã đồng bộ với YouTube Music</string>
@@ -179,8 +172,6 @@
     <string name="invalid_language_code">Mã ngôn ngữ không hợp lệ</string>
     <string name="limit_player_cache">Giới hạn cache của trình phát nhạc</string>
     <string name="unlimited">Không giới hạn</string>
-    <string name="third_party_libraries">Thư viện bên thứ ba</string>
-    <string name="description_and_licenses">Mô tả và giấy phép</string>
     <string name="author">Tác giả</string>
     <string name="other_app">Ứng dụng khác</string>
     <string name="database">Cơ sở dữ liệu của ứng dụng</string>
@@ -330,7 +321,6 @@
     <string name="radio_not_available">Dữ liệu đài phát không khả dụng</string>
     <string name="no_results_found">Không tìm thấy kết quả</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">Podcasts yêu thích</string>
     <string name="no_favorite_podcasts">Không có podcast yêu thích nào</string>
     <string name="your_youtube_cookie">Cookie của YouTube</string>
     <string name="can_not_be_empty">Không được để trống</string>
@@ -369,7 +359,6 @@
     <string name="no_playlist_found">Không tìm thấy bất kỳ danh sách phát nội bộ nào, hãy tạo một danh sách phát trước</string>
     <string name="list_all_cookies_of_this_page">Danh sách cookie của trang này</string>
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
-    <string name="your_library">Thư viện của bạn</string>
     <string name="play_explicit_content">Phát bài hát chứa nội dung nhạy cảm</string>
     <string name="play_explicit_content_description">Bật để phát cả những bài hát nhạy cảm</string>
     <string name="explicit_content_blocked">Bài hát nhạy cảm đã bị bỏ qua</string>

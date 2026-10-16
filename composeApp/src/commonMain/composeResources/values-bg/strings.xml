@@ -15,9 +15,7 @@
     <string name="favorite">Любими</string>
     <string name="followed">Последвани</string>
     <string name="most_played">Най-слушани</string>
-    <string name="favorite_playlists">Любими плейлисти</string>
     <string name="no_favorite_playlists">Няма любими плейлисти</string>
-    <string name="downloaded_playlists">Свалени плейлисти</string>
     <string name="no_playlists_downloaded">Няма свалени плейлисти</string>
     <string name="your_playlists">Локални плейлисти</string>
     <string name="no_playlists_added">Няма добавени плейлисти</string>
@@ -142,7 +140,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Качване на историята в сървър на YouTube Music. Ще направи предложенията по-добри. Работи само ако сте вписани</string>
     <string name="send_back_listening_data_to_google">Изпращане данни на историята на Google</string>
     <string name="your_youtube_playlists">Твоите YouTube плейлисти</string>
-    <string name="no_YouTube_playlists">Без YouTube плейлисти</string>
     <string name="added_local_playlist">Добавено към локален плейлист</string>
     <string name="sync">Синхронизирай с YouTube Music</string>
     <string name="synced">Синхронизирано с YouTube Music</string>
@@ -162,8 +159,6 @@
     <string name="invalid_language_code">Невалиден код на език</string>
     <string name="limit_player_cache">Ограничи кеша на плейъра</string>
     <string name="unlimited">Неограничен</string>
-    <string name="third_party_libraries">Библиотеки на трети страни</string>
-    <string name="description_and_licenses">Описание и лицензи</string>
     <string name="author">Автор</string>
     <string name="other_app">Друго приложение</string>
     <string name="database">База данни на приложението</string>

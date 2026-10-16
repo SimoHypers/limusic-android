@@ -15,9 +15,7 @@
     <string name="favorite">מועדף</string>
     <string name="followed">עוקב</string>
     <string name="most_played">הכי מושמעים</string>
-    <string name="favorite_playlists">רשימת השמעה מועדפת</string>
     <string name="no_favorite_playlists">אין רשימות השמעה מועדפות</string>
-    <string name="downloaded_playlists">רשימות השמעה שהורדו</string>
     <string name="no_playlists_downloaded">לא הורדו רשימות השמעה</string>
     <string name="your_playlists">רשימות השמעה המקומיים שלך</string>
     <string name="no_playlists_added">לא נוספו רשימות השמעה</string>
@@ -140,7 +138,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">העלה את היסטוריית ההאזנה שלך לשרת יוטיוב מיוזיק, זה ישפר את מערכת ההמלצות של יוטיוב מיוזיק. עובד רק אם אתה מחובר</string>
     <string name="send_back_listening_data_to_google">שלח נתוני האזנה חזרה לגוגל</string>
     <string name="your_youtube_playlists">רשימות השמעה שלך ביוטיוב</string>
-    <string name="no_YouTube_playlists">אין רשימות השמעה של יוטיוב</string>
     <string name="added_local_playlist">נוסף רשימת השמעה מקומית</string>
     <string name="sync">סנכרן עם יוטיוב מיוזיק</string>
     <string name="synced">מסונכרן עם יוטיוב מיוזיק</string>
@@ -160,8 +157,6 @@
     <string name="invalid_language_code">קוד שפה לא חוקי</string>
     <string name="limit_player_cache">הגבל את מטמון הנגן</string>
     <string name="unlimited">ללא הגבלה</string>
-    <string name="third_party_libraries">ספריות צד שלישי</string>
-    <string name="description_and_licenses">תיאור ורישיונות</string>
     <string name="author">מחבר</string>
     <string name="other_app">יישום אחר</string>
     <string name="database">מסד נתונים של אפליקציה</string>

@@ -11,10 +11,6 @@
     <plurals name="liked_songs_count">
         <item quantity="other">%1$d曲</item>
     </plurals>
-    <plurals name="library_artist_count">
-        <item quantity="other">%1$d組のアーティスト</item>
-    </plurals>
-    <string name="library_favorite_empty_hint">曲のハートマークをタップすると、ここに保存されます。</string>
     <string name="like">高評価</string>
     <string name="download">ダウンロード</string>
     <string name="downloaded">ダウンロード済み</string>
@@ -25,9 +21,7 @@
     <string name="favorite">お気に入り</string>
     <string name="followed">フォロー中</string>
     <string name="most_played">最も再生した順</string>
-    <string name="favorite_playlists">お気に入りの再生リスト</string>
     <string name="no_favorite_playlists">お気に入りの再生リストなし</string>
-    <string name="downloaded_playlists">ダウンロード済みの再生リスト</string>
     <string name="no_playlists_downloaded">ダウンロード済みの再生リストなし</string>
     <string name="your_playlists">端末内の再生リスト</string>
     <string name="no_playlists_added">再生リストなし</string>
@@ -159,7 +153,6 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">YouTubeミュージックのサーバーに視聴履歴をアップロードすると、YTミュージックのおすすめが改善されます。ログイン時にのみ動作します</string>
     <string name="send_back_listening_data_to_google">Google に視聴データを送る</string>
     <string name="your_youtube_playlists">あなたのYouTubeの再生リスト</string>
-    <string name="no_YouTube_playlists">YouTubeの再生リストなし</string>
     <string name="added_local_playlist">端末内の再生リストに追加しました</string>
     <string name="sync">YouTube ミュージックと同期</string>
     <string name="synced">YouTube ミュージックと同期済み</string>
@@ -179,8 +172,6 @@
     <string name="invalid_language_code">無効な言語コードです</string>
     <string name="limit_player_cache">プレイヤーのキャッシュを制限</string>
     <string name="unlimited">無制限</string>
-    <string name="third_party_libraries">第三者製のライブラリ</string>
-    <string name="description_and_licenses">説明およびライセンス</string>
     <string name="author">開発者</string>
     <string name="other_app">ほかのアプリ</string>
     <string name="database">アプリのデータベース</string>
@@ -330,7 +321,6 @@
     <string name="radio_not_available">ラジオのエンドポイントは利用できません</string>
     <string name="no_results_found">何も見つかりませんでした</string>
     <string name="ai">AI</string>
-    <string name="favorite_podcasts">お気に入りのポッドキャスト</string>
     <string name="no_favorite_podcasts">お気に入りのポッドキャストなし</string>
     <string name="your_youtube_cookie">YouTubeクッキー</string>
     <string name="can_not_be_empty">空にはできません</string>
@@ -369,7 +359,6 @@
     <string name="no_playlist_found">ローカルプレイリストが見つかりませんでした。最初に作成してください</string>
     <string name="list_all_cookies_of_this_page">このページのすべてのクッキーを一覧表示</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
-    <string name="your_library">あなたのライブラリ</string>
     <string name="play_explicit_content">明示的なコンテンツを再生</string>
     <string name="play_explicit_content_description">明示的なコンテンツの再生を有効にします</string>
     <string name="explicit_content_blocked">明示的なコンテンツをスキップします</string>
