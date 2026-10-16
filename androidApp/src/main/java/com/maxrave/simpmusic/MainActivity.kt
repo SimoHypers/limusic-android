@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic
 
+import com.maxrave.domain.repository.DeviceLinkRepository
 import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
@@ -56,6 +57,9 @@ class MainActivity : AppCompatActivity() {
     val mediaPlayerHandler by inject<MediaPlayerHandler>()
     val dataStoreManager: DataStoreManager by inject()
 
+    /** The device link's socket is open while paired and this activity is started (or playing). */
+    private val deviceLink: DeviceLinkRepository by inject()
+
     private var mBound = false
     private var shouldUnbind = false
     private val serviceConnection =
@@ -79,10 +83,12 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         startMusicService()
+        deviceLink.setForeground(true)
     }
 
     override fun onStop() {
         super.onStop()
+        deviceLink.setForeground(false)
         if (shouldUnbind) {
             unbindService(serviceConnection)
         }

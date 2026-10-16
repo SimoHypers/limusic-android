@@ -56,6 +56,17 @@ internal class MessageCodec {
                 MessageTypes.REQUEST_SYNC -> msg("request_sync")
                 MessageTypes.RECONNECT -> msg("reconnect") { put("session_token", (payload as ReconnectPayload).sessionToken) }
                 MessageTypes.PING -> msg("ping")
+                MessageTypes.JOIN_LINK -> {
+                    val p = payload as JoinLinkPayload
+                    msg("join_link") {
+                        put("secret", p.secret)
+                        put("device_id", p.deviceId)
+                        put("name", p.name)
+                    }
+                }
+                MessageTypes.PAIR_START -> msg("pair_start")
+                MessageTypes.PAIR_CLAIM -> msg("pair_claim") { put("code", (payload as PairClaimPayload).code) }
+                MessageTypes.REMOTE -> msg("remote") { put("action", (payload as RemotePayload).action.toJson()) }
                 // buffer_ready, chat and the rest have no counterpart: Limusic rooms do not wait for
                 // everyone to buffer.
                 else -> return null
@@ -132,6 +143,13 @@ internal class MessageCodec {
             "kicked" -> MessageTypes.KICKED to KickedPayload(reason = o.str("reason"))
             "error" -> MessageTypes.ERROR to ErrorPayload(code = o.str("code"), message = o.str("message"))
             "pong" -> MessageTypes.PONG to null
+            "link_joined" -> MessageTypes.LINK_JOINED to LinkJoinedPayload(state = o.obj("state")?.toRoomState() ?: RoomState())
+            "pair_code" -> MessageTypes.PAIR_CODE to PairCodePayload(code = o.str("code"), expiresInS = o.long("expires_in_s").toInt())
+            "paired" -> MessageTypes.PAIRED to PairedPayload(secret = o.str("secret"))
+            "remote" -> {
+                val action = o.obj("action")?.toRemoteAction()
+                MessageTypes.REMOTE to action?.let { RemotePayload(action = it, from = o.str("from")) }
+            }
             else -> type to null
         }
     }
@@ -175,6 +193,40 @@ internal class MessageCodec {
             playing = if (kind == PlaybackActions.CHANGE_TRACK) bool("playing") else null,
         )
     }
+
+    private fun RemoteAction.toJson() =
+        buildJsonObject {
+            when (val a = this@toJson) {
+                RemoteAction.Play -> put("kind", "play")
+                RemoteAction.Pause -> put("kind", "pause")
+                RemoteAction.Next -> put("kind", "next")
+                RemoteAction.Previous -> put("kind", "previous")
+                is RemoteAction.Seek -> {
+                    put("kind", "seek")
+                    put("position_ms", a.positionMs)
+                }
+                is RemoteAction.SetVolume -> {
+                    put("kind", "set_volume")
+                    put("volume", a.volume)
+                }
+                is RemoteAction.PlayTrack -> {
+                    put("kind", "play_track")
+                    put("track", a.track.toJson())
+                }
+            }
+        }
+
+    private fun JsonObject.toRemoteAction(): RemoteAction? =
+        when (str("kind")) {
+            "play" -> RemoteAction.Play
+            "pause" -> RemoteAction.Pause
+            "next" -> RemoteAction.Next
+            "previous" -> RemoteAction.Previous
+            "seek" -> RemoteAction.Seek(long("position_ms"))
+            "set_volume" -> RemoteAction.SetVolume(this["volume"]?.jsonPrimitive?.let { runCatching { it.double }.getOrNull() } ?: 1.0)
+            "play_track" -> obj("track")?.toTrack()?.let { RemoteAction.PlayTrack(it) }
+            else -> null
+        }
 
     private fun JsonObject.toRoomState() =
         RoomState(

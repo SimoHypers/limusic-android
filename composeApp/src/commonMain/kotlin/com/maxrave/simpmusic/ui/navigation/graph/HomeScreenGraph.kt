@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.ui.navigation.graph
 
+import com.maxrave.simpmusic.ui.screen.home.DevicesSettingsScreen
+import com.maxrave.simpmusic.ui.navigation.destination.home.DevicesSettingsDestination
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -82,6 +84,12 @@ fun NavGraphBuilder.homeScreenGraph(
     }
     composable<LyricsSourcesDestination> {
         LyricsSourcesScreen(
+            navController = navController,
+            innerPadding = innerPadding,
+        )
+    }
+    composable<DevicesSettingsDestination> {
+        DevicesSettingsScreen(
             navController = navController,
             innerPadding = innerPadding,
         )

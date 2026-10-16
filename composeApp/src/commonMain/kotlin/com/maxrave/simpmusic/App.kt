@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic
 
+import com.maxrave.simpmusic.ui.component.LinkRemoteCard
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -411,6 +412,9 @@ fun App(
                         // The mini player sits right above the tabs; both disappear together when a
                         // screen hides the bar (the fullscreen video player, for one).
                         Column {
+                            // Another linked device's playback, as a remote. Shown with or without
+                            // anything playing here.
+                            LinkRemoteCard(modifier = Modifier.padding(horizontal = 8.dp).padding(bottom = 6.dp))
                             AnimatedVisibility(
                                 isShowMiniPlayer,
                                 enter = fadeIn() + slideInHorizontally(),

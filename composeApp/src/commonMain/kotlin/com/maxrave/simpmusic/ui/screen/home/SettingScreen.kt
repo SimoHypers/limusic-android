@@ -1,5 +1,11 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import simpmusic.composeapp.generated.resources.devices_not_linked
+import simpmusic.composeapp.generated.resources.devices_linked_to
+import simpmusic.composeapp.generated.resources.devices
+import com.maxrave.simpmusic.ui.icon.Computer
+import com.maxrave.simpmusic.ui.navigation.destination.home.DevicesSettingsDestination
+import com.maxrave.domain.repository.DeviceLinkRepository
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -1591,6 +1597,27 @@ fun SettingScreen(
                                     onClick = { navController.navigate(LastfmSettingsDestination) },
                                 )
                             }
+                        }
+                        val deviceLink by koinInject<DeviceLinkRepository>().link.collectAsStateWithLifecycle()
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = stringResource(Res.string.devices),
+                                subtitle =
+                                    deviceLink.devices.firstOrNull()?.takeIf { deviceLink.paired }?.let {
+                                        stringResource(Res.string.devices_linked_to, it.name)
+                                    } ?: stringResource(Res.string.devices_not_linked),
+                                smallSubtitle = true,
+                                leading = {
+                                    Box(
+                                        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(SimpIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(22.dp))
+                                    }
+                                },
+                                navigates = true,
+                                onClick = { navController.navigate(DevicesSettingsDestination) },
+                            )
                         }
                     }
                     SettingsSection.DATA -> {

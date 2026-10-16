@@ -814,4 +814,26 @@
     <string name="sort_reverse">Reverse order</string>
     <string name="sort_failed">Couldn’t sort this playlist</string>
     <string name="sort_not_saved">Sorted, but couldn’t save it to YouTube</string>
+    <string name="devices">Devices</string>
+    <string name="devices_not_linked">Control Limusic on your computer from this phone</string>
+    <string name="devices_linked_to">Linked to %1$s</string>
+    <string name="devices_intro">Link this phone with Limusic on your computer to control it from here and move what's playing between them. On the computer, open Settings &gt; Devices, choose Link a phone and type the code here.</string>
+    <string name="devices_link">Link</string>
+    <string name="devices_connecting">Connecting…</string>
+    <string name="devices_wrong_code">That code is wrong or has expired.</string>
+    <string name="devices_unsupported">This server doesn't support linking yet.</string>
+    <string name="devices_unreachable">Couldn't reach the server.</string>
+    <string name="devices_linked">Linked devices</string>
+    <string name="devices_online">Online</string>
+    <string name="devices_offline">Offline</string>
+    <string name="devices_playing">Playing</string>
+    <string name="devices_unlink">Unlink</string>
+    <string name="devices_unlink_phone">Unlink this phone</string>
+    <string name="devices_unlink_phone_hint">It stops controlling your computer. Link it again with a new code.</string>
+    <string name="link_playing_on">Playing on %1$s</string>
+    <string name="link_paused_on">Paused on %1$s</string>
+    <string name="link_last_played_on">Last played on %1$s</string>
+    <string name="link_local_file_on">Playing a local file on %1$s</string>
+    <string name="link_continue_here">Continue here</string>
+    <string name="link_play_on">Play on %1$s</string>
 </resources>

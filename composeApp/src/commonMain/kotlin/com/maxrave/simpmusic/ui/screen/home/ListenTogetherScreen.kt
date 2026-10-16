@@ -48,13 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -66,7 +59,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -75,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.maxrave.simpmusic.ui.component.CodeInput
 import com.maxrave.domain.data.model.listentogether.ListenTogetherRoom
 import com.maxrave.domain.data.model.listentogether.RoomConnection
 import com.maxrave.domain.data.model.listentogether.RoomMember
@@ -268,7 +261,7 @@ private fun Setup(
 
         if (!hostMode) {
             Field(stringResource(Res.string.ltd_invite_code), hint = stringResource(Res.string.ltd_invite_hint)) {
-                CodeInput(invite) { invite = it }
+                CodeInput(invite, length = ROOM_CODE_LENGTH) { invite = it }
             }
             FullButton(stringResource(Res.string.ltd_join_button), onClick = start)
         } else {
@@ -717,60 +710,3 @@ private fun SmallButton(
 }
 
 private const val ROOM_CODE_LENGTH = 8
-
-/** The room code's part of an invite, as the boxes show it. */
-private fun codeOf(invite: String) = invite.substringBefore('@').uppercase().filter { it.isLetterOrDigit() }.take(ROOM_CODE_LENGTH)
-
-/**
- * One box per character of the room code. Typing keeps letters and digits; a pasted desktop invite
- * (`CODE@host`) is kept whole so its server still applies, with the boxes showing its code.
- */
-@Composable
-private fun CodeInput(
-    invite: String,
-    onInviteChange: (String) -> Unit,
-) {
-    val code = codeOf(invite)
-    val focusRequester = remember { FocusRequester() }
-    // TextFieldValue, not String: a plain String re-places the caret at index 0 on every
-    // externally-driven recomposition, and backspace at index 0 deletes nothing.
-    val fieldValue = TextFieldValue(text = code, selection = TextRange(code.length))
-
-    BasicTextField(
-        value = fieldValue,
-        onValueChange = { onInviteChange(if ('@' in it.text) it.text.trim() else codeOf(it.text)) },
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(color = Color.Transparent),
-        cursorBrush = SolidColor(Color.Transparent),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, autoCorrectEnabled = false),
-        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            // Zero-sized but composed: without it nothing holds the cursor and the field takes no input.
-            Box(Modifier.size(0.dp)) { innerTextField() }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                repeat(ROOM_CODE_LENGTH) { index ->
-                    // The caret is drawn by hand because the field that owns it is zero-sized.
-                    val isCaret = index == code.length
-                    Box(
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(52.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
-                                .then(
-                                    if (isCaret) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)) else Modifier,
-                                ).clickable { focusRequester.requestFocus() },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = code.getOrNull(index)?.toString().orEmpty(),
-                            style = typo().titleSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
-            }
-        },
-    )
-}

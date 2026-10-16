@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.di
 
+import com.maxrave.simpmusic.viewModel.DeviceLinkViewModel
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.ListenTogetherViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
@@ -174,6 +175,7 @@ val viewModelModule =
                 get(),
             )
         }
+        viewModel { DeviceLinkViewModel(repository = get()) }
         viewModel {
             ListenTogetherViewModel(
                 repository = get(),

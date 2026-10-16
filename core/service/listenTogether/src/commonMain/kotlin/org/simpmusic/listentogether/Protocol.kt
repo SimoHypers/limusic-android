@@ -45,6 +45,16 @@ object MessageTypes {
     const val SUGGESTION_APPROVED = "suggestion_approved"
     const val SUGGESTION_REJECTED = "suggestion_rejected"
 
+    // Device link (Limusic's sync server only): the phone as a remote for the desktop.
+    const val JOIN_LINK = "join_link"
+    const val PAIR_START = "pair_start"
+    const val PAIR_CLAIM = "pair_claim"
+
+    /** Both directions: a control sent to the player, and the same control forwarded to it. */
+    const val REMOTE = "remote"
+    const val LINK_JOINED = "link_joined"
+    const val PAIR_CODE = "pair_code"
+    const val PAIRED = "paired"
 }
 
 /** Values of [PlaybackActionPayload.action]. */
@@ -291,3 +301,60 @@ data class SuggestionRejectedPayload(
 
 // ───────────────────────── capability negotiation ─────────────────────────
 
+// ───────────────────────────── device link ─────────────────────────────
+
+/** Join (or create) the link room keyed by [secret]. Holding the secret is membership. */
+data class JoinLinkPayload(
+    val secret: String,
+    val deviceId: String,
+    val name: String,
+)
+
+/** Trade a pairing code shown on the desktop for the link's secret. */
+data class PairClaimPayload(
+    val code: String,
+)
+
+/** The reply to [JoinLinkPayload]. `roomCode` is empty: the server never echoes the secret. */
+data class LinkJoinedPayload(
+    val state: RoomState,
+)
+
+data class PairCodePayload(
+    val code: String,
+    val expiresInS: Int,
+)
+
+data class PairedPayload(
+    val secret: String,
+)
+
+/** A control for the device that is playing. [from] is set on the way in: the sender's device id. */
+data class RemotePayload(
+    val action: RemoteAction,
+    val from: String = "",
+)
+
+/** What a remote can ask of the player. Mirrors `RemoteAction` in `crates/listen-protocol`. */
+sealed interface RemoteAction {
+    data object Play : RemoteAction
+
+    data object Pause : RemoteAction
+
+    data object Next : RemoteAction
+
+    data object Previous : RemoteAction
+
+    data class Seek(
+        val positionMs: Long,
+    ) : RemoteAction
+
+    /** 0.0..1.0 */
+    data class SetVolume(
+        val volume: Double,
+    ) : RemoteAction
+
+    data class PlayTrack(
+        val track: TrackInfo,
+    ) : RemoteAction
+}
