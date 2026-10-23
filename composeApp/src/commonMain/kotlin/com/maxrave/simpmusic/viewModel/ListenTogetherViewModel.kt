@@ -29,6 +29,11 @@ class ListenTogetherViewModel(
     private val dataStore: DataStoreManager,
     bridge: ListenTogetherPlaybackBridge,
 ) : ViewModel() {
+    // Above init: the collector there runs inside the constructor (Main.immediate, and a StateFlow
+    // replays at once), so while in a room it writes this before anything declared below init
+    // exists. Declared below, it was null there and the screen crashed.
+    private val _requesting = MutableStateFlow(false)
+
     init {
         // The bridge is a singleton that outlives this screen; starting it here is simply the
         // first moment anything asks for it. Koin's `createdAtStart` does not fire for modules
@@ -58,8 +63,6 @@ class ListenTogetherViewModel(
             .getString(KEY_NAME)
             .map { it.orEmpty() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
-
-    private val _requesting = MutableStateFlow(false)
 
     /** Between pressing Start or Join and being in the room. */
     val requesting: StateFlow<Boolean> = _requesting.asStateFlow()
