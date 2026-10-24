@@ -1161,19 +1161,21 @@ private fun FullscreenLyricsList(
 }
 
 /**
- * The fullscreen lyrics page's background: a gradient from [color] down to black that drifts and
- * turns on a loop, and glides to a new [color] when the track changes.
+ * The fullscreen lyrics page's background: a gradient from [color] down to [end] (black unless
+ * the Classic page passes its theme background) that drifts and turns on a loop, and glides to a
+ * new [color] when the track changes.
  */
 @Composable
 internal fun AnimatedLyricsGradientBackground(
     color: Color,
     modifier: Modifier = Modifier,
+    end: Color = Color.Black,
 ) {
     // Animated gradient colors - SMOOTH ANIMATION
     val startColor = remember { Animatable(color) }
     val midColor1 = remember { Animatable(color.copy(alpha = 0.95f)) }
     val midColor2 = remember { Animatable(color.copy(alpha = 0.85f)) }
-    val endColor = remember { Animatable(Color.Black) }
+    val endColor = remember { Animatable(end) }
 
     // Dynamic gradient animation - MULTIPLE DIRECTIONS
     // Replaces the previous `while(true) { delay(16) }` loop with a Compose
@@ -1214,7 +1216,7 @@ internal fun AnimatedLyricsGradientBackground(
     val gradientOffsetY = animatedOffsetY
 
     // Smooth color animation based on lyrics color
-    LaunchedEffect(color) {
+    LaunchedEffect(color, end) {
         launch {
             startColor.animateTo(
                 targetValue = color,
@@ -1235,7 +1237,7 @@ internal fun AnimatedLyricsGradientBackground(
         }
         launch {
             endColor.animateTo(
-                targetValue = Color.Black,
+                targetValue = end,
                 animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
             )
         }

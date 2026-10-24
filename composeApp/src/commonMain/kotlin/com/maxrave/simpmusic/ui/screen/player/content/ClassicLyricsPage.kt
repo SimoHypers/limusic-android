@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +66,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.lengthLabel
+import com.maxrave.simpmusic.ui.component.AnimatedLyricsGradientBackground
 import com.maxrave.simpmusic.ui.component.LyricsSourceSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.Stepper
@@ -162,9 +164,12 @@ private fun Page(
         Modifier
             .fillMaxSize()
             .background(background)
-            .background(Brush.verticalGradient(0f to state.startColor.value.copy(alpha = 0.55f), 0.75f to background))
             .clickable(interactionSource = null, indication = null) { showControls = true },
     ) {
+        // SimpMusic's breathing gradient in the Classic player's tint: the cover colour at the
+        // player's strength, drifting into the theme background. The target colour, not the
+        // animating one, so the gradient runs its own glide instead of restarting every frame.
+        AnimatedLyricsGradientBackground(color = lerp(background, state.startColor.targetValue, 0.55f), end = background)
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
             Header(screenData.thumbnailURL, screenData.nowPlayingTitle, screenData.artistName, lyricsData != null, onDismiss, actions.onNavigateToArtist, onShare, onMore)
 
