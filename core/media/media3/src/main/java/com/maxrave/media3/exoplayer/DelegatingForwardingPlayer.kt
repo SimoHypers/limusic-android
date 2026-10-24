@@ -397,6 +397,17 @@ internal class DelegatingForwardingPlayer(
             super.addListener(listener)
         }
 
+        // 5b. Replay the new delegate's transport state. A precached delegate reached READY before
+        //     the listeners moved over, so MediaSession, which keeps the last state an event
+        //     reported, would hold the old player's ENDED for as long as the new track plays.
+        //     Media3 counts ENDED as not playing and drops the foreground service 10 minutes
+        //     later, and from the background it cannot start it again.
+        listenersToReAdd.forEach { listener ->
+            listener.onPlaybackStateChanged(playbackState)
+            listener.onPlayWhenReadyChanged(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+            listener.onIsPlayingChanged(isPlaying)
+        }
+
         // 6. Re-attach video surface to the new delegate
         //    Without this, video stops rendering because the new ExoPlayer
         //    never received setVideoSurfaceView/setVideoSurface/etc.
