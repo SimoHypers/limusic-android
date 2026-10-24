@@ -92,10 +92,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -119,10 +119,9 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.entities.DownloadState
-import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
@@ -132,6 +131,7 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
@@ -150,13 +150,14 @@ import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DownloadForOfflineOutlined
 import com.maxrave.simpmusic.ui.icon.Downloading
 import com.maxrave.simpmusic.ui.icon.Edit
-import com.maxrave.simpmusic.ui.icon.GridView
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
+import com.maxrave.simpmusic.ui.icon.GridView
+import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowDown
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowUp
-import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
+import com.maxrave.simpmusic.ui.icon.PlayArrow
 import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
@@ -164,8 +165,9 @@ import com.maxrave.simpmusic.ui.icon.Remove
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
@@ -193,7 +195,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.song_info
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
@@ -206,6 +207,7 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.delete
+import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
@@ -228,9 +230,8 @@ import simpmusic.composeapp.generated.resources.list_all_cookies_of_this_page
 import simpmusic.composeapp.generated.resources.merging_audio_and_video
 import simpmusic.composeapp.generated.resources.mime_type
 import simpmusic.composeapp.generated.resources.move_down
-import simpmusic.composeapp.generated.resources.move_up
 import simpmusic.composeapp.generated.resources.move_to_play_next
-import simpmusic.composeapp.generated.resources.delete_from_queue
+import simpmusic.composeapp.generated.resources.move_up
 import simpmusic.composeapp.generated.resources.no_album
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.no_playlist_found
@@ -239,6 +240,7 @@ import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.pitch
+import simpmusic.composeapp.generated.resources.play
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
 import simpmusic.composeapp.generated.resources.playback_speed_pitch
@@ -248,18 +250,20 @@ import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.remove_shortcut
+import simpmusic.composeapp.generated.resources.save_to_playlist
 import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.share
+import simpmusic.composeapp.generated.resources.shuffle_play
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
 import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
 import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
+import simpmusic.composeapp.generated.resources.song_info
 import simpmusic.composeapp.generated.resources.sort_by
-import simpmusic.composeapp.generated.resources.save_to_playlist
 import simpmusic.composeapp.generated.resources.start_radio
 import simpmusic.composeapp.generated.resources.sync
 import simpmusic.composeapp.generated.resources.synced
@@ -1737,6 +1741,46 @@ private fun NowPlayingBottomSheetContent(
     }
 }
 
+/**
+ * A collection menu's first row, as on desktop: Play, in the accent, with Shuffle play as a round
+ * button at its far end. Laid out like [ActionButton] so the rows below line up with it.
+ */
+@Composable
+fun PlayActionRow(
+    onPlay: () -> Unit,
+    onShufflePlay: () -> Unit,
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onPlay).padding(start = 20.dp, end = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            imageVector = SimpIcons.PlayArrow,
+            contentDescription = null,
+            modifier = Modifier.wrapContentSize(Alignment.Center).padding(12.dp),
+            colorFilter = ColorFilter.tint(accent),
+        )
+        Text(
+            text = stringResource(Res.string.play),
+            style = typo().labelSmall,
+            color = accent,
+            modifier = Modifier.padding(start = 10.dp).weight(1f),
+        )
+        Box(
+            modifier = Modifier.size(40.dp).clip(CircleShape).background(accent.copy(alpha = 0.14f)).clickable(onClick = onShufflePlay),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                imageVector = SimpIcons.Shuffle,
+                contentDescription = stringResource(Res.string.shuffle_play),
+                modifier = Modifier.size(20.dp),
+                colorFilter = ColorFilter.tint(accent),
+            )
+        }
+    }
+}
+
 @Composable
 fun ActionButton(
     icon: ImageVector,
@@ -2687,6 +2731,8 @@ fun PlaylistBottomSheet(
     onEditPlaylist: (() -> Unit)? = null,
     onDeletePlaylist: (() -> Unit)? = null,
     onRemoveShortcut: (() -> Unit)? = null,
+    onPlay: () -> Unit,
+    onShufflePlay: () -> Unit,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2725,6 +2771,7 @@ fun PlaylistBottomSheet(
                         action()
                         hideModalBottomSheet()
                     }
+                    PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
                     ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
                     ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
                     if (onStartRadio != null) {
@@ -2774,6 +2821,8 @@ fun LocalPlaylistBottomSheet(
     onUpdatePlaylist: () -> Unit,
     onDelete: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onPlay: () -> Unit,
+    onShufflePlay: () -> Unit,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2807,6 +2856,7 @@ fun LocalPlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
+                    PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
                     ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
                     ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
                     ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }

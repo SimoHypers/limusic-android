@@ -860,7 +860,20 @@ class LocalPlaylistViewModel(
             is LocalPlaylistUIEvent.PlayClick -> {
                 val loadedList =
                     lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: run {
-                        makeToast(getString(Res.string.playlist_is_empty))
+                        // No page open (the ⋮ menu of a Home shortcut): every track, in playlist order.
+                        withFullTracks { tracks ->
+                            setQueueData(
+                                QueueData.Data(
+                                    listTracks = ArrayList(tracks),
+                                    firstPlayedTrack = tracks.first(),
+                                    playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                                    playlistName = "${getString(Res.string.playlist)} \"${uiState.value.title}\"",
+                                    playlistType = PlaylistType.LOCAL_PLAYLIST,
+                                    continuation = null,
+                                ),
+                            )
+                            loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, 0)
+                        }
                         return
                     }
 

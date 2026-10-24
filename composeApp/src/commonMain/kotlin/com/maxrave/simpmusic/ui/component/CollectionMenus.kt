@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.viewModel.AlbumUIState
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
+import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
@@ -108,6 +109,8 @@ fun PlaylistMenu(
             onEditPlaylist = if (own) ({ editing = true }) else null,
             onDeletePlaylist = if (own) ({ deleting = true }) else null,
             onRemoveShortcut = onRemoveShortcut,
+            onPlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.PlayAll) } },
+            onShufflePlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.Shuffle) } },
         )
     }
     // Opens once the playlist is in: the sheet starts from its real description and privacy.
@@ -179,6 +182,8 @@ fun AlbumMenu(
                 viewModel.afterLoad(onDone = { fetching = false }) { saveTracks = it.listTrack }
             },
             onRemoveShortcut = onRemoveShortcut,
+            onPlay = { viewModel.afterLoad { album -> album.listTrack.firstOrNull()?.let(viewModel::playTrack) } },
+            onShufflePlay = { viewModel.afterLoad { viewModel.shuffle() } },
         )
     }
     saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }) }
@@ -222,6 +227,8 @@ fun LocalPlaylistMenu(
             onUpdatePlaylist = { viewModel.updateListTrackSynced(uiState.id) },
             onDelete = { deleting = true },
             onRemoveShortcut = onRemoveShortcut,
+            onPlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick) },
+            onShufflePlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick) },
         )
     }
     if (editing) {
