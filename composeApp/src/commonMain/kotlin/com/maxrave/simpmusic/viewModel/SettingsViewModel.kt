@@ -1085,6 +1085,22 @@ class SettingsViewModel(
         }
     }
 
+    /** Desktop's queue settings: DataStore keys holding "true" or "false", off by default. */
+    fun queueSetting(key: String) = dataStoreManager.getString(key).map { it == "true" }
+
+    fun setQueueSetting(
+        key: String,
+        on: Boolean,
+    ) {
+        viewModelScope.launch { dataStoreManager.putString(key, on.toString()) }
+    }
+
+    val autoplay = dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }
+
+    fun setAutoplay(on: Boolean) {
+        viewModelScope.launch { dataStoreManager.setEndlessQueue(on) }
+    }
+
     fun setSavedPlaybackState(savedPlaybackState: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)

@@ -157,6 +157,9 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import com.maxrave.domain.mediaservice.queue.PREVENT_DUPLICATES_KEY
+import com.maxrave.domain.mediaservice.queue.SHUFFLE_WHOLE_QUEUE_KEY
+import com.maxrave.domain.mediaservice.queue.STICKY_SHUFFLE_KEY
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.about
@@ -337,6 +340,15 @@ import simpmusic.composeapp.generated.resources.version_format
 import simpmusic.composeapp.generated.resources.video_download_quality
 import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.videos
+import simpmusic.composeapp.generated.resources.queue
+import simpmusic.composeapp.generated.resources.autoplay_similar_songs
+import simpmusic.composeapp.generated.resources.autoplay_similar_songs_hint
+import simpmusic.composeapp.generated.resources.prevent_duplicates
+import simpmusic.composeapp.generated.resources.prevent_duplicates_hint
+import simpmusic.composeapp.generated.resources.sticky_shuffle
+import simpmusic.composeapp.generated.resources.sticky_shuffle_hint
+import simpmusic.composeapp.generated.resources.shuffle_whole_queue
+import simpmusic.composeapp.generated.resources.shuffle_whole_queue_hint
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.youtube_account
@@ -436,6 +448,10 @@ fun SettingScreen(
     val skipSilent by remember { viewModel.skipSilent.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val savePlaybackState by remember { viewModel.savedPlaybackState.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val killServiceOnExit by remember { viewModel.killServiceOnExit.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = true)
+    val autoplay by viewModel.autoplay.collectAsStateWithLifecycle(initialValue = true)
+    val preventDuplicates by remember { viewModel.queueSetting(PREVENT_DUPLICATES_KEY) }.collectAsStateWithLifecycle(initialValue = false)
+    val stickyShuffle by remember { viewModel.queueSetting(STICKY_SHUFFLE_KEY) }.collectAsStateWithLifecycle(initialValue = false)
+    val shuffleWholeQueue by remember { viewModel.queueSetting(SHUFFLE_WHOLE_QUEUE_KEY) }.collectAsStateWithLifecycle(initialValue = false)
     val lyricsOffsetMs by viewModel.lyricsOffsetMs.collectAsStateWithLifecycle()
     val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
     val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
@@ -1111,6 +1127,33 @@ fun SettingScreen(
                                         ),
                                     )
                                 },
+                            )
+                        }
+                        // Desktop's queue settings, worded as desktop words them.
+                        SettingGroup(title = stringResource(Res.string.queue)) {
+                            SettingItem(
+                                title = stringResource(Res.string.autoplay_similar_songs),
+                                subtitle = stringResource(Res.string.autoplay_similar_songs_hint),
+                                smallSubtitle = true,
+                                switch = (autoplay to { viewModel.setAutoplay(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.prevent_duplicates),
+                                subtitle = stringResource(Res.string.prevent_duplicates_hint),
+                                smallSubtitle = true,
+                                switch = (preventDuplicates to { viewModel.setQueueSetting(PREVENT_DUPLICATES_KEY, it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.sticky_shuffle),
+                                subtitle = stringResource(Res.string.sticky_shuffle_hint),
+                                smallSubtitle = true,
+                                switch = (stickyShuffle to { viewModel.setQueueSetting(STICKY_SHUFFLE_KEY, it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.shuffle_whole_queue),
+                                subtitle = stringResource(Res.string.shuffle_whole_queue_hint),
+                                smallSubtitle = true,
+                                switch = (shuffleWholeQueue to { viewModel.setQueueSetting(SHUFFLE_WHOLE_QUEUE_KEY, it) }),
                             )
                         }
                         SettingGroup(title = stringResource(Res.string.videos)) {

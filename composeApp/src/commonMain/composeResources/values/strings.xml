@@ -356,6 +356,14 @@
     <string name="clear_queue">Clear queue</string>
     <string name="queue_ends">The queue ends after this song.</string>
     <string name="empty_queue">Queue is empty</string>
+    <string name="autoplay_similar_songs">Autoplay similar songs</string>
+    <string name="autoplay_similar_songs_hint">Continuously play recommended tracks when the queue finishes.</string>
+    <string name="prevent_duplicates">Prevent duplicate songs in queue</string>
+    <string name="prevent_duplicates_hint">Avoid adding songs that are already in the current queue.</string>
+    <string name="sticky_shuffle">Keep shuffle on across queues</string>
+    <string name="sticky_shuffle_hint">Leave off and shuffle applies only to what's playing: opening an album or playlist afterwards plays it in order.</string>
+    <string name="shuffle_whole_queue">Shuffle the whole queue</string>
+    <string name="shuffle_whole_queue_hint">Shuffle mixes the songs you added with Add to queue in with the playlist. Leave off and they play after it, in the order you added them. Play next always plays next.</string>
     <string name="continue_playing">Continue Playing</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
