@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -47,18 +46,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -109,10 +104,8 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
-import com.maxrave.simpmusic.ui.component.EndOfModalBottomSheet
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeDiscoverSection
 import com.maxrave.simpmusic.ui.component.HomeItem
@@ -124,17 +117,14 @@ import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
+import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
-import com.maxrave.simpmusic.ui.icon.Notifications
-import com.maxrave.simpmusic.ui.icon.PersonAdd
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -142,7 +132,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
-import com.maxrave.simpmusic.ui.theme.AppThemeContent
 import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -181,18 +170,14 @@ import simpmusic.composeapp.generated.resources.good_afternoon
 import simpmusic.composeapp.generated.resources.good_evening
 import simpmusic.composeapp.generated.resources.good_morning
 import simpmusic.composeapp.generated.resources.good_night
-import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
-import simpmusic.composeapp.generated.resources.log_in
 import simpmusic.composeapp.generated.resources.log_in_warning
-import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.relax
 import simpmusic.composeapp.generated.resources.romance
 import simpmusic.composeapp.generated.resources.sad
-import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.sleep
 import simpmusic.composeapp.generated.resources.top_artists
 import simpmusic.composeapp.generated.resources.warning
@@ -266,9 +251,13 @@ fun HomeScreen(
         }
     val nowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
     val cover = nowPlaying?.songEntity?.thumbnails ?: nowPlaying?.mediaItem?.metadata?.artworkUri
-    var showAccountSheet by rememberSaveable { mutableStateOf(false) }
-    if (showAccountSheet) {
-        AccountSheet(account = accountInfo, navController = navController, onDismiss = { showAccountSheet = false })
+    var showAccounts by rememberSaveable { mutableStateOf(false) }
+    if (showAccounts) {
+        YouTubeAccountDialog(
+            viewModel = koinViewModel(),
+            onAddAccount = { navController.navigate(LoginDestination) },
+            onDismiss = { showAccounts = false },
+        )
     }
 
     var topAppBarHeightPx by rememberSaveable {
@@ -558,8 +547,9 @@ fun HomeScreen(
                 ) {
                     HomeTopAppBar(
                         account = accountInfo,
-                        onAvatarClick = { showAccountSheet = true },
+                        onAvatarClick = { showAccounts = true },
                         onListenTogether = { navController.navigate(ListenTogetherDestination) },
+                        onSettings = { navController.navigate(SettingsDestination) },
                     )
                 }
                 AnimatedVisibility(
@@ -640,12 +630,13 @@ private sealed interface HomeBlock {
     }
 }
 
-/** Avatar, desktop's greeting, Listen Together. The avatar opens [AccountSheet]. */
+/** Avatar, desktop's greeting, Listen Together and Settings. The avatar opens the account picker. */
 @Composable
 fun HomeTopAppBar(
     account: Pair<String?, String?>?,
     onAvatarClick: () -> Unit,
     onListenTogether: () -> Unit,
+    onSettings: () -> Unit,
 ) {
     // Fixed at first composition, as on desktop: a greeting that flips mid-session is uncanny.
     val hour = remember { now().time.hour }
@@ -679,6 +670,8 @@ fun HomeTopAppBar(
             modifier = Modifier.weight(1f),
         )
         ListenTogetherIconButton(onListenTogether)
+        // Out in the bar, not only behind the avatar: nothing says a profile picture opens a menu.
+        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground, onClick = onSettings)
     }
 }
 
@@ -697,67 +690,6 @@ private fun Avatar(
         contentScale = ContentScale.Crop,
         modifier = Modifier.size(size).clip(CircleShape).then(modifier),
     )
-}
-
-/** The avatar's menu: who is signed in, then the pages the bar's bell and gear used to open. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccountSheet(
-    account: Pair<String?, String?>?,
-    navController: NavController,
-    onDismiss: () -> Unit,
-) {
-    AppThemeContent {
-        val colors = rememberSurfaceDarkColors()
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = colors.container),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Avatar(account?.second, 48.dp)
-                        Spacer(Modifier.width(14.dp))
-                        Text(
-                            text = account?.first ?: stringResource(Res.string.guest),
-                            style = typo().titleMedium,
-                            color = colors.content,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    val go: (Any) -> Unit = { route ->
-                        onDismiss()
-                        navController.navigate(route)
-                    }
-                    if (account == null) {
-                        ActionButton(icon = SimpIcons.PersonAdd, text = Res.string.log_in) { go(LoginDestination) }
-                    }
-                    ActionButton(icon = SimpIcons.Settings, text = Res.string.settings) { go(SettingsDestination) }
-                    ActionButton(icon = SimpIcons.Notifications, text = Res.string.notification) { go(NotificationDestination) }
-                    EndOfModalBottomSheet()
-                }
-            }
-        }
-    }
 }
 
 /**

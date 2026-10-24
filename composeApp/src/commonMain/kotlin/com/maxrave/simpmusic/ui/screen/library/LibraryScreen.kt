@@ -1,26 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import com.maxrave.domain.data.type.PlaylistType
-import com.maxrave.simpmusic.ui.component.LibrarySectionHeader
-import com.maxrave.simpmusic.ui.component.PlaylistShelf
-import com.maxrave.simpmusic.ui.component.RecentlyAddedList
-import com.maxrave.simpmusic.ui.icon.Add
-import com.maxrave.simpmusic.ui.icon.QueueMusic
-import com.maxrave.simpmusic.ui.icon.GridView
-import com.maxrave.simpmusic.ui.icon.AutoAwesome
-import com.maxrave.simpmusic.ui.icon.Bookmark
-import com.maxrave.simpmusic.ui.icon.DownloadForOffline
-import com.maxrave.simpmusic.ui.icon.Podcasts
-import simpmusic.composeapp.generated.resources.all
-import simpmusic.composeapp.generated.resources.playlists
-import simpmusic.composeapp.generated.resources.library_mixes
-import simpmusic.composeapp.generated.resources.library_saved
-import simpmusic.composeapp.generated.resources.library_downloads
-import simpmusic.composeapp.generated.resources.podcasts
-import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
-import com.maxrave.simpmusic.ui.component.RippleIconButton
-import com.maxrave.simpmusic.ui.icon.History
-import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -57,8 +36,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
@@ -88,13 +68,29 @@ import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.GridLibraryPlaylist
+import com.maxrave.simpmusic.ui.component.LibrarySectionHeader
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
+import com.maxrave.simpmusic.ui.component.PlaylistShelf
+import com.maxrave.simpmusic.ui.component.RecentlyAddedList
+import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.AutoAwesome
+import com.maxrave.simpmusic.ui.icon.Bookmark
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.GridView
+import com.maxrave.simpmusic.ui.icon.History
+import com.maxrave.simpmusic.ui.icon.Notifications
+import com.maxrave.simpmusic.ui.icon.Podcasts
+import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
@@ -109,8 +105,12 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.all
 import simpmusic.composeapp.generated.resources.create
 import simpmusic.composeapp.generated.resources.library
+import simpmusic.composeapp.generated.resources.library_downloads
+import simpmusic.composeapp.generated.resources.library_mixes
+import simpmusic.composeapp.generated.resources.library_saved
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
 import simpmusic.composeapp.generated.resources.no_mixes_found
@@ -118,6 +118,8 @@ import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
+import simpmusic.composeapp.generated.resources.playlists
+import simpmusic.composeapp.generated.resources.podcasts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -455,6 +457,10 @@ fun LibraryScreen(
             }
             RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
+            }
+            // New releases from the artists you follow; moved here from Home, next to where they live.
+            RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
+                navController.navigate(NotificationDestination)
             }
             ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
         }

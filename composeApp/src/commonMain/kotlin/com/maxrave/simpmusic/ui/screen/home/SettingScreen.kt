@@ -26,10 +26,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -37,17 +34,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -74,16 +66,13 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
-import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.eygraber.uri.toKmpUri
 import com.maxrave.common.LIMIT_CACHE_SIZE
@@ -97,8 +86,6 @@ import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.ImportProgress
-import com.maxrave.domain.utils.LocalResource
-import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
@@ -110,23 +97,19 @@ import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
-import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingGroup
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
-import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.Error
 import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.PlayCircle
-import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Smartphone
@@ -177,7 +160,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.about
-import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.animated_artwork_info
 import simpmusic.composeapp.generated.resources.app_log
 import simpmusic.composeapp.generated.resources.app_log_description
@@ -229,7 +211,6 @@ import simpmusic.composeapp.generated.resources.equalizer_type
 import simpmusic.composeapp.generated.resources.equalizer_type_built_in
 import simpmusic.composeapp.generated.resources.equalizer_type_system
 import simpmusic.composeapp.generated.resources.free_space
-import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.http
 import simpmusic.composeapp.generated.resources.import_data
 import simpmusic.composeapp.generated.resources.import_data_intro
@@ -252,8 +233,6 @@ import simpmusic.composeapp.generated.resources.language
 import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.limit_player_cache
 import simpmusic.composeapp.generated.resources.listening_history
-import simpmusic.composeapp.generated.resources.log_out
-import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_offset
 import simpmusic.composeapp.generated.resources.lyrics_offset_invalid
@@ -268,7 +247,6 @@ import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.developer_name
 import simpmusic.composeapp.generated.resources.monthly
 import simpmusic.composeapp.generated.resources.never
-import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
 import simpmusic.composeapp.generated.resources.now_playing_style
@@ -335,7 +313,6 @@ import simpmusic.composeapp.generated.resources.settings_integrations
 import simpmusic.composeapp.generated.resources.settings_integrations_hint
 import simpmusic.composeapp.generated.resources.settings_lyrics_hint
 import simpmusic.composeapp.generated.resources.settings_playback_hint
-import simpmusic.composeapp.generated.resources.signed_in
 import simpmusic.composeapp.generated.resources.skip_no_music_part
 import simpmusic.composeapp.generated.resources.skip_silent
 import simpmusic.composeapp.generated.resources.socks
@@ -2175,169 +2152,11 @@ fun SettingScreen(
         )
     }
     if (showYouTubeAccountDialog) {
-        BasicAlertDialog(
-            onDismissRequest = { },
-            modifier = Modifier.wrapContentSize(),
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                tonalElevation = AlertDialogDefaults.TonalElevation,
-                shadowElevation = 1.dp,
-            ) {
-                val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle(
-                    minActiveState = Lifecycle.State.RESUMED,
-                )
-                LaunchedEffect(googleAccounts) {
-                    Logger.d(
-                        "SettingScreen",
-                        "LaunchedEffect: ${
-                            googleAccounts.data?.map {
-                                it.name to it.isUsed
-                            }
-                        }",
-                    )
-                }
-                LazyColumn(modifier = Modifier.padding(8.dp)) {
-                    item {
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                        ) {
-                            IconButton(
-                                onClick = { showYouTubeAccountDialog = false },
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        contentColor = MaterialTheme.colorScheme.onSurface,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .align(Alignment.CenterStart)
-                                        .fillMaxHeight(),
-                            ) {
-                                Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
-                            }
-                            Text(
-                                stringResource(Res.string.youtube_account),
-                                style = typo().titleMedium,
-                                modifier =
-                                    Modifier
-                                        .align(Alignment.Center)
-                                        .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .wrapContentWidth(),
-                            )
-                        }
-                    }
-                    if (googleAccounts is LocalResource.Success) {
-                        val data = googleAccounts.data
-                        if (data.isNullOrEmpty()) {
-                            item {
-                                Text(
-                                    stringResource(Res.string.no_account),
-                                    style = typo().bodyMedium,
-                                    textAlign = TextAlign.Center,
-                                    modifier =
-                                        Modifier
-                                            .padding(12.dp)
-                                            .fillMaxWidth(),
-                                )
-                            }
-                        } else {
-                            items(data) {
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .padding(vertical = 8.dp)
-                                            .clickable {
-                                                viewModel.setUsedAccount(it)
-                                            },
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Spacer(Modifier.width(24.dp))
-                                    AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(LocalPlatformContext.current)
-                                                .data(it.thumbnailUrl)
-                                                .crossfade(550)
-                                                .build(),
-                                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
-                                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
-                                        contentDescription = it.name,
-                                        modifier =
-                                            Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape),
-                                    )
-                                    Spacer(Modifier.width(12.dp))
-                                    Column(Modifier.weight(1f)) {
-                                        Text(it.name, style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
-                                        Text(it.email, style = typo().bodySmall)
-                                    }
-                                    Spacer(Modifier.width(12.dp))
-                                    AnimatedVisibility(it.isUsed) {
-                                        Text(
-                                            stringResource(Res.string.signed_in),
-                                            style = typo().bodySmall,
-                                            maxLines = 2,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.widthIn(0.dp, 64.dp),
-                                        )
-                                    }
-                                    Spacer(Modifier.width(24.dp))
-                                }
-                            }
-                        }
-                    } else {
-                        item {
-                            CenterLoadingBox(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp),
-                            )
-                        }
-                    }
-                    item {
-                        Column {
-                            ActionButton(
-                                icon = SimpIcons.PeopleAlt,
-                                text = Res.string.guest,
-                            ) {
-                                viewModel.setUsedAccount(null)
-                                showYouTubeAccountDialog = false
-                            }
-                            ActionButton(
-                                icon = SimpIcons.Close,
-                                text = Res.string.log_out,
-                            ) {
-                                viewModel.setBasicAlertData(
-                                    SettingBasicAlertState(
-                                        title = runBlocking { getString(Res.string.warning) },
-                                        message = runBlocking { getString(Res.string.log_out_warning) },
-                                        confirm =
-                                            runBlocking { getString(Res.string.log_out) } to {
-                                                viewModel.logOutAllYouTube()
-                                                showYouTubeAccountDialog = false
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            }
-                            ActionButton(
-                                icon = SimpIcons.PlaylistAdd,
-                                text = Res.string.add_an_account,
-                            ) {
-                                showYouTubeAccountDialog = false
-                                navController.navigate(LoginDestination)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        YouTubeAccountDialog(
+            viewModel = viewModel,
+            onAddAccount = { navController.navigate(LoginDestination) },
+            onDismiss = { showYouTubeAccountDialog = false },
+        )
     }
     val alertData by viewModel.alertData.collectAsStateWithLifecycle()
     if (alertData != null) {
