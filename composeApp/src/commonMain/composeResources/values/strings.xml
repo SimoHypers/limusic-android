@@ -663,4 +663,9 @@
     <string name="ltd_you">(you)</string>
     <string name="ltd_your_name">Your name</string>
     <string name="song_info">Song info</string>
+    <string name="shortcuts">Shortcuts</string>
+    <string name="add">Add</string>
+    <string name="add_shortcut">Add a shortcut</string>
+    <string name="shortcuts_desc">Whatever you reach for most, one tap from Home. Pick from your library.</string>
+    <string name="remove_shortcut">Remove from shortcuts</string>
 </resources>

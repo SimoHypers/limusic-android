@@ -999,11 +999,18 @@ class LocalPlaylistViewModel(
         }
     }
 
-    /** Every track of the playlist, not just the loaded page, for the menu's whole-list actions. */
-    fun withFullTracks(callback: (List<Track>) -> Unit) {
+    /**
+     * Every track of the playlist, not just the loaded page, for the menu's whole-list actions. An
+     * empty playlist toasts instead of calling back; [onDone] runs either way, after [callback].
+     */
+    fun withFullTracks(
+        onDone: () -> Unit = {},
+        callback: (List<Track>) -> Unit,
+    ) {
         viewModelScope.launch {
             val tracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id).toArrayListTrack()
             if (tracks.isEmpty()) makeToast(getString(Res.string.playlist_is_empty)) else callback(tracks)
+            onDone()
         }
     }
 

@@ -234,12 +234,17 @@ fun HomeScreen(
     val quickPicksTitle = stringResource(Res.string.quick_picks)
     // Quick picks leads Home wherever YouTube put it (stable sort: the rest keep their order).
     val homeData = remember(homeItems, quickPicksTitle) { homeItems.sortedByDescending { it.title == quickPicksTitle } }
+    val params by viewModel.params.collectAsStateWithLifecycle()
+    // Ours ahead of YouTube's shelves, as on desktop. A mood chip's feed is the chip's alone.
+    val blocks =
+        remember(homeData, params) {
+            homeData.map(HomeBlock::Shelf).let { if (params == null) listOf<HomeBlock>(HomeBlock.Shortcuts) + it else it }
+        }
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
-    val params by viewModel.params.collectAsStateWithLifecycle()
     val homeListState by viewModel.homeListState.collectAsStateWithLifecycle()
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
 
@@ -441,7 +446,7 @@ fun HomeScreen(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        itemsIndexed(homeData, key = { _, item -> item.hashCode().toString() }) { index, item ->
+                        itemsIndexed(blocks, key = { _, block -> block.key }) { index, block ->
                             Box {
                                 if (index == 0) {
                                     // Sized by the first item, so the fade always ends on its edge.
@@ -460,9 +465,12 @@ fun HomeScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
+                                    val item = (block as? HomeBlock.Shelf)?.item
                                     // Quick picks takes the hero carousel and the song-card shelves ("Your
                                     // daily discover") take the 4-row list, swapped from upstream.
-                                    if (item.title == quickPicksTitle) {
+                                    if (item == null) {
+                                        ShortcutsSection(viewModel, navController)
+                                    } else if (item.title == quickPicksTitle) {
                                         HomeDiscoverSection(
                                             // The last "artist" on a Quick picks row is the album.
                                             data =
@@ -614,6 +622,21 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+/** One section of Home, keyed so the list keeps its place when the feed changes under it. */
+private sealed interface HomeBlock {
+    val key: String
+
+    data object Shortcuts : HomeBlock {
+        override val key = "@shortcuts"
+    }
+
+    data class Shelf(
+        val item: HomeItem,
+    ) : HomeBlock {
+        override val key get() = item.hashCode().toString()
     }
 }
 

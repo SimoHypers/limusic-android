@@ -5,9 +5,11 @@ import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.library.LibraryOverview
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.AccountRepository
+import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
@@ -18,14 +20,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.song
@@ -36,6 +43,7 @@ class HomeViewModel(
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
     private val accountRepository: AccountRepository,
+    commonRepository: CommonRepository,
 ) : BaseViewModel() {
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -73,6 +81,20 @@ class HomeViewModel(
         dataStoreManager
             .dataSyncId
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
+    val shortcuts: StateFlow<List<Shortcut>> =
+        dataStoreManager
+            .getString(SHORTCUTS_KEY)
+            .map(Shortcut::parse)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Live counts for the Library collections pinned to Shortcuts. */
+    val libraryOverview: StateFlow<LibraryOverview?> =
+        commonRepository
+            .getLibraryOverview()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val shortcutsLock = Mutex()
 
     init {
         if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
@@ -219,6 +241,28 @@ class HomeViewModel(
         }
     }
 
+    /** Pins [shortcut], or takes it off when it is already there. A full grid takes nothing. */
+    fun toggleShortcut(shortcut: Shortcut) =
+        editShortcuts { list ->
+            when {
+                list.any { it.sameAs(shortcut) } -> list.filterNot { it.sameAs(shortcut) }
+                list.size < Shortcut.MAX -> list + shortcut
+                else -> list
+            }
+        }
+
+    fun removeShortcut(shortcut: Shortcut) = editShortcuts { list -> list.filterNot { it.sameAs(shortcut) } }
+
+    private fun editShortcuts(change: (List<Shortcut>) -> List<Shortcut>) {
+        viewModelScope.launch {
+            // Read the store, not [shortcuts]: two quick taps would both see the list before either write.
+            shortcutsLock.withLock {
+                val now = Shortcut.parse(dataStoreManager.getString(SHORTCUTS_KEY).first())
+                dataStoreManager.putString(SHORTCUTS_KEY, Shortcut.encode(change(now)))
+            }
+        }
+    }
+
     fun setParams(params: String?) {
         _params.value = params
     }
@@ -229,6 +273,8 @@ class HomeViewModel(
     }
 
     companion object {
+        private const val SHORTCUTS_KEY = "home_shortcuts"
+
         // Home params
         const val HOME_PARAMS_RELAX = "ggM8SgQIBxADSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
         const val HOME_PARAMS_SLEEP = "ggM8SgQIBxABSgQIBRADSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
@@ -242,3 +288,31 @@ class HomeViewModel(
         const val HOME_PARAMS_FOCUS = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAD"
     }
 }
+
+/**
+ * A Shortcuts tile on Home: something from the library, pinned by hand. Stored as a snapshot of the
+ * card when it was pinned; list order is display order.
+ */
+@Serializable
+data class Shortcut(
+    val kind: Kind,
+    val id: String,
+    val title: String,
+    val subtitle: String? = null,
+    val thumbnail: String? = null,
+) {
+    /** [COLLECTION] is one of Library's four; its [id] is the LibraryDynamicPlaylistType params. */
+    enum class Kind { COLLECTION, LOCAL_PLAYLIST, PLAYLIST, OWN_PLAYLIST, ALBUM, PODCAST }
+
+    fun sameAs(other: Shortcut) = kind == other.kind && id == other.id
+
+    companion object {
+        const val MAX = 8
+        private val json = Json { ignoreUnknownKeys = true }
+
+        fun parse(raw: String?): List<Shortcut> = raw?.let { runCatching { json.decodeFromString<List<Shortcut>>(it) }.getOrNull() }.orEmpty()
+
+        fun encode(list: List<Shortcut>): String = json.encodeToString(list)
+    }
+}
+

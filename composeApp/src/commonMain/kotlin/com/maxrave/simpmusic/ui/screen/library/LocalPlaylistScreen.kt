@@ -40,33 +40,30 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import com.maxrave.simpmusic.extension.barBlurStyle
-import com.maxrave.simpmusic.ui.component.DownloadingIndicator
-import com.maxrave.simpmusic.ui.icon.Search
-import com.maxrave.simpmusic.ui.icon.Close
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -105,52 +102,52 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
-import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.component.SearchBarExit
-import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
-import com.maxrave.simpmusic.ui.component.DeletePlaylistDialog
-import com.maxrave.simpmusic.ui.component.EditPlaylistBottomSheet
-import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
-import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
+import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.LoadingDialog
-import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
+import com.maxrave.simpmusic.ui.component.LocalPlaylistMenu
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SearchBarEnter
+import com.maxrave.simpmusic.ui.component.SearchBarExit
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
+import com.maxrave.simpmusic.ui.component.SuggestItems
+import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
+import com.maxrave.simpmusic.ui.component.pillSurface
+import com.maxrave.simpmusic.ui.component.playlistTitleGradient
+import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionAction
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
-import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
-import com.maxrave.simpmusic.ui.component.SuggestItems
-import com.maxrave.simpmusic.ui.component.pillSurface
-import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
-import com.maxrave.simpmusic.ui.component.playlistTitleGradient
-import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Sort
@@ -185,7 +182,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.delete_playlist_desc_local
 import simpmusic.composeapp.generated.resources.album_length
 import simpmusic.composeapp.generated.resources.baseline_downloaded
 import simpmusic.composeapp.generated.resources.cancel
@@ -194,14 +190,10 @@ import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.remove_from_playlist
+import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
-import simpmusic.composeapp.generated.resources.sync_playlist_warning
-import simpmusic.composeapp.generated.resources.unsync_playlist_warning
-import simpmusic.composeapp.generated.resources.warning
-import simpmusic.composeapp.generated.resources.yes
 import simpmusic.composeapp.generated.resources.your_playlist
-import simpmusic.composeapp.generated.resources.search
 
 private const val TAG = "LocalPlaylistScreen"
 
@@ -278,12 +270,6 @@ fun LocalPlaylistScreen(
 
     val suggestedTracks by viewModel.uiState.map { it.suggestions?.songs ?: emptyList() }.collectAsState(initial = emptyList())
     val suggestionsLoading by viewModel.loading.collectAsStateWithLifecycle()
-    var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
-    var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
-    var showEditPlaylist by remember { mutableStateOf(false) }
-    var showDeletePlaylist by remember { mutableStateOf(false) }
-    // Set by the menu's Save to playlist; non-null shows the picker.
-    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
     var firstTimeGetLocalPlaylist by rememberSaveable {
         mutableStateOf(false)
     }
@@ -298,6 +284,7 @@ fun LocalPlaylistScreen(
     var playlistBottomSheetShow by remember {
         mutableStateOf(false)
     }
+    var menuRequest by remember { mutableIntStateOf(0) }
 
     var sortBottomSheetShow by remember {
         mutableStateOf(false)
@@ -337,6 +324,7 @@ fun LocalPlaylistScreen(
         }
     }
     val onPlaylistMoreClick: () -> Unit = {
+        menuRequest++
         playlistBottomSheetShow = true
     }
 
@@ -1493,123 +1481,14 @@ fun LocalPlaylistScreen(
         )
     }
     if (playlistBottomSheetShow) {
-        LocalPlaylistBottomSheet(
-            onDismiss = { playlistBottomSheetShow = false },
-            ytPlaylistId = uiState.ytPlaylistId,
-            onPlayNext = { viewModel.withFullTracks { sharedViewModel.playListNext(it) } },
-            onAddToQueue = { viewModel.addAllToQueue() },
-            onSaveToPlaylist = { viewModel.withFullTracks { saveTracks = it } },
-            onEditPlaylist = { showEditPlaylist = true },
-            onSync = {
-                if (uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
-                    showUnsyncAlertDialog = true
-                } else {
-                    showSyncAlertDialog = true
-                }
-            },
-            onUpdatePlaylist = {
-                viewModel.updateListTrackSynced(uiState.id)
-            },
-            onDelete = { showDeletePlaylist = true },
-        )
-    }
-    if (showEditPlaylist) {
-        EditPlaylistBottomSheet(
-            title = uiState.title,
-            description = null,
-            privacy = null,
-            thumbnail = uiState.thumbnail,
-            onDismiss = { showEditPlaylist = false },
-            onSave = { title, _, _, cover, onResult ->
-                title?.let { viewModel.updatePlaylistTitle(it, uiState.id) }
-                coroutineScope.launch {
-                    // Named after the content: Coil caches by url, so a fixed name would keep
-                    // showing the old cover, and the same picture re-picked reuses its file.
-                    cover
-                        ?.let { persistPickedImage(it, "cover_${it.contentHashCode().toUInt()}.jpg") }
-                        ?.let { viewModel.updatePlaylistThumbnail(it, uiState.id) }
-                    onResult(true)
-                    showEditPlaylist = false
-                }
-            },
-        )
-    }
-    if (showDeletePlaylist) {
-        DeletePlaylistDialog(
-            message = stringResource(Res.string.delete_playlist_desc_local, uiState.title),
-            onDismiss = { showDeletePlaylist = false },
-            onConfirm = {
-                showDeletePlaylist = false
-                viewModel.deletePlaylist(uiState.id)
-                navController.navigateUp()
-            },
-        )
-    }
-    saveTracks?.let { toSave ->
-        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-        val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
-        LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
-        AddToPlaylistModalBottomSheet(
-            isBottomSheetVisible = true,
-            // Not into itself.
-            listLocalPlaylist = localPlaylists.filter { it.id != uiState.id },
-            listYouTubePlaylist = youTubePlaylists,
-            onDismiss = { saveTracks = null },
-            onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
-            onYTPlaylistClick = { playlist ->
-                selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
-            },
-        )
-    }
-    if (showSyncAlertDialog) {
-        AlertDialog(
-            containerColor = rememberSurfaceDarkColors().container,
-            titleContentColor = rememberSurfaceDarkColors().content,
-            textContentColor = rememberSurfaceDarkColors().content,
-            title = { Text(text = stringResource(Res.string.warning)) },
-            text = { Text(text = stringResource(Res.string.sync_playlist_warning)) },
-            onDismissRequest = { showSyncAlertDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.syncPlaylistWithYouTubePlaylist(uiState.id)
-                    showSyncAlertDialog = false
-                }) {
-                    Text(text = stringResource(Res.string.yes))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showSyncAlertDialog = false
-                }) {
-                    Text(text = stringResource(Res.string.cancel))
-                }
-            },
-        )
-    }
-    if (showUnsyncAlertDialog) {
-        AlertDialog(
-            containerColor = rememberSurfaceDarkColors().container,
-            titleContentColor = rememberSurfaceDarkColors().content,
-            textContentColor = rememberSurfaceDarkColors().content,
-            title = { Text(text = stringResource(Res.string.warning)) },
-            text = { Text(text = stringResource(Res.string.unsync_playlist_warning)) },
-            onDismissRequest = { showUnsyncAlertDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.unsyncPlaylistWithYouTubePlaylist(uiState.id)
-                    showUnsyncAlertDialog = false
-                }) {
-                    Text(text = stringResource(Res.string.yes))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showUnsyncAlertDialog = false
-                }) {
-                    Text(text = stringResource(Res.string.cancel))
-                }
-            },
-        )
+        key(menuRequest) {
+            LocalPlaylistMenu(
+                viewModel = viewModel,
+                uiState = uiState,
+                onClose = { playlistBottomSheetShow = false },
+                onDeleted = { navController.navigateUp() },
+            )
+        }
     }
     // A sibling of the paged list, not a branch inside it. The paged reader carries drag
     // reordering, in-place removal and its own scroll state; searching has none of that, and

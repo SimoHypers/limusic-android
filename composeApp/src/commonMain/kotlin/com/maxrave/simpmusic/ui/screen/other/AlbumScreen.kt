@@ -66,25 +66,25 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.extension.barBlurStyle
-import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
+import com.maxrave.simpmusic.ui.component.AlbumMenu
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
+import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
-import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
+import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.pillSurface
@@ -159,8 +159,6 @@ fun AlbumScreen(
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
     var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
     var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
-    // Set by the menu's Save to playlist; non-null shows the picker.
-    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
 
 
     LaunchedEffect(browseId) {
@@ -1022,34 +1020,7 @@ fun AlbumScreen(
                     )
                 }
                 if (albumBottomSheetShow) {
-                    PlaylistBottomSheet(
-                        onDismiss = { albumBottomSheetShow = false },
-                        shareLink =
-                            if (uiState.audioPlaylistId.isNotEmpty()) {
-                                "https://music.youtube.com/playlist?list=${uiState.audioPlaylistId}"
-                            } else {
-                                "https://music.youtube.com/browse/$browseId"
-                            },
-                        onPlayNext = { sharedViewModel.playListNext(uiState.listTrack) },
-                        onAddToQueue = { sharedViewModel.addListToQueue(ArrayList(uiState.listTrack)) },
-                        onStartRadio = { viewModel.startRadio() },
-                        onSaveToPlaylist = { saveTracks = uiState.listTrack },
-                    )
-                }
-                saveTracks?.let { toSave ->
-                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
-                    LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
-                    AddToPlaylistModalBottomSheet(
-                        isBottomSheetVisible = true,
-                        listLocalPlaylist = localPlaylists,
-                        listYouTubePlaylist = youTubePlaylists,
-                        onDismiss = { saveTracks = null },
-                        onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
-                        onYTPlaylistClick = { playlist ->
-                            selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
-                        },
-                    )
+                    AlbumMenu(viewModel, uiState, browseId, onClose = { albumBottomSheetShow = false })
                 }
             }
 

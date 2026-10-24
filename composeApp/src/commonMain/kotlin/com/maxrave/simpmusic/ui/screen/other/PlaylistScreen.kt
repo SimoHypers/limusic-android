@@ -54,6 +54,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -79,35 +81,33 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.extension.barBlurStyle
-import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.ui.component.SearchBarExit
-import com.maxrave.simpmusic.ui.component.SearchBarEnter
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
-import com.maxrave.simpmusic.ui.component.DeletePlaylistDialog
-import com.maxrave.simpmusic.ui.component.EditPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
+import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
-import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
+import com.maxrave.simpmusic.ui.component.PillIconButton
+import com.maxrave.simpmusic.ui.component.PlaylistMenu
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SearchBarEnter
+import com.maxrave.simpmusic.ui.component.SearchBarExit
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.pillSurface
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
@@ -150,7 +150,6 @@ import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.no_description
-import simpmusic.composeapp.generated.resources.delete_playlist_desc
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.search
@@ -269,10 +268,7 @@ fun PlaylistScreen(
     var playlistBottomSheetShow by remember {
         mutableStateOf(false)
     }
-    // Set by the menu's Save to playlist once every page is in; non-null shows the picker.
-    var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
-    var showEditPlaylist by remember { mutableStateOf(false) }
-    var showDeletePlaylist by remember { mutableStateOf(false) }
+    var menuRequest by remember { mutableIntStateOf(0) }
 
     val onPlaylistItemClick: (videoId: String) -> Unit = { videoId ->
         viewModel.onUIEvent(
@@ -288,6 +284,7 @@ fun PlaylistScreen(
         }
     }
     val onPlaylistMoreClick: () -> Unit = {
+        menuRequest++
         playlistBottomSheetShow = true
     }
 
@@ -1280,67 +1277,16 @@ fun PlaylistScreen(
                         song = track,
                     )
                 }
-                // Liked Music (LM) is a playlist YouTube fills from ratings: no edit, no delete.
-                val ownPlaylist = (data.owned || isYourYouTubePlaylist) && !data.isRadio && data.id.removePrefix("VL") != "LM"
                 if (playlistBottomSheetShow) {
-                    PlaylistBottomSheet(
-                        onDismiss = { playlistBottomSheetShow = false },
-                        shareLink = "https://music.youtube.com/playlist?list=${data.id.removePrefix("VL")}",
-                        onPlayNext = { viewModel.getFullTracks { sharedViewModel.playListNext(it) } },
-                        onAddToQueue = {
-                            viewModel.getFullTracks { sharedViewModel.addListToQueue(ArrayList(it)) }
-                        },
-                        onStartRadio = if (data.isRadio) null else ({ viewModel.onUIEvent(PlaylistUIEvent.StartRadio) }),
-                        onSaveToPlaylist = { viewModel.getFullTracks { saveTracks = it } },
-                        onEditPlaylist = if (ownPlaylist) ({ showEditPlaylist = true }) else null,
-                        onDeletePlaylist = if (ownPlaylist) ({ showDeletePlaylist = true }) else null,
-                    )
-                }
-                if (showEditPlaylist) {
-                    EditPlaylistBottomSheet(
-                        title = data.title,
-                        description = data.description.orEmpty(),
-                        privacy = data.privacy ?: "PRIVATE",
-                        thumbnail = data.thumbnail,
-                        onDismiss = { showEditPlaylist = false },
-                        onSave = { title, description, privacy, cover, onResult ->
-                            viewModel.editPlaylist(title, description, privacy, cover) { ok ->
-                                onResult(ok)
-                                if (ok) {
-                                    showEditPlaylist = false
-                                    sharedViewModel.youTubePlaylistsChanged()
-                                }
-                            }
-                        },
-                    )
-                }
-                if (showDeletePlaylist) {
-                    DeletePlaylistDialog(
-                        message = stringResource(Res.string.delete_playlist_desc, data.title),
-                        onDismiss = { showDeletePlaylist = false },
-                        onConfirm = {
-                            showDeletePlaylist = false
-                            viewModel.deletePlaylist {
-                                sharedViewModel.youTubePlaylistsChanged()
-                                navController.navigateUp()
-                            }
-                        },
-                    )
-                }
-                saveTracks?.let { toSave ->
-                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    val youTubePlaylists by selectionViewModel.youTubePlaylists.collectAsStateWithLifecycle()
-                    LaunchedEffect(Unit) { selectionViewModel.loadYouTubePlaylists() }
-                    AddToPlaylistModalBottomSheet(
-                        isBottomSheetVisible = true,
-                        listLocalPlaylist = localPlaylists,
-                        listYouTubePlaylist = youTubePlaylists,
-                        onDismiss = { saveTracks = null },
-                        onClick = { playlist -> selectionViewModel.addTracksToPlaylist(playlist.id, toSave) },
-                        onYTPlaylistClick = { playlist ->
-                            selectionViewModel.addTracksToYouTubePlaylist(playlist.browseId, toSave)
-                        },
-                    )
+                    key(menuRequest) {
+                        PlaylistMenu(
+                            viewModel = viewModel,
+                            placeholder = data,
+                            isYourYouTubePlaylist = isYourYouTubePlaylist,
+                            onClose = { playlistBottomSheetShow = false },
+                            onDeleted = { navController.navigateUp() },
+                        )
+                    }
                 }
                 AnimatedVisibility(
                     visible = shouldHideTopBar && !showSearchBar && !selectionState.isActive,

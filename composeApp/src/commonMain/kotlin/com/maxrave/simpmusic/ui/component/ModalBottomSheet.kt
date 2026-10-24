@@ -150,6 +150,7 @@ import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DownloadForOfflineOutlined
 import com.maxrave.simpmusic.ui.icon.Downloading
 import com.maxrave.simpmusic.ui.icon.Edit
+import com.maxrave.simpmusic.ui.icon.GridView
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowDown
@@ -246,6 +247,7 @@ import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.remove_shortcut
 import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
@@ -2672,7 +2674,8 @@ fun ArtistModalBottomSheet(
 @ExperimentalMaterial3Api
 /**
  * The ⋮ menu of a YouTube playlist or an album, in Limusic desktop's order. A null action hides
- * its row: a radio has no radio of its own, and only your own playlists can be edited.
+ * its row: a radio has no radio of its own, only your own playlists can be edited, and only a
+ * Home shortcut's menu can take it off Home.
  */
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
@@ -2683,6 +2686,7 @@ fun PlaylistBottomSheet(
     onSaveToPlaylist: () -> Unit,
     onEditPlaylist: (() -> Unit)? = null,
     onDeletePlaylist: (() -> Unit)? = null,
+    onRemoveShortcut: (() -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2731,6 +2735,9 @@ fun PlaylistBottomSheet(
                     ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
                         shareUrl(shareTitle, shareLink)
                     }
+                    if (onRemoveShortcut != null) {
+                        ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
+                    }
                     if (onEditPlaylist != null) {
                         ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
                     }
@@ -2766,6 +2773,7 @@ fun LocalPlaylistBottomSheet(
     onSync: () -> Unit,
     onUpdatePlaylist: () -> Unit,
     onDelete: () -> Unit,
+    onRemoveShortcut: (() -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2802,6 +2810,9 @@ fun LocalPlaylistBottomSheet(
                     ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
                     ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
                     ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    if (onRemoveShortcut != null) {
+                        ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
+                    }
                     ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
                     ActionButton(
                         icon = if (ytPlaylistId != null) SimpIcons.SyncDisabled else SimpIcons.Sync,

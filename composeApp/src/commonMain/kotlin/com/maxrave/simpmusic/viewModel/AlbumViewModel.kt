@@ -23,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -50,7 +51,8 @@ class AlbumViewModel(
 
     fun updateBrowseId(browseId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(browseId = browseId) }
+            // Loading again, so a retry after an error reads as a new request until it lands.
+            _uiState.update { it.copy(browseId = browseId, loadState = LocalPlaylistState.PlaylistLoadState.Loading) }
             albumRepository.getAlbumData(browseId).collectLatest { res ->
                 when (res) {
                     is Resource.Success -> {
@@ -245,6 +247,18 @@ class AlbumViewModel(
             ),
         )
         loadMediaItem(shuffleList[randomIndex], Config.ALBUM_CLICK, randomIndex)
+    }
+
+    /** Runs [action] with the album once it has loaded ([onDone] either way, after it). */
+    fun afterLoad(
+        onDone: () -> Unit = {},
+        action: (AlbumUIState) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val state = uiState.first { it.loadState != LocalPlaylistState.PlaylistLoadState.Loading }
+            if (state.loadState == LocalPlaylistState.PlaylistLoadState.Success) action(state)
+            onDone()
+        }
     }
 
     fun startRadio() {

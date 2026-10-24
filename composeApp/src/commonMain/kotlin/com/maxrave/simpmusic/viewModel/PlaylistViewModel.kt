@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
@@ -195,6 +197,10 @@ class PlaylistViewModel(
                         when (res) {
                             is Resource.Success if (data != null) -> {
                                 Logger.d(tag, "Radio data: $data")
+                                // Tracks first: a menu waiting on Success reads them straight away.
+                                _tracks.value = data.first.tracks
+                                _continuation.value = data.second
+                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 _uiState.value =
                                     Success(
                                         data =
@@ -212,9 +218,6 @@ class PlaylistViewModel(
                                                 year = data.first.year,
                                             ),
                                     )
-                                _tracks.value = data.first.tracks
-                                _continuation.value = data.second
-                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 playlistRepository.insertRadioPlaylist(data.first.toPlaylistEntity())
                             }
 
@@ -233,6 +236,10 @@ class PlaylistViewModel(
                             is Resource.Success if (data != null) -> {
                                 Logger.d(tag, "Playlist data: $data")
                                 log("Playlist endpoint: ${data.first.shuffleEndpoint}")
+                                // Tracks first: a menu waiting on Success reads them straight away.
+                                _tracks.value = data.first.tracks
+                                _continuation.value = data.second
+                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 _uiState.value =
                                     Success(
                                         data =
@@ -254,9 +261,6 @@ class PlaylistViewModel(
                                                 owned = data.first.owned,
                                             ),
                                     )
-                                _tracks.value = data.first.tracks
-                                _continuation.value = data.second
-                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
                             }
 
@@ -360,6 +364,8 @@ class PlaylistViewModel(
                         playlistId = id,
                         inLibrary = now(),
                     )
+                    // Before Success, so nothing waiting on it reads the track list half-built.
+                    _tracksListState.value = ListState.LOADING
                     _uiState.value =
                         Success(
                             data =
@@ -378,7 +384,6 @@ class PlaylistViewModel(
                                     year = playlistEntity.year ?: now().year.toString(),
                                 ),
                         )
-                    _tracksListState.value = ListState.LOADING
                     playlistEntity.tracks?.let {
                         songRepository
                             .getSongsByListVideoId(it)
@@ -584,6 +589,9 @@ class PlaylistViewModel(
 
     fun getFullTracks(callback: (List<Track>) -> Unit) {
         viewModelScope.launch {
+            // A Home shortcut opens the menu before the playlist has loaded: wait for its first page.
+            combine(uiState, tracksListState) { ui, list -> ui !is Loading && list != ListState.LOADING }.first { it }
+            if (uiState.value.data == null) return@launch
             if (tracksListState.value == ListState.PAGINATION_EXHAUST) {
                 _playlistEntity.value
                     ?.copy(
@@ -610,6 +618,13 @@ class PlaylistViewModel(
                     }
                 }
             }
+        }
+    }
+
+    /** Runs [action] once the playlist has loaded; never, if it failed. */
+    fun afterLoad(action: () -> Unit) {
+        viewModelScope.launch {
+            if (uiState.first { it !is Loading } is Success) action()
         }
     }
 
