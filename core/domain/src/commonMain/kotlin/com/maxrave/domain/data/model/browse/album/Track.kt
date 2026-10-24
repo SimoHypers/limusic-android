@@ -29,4 +29,12 @@ data class Track(
      * up with view counts. Defaulted so existing persisted queue JSON still decodes.
      */
     val views: String? = null,
+    /** Queued with Play next. Queue rows only, like the three below (desktop's SongItem flags). */
+    val queued: Boolean = false,
+    /** Queued with Add to queue. */
+    val queuedEnd: Boolean = false,
+    /** The album or playlist a queued block came from; shuffle keeps such a block together. */
+    val queuedFrom: String? = null,
+    /** Brought in by autoplay: drawn under its divider, and what switching Autoplay off removes. */
+    val autoplay: Boolean = false,
 )

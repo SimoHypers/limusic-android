@@ -292,13 +292,13 @@ class NowPlayingBottomSheetViewModel(
 
                 is NowPlayingBottomSheetUIEvent.PlayNext -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                    mediaPlayerHandler.playNext(songEntity.toTrack())
+                    mediaPlayerHandler.playNext(listOf(songEntity.toTrack()))
                     makeToast(getString(Res.string.play_next))
                 }
 
                 is NowPlayingBottomSheetUIEvent.AddToQueue -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                    mediaPlayerHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
+                    mediaPlayerHandler.addToQueue(listOf(songEntity.toTrack()))
                     makeToast(getString(Res.string.added_to_queue))
                 }
 

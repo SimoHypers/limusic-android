@@ -872,61 +872,8 @@ class SharedViewModel(
         index: Int? = null,
     ) {
         viewModelScope.launch {
-            mediaPlayerHandler.clearMediaItems()
-            songRepository.insertSong(track.toSongEntity()).lastOrNull()?.let {
-                println("insertSong: $it")
-                songRepository
-                    .getSongById(track.videoId)
-                    .collect { songEntity ->
-                        if (songEntity != null) {
-                            Logger.d("Check like", "loadMediaItemFromTrack ${songEntity.liked}")
-                            _liked.value = songEntity.liked
-                        }
-                    }
-            }
-            track.durationSeconds?.let {
-                songRepository.updateDurationSeconds(
-                    it,
-                    track.videoId,
-                )
-            }
-            withContext(Dispatchers.Main) {
-                mediaPlayerHandler.addMediaItem(track.toGenericMediaItem(), playWhenReady = type != RECOVER_TRACK_QUEUE)
-            }
-
-            when (type) {
-                SONG_CLICK -> {
-                    mediaPlayerHandler.getRelated(track.videoId)
-                }
-
-                VIDEO_CLICK -> {
-                    mediaPlayerHandler.getRelated(track.videoId)
-                }
-
-                SHARE -> {
-                    mediaPlayerHandler.getRelated(track.videoId)
-                }
-
-                PLAYLIST_CLICK -> {
-                    if (index == null) {
-//                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                        loadPlaylistOrAlbum(index = 0)
-                    } else {
-//                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-                        loadPlaylistOrAlbum(index = index)
-                    }
-                }
-
-                ALBUM_CLICK -> {
-                    if (index == null) {
-//                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                        loadPlaylistOrAlbum(index = 0)
-                    } else {
-//                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-                        loadPlaylistOrAlbum(index = index)
-                    }
-                }
-            }
+            mediaPlayerHandler.loadMediaItem(track, type, index)
+            songRepository.getSongById(track.videoId).firstOrNull()?.let { _liked.value = it.liked }
         }
     }
 
@@ -1109,10 +1056,6 @@ class SharedViewModel(
         onUIEvent(UIEvent.Stop)
     }
 
-    private fun loadPlaylistOrAlbum(index: Int? = null) {
-        mediaPlayerHandler.loadPlaylistOrAlbum(index)
-    }
-
     private var _recreateActivity: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val recreateActivity: StateFlow<Boolean> = _recreateActivity
 
@@ -1133,18 +1076,23 @@ class SharedViewModel(
         _youTubePlaylistsVersion.value++
     }
 
-    /** Each insert lands right after the playing track, so walking backwards keeps the list's order. */
-    // ponytail: one insert per track; a batch insert in the handler if a long playlist feels slow.
-    fun playListNext(listTrack: List<Track>) {
+    /** [from] names the album or playlist the tracks came from: shuffle keeps such a block together. */
+    fun playListNext(
+        listTrack: List<Track>,
+        from: String? = null,
+    ) {
         viewModelScope.launch {
-            listTrack.asReversed().forEach { mediaPlayerHandler.playNext(it) }
+            mediaPlayerHandler.playNext(listTrack, from)
             makeToast(getString(Res.string.play_next))
         }
     }
 
-    fun addListToQueue(listTrack: ArrayList<Track>) {
+    fun addListToQueue(
+        listTrack: List<Track>,
+        from: String? = null,
+    ) {
         viewModelScope.launch {
-            mediaPlayerHandler.loadMoreCatalog(listTrack)
+            mediaPlayerHandler.addToQueue(listTrack, from)
             makeToast(getString(Res.string.added_to_queue))
         }
     }

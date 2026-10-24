@@ -249,6 +249,7 @@ class ArtistViewModel(
                                 playlistName = "\"${artistScreenState.value.data.title}\" ${getString(Res.string.shuffle)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
+                                nextContinuation = true,
                             ),
                         )
                         loadMediaItem(

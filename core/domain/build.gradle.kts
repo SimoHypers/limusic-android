@@ -15,6 +15,7 @@ kotlin {
         namespace = "com.maxrave.domain"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     sourceSets {

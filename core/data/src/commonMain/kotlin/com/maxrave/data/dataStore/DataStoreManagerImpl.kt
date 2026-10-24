@@ -798,7 +798,7 @@ internal class DataStoreManagerImpl(
 
     override val endlessQueue =
         settingsDataStore.data.map { preferences ->
-            preferences[ENDLESS_QUEUE] ?: FALSE
+            preferences[ENDLESS_QUEUE] ?: TRUE
         }
 
     override suspend fun setEndlessQueue(endlessQueue: Boolean) {

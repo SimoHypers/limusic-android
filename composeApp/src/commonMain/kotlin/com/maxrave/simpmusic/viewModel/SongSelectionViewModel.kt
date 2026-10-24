@@ -52,11 +52,6 @@ class SongSelectionViewModel(
             .getAllLocalPlaylists()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /**
-     * Each call inserts right after the current track, so playing them in order would leave the
-     * queue reversed — the last one inserted ends up first. Walking the list backwards puts them
-     * in the order the user saw them.
-     */
     fun playNext(videoIds: List<String>) {
         viewModelScope.launch {
             val songs = songsOf(videoIds)
@@ -64,7 +59,7 @@ class SongSelectionViewModel(
                 makeToast(getString(Res.string.error_occurred))
                 return@launch
             }
-            songs.asReversed().forEach { mediaPlayerHandler.playNext(it.toTrack()) }
+            mediaPlayerHandler.playNext(songs.map { it.toTrack() })
             makeToast(getString(Res.string.play_next))
         }
     }
@@ -76,10 +71,7 @@ class SongSelectionViewModel(
                 makeToast(getString(Res.string.error_occurred))
                 return@launch
             }
-            mediaPlayerHandler.loadMoreCatalog(
-                ArrayList(songs.map { it.toTrack() }),
-                isAddToQueue = true,
-            )
+            mediaPlayerHandler.addToQueue(songs.map { it.toTrack() })
             makeToast(getString(Res.string.added_to_queue))
         }
     }

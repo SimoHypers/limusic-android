@@ -106,7 +106,7 @@ internal fun AppleMusicQueueView(
     val localDensity = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Upcoming tracks live in the SAME index space as musicServiceHandler.swap(from, to) and
+    // Upcoming tracks live in the SAME index space as musicServiceHandler.moveInQueue(from, to) and
     // removeMediaItem(index): artworkQueue == queueData.data.listTracks, and both operations
     // read/write that list (and the player timeline) at the SAME position — confirmed by reading
     // MediaServiceHandlerImpl.removeMediaItem/swap and ExoPlayerAdapter.moveMediaItem/
@@ -190,21 +190,6 @@ internal fun AppleMusicQueueView(
             }
         }
 
-        // Endless/radio queues page in as you scroll — same trigger QueueBottomSheet uses.
-        val loadMoreState by remember {
-            derivedStateOf { musicServiceHandler.queueData.value?.queueState ?: QueueData.StateSource.STATE_CREATED }
-        }
-        val shouldLoadMore by remember {
-            derivedStateOf {
-                val layoutInfo = lazyListState.layoutInfo
-                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull() ?: return@derivedStateOf true
-                lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
-            }
-        }
-        LaunchedEffect(Unit) {
-            snapshotFlow { shouldLoadMore }
-                .collect { if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore() }
-        }
         var overscrollJob by remember { mutableStateOf<Job?>(null) }
 
         Box(

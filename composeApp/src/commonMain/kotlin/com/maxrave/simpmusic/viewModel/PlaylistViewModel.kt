@@ -497,45 +497,24 @@ class PlaylistViewModel(
             }
 
             PlaylistUIEvent.Shuffle -> {
-                val shuffleEndpoint = data.shuffleEndpoint
-                if (shuffleEndpoint == null) {
-                    makeToast(
-                        getString(Res.string.shuffle_not_available),
-                    )
+                // The playlist's own tracks in random order, like desktop; the rest of a long one
+                // is walked in the background and mixed in as it arrives.
+                val loadedList = tracks.value
+                if (loadedList.isEmpty()) {
+                    makeToast(getString(Res.string.playlist_is_empty))
                     return
-                } else {
-                    viewModelScope.launch {
-                        songRepository.getRadioFromEndpoint(shuffleEndpoint).collectLatest { res ->
-                            val result = res.data
-                            when (res) {
-                                is Resource.Success if (result != null) -> {
-                                    Logger.d(tag, "Shuffle data: ${result.first.size}")
-                                    setQueueData(
-                                        QueueData.Data(
-                                            listTracks = result.first.toCollection(arrayListOf<Track>()),
-                                            firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
-                                            playlistId = shuffleEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(Res.string.shuffle)}",
-                                            playlistType = PlaylistType.RADIO,
-                                            continuation = result.second,
-                                        ),
-                                    )
-                                    loadMediaItem(
-                                        result.first.firstOrNull() ?: return@collectLatest,
-                                        Config.RADIO_CLICK,
-                                        0,
-                                    )
-                                }
-
-                                else -> {
-                                    makeToast(
-                                        res.message ?: getString(Res.string.error),
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
+                setQueueData(
+                    QueueData.Data(
+                        listTracks = loadedList.toCollection(arrayListOf<Track>()),
+                        playlistId = data.id,
+                        playlistName = "${getString(Res.string.playlist)} \"${data.title}\"",
+                        playlistType = PlaylistType.PLAYLIST,
+                        continuation = continuation.value,
+                        shuffle = true,
+                    ),
+                )
+                loadMediaItem(loadedList.first(), Config.PLAYLIST_CLICK, null)
             }
 
             PlaylistUIEvent.StartRadio -> {

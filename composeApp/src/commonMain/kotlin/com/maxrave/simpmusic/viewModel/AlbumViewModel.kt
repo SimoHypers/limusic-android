@@ -217,7 +217,8 @@ class AlbumViewModel(
             QueueData.Data(
                 listTracks = uiState.value.listTrack.toCollection(ArrayList()),
                 firstPlayedTrack = track,
-                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                // The audio playlist, not the MPRE browseId: autoplay's radio keys off it.
+                playlistId = uiState.value.audioPlaylistId.ifEmpty { null },
                 playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
                 playlistType = PlaylistType.ALBUM,
                 continuation = null,
@@ -232,21 +233,17 @@ class AlbumViewModel(
             makeToast(getString(Res.string.playlist_is_empty))
             return
         }
-        val shuffleList = uiState.value.listTrack.shuffled()
-        val randomIndex = shuffleList.indices.random()
+        val list = uiState.value.listTrack
         setQueueData(
             QueueData.Data(
-                listTracks = shuffleList.toCollection(ArrayList()),
-                firstPlayedTrack = shuffleList[randomIndex],
-                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                listTracks = list.toCollection(ArrayList()),
+                playlistId = uiState.value.audioPlaylistId.ifEmpty { null },
                 playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
-                // Not ALBUM: shuffling has already thrown away the running order, so the reason to
-                // keep transitions gapless is gone. Crossfade behaves as it would for any playlist.
-                playlistType = PlaylistType.PLAYLIST,
-                continuation = null,
+                playlistType = PlaylistType.ALBUM,
+                shuffle = true,
             ),
         )
-        loadMediaItem(shuffleList[randomIndex], Config.ALBUM_CLICK, randomIndex)
+        loadMediaItem(list.first(), Config.ALBUM_CLICK, null)
     }
 
     /** Runs [action] with the album once it has loaded ([onDone] either way, after it). */

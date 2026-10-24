@@ -923,9 +923,7 @@ fun QueueBottomSheet(
         val lazyListState = rememberLazyListState()
         val dragDropState =
             rememberDragDropState(lazyListState) { from, to ->
-                coroutineScope.launch {
-                    musicServiceHandler.swap(from, to)
-                }
+                musicServiceHandler.moveInQueue(from, to)
             }
         var overscrollJob by remember { mutableStateOf<Job?>(null) }
         // The row whose ⋯ was tapped, as its queue position and the track that was there.
@@ -944,27 +942,6 @@ fun QueueBottomSheet(
             }
         }
         val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
-
-        val shouldLoadMore =
-            remember {
-                derivedStateOf {
-                    val layoutInfo = lazyListState.layoutInfo
-                    val lastVisibleItem =
-                        layoutInfo.visibleItemsInfo.lastOrNull()
-                            ?: return@derivedStateOf true
-
-                    lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
-                }
-            }
-
-        // Convert the state into a cold flow and collect
-        LaunchedEffect(shouldLoadMore) {
-            snapshotFlow { shouldLoadMore.value }
-                .collect {
-                    // if should load more, then invoke loadMore
-                    if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
-                }
-        }
 
         DisposableEffect(Unit) {
             val currentSongIndex = musicServiceHandler.currentOrderIndex().takeIf { i -> i > -1 } ?: 0
@@ -1270,12 +1247,12 @@ private fun QueueItemActions(
     }
     if (index > 0) {
         ActionButton(icon = SimpIcons.KeyboardDoubleArrowUp, text = Res.string.move_up) {
-            act { musicServiceHandler.moveItemUp(index) }
+            act { musicServiceHandler.moveInQueue(index, index - 1) }
         }
     }
     if (index < queueSize - 1) {
         ActionButton(icon = SimpIcons.KeyboardDoubleArrowDown, text = Res.string.move_down) {
-            act { musicServiceHandler.moveItemDown(index) }
+            act { musicServiceHandler.moveInQueue(index, index + 1) }
         }
     }
     // Hidden on the playing track and on the one already next: there is nowhere to move them.

@@ -702,11 +702,7 @@ fun NowPlayingScreenContent(
             },
             onDismiss = onDismiss,
             onToolbarVisibilityChange = { shouldShowToolbar = it },
-            onMoveQueueItem = { from, to ->
-                coroutineScope.launch {
-                    mediaPlayerHandler.swap(from, to)
-                }
-            },
+            onMoveQueueItem = { from, to -> mediaPlayerHandler.moveInQueue(from, to) },
             onRemoveQueueItem = { index ->
                 mediaPlayerHandler.removeMediaItem(index)
             },

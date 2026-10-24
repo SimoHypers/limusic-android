@@ -1151,6 +1151,45 @@ internal class CrossfadeExoPlayerAdapter(
         }
     }
 
+    override fun setQueue(
+        items: List<GenericMediaItem>,
+        currentIndex: Int,
+        startPositionMs: Long,
+        reload: Boolean,
+        playWhenReady: Boolean?,
+    ) {
+        coroutineScope.launch {
+            if (currentIndex !in items.indices) return@launch
+            val playingId = playlist.getOrNull(localCurrentMediaItemIndex)?.mediaId
+            val nextId = playlist.getOrNull(getNextMediaItemIndex())?.mediaId
+            playlist.clear()
+            playlist.addAll(items)
+            localCurrentMediaItemIndex = currentIndex
+            pinnedNextItems.clear()
+            if (internalShuffleModeEnabled) createShuffleOrder()
+            playWhenReady?.let { internalPlayWhenReady = it }
+            notifyTimelineChanged("TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED")
+            if (reload || items[currentIndex].mediaId != playingId) {
+                // The same teardown as seekTo(index): a fade into a track of the old list is moot.
+                if (isCrossfading) {
+                    crossfadeJob?.cancel()
+                    crossfadeJob = null
+                    currentPlayerFilter?.enabled = false
+                    secondaryPlayerFilter?.enabled = false
+                    secondaryPlayer?.release()
+                    secondaryPlayer = null
+                    secondaryPlayerFilter = null
+                    setCrossfading(false)
+                }
+                loadAndPlayTrackInternal(currentIndex, startPositionMs, internalPlayWhenReady)
+            } else if (playlist.getOrNull(getNextMediaItemIndex())?.mediaId != nextId) {
+                // Same track playing, a different one up next: precache that instead.
+                clearPrecacheExceptCurrentInternal()
+                triggerPrecachingInternal()
+            }
+        }
+    }
+
     override fun replaceMediaItem(
         index: Int,
         mediaItem: GenericMediaItem,

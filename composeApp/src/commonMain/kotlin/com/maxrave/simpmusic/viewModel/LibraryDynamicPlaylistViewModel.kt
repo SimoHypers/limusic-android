@@ -191,23 +191,16 @@ class LibraryDynamicPlaylistViewModel(
     fun shuffle(type: LibraryDynamicPlaylistType) {
         val targetList = getSongList(type)
         if (targetList.isEmpty()) return
-        val shuffledList = targetList.shuffled()
-        val firstTrack = shuffledList.first()
         setQueueData(
             QueueData.Data(
-                listTracks = shuffledList.toArrayListTrack(),
-                firstPlayedTrack = firstTrack.toTrack(),
+                listTracks = targetList.toArrayListTrack(),
                 playlistId = null,
                 playlistName = playlistName(type),
                 playlistType = PlaylistType.RADIO,
-                continuation = null,
+                shuffle = true,
             ),
         )
-        loadMediaItem(
-            firstTrack.toTrack(),
-            Config.PLAYLIST_CLICK,
-            0,
-        )
+        loadMediaItem(targetList.first().toTrack(), Config.PLAYLIST_CLICK, null)
     }
 
 }

@@ -49,80 +49,60 @@ interface MediaPlayerHandler {
 
     fun sleepStop()
 
-    // Media management
+    // Queue (desktop Limusic's model: one list in play order, shuffle reorders it)
+
+    /** Removes the queue row at [position]; the playing one stays. */
     fun removeMediaItem(position: Int)
 
-    fun addMediaItem(
-        mediaItem: GenericMediaItem,
-        playWhenReady: Boolean = true,
-    )
-
-    fun clearMediaItems()
-
-    fun addMediaItemList(mediaItemList: List<GenericMediaItem>)
-
+    /** Plays the queue row at [index]. */
     fun playMediaItemInMediaSource(index: Int)
 
-    fun currentSongIndex(): Int
-
-    // Index of the currently playing item in the current queue data (shuffled or not)
+    /** The playing row's index in [queueData]. */
     fun currentOrderIndex(): Int
 
-    suspend fun swap(
+    /** Drag to reorder: moves an upcoming row from [from] to [to]. */
+    fun moveInQueue(
         from: Int,
         to: Int,
     )
 
     fun resetCrossfade()
 
-    // Queue management
-    fun shufflePlaylist(randomTrackIndex: Int = 0)
-
-    fun loadMore()
-
-    fun getRelated(videoId: String)
-
+    /** What the next [loadMediaItem] plays: the list, where it comes from, and how. */
     fun setQueueData(queueData: QueueData.Data)
 
     fun getCurrentMediaItem(): GenericMediaItem?
 
-    // Track operations
-    suspend fun moveItemUp(position: Int)
-
-    suspend fun moveItemDown(position: Int)
-
     /** Moves the queue track at [position] to play right after the current one. */
     suspend fun moveItemToPlayNext(position: Int)
 
-    fun addFirstMediaItemToIndex(
-        mediaItem: GenericMediaItem?,
-        index: Int,
+    /** Right after the playing track, behind earlier Play next adds. [from] names the album or playlist. */
+    suspend fun playNext(
+        tracks: List<Track>,
+        from: String? = null,
     )
 
-    fun reset()
-
-    suspend fun load(
-        downloaded: Int = 0,
-        index: Int? = null,
+    /** At the end of what is playing, ahead of autoplay. [from] names the album or playlist. */
+    suspend fun addToQueue(
+        tracks: List<Track>,
+        from: String? = null,
     )
 
-    suspend fun loadMoreCatalog(
-        listTrack: ArrayList<Track>,
-        isAddToQueue: Boolean = false,
+    /** Removes the upcoming tracks added with Play next or Add to queue. */
+    fun clearQueued()
+
+    /** Puts back the queue a click replaced, where it was left ("Back to …"). */
+    fun backToPrevious()
+
+    /** A Listen Together guest's queue, as the host sent it. */
+    fun playRoomQueue(
+        tracks: List<Track>,
+        playWhenReady: Boolean,
+        positionMs: Long,
     )
 
-    suspend fun updateCatalog(
-        downloaded: Int = 0,
-        index: Int? = null,
-    ): Boolean
-
-    fun addQueueToPlayer()
-
-    fun loadPlaylistOrAlbum(index: Int? = null)
-
-    fun setCurrentSongIndex(index: Int)
-
-    suspend fun playNext(track: Track)
+    /** In a room as a guest: the host drives, so no autoplay and no saving the queue. */
+    var followingRoom: Boolean
 
     suspend fun <T> loadMediaItem(
         anyTrack: T,
@@ -281,6 +261,12 @@ data class QueueData(
         val playlistName: String? = null,
         val playlistType: PlaylistType? = null,
         val continuation: String? = null,
+        /** Play the list shuffled (a page's Shuffle button). */
+        val shuffle: Boolean = false,
+        /** [continuation] is a `next` (watch queue) token, not a playlist page's. */
+        val nextContinuation: Boolean = false,
+        /** The track "Back to …" returns to, while it can. */
+        val prevTrack: String? = null,
     )
 
     enum class StateSource {
@@ -289,62 +275,6 @@ data class QueueData(
         STATE_INITIALIZED,
         STATE_ERROR,
     }
-
-    fun addTrackList(tracks: Collection<Track>): QueueData {
-        val temp = this.data.listTracks.toMutableList()
-        temp.addAll(tracks)
-        return this.copy(
-            data =
-                this.data.copy(
-                    listTracks = temp,
-                ),
-        )
-    }
-
-    fun addToIndex(
-        track: Track,
-        index: Int,
-    ): QueueData {
-        val temp = this.data.listTracks.toMutableList()
-        temp.add(index, track)
-        return this.copy(
-            data =
-                this.data.copy(
-                    listTracks = temp,
-                ),
-        )
-    }
-
-    fun removeFirstTrackForPlaylistAndAlbum(): QueueData {
-        val temp = this.data.listTracks.toMutableList()
-        temp.removeAt(0)
-        return this.copy(
-            data =
-                this.data.copy(
-                    listTracks = temp,
-                    firstPlayedTrack = null,
-                ),
-        )
-    }
-
-    fun removeTrackWithIndex(index: Int): QueueData {
-        val temp = this.data.listTracks.toMutableList()
-        temp.removeAt(index)
-        return this.copy(
-            data =
-                this.data.copy(
-                    listTracks = temp,
-                ),
-        )
-    }
-
-    fun setContinuation(continuation: String): QueueData =
-        this.copy(
-            data =
-                this.data.copy(
-                    continuation = continuation,
-                ),
-        )
 
     fun isLocalPlaylist(): Boolean = this.data.playlistType == PlaylistType.LOCAL_PLAYLIST
 

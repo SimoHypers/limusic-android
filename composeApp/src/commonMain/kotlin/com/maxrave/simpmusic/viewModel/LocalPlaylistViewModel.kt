@@ -925,32 +925,17 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
-                viewModelScope.launch {
-                    val listVideoId = localPlaylistRepository.getListTrackVideoId(uiState.value.id)
-                    log("ShuffleClick: uiState id ${uiState.value.id}")
-                    log("ShuffleClick: $listVideoId")
-                    if (listVideoId.isEmpty()) {
-                        makeToast(getString(Res.string.playlist_is_empty))
-                        return@launch
-                    }
-                    val random = listVideoId.random()
-                    val randomIndex = listVideoId.indexOf(random)
-                    val firstPlayedTrack = songRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
+                withFullTracks { tracks ->
                     setQueueData(
                         QueueData.Data(
-                            listTracks = arrayListOf(firstPlayedTrack),
-                            firstPlayedTrack = firstPlayedTrack,
+                            listTracks = ArrayList(tracks),
                             playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                            playlistName = "${
-                                getString(
-                                    Res.string.playlist,
-                                )
-                            } \"${uiState.value.title}\"",
+                            playlistName = "${getString(Res.string.playlist)} \"${uiState.value.title}\"",
                             playlistType = PlaylistType.LOCAL_PLAYLIST,
-                            continuation = "",
+                            shuffle = true,
                         ),
                     )
-                    shufflePlaylist(randomIndex)
+                    loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, null)
                 }
             }
         }
@@ -1032,7 +1017,7 @@ class LocalPlaylistViewModel(
             showLoadingDialog(getString(Res.string.add_to_queue))
             val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
             if (fullTracks.isNotEmpty()) {
-                mediaPlayerHandler.loadMoreCatalog(fullTracks.toArrayListTrack(), true)
+                mediaPlayerHandler.addToQueue(fullTracks.toArrayListTrack(), from = uiState.value.title)
                 makeToast(getString(Res.string.added_to_queue))
                 hideLoadingDialog()
             } else {

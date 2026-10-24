@@ -97,6 +97,29 @@ interface MediaPlayerInterface {
 
     fun clearMediaItems()
 
+    /**
+     * Replaces the whole playlist and points it at [currentIndex], in one step. The queue lives in
+     * the handler and the player mirrors it, so every queue change ends here.
+     *
+     * The track already playing keeps playing when it is the one at [currentIndex]; otherwise, or
+     * with [reload], that one loads from [startPositionMs]. [playWhenReady] null keeps the current
+     * intent.
+     *
+     * ponytail: the default rebuilds item by item, for the unused plain adapter only.
+     */
+    fun setQueue(
+        items: List<GenericMediaItem>,
+        currentIndex: Int,
+        startPositionMs: Long = 0L,
+        reload: Boolean = false,
+        playWhenReady: Boolean? = null,
+    ) {
+        clearMediaItems()
+        items.forEach(::addMediaItem)
+        playWhenReady?.let { this.playWhenReady = it }
+        seekTo(currentIndex, startPositionMs)
+    }
+
     fun replaceMediaItem(
         index: Int,
         mediaItem: GenericMediaItem,

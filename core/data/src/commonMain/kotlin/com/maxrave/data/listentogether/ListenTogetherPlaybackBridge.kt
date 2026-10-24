@@ -1,10 +1,11 @@
 package com.maxrave.data.listentogether
 
-import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.searchResult.songs.Album
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
 import com.maxrave.domain.data.model.listentogether.RoomTrack
 import com.maxrave.domain.data.player.GenericMediaItem
-import com.maxrave.domain.data.player.GenericMediaMetadata
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
@@ -109,7 +110,11 @@ class ListenTogetherPlaybackBridge(
             .map { it.inRoom }
             .distinctUntilChanged()
             .collect { inRoom ->
-                withContext(Dispatchers.Main) { handler.player.crossfadeSuppressed = inRoom }
+                withContext(Dispatchers.Main) {
+                    handler.player.crossfadeSuppressed = inRoom
+                    // A guest follows the host's queue: no autoplay of its own, nothing saved.
+                    handler.followingRoom = inRoom && !repository.room.value.isHost
+                }
                 if (!inRoom) {
                     lastRoomPlaying = false
                 } else if (!repository.room.value.isHost) {
@@ -273,35 +278,33 @@ class ListenTogetherPlaybackBridge(
         // Dispatchers.Main is mandatory, not tidiness: Media3 throws if the player is touched off
         // the main thread, and the bridge runs on the service scope (Default).
         withContext(Dispatchers.Main) {
-            handler.clearMediaItems()
-            handler.addMediaItem(ordered.first().toRoomMediaItem(), playWhenReady = playWhenReady)
-            val rest = ordered.drop(1)
-            if (rest.isNotEmpty()) handler.addMediaItemList(rest.map { it.toRoomMediaItem() })
-            // Rebuilding restarts the track; if only the queue changed, put the playhead back.
-            if (keepPosition > 0L) handler.player.seekTo(keepPosition)
+            // The playing track carries on when only the queue changed.
+            handler.followingRoom = true
+            handler.playRoomQueue(ordered.map { it.toRoomTrack() }, playWhenReady, keepPosition)
         }
     }
 
     /**
-     * A room track as a media item.
-     *
-     * `MERGING_DATA_TYPE.SONG` is set explicitly: inside a room every client must be on the same
-     * rendition, and for listening together that rendition is audio. Leaving it to be inferred is
-     * what produced video-with-no-sound on the guest.
+     * A room track as a queue row. The handler plays every row of a guest's queue as audio
+     * ([MediaPlayerHandler.followingRoom]): inside a room every client must be on the same rendition,
+     * and leaving it to the artwork guess is what produced video-with-no-sound on the guest.
      */
-    private fun RoomTrack.toRoomMediaItem(): GenericMediaItem =
-        GenericMediaItem(
-            mediaId = id,
-            uri = id,
-            metadata =
-                GenericMediaMetadata(
-                    title = title,
-                    artist = artist.ifBlank { null },
-                    albumTitle = album.ifBlank { null },
-                    artworkUri = thumbnail.ifBlank { null },
-                    description = MERGING_DATA_TYPE.SONG,
-                ),
-            customCacheKey = id,
+    private fun RoomTrack.toRoomTrack(): Track =
+        Track(
+            album = album.ifBlank { null }?.let { Album(id = "", name = it) },
+            artists = artist.ifBlank { null }?.let { listOf(Artist(id = null, name = it)) },
+            duration = null,
+            durationSeconds = (durationMs / 1000).toInt().takeIf { it > 0 },
+            isAvailable = true,
+            isExplicit = false,
+            likeStatus = null,
+            thumbnails = thumbnail.ifBlank { null }?.let { listOf(Thumbnail(height = 544, url = it, width = 544)) },
+            title = title,
+            videoId = id,
+            videoType = null,
+            category = null,
+            feedbackTokens = null,
+            resultType = null,
         )
 
     // ─────────────────────────── host: publish what we do ───────────────────────────

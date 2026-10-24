@@ -96,8 +96,8 @@ fun PlaylistMenu(
         PlaylistBottomSheet(
             onDismiss = { menu = false },
             shareLink = "https://music.youtube.com/playlist?list=${data.id.removePrefix("VL")}",
-            onPlayNext = { viewModel.getFullTracks { sharedViewModel.playListNext(it) } },
-            onAddToQueue = { viewModel.getFullTracks { sharedViewModel.addListToQueue(ArrayList(it)) } },
+            onPlayNext = { viewModel.getFullTracks { sharedViewModel.playListNext(it, data.title) } },
+            onAddToQueue = { viewModel.getFullTracks { sharedViewModel.addListToQueue(it, data.title) } },
             onStartRadio = if (data.isRadio) null else ({ viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.StartRadio) } }),
             onSaveToPlaylist = {
                 fetching = true
@@ -174,8 +174,8 @@ fun AlbumMenu(
                 } else {
                     "https://music.youtube.com/browse/$browseId"
                 },
-            onPlayNext = { viewModel.afterLoad { sharedViewModel.playListNext(it.listTrack) } },
-            onAddToQueue = { viewModel.afterLoad { sharedViewModel.addListToQueue(ArrayList(it.listTrack)) } },
+            onPlayNext = { viewModel.afterLoad { sharedViewModel.playListNext(it.listTrack, it.title) } },
+            onAddToQueue = { viewModel.afterLoad { sharedViewModel.addListToQueue(it.listTrack, it.title) } },
             onStartRadio = { viewModel.afterLoad { viewModel.startRadio() } },
             onSaveToPlaylist = {
                 fetching = true
@@ -214,7 +214,7 @@ fun LocalPlaylistMenu(
         LocalPlaylistBottomSheet(
             onDismiss = { menu = false },
             ytPlaylistId = uiState.ytPlaylistId,
-            onPlayNext = { viewModel.withFullTracks { sharedViewModel.playListNext(it) } },
+            onPlayNext = { viewModel.withFullTracks { sharedViewModel.playListNext(it, uiState.title) } },
             onAddToQueue = { viewModel.addAllToQueue() },
             onSaveToPlaylist = {
                 fetching = true

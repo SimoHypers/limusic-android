@@ -119,7 +119,6 @@ abstract class BaseViewModel :
      * Communicate with SimpleMediaServiceHandler to load media item
      */
     fun setQueueData(queueData: QueueData.Data) {
-        mediaPlayerHandler.reset()
         mediaPlayerHandler.setQueueData(queueData)
     }
 
@@ -135,10 +134,6 @@ abstract class BaseViewModel :
                 index = index,
             )
         }
-    }
-
-    fun shufflePlaylist(firstPlayIndex: Int = 0) {
-        mediaPlayerHandler.shufflePlaylist(firstPlayIndex)
     }
 
     private val playbackSongRepository: SongRepository by inject<SongRepository>()
@@ -165,6 +160,7 @@ abstract class BaseViewModel :
                             playlistName = name,
                             playlistType = if (isRadio) PlaylistType.RADIO else PlaylistType.PLAYLIST,
                             continuation = res.data?.second,
+                            nextContinuation = true,
                         ),
                     )
                     loadMediaItem(tracks.first(), if (isRadio) Config.RADIO_CLICK else Config.PLAYLIST_CLICK, 0)
