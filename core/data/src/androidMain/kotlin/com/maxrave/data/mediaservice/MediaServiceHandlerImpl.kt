@@ -13,12 +13,8 @@ import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.PLAYLIST_CLICK
 import com.maxrave.common.Config.RADIO_CLICK
 import com.maxrave.common.Config.RECOVER_TRACK_QUEUE
-import com.maxrave.common.Config.SHARE
-import com.maxrave.common.Config.SONG_CLICK
-import com.maxrave.common.Config.VIDEO_CLICK
 import com.maxrave.common.DESC
 import com.maxrave.common.LOCAL_PLAYLIST_ID
-import com.maxrave.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.common.TITLE
 import com.maxrave.data.db.Converters
@@ -26,12 +22,10 @@ import com.maxrave.data.lastfm.LastfmScrobbler
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.data.player.GenericCastState
 import com.maxrave.domain.data.player.GenericCommandButton
 import com.maxrave.domain.data.player.GenericMediaItem
-import com.maxrave.domain.data.player.GenericMediaMetadata
 import com.maxrave.domain.data.player.GenericPlaybackParameters
 import com.maxrave.domain.data.player.GenericTracks
 import com.maxrave.domain.data.player.PlayerConstants
@@ -80,10 +74,6 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.MusicVideoType
-import com.maxrave.domain.utils.Resource
-import com.maxrave.domain.utils.connectArtists
-import com.maxrave.domain.utils.toArrayListTrack
-import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
@@ -130,7 +120,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.mp.KoinPlatform.getKoin
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow

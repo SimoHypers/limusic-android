@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,6 +9,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -21,6 +25,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.withTransform
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import org.koin.compose.koinInject
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -61,18 +69,20 @@ import kotlin.math.sin
 fun AudioPlayingIndicator(
     modifier: Modifier = Modifier,
     color: Color = AudioIndicatorCyan,
+    /** Moves only while the player plays: paused, the bars hold where they are. */
+    animate: Boolean = playerIsPlaying(),
 ) {
-    val transition = rememberInfiniteTransition(label = "audioPlaying")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(durationMillis = AUDIO_CYCLE_MS, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
-        label = "phase",
-    )
+    val phaseAnim = remember { Animatable(0f) }
+    LaunchedEffect(animate) {
+        if (!animate) return@LaunchedEffect
+        while (true) {
+            // The rest of this loop from wherever a pause left it, then the next one from the top.
+            val left = ((1f - phaseAnim.value) * AUDIO_CYCLE_MS).toInt()
+            phaseAnim.animateTo(1f, tween(durationMillis = left, easing = LinearEasing))
+            phaseAnim.snapTo(0f)
+        }
+    }
+    val phase = phaseAnim.value
 
     Canvas(modifier = modifier) {
         val scale = minOf(size.width / AUDIO_COMP_WIDTH, size.height / AUDIO_COMP_HEIGHT)
@@ -305,3 +315,10 @@ private const val DL_HEAD_RADIUS = 125f
 private const val DL_HEAD_OFFSET_Y = 85f
 private const val DL_HEAD_SQUASH = 0.8f
 private val DL_HEAD_ANGLES = floatArrayOf(90f, 210f, 330f)
+
+@Composable
+private fun playerIsPlaying(): Boolean {
+    val handler = koinInject<MediaPlayerHandler>()
+    val playing = remember(handler) { handler.controlState.map { it.isPlaying }.distinctUntilChanged() }
+    return playing.collectAsState(handler.controlState.value.isPlaying).value
+}

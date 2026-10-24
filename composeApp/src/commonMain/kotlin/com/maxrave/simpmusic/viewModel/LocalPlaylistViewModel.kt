@@ -793,11 +793,7 @@ class LocalPlaylistViewModel(
                         listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
                         firstPlayedTrack = clickedSong.toTrack(),
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${uiState.value.title}\"",
+                        playlistName = uiState.value.title,
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
                         continuation =
                             if (offset.value > 0) {
@@ -867,7 +863,7 @@ class LocalPlaylistViewModel(
                                     listTracks = ArrayList(tracks),
                                     firstPlayedTrack = tracks.first(),
                                     playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                                    playlistName = "${getString(Res.string.playlist)} \"${uiState.value.title}\"",
+                                    playlistName = uiState.value.title,
                                     playlistType = PlaylistType.LOCAL_PLAYLIST,
                                     continuation = null,
                                 ),
@@ -883,11 +879,7 @@ class LocalPlaylistViewModel(
                         listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
                         firstPlayedTrack = firstPlayTrack,
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${uiState.value.title}\"",
+                        playlistName = uiState.value.title,
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
                         continuation =
                             if (offset.value > 0) {
@@ -930,7 +922,7 @@ class LocalPlaylistViewModel(
                         QueueData.Data(
                             listTracks = ArrayList(tracks),
                             playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                            playlistName = "${getString(Res.string.playlist)} \"${uiState.value.title}\"",
+                            playlistName = uiState.value.title,
                             playlistType = PlaylistType.LOCAL_PLAYLIST,
                             shuffle = true,
                         ),

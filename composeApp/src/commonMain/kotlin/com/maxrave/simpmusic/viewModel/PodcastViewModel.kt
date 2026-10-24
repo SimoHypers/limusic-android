@@ -275,7 +275,7 @@ class PodcastViewModel(
                             listTracks = podcastData.listEpisode.map { it.toTrack() },
                             firstPlayedTrack = firstEpisode.toTrack(),
                             playlistId = event.podcastId,
-                            playlistName = "Podcast \"${podcastData.title}\"",
+                            playlistName = podcastData.title,
                             playlistType = PlaylistType.PLAYLIST,
                             continuation = null,
                         )
@@ -301,7 +301,7 @@ class PodcastViewModel(
                             listTracks = shuffleList.map { it.toTrack() },
                             firstPlayedTrack = firstPlayItem.toTrack(),
                             playlistId = event.podcastId,
-                            playlistName = "Podcast \"${podcastData.title}\"",
+                            playlistName = podcastData.title,
                             playlistType = PlaylistType.PLAYLIST,
                             continuation = null,
                         )
@@ -324,7 +324,7 @@ class PodcastViewModel(
                         listTracks = podcastData.listEpisode.map { it.toTrack() },
                         firstPlayedTrack = episode.toTrack(),
                         playlistId = event.podcastId,
-                        playlistName = "Podcast \"${podcastData.title}\"",
+                        playlistName = podcastData.title,
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = null,
                     )

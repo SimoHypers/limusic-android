@@ -57,7 +57,6 @@ import simpmusic.composeapp.generated.resources.playlist_saved
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.shuffle
-import simpmusic.composeapp.generated.resources.shuffle_not_available
 import simpmusic.composeapp.generated.resources.view_count
 
 class PlaylistViewModel(
@@ -450,11 +449,7 @@ class PlaylistViewModel(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${data.title}\"",
+                        playlistName = data.title,
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = continuation.value,
                     ),
@@ -480,11 +475,7 @@ class PlaylistViewModel(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${data.title}\"",
+                        playlistName = data.title,
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = continuation.value,
                     ),
@@ -508,7 +499,7 @@ class PlaylistViewModel(
                     QueueData.Data(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         playlistId = data.id,
-                        playlistName = "${getString(Res.string.playlist)} \"${data.title}\"",
+                        playlistName = data.title,
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = continuation.value,
                         shuffle = true,
@@ -533,7 +524,7 @@ class PlaylistViewModel(
                                             listTracks = result.first.toCollection(arrayListOf<Track>()),
                                             firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
                                             playlistId = radioEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(Res.string.radio)}",
+                                            playlistName = "${data.title} ${getString(Res.string.radio)}",
                                             playlistType = PlaylistType.RADIO,
                                             continuation = result.second,
                                         ),

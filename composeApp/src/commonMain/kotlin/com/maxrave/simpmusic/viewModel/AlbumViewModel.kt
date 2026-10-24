@@ -219,7 +219,7 @@ class AlbumViewModel(
                 firstPlayedTrack = track,
                 // The audio playlist, not the MPRE browseId: autoplay's radio keys off it.
                 playlistId = uiState.value.audioPlaylistId.ifEmpty { null },
-                playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
+                playlistName = uiState.value.title,
                 playlistType = PlaylistType.ALBUM,
                 continuation = null,
             ),
@@ -238,7 +238,7 @@ class AlbumViewModel(
             QueueData.Data(
                 listTracks = list.toCollection(ArrayList()),
                 playlistId = uiState.value.audioPlaylistId.ifEmpty { null },
-                playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
+                playlistName = uiState.value.title,
                 playlistType = PlaylistType.ALBUM,
                 shuffle = true,
             ),
@@ -266,7 +266,7 @@ class AlbumViewModel(
         }
         playFromEndpoint(
             YouTubeWatchEndpoint(playlistId = "RDAMPL$id"),
-            "\"${uiState.value.title}\" ${getString(Res.string.radio)}",
+            "${uiState.value.title} ${getString(Res.string.radio)}",
         )
     }
 

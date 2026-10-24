@@ -264,31 +264,47 @@ fun SongFullWidthItems(
                     modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center,
                 ) {
+                    if (index == null) {
+                        // The cover stays on the playing row; the bars play over it.
+                        val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
+                        AsyncImage(
+                            model =
+                                ImageRequest
+                                    .Builder(LocalPlatformContext.current)
+                                    .data(thumb)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .diskCacheKey(thumb)
+                                    .crossfade(true)
+                                    .build(),
+                            placeholder = rememberHolderPainter(),
+                            error = rememberHolderPainter(),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(4.dp)),
+                        )
+                    }
                     Crossfade(isPlaying) {
-                        if (it) {
+                        if (it && index == null) {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.Black.copy(alpha = 0.45f)),
+                            ) {
+                                AudioPlayingIndicator(
+                                    modifier = Modifier.fillMaxSize().padding(10.dp),
+                                    color = Color.White,
+                                )
+                            }
+                        } else if (it) {
                             AudioPlayingIndicator(
                                 modifier = Modifier.fillMaxSize(),
                             )
                         } else if (index == null) {
-                            val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
-                            AsyncImage(
-                                model =
-                                    ImageRequest
-                                        .Builder(LocalPlatformContext.current)
-                                        .data(thumb)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .diskCacheKey(thumb)
-                                        .crossfade(true)
-                                        .build(),
-                                placeholder = rememberHolderPainter(),
-                                error = rememberHolderPainter(),
-                                contentDescription = null,
-                                contentScale = ContentScale.FillWidth,
-                                modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(4.dp)),
-                            )
+                            Spacer(Modifier.fillMaxSize())
                         } else {
                             Text(
                                 text = (index + 1).toString(),

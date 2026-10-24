@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.radio
-import simpmusic.composeapp.generated.resources.shuffle
 import simpmusic.composeapp.generated.resources.sync_follow_failed
 import simpmusic.composeapp.generated.resources.subscribed_on_youtube
 import simpmusic.composeapp.generated.resources.unsubscribed_on_youtube
@@ -215,7 +214,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${getString(Res.string.radio)}",
+                                playlistName = "${artistScreenState.value.data.title} ${getString(Res.string.radio)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                             ),
@@ -246,7 +245,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${getString(Res.string.shuffle)}",
+                                playlistName = artistScreenState.value.data.title,
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                                 nextContinuation = true,

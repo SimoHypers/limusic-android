@@ -347,6 +347,15 @@
     <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
     <string name="endless_queue">Autoplay</string>
+    <string name="playing_from">Playing from</string>
+    <string name="songs_left">%1$d songs left</string>
+    <string name="songs_left_one">1 song left</string>
+    <string name="duration_hours_short">%1$d hr</string>
+    <string name="duration_minutes_short">%1$d min</string>
+    <string name="back_to">Back to %1$s</string>
+    <string name="clear_queue">Clear queue</string>
+    <string name="queue_ends">The queue ends after this song.</string>
+    <string name="empty_queue">Queue is empty</string>
     <string name="continue_playing">Continue Playing</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>

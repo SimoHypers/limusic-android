@@ -455,4 +455,45 @@ class QueueStateTest {
         assertFalse(q.items[1].autoplay)
         assertFalse(q.move(0, 2), "the playing track stays")
     }
+
+    // Desktop's queue panel checks (ui/src/lib/queue.check.ts).
+
+    @Test
+    fun theSheetSplitsOnceWhereAutoplayBegins() {
+        var v = queueView(listOf(song("a1"), song("now"), queued("p1"), song("n1").copy(queuedEnd = true, queuedFrom = "X"), song("a2"), auto("r1"), auto("r2")), 1)
+        assertEquals(5, v.autoplayFrom)
+        assertEquals(2, v.queued)
+        assertEquals(3, v.leftCount)
+
+        v = queueView(listOf(song("a1"), auto("r1"), auto("now"), auto("r3")), 2)
+        assertEquals(3, v.autoplayFrom, "played autoplay rows are ordinary rows")
+
+        v = queueView(listOf(auto("now"), queued("p1"), auto("r2")), 0)
+        assertEquals(2, v.autoplayFrom, "a manual add is not autoplay")
+
+        v = queueView(listOf(song("now"), auto("r1"), song("a1"), auto("r2")), 0)
+        assertEquals(1, v.autoplayFrom, "once autoplay starts the rest goes with it")
+
+        assertEquals(0, queueView(listOf(queued("p0"), song("now")), 1).queued, "played adds are not upcoming")
+
+        v = queueView(emptyList(), 0)
+        assertEquals(0, v.autoplayFrom)
+        assertEquals(0, v.leftCount)
+    }
+
+    @Test
+    fun whatIsLeftCountsOnlyWhatFollowsBeforeAutoplay() {
+        assertEquals(225, clockSecs("3:45"))
+        assertEquals(3723, clockSecs("1:02:03"))
+        assertEquals(0, clockSecs(null))
+        assertEquals(0, clockSecs("Cast of EPIC: The Musical"))
+        fun timed(
+            id: String,
+            d: String,
+        ) = song(id).copy(duration = d)
+        val v = queueView(listOf(timed("a", "9:00"), timed("now", "3:00"), timed("b", "2:30"), timed("c", "1:30"), timed("r", "4:00").copy(autoplay = true)), 1)
+        assertEquals(2, v.leftCount)
+        assertEquals(240, v.leftSecs)
+        assertEquals(0, queueView(listOf(timed("now", "3:00")), 0).leftCount)
+    }
 }

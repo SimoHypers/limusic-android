@@ -578,3 +578,39 @@ fun shuffleNewQueue(
     }
     return 0
 }
+
+/**
+ * How the queue sheet lays the queue out (desktop's queue.ts): one list in play order, split once,
+ * where autoplay's upcoming tracks begin. Autoplay tracks already played are ordinary rows.
+ */
+class QueueView(
+    /** First index drawn under the Autoplay divider; the list's size when there is none. */
+    val autoplayFrom: Int,
+    /** Upcoming Play next and Add to queue tracks: what Clear queue removes. */
+    val queued: Int,
+    /** What plays before the queue ends or autoplay takes over, and its length in seconds. */
+    val leftCount: Int,
+    val leftSecs: Int,
+)
+
+fun queueView(
+    items: List<Track>,
+    current: Int,
+): QueueView {
+    val upcoming = (current + 1).coerceAtLeast(0) until items.size
+    // Once autoplay starts the rest goes with it: a row dragged in among its tracks plays there.
+    val autoplayFrom = upcoming.firstOrNull { items[it].autoplay } ?: items.size
+    val left = upcoming.first until autoplayFrom
+    return QueueView(
+        autoplayFrom = autoplayFrom,
+        queued = upcoming.count { items[it].queued || items[it].queuedEnd },
+        leftCount = left.count(),
+        leftSecs = left.sumOf { items[it].durationSeconds ?: clockSecs(items[it].duration) },
+    )
+}
+
+/** "3:45" or "1:02:03" in seconds; 0 for anything else. */
+fun clockSecs(s: String?): Int {
+    if (s == null || !Regex("""^\d+(:\d{1,2}){1,2}$""").matches(s)) return 0
+    return s.split(':').fold(0) { acc, part -> acc * 60 + part.toInt() }
+}
