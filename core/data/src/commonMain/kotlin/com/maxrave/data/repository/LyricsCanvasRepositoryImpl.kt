@@ -8,6 +8,11 @@ import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.utils.toLyricsEntity
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import com.maxrave.domain.data.model.browse.artist.ArtistEditorial
 import com.maxrave.domain.data.model.browse.artist.ArtistLogo
 import com.maxrave.domain.data.model.browse.artist.ArtistMotion
@@ -76,38 +81,79 @@ internal class LyricsCanvasRepositoryImpl(
                 return@withContext cached.takeUnless { it.error }
             }
             val query = LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 })
+            val sources = order.filter { it.second }.map { it.first }
             // Synced beats plain: the first synced answer down the list wins, and only when none is
             // synced does the first plain one. A miss is cached only when some provider answered:
             // a run where all of them merely errored (offline) must not hide lyrics for a day.
-            var answered = false
-            var plain: LyricsEntity? = null
-            for ((source, on) in order) {
-                if (!on) continue
-                val hit =
-                    try {
-                        askLyricsSource(source, query)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        Logger.d(LYRICS_TAG, "${source.id} failed: ${e.message}")
+            coroutineScope {
+                // Provider i starts at i x stagger instead of after provider i-1 answers (Limusic
+                // #482), so a song with no lyrics anywhere doesn't wait on every provider in turn.
+                // Answers are still read in the user's order; a hit cancels the rest.
+                val answers =
+                    sources.mapIndexed { i, source ->
+                        async {
+                            delay(LYRICS_STAGGER_MS * i)
+                            try {
+                                Result.success(withTimeout(LYRICS_PROVIDER_BUDGET_MS) { askLyricsSource(source, query) })
+                            } catch (e: TimeoutCancellationException) {
+                                Result.failure(e)
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                Result.failure(e)
+                            }
+                        }
+                    }
+                var answered = false
+                var plain: LyricsEntity? = null
+                var synced: LyricsEntity? = null
+                for ((i, source) in sources.withIndex()) {
+                    val answer = answers[i].await()
+                    if (answer.isFailure) {
+                        Logger.d(LYRICS_TAG, "${source.id} failed: ${answer.exceptionOrNull()?.message}")
                         continue
                     }
-                answered = true
-                val entity =
-                    hit?.toLyrics()?.toLyricsEntity(videoId)?.copy(provider = source.id, fetchedAt = now) ?: continue
-                Logger.d(LYRICS_TAG, "${source.id}: ${entity.syncType}, ${entity.lines?.size} lines")
-                if (entity.syncType != "UNSYNCED") {
-                    localDataSource.insertLyrics(entity)
-                    return@withContext entity
+                    answered = true
+                    val entity = answer.getOrNull()?.toEntity(videoId, source, now) ?: continue
+                    Logger.d(LYRICS_TAG, "${source.id}: ${entity.syncType}, ${entity.lines?.size} lines")
+                    if (entity.syncType != "UNSYNCED") {
+                        synced = entity
+                        break
+                    }
+                    plain = plain ?: entity
                 }
-                plain = plain ?: entity
+                answers.forEach { it.cancel() }
+                val found = synced ?: plain
+                when {
+                    found != null -> localDataSource.insertLyrics(found)
+                    answered -> localDataSource.insertLyrics(LyricsEntity(videoId, error = true, lines = null, syncType = null, fetchedAt = now))
+                }
+                found
             }
-            when {
-                plain != null -> localDataSource.insertLyrics(plain)
-                answered -> localDataSource.insertLyrics(LyricsEntity(videoId, error = true, lines = null, syncType = null, fetchedAt = now))
-            }
-            plain
         }
+
+    override suspend fun previewLyrics(
+        videoId: String,
+        source: LyricsSource,
+        title: String,
+        artist: String,
+        album: String?,
+        durationSeconds: Int,
+    ): LyricsEntity? =
+        withContext(Dispatchers.IO) {
+            askLyricsSource(source, LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 }))
+                ?.toEntity(videoId, source, Clock.System.now().epochSeconds)
+        }
+
+    override suspend fun forgetLyrics(videoId: String) = withContext(Dispatchers.IO) { localDataSource.deleteLyrics(videoId) }
+
+    override suspend fun clearUnpinnedLyrics() = withContext(Dispatchers.IO) { localDataSource.deleteUnpinnedLyrics() }
+
+    private fun org.simpmusic.lyrics.domain.Lyrics.toEntity(
+        videoId: String,
+        source: LyricsSource,
+        now: Long,
+    ): LyricsEntity? = toLyrics()?.toLyricsEntity(videoId)?.copy(provider = source.id, fetchedAt = now)
 
     // YouTube Music needs the scraper, which the lyrics module doesn't have; the rest are there.
     private suspend fun askLyricsSource(
@@ -349,6 +395,12 @@ private const val LYRICS_TAG = "Lyrics"
 
 /** How long a "no lyrics anywhere" verdict stops the chain from asking again. */
 private const val LYRICS_MISS_TTL_SECS = 24 * 3600L
+
+/** How far apart the chain starts its providers. A first answer takes ~0.4-0.7s (desktop, timed). */
+private const val LYRICS_STAGGER_MS = 300L
+
+/** The most one provider may take in the chain; in-order reading means a stalled one holds the rest. */
+private const val LYRICS_PROVIDER_BUDGET_MS = 10_000L
 
 private const val AM_ARTWORK_TAG = "AMArtwork"
 private const val AM_SEARCH_LIMIT = 5

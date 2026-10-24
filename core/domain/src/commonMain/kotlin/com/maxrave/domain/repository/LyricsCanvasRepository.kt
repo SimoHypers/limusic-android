@@ -26,6 +26,25 @@ interface LyricsCanvasRepository {
     ): LyricsEntity?
 
     /**
+     * One source alone, uncached: the source picker's preview, which also works for a source
+     * switched off. Null when it has nothing; throws when it couldn't be asked.
+     */
+    suspend fun previewLyrics(
+        videoId: String,
+        source: LyricsSource,
+        title: String,
+        artist: String,
+        album: String?,
+        durationSeconds: Int,
+    ): LyricsEntity?
+
+    /** Forget one song's lyrics, a hand-picked source included. */
+    suspend fun forgetLyrics(videoId: String)
+
+    /** Drop every cached song except those whose source was picked by hand. */
+    suspend fun clearUnpinnedLyrics()
+
+    /**
      * Animated album artwork from the hidden AM catalog, returned as the same [CanvasResult] a
      * Spotify canvas produces and stored in the same columns. Needs no login.
      */

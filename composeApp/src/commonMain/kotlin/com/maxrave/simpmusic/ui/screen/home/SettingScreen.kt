@@ -117,6 +117,7 @@ import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.AppLogDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.DiscordSettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.LastfmSettingsDestination
 import simpmusic.composeapp.generated.resources.lastfm_not_connected
 import simpmusic.composeapp.generated.resources.lastfm_paused
@@ -243,6 +244,8 @@ import simpmusic.composeapp.generated.resources.lyrics_offset_message
 import simpmusic.composeapp.generated.resources.lyrics_offset_value
 import simpmusic.composeapp.generated.resources.lyrics_romanization
 import simpmusic.composeapp.generated.resources.lyrics_romanization_description
+import simpmusic.composeapp.generated.resources.lyrics_sources
+import simpmusic.composeapp.generated.resources.lyrics_sources_none
 import simpmusic.composeapp.generated.resources.lyrics_style
 import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
 import simpmusic.composeapp.generated.resources.lyrics_style_classic
@@ -1370,7 +1373,21 @@ fun SettingScreen(
                         }
                     }
                     SettingsSection.LYRICS -> {
+                        val lyricsProviders by viewModel.lyricsProviders.collectAsStateWithLifecycle()
                         SettingGroup(title = null) {
+                            val onSources = lyricsProviders.filter { it.second }.map { it.first.displayName }
+                            SettingItem(
+                                title = stringResource(Res.string.lyrics_sources),
+                                subtitle =
+                                    if (onSources.isEmpty()) {
+                                        stringResource(Res.string.lyrics_sources_none)
+                                    } else {
+                                        onSources.take(3).joinToString(", ") + if (onSources.size > 3) " +${onSources.size - 3}" else ""
+                                    },
+                                smallSubtitle = true,
+                                navigates = true,
+                                onClick = { navController.navigate(LyricsSourcesDestination) },
+                            )
                             val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
                             // Hidden outright below Android 12 rather than offered with one option: the Apple
                             // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so

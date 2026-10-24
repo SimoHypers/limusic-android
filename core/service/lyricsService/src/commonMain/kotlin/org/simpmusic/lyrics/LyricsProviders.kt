@@ -352,8 +352,11 @@ internal class Found(
     val lines: List<LyricLine>,
     val instrumental: Boolean = false,
 ) {
-    // Any cue at all: an LRC with a few untimed credit lines is still synced.
-    val synced get() = lines.any { it.timeMs != null }
+    // Two different cues at least: an LRC with a few untimed credit lines is still synced, but one
+    // that stamps every line [00:00.00] (or LyricsPlus' untimed Apple lyrics, all at 0) is plain
+    // text dressed as synced and must not stop the chain above real timings (Limusic #539). Word
+    // starts count, so a single word-timed line keeps its sweep.
+    val synced get() = lines.flatMap { l -> listOfNotNull(l.timeMs) + l.words.orEmpty().map { it.startMs } }.distinct().size > 1
 }
 
 /**

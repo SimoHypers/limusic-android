@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.DiscordSettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.LastfmSettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsSectionDestination
 import com.maxrave.simpmusic.ui.screen.home.ListenTogetherScreen
@@ -21,6 +22,7 @@ import com.maxrave.simpmusic.ui.screen.home.NotificationScreen
 import com.maxrave.simpmusic.ui.screen.home.RecentlySongsScreen
 import com.maxrave.simpmusic.ui.screen.home.SettingScreen
 import com.maxrave.simpmusic.ui.screen.home.DiscordSettingsScreen
+import com.maxrave.simpmusic.ui.screen.home.LyricsSourcesScreen
 import com.maxrave.simpmusic.ui.screen.home.LastfmSettingsScreen
 import com.maxrave.simpmusic.ui.screen.home.SettingsSection
 import com.maxrave.simpmusic.ui.screen.other.AppLogScreen
@@ -74,6 +76,12 @@ fun NavGraphBuilder.homeScreenGraph(
     }
     composable<LastfmSettingsDestination> {
         LastfmSettingsScreen(
+            navController = navController,
+            innerPadding = innerPadding,
+        )
+    }
+    composable<LyricsSourcesDestination> {
+        LyricsSourcesScreen(
             navController = navController,
             innerPadding = innerPadding,
         )

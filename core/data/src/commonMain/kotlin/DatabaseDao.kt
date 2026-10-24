@@ -726,6 +726,13 @@ interface DatabaseDao {
     @Query("SELECT * FROM lyrics WHERE videoId = :videoId")
     suspend fun getLyrics(videoId: String): LyricsEntity?
 
+    @Query("DELETE FROM lyrics WHERE videoId = :videoId")
+    suspend fun deleteLyrics(videoId: String)
+
+    // A reorder reaches songs already played; sources picked by hand stay (desktop's CLEAR_LYRICS).
+    @Query("DELETE FROM lyrics WHERE pinned = 0")
+    suspend fun deleteUnpinnedLyrics()
+
     @RawQuery
     suspend fun raw(supportSQLiteQuery: RoomRawQuery): Int
 

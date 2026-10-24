@@ -11,6 +11,7 @@ import com.maxrave.common.STATUS_DONE
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -623,6 +624,29 @@ class SharedViewModel(
         }
     }
 
+    // The song the lyrics chain last came back empty for, so the lyrics page can tell "still
+    // looking" (lyricsData null, another id here) from "nothing anywhere".
+    private val _lyricsMissFor = MutableStateFlow<String?>(null)
+    val lyricsMissFor: StateFlow<String?> = _lyricsMissFor
+
+    fun getLyricsProviders() = dataStoreManager.lyricsProviders
+
+    fun getLyricsTextSize() = dataStoreManager.lyricsTextSize
+
+    fun setLyricsTextSize(scale: Float) {
+        viewModelScope.launch { dataStoreManager.setLyricsTextSize(scale) }
+    }
+
+    fun getLyricsRomanized() = dataStoreManager.lyricsRomanized
+
+    fun setLyricsRomanized(on: Boolean) {
+        viewModelScope.launch { dataStoreManager.setLyricsRomanized(on) }
+    }
+
+    private suspend fun lyricsArtist(song: SongEntity): String =
+        song.artistName?.firstOrNull()?.takeUnless { it.contains("Various Artists") }
+            ?: mediaPlayerHandler.nowPlaying.first()?.metadata?.artist?.toString().orEmpty()
+
     /**
      * The song's lyrics down the user's source list: Limusic's chain, cached per song. Dropped if
      * another song is playing by the time they arrive.
@@ -632,31 +656,99 @@ class SharedViewModel(
         durationSeconds: Int,
     ) {
         // A live broadcast has nothing to sync lyrics to; its "duration" is only the seek window.
-        if (LiveStreamRegistry.isLive(song.videoId)) return
+        if (LiveStreamRegistry.isLive(song.videoId)) {
+            _lyricsMissFor.value = song.videoId
+            return
+        }
         viewModelScope.launch {
-            val artist =
-                song.artistName?.firstOrNull()?.takeUnless { it.contains("Various Artists") }
-                    ?: mediaPlayerHandler.nowPlaying.first()?.metadata?.artist?.toString().orEmpty()
             val entity =
                 lyricsCanvasRepository.getLyrics(
                     videoId = song.videoId,
                     title = song.title,
-                    artist = artist,
+                    artist = lyricsArtist(song),
                     album = song.albumName,
                     durationSeconds = durationSeconds,
                     order = LyricsSource.order(dataStoreManager.lyricsProviders.first()),
                 )
-            if (entity == null || _nowPlayingState.value?.songEntity?.videoId != song.videoId) return@launch
-            val lyrics = entity.toLyrics()
-            _nowPlayingScreenData.update {
-                it.copy(
-                    lyricsData =
-                        NowPlayingScreenData.LyricsData(
-                            lyrics = lyrics.copy(lines = lyrics.lines?.map { l -> l.copy(words = decodeHtmlEntities(l.words)) }),
-                            lyricsProvider = LyricsSource.fromId(entity.provider),
-                        ),
-                )
+            if (_nowPlayingState.value?.songEntity?.videoId != song.videoId) return@launch
+            showLyrics(song.videoId, entity)
+        }
+    }
+
+    private fun showLyrics(
+        videoId: String,
+        entity: LyricsEntity?,
+    ) {
+        if (entity == null) {
+            _lyricsMissFor.value = videoId
+            _nowPlayingScreenData.update { it.copy(lyricsData = null) }
+            return
+        }
+        val lyrics = entity.toLyrics()
+        _nowPlayingScreenData.update {
+            it.copy(
+                lyricsData =
+                    NowPlayingScreenData.LyricsData(
+                        lyrics = lyrics.copy(lines = lyrics.lines?.map { l -> l.copy(words = decodeHtmlEntities(l.words)) }),
+                        lyricsProvider = LyricsSource.fromId(entity.provider),
+                        offsetMs = entity.offsetMs,
+                        pinned = entity.pinned,
+                    ),
+            )
+        }
+    }
+
+    /**
+     * The source picker's preview: [source]'s lyrics for the playing song, uncached. [title] and
+     * [artist] replace the song's own for a search by title; the album goes with them, the length
+     * stays (it is still the recording playing). Null when the source has none; throws when it
+     * couldn't be asked.
+     */
+    suspend fun previewLyrics(
+        source: LyricsSource,
+        title: String? = null,
+        artist: String? = null,
+    ): LyricsEntity? {
+        val song = _nowPlayingState.value?.songEntity ?: return null
+        return lyricsCanvasRepository.previewLyrics(
+            videoId = song.videoId,
+            source = source,
+            title = title ?: song.title,
+            artist = artist ?: lyricsArtist(song),
+            album = if (title == null) song.albumName else null,
+            durationSeconds = (timeline.value.total / 1000).toInt(),
+        )
+    }
+
+    /** What the cache holds for [videoId]: the lyrics on screen, for the picker to keep as they are. */
+    suspend fun savedLyrics(videoId: String): LyricsEntity? = lyricsCanvasRepository.getSavedLyrics(videoId).first()
+
+    /** Keep [entity] for its song whatever the order says, or with null go back to Automatic. */
+    fun chooseLyrics(entity: LyricsEntity?) {
+        val song = _nowPlayingState.value?.songEntity ?: return
+        viewModelScope.launch {
+            if (entity != null) {
+                val pinned = entity.copy(pinned = true, offsetMs = 0)
+                lyricsCanvasRepository.insertLyrics(pinned)
+                showLyrics(song.videoId, pinned)
+            } else {
+                lyricsCanvasRepository.forgetLyrics(song.videoId)
+                _lyricsMissFor.value = null
+                _nowPlayingScreenData.update { it.copy(lyricsData = null) }
+                loadLyrics(song, (timeline.value.total / 1000).toInt())
             }
+        }
+    }
+
+    /** This song's timing nudge, positive = lyrics later. Pins what it applies to, like desktop. */
+    fun setSongLyricsOffset(offsetMs: Int) {
+        val videoId = _nowPlayingState.value?.songEntity?.videoId ?: return
+        _nowPlayingScreenData.update { data ->
+            data.copy(lyricsData = data.lyricsData?.copy(offsetMs = offsetMs, pinned = true))
+        }
+        viewModelScope.launch {
+            val saved = lyricsCanvasRepository.getSavedLyrics(videoId).first() ?: return@launch
+            lyricsCanvasRepository.insertLyrics(saved.copy(offsetMs = offsetMs, pinned = true))
         }
     }
 
@@ -1321,6 +1413,10 @@ data class NowPlayingScreenData(
         // old player styles that still read it.
         val translatedLyrics: Pair<Lyrics, LyricsSource>? = null,
         val lyricsProvider: LyricsSource?,
+        /** This song's timing nudge from the source picker, on top of the global offset. */
+        val offsetMs: Int = 0,
+        /** Source picked by hand or timing nudged. */
+        val pinned: Boolean = false,
     )
 
     companion object {

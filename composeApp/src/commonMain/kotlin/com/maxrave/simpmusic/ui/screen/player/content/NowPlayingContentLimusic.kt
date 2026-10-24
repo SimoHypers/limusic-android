@@ -185,7 +185,7 @@ private fun ClassicLayout(
                 Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
             }
             Spacer(Modifier.height(16.dp))
-            TransportRow(state, actions)
+            ClassicTransportRow(state, actions)
             Spacer(Modifier.weight(1f))
             BottomRow(state, actions)
             Spacer(Modifier.height(12.dp))
@@ -381,7 +381,7 @@ private fun TitleRow(
 
 /** Previous, play / pause, next: three pills in the cover's colour, play the widest. */
 @Composable
-private fun TransportRow(
+internal fun ClassicTransportRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {

@@ -388,6 +388,16 @@ interface DataStoreManager {
 
     suspend fun setLyricsOffsetMs(offsetMs: Int)
 
+    /** The lyrics page's text scale, one of desktop's steps (0.85 to 1.5). */
+    val lyricsTextSize: Flow<Float>
+
+    suspend fun setLyricsTextSize(scale: Float)
+
+    /** The lyrics page's Romanized toggle; on by default, so the languages picked in Settings show. */
+    val lyricsRomanized: Flow<Boolean>
+
+    suspend fun setLyricsRomanized(on: Boolean)
+
     val explicitContentEnabled: Flow<String>
 
     suspend fun setExplicitContentEnabled(enabled: Boolean)

@@ -34,5 +34,8 @@ enum class LyricsSource(
             }
             return out + entries.filter { s -> out.none { it.first == s } }.map { it to true }
         }
+
+        /** [order]'s inverse: the setting for a list in the user's order. */
+        fun encode(order: List<Pair<LyricsSource, Boolean>>): String = order.joinToString(",") { (s, on) -> if (on) s.id else "-${s.id}" }
     }
 }

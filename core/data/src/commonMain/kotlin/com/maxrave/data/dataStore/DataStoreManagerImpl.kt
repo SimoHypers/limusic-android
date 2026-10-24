@@ -676,6 +676,32 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val lyricsTextSize =
+        settingsDataStore.data.map { preferences ->
+            preferences[LYRICS_TEXT_SIZE] ?: 1f
+        }
+
+    override suspend fun setLyricsTextSize(scale: Float) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LYRICS_TEXT_SIZE] = scale
+            }
+        }
+    }
+
+    override val lyricsRomanized =
+        settingsDataStore.data.map { preferences ->
+            preferences[LYRICS_ROMANIZED] != FALSE
+        }
+
+    override suspend fun setLyricsRomanized(on: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LYRICS_ROMANIZED] = if (on) TRUE else FALSE
+            }
+        }
+    }
+
     override val usingProxy =
         settingsDataStore.data.map { preferences ->
             preferences[USING_PROXY] ?: FALSE
@@ -1262,6 +1288,8 @@ internal class DataStoreManagerImpl(
         val LYRICS_STYLE = stringPreferencesKey("lyrics_style")
         val ROMANIZATION_LANGUAGES = stringPreferencesKey("romanization_languages")
         val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
+        val LYRICS_TEXT_SIZE = floatPreferencesKey("lyrics_size")
+        val LYRICS_ROMANIZED = stringPreferencesKey("lyrics_romanized")
         val USING_PROXY = stringPreferencesKey("using_proxy")
         val PROXY_TYPE = stringPreferencesKey("proxy_type")
         val PROXY_HOST = stringPreferencesKey("proxy_host")

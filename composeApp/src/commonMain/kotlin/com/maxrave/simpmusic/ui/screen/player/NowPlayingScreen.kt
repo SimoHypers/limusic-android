@@ -185,7 +185,9 @@ fun NowPlayingScreenContent(
     // Audio-delay correction, read here and applied ONLY to the lyric line below. The seek bar and
     // the elapsed-time readout keep the raw position: they report where the player is, while a
     // lyric reports what the ear is hearing, and those two are what the offset separates.
-    val lyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
+    val globalLyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
+    // Plus this song's own nudge from the source picker.
+    val lyricsOffsetMs = globalLyricsOffsetMs + (screenDataState.lyricsData?.offsetMs ?: 0)
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
     // Apple Music style's quality line under the progress bar — see NowPlayingContentState.toAudioQualityLabel.

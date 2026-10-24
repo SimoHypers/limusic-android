@@ -453,6 +453,10 @@ internal class LocalDataSource(
 
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
 
+    suspend fun deleteLyrics(videoId: String) = databaseDao.deleteLyrics(videoId)
+
+    suspend fun deleteUnpinnedLyrics() = databaseDao.deleteUnpinnedLyrics()
+
     suspend fun getPreparingSongs(
         limit: Int,
         offset: Int,

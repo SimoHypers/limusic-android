@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.viewModel
 
+import com.maxrave.domain.repository.LyricsCanvasRepository
+import com.maxrave.domain.data.model.lyrics.LyricsSource
 import androidx.lifecycle.viewModelScope
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -88,6 +90,7 @@ class SettingsViewModel(
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
+    private val lyricsCanvasRepository: LyricsCanvasRepository by inject()
 
     val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
 
@@ -768,6 +771,23 @@ class SettingsViewModel(
     fun setLyricsOffsetMs(offsetMs: Int) {
         viewModelScope.launch {
             dataStoreManager.setLyricsOffsetMs(offsetMs)
+        }
+    }
+
+    /** Every lyrics source in the user's order, with its switch. */
+    val lyricsProviders: StateFlow<List<Pair<LyricsSource, Boolean>>> =
+        dataStoreManager.lyricsProviders
+            .map { LyricsSource.order(it) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LyricsSource.order(null))
+
+    /**
+     * Save the lyrics order (null: back to the default). Cached lyrics outlive the order that found
+     * them, so they go too, except songs whose source was picked by hand.
+     */
+    fun setLyricsProviders(order: List<Pair<LyricsSource, Boolean>>?) {
+        viewModelScope.launch {
+            dataStoreManager.setLyricsProviders(order?.let(LyricsSource::encode).orEmpty())
+            lyricsCanvasRepository.clearUnpinnedLyrics()
         }
     }
 

@@ -61,4 +61,10 @@ class LyricsProvidersTest {
         assertEquals("RICH_SYNCED", Found(parseElrc("[00:01.00]<00:01.00>a <00:02.00>b")).toLyrics()!!.lyrics!!.syncType)
         assertNull(Found(emptyList()).toLyrics())
     }
+
+    @Test
+    fun oneCueEverywhereIsPlain() {
+        assertEquals("UNSYNCED", Found(parseLrc("[00:00.00]a\n[00:00.00]b")).toLyrics()!!.lyrics!!.syncType)
+        assertEquals("LINE_SYNCED", Found(parseLrc("[00:00.00]a\n[00:03.00]b")).toLyrics()!!.lyrics!!.syncType)
+    }
 }

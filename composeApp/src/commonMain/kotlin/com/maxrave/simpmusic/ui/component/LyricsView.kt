@@ -1,5 +1,11 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -224,6 +230,9 @@ private val DimRomanizedCurrentColor = Color.White.copy(alpha = 0.7f)
 private val DimRomanizedColor = Color.LightGray.copy(alpha = 0.3f)
 private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
 
+/** The ink of sung words in a word-timed line. White everywhere but the Classic lyrics page, which follows the theme. */
+internal val LocalLyricsSungColor = staticCompositionLocalOf { Color.White }
+
 /**
  * The sheet's lines as they are RENDERED, plus the indices of the dots lines that were inserted
  * into them.
@@ -433,6 +442,11 @@ fun LyricsView(
     // the lyrics instead of sitting anchored below them. Null by default: every existing caller
     // renders exactly as before.
     footerContent: (@Composable () -> Unit)? = null,
+    // The Classic lyrics page's lines, after desktop Limusic: left, bold, theme ink, the sung line a
+    // little larger and the rest dimmed by distance. False keeps every other caller as it was.
+    limusic: Boolean = false,
+    textScale: Float = 1f,
+    showRomanized: Boolean = true,
     dataStoreManager: DataStoreManager = koinInject(),
     romanizer: LyricsRomanizerRepository = koinInject(),
 ) {
@@ -453,7 +467,10 @@ fun LyricsView(
     // earlier moment is the one the sheet must light up for. Early in a track this can go negative,
     // which the `now <= 0L` guard below already reads as "no line yet" — correct, since in heard
     // time the song has not reached its first line.
-    val lyricsOffsetMs by dataStoreManager.lyricsOffsetMs.collectAsStateWithLifecycle(0)
+    val globalLyricsOffsetMs by dataStoreManager.lyricsOffsetMs.collectAsStateWithLifecycle(0)
+    // Plus this song's own nudge from the source picker. A plain value, so the derived line index
+    // below is keyed on it rather than reading it.
+    val songLyricsOffsetMs = lyricsData.offsetMs
 
     // Read here rather than taken as a parameter: all four call sites (the fullscreen sheet and
     // the three player styles) want the user's one choice, so making them each thread it through
@@ -529,9 +546,9 @@ fun LyricsView(
             }
         }
 
-    val currentLineIndex by remember(timedLineIndexes) {
+    val currentLineIndex by remember(timedLineIndexes, songLyricsOffsetMs) {
         derivedStateOf {
-            val now = current.current - lyricsOffsetMs
+            val now = current.current - globalLyricsOffsetMs - songLyricsOffsetMs
             if (now <= 0L) -1 else timedLineIndexes.activeIndexAt(now)
         }
     }
@@ -582,7 +599,8 @@ fun LyricsView(
         // is only possible if there is empty space below it to scroll into. Without this tail the
         // list simply runs out of content and the closing lines pile up against the bottom edge,
         // so the final third of every song reads bottom-anchored instead of top-anchored.
-        val tailPadding = if (appleStyle) maxHeight * 0.72f else 0.dp
+        // The Classic page centres the sung line, so the closing lines need room below to get there.
+        val tailPadding = if (appleStyle) maxHeight * 0.72f else if (limusic) maxHeight * 0.5f else 0.dp
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -623,7 +641,7 @@ fun LyricsView(
                     // while this row is plain static text. It only has to have the markers STRIPPED
                     // before romanizing, or the timestamps themselves would be transliterated.
                     val romanizedWords =
-                        if (isInterlude || romanizationLanguages.isEmpty()) {
+                        if (isInterlude || romanizationLanguages.isEmpty() || !showRomanized) {
                             null
                         } else {
                             remember(words, romanizationLanguages, japaneseDictionaryReady) {
@@ -632,6 +650,29 @@ fun LyricsView(
                                 romanizer.romanize(source, romanizationLanguages)
                             }
                         }
+
+                    if (limusic) {
+                        val synced = timedLineIndexes.isNotEmpty()
+                        LimusicLyricLine(
+                            words = words,
+                            line = line,
+                            syncType = lyricsData.lyrics.syncType,
+                            romanized = romanizedWords,
+                            translated = translatedWords,
+                            isCurrent = index == currentLineIndex,
+                            isPast = currentLineIndex >= 0 && index < currentLineIndex,
+                            plain = allLinesCurrent,
+                            currentTimeMs = current.current - globalLyricsOffsetMs - songLyricsOffsetMs,
+                            textScale = textScale,
+                            onClick =
+                                if (synced) {
+                                    { onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total) }
+                                } else {
+                                    null
+                                },
+                        )
+                        return@let
+                    }
 
                     val renderLine: @Composable () -> Unit = {
                         when {
@@ -652,7 +693,7 @@ fun LyricsView(
                                         parsedLine = parsedLine,
                                         translatedWords = translatedWords,
                                         romanizedWords = romanizedWords,
-                                        currentTimeMs = current.current - lyricsOffsetMs,
+                                        currentTimeMs = current.current - globalLyricsOffsetMs - songLyricsOffsetMs,
                                         isCurrent = index == currentLineIndex,
                                         customFontSize = if (appleStyle) AppleMusicLyricFontSize else null,
                                         glow = if (appleStyle && index == currentLineIndex) AppleMusicActiveLineGlow else null,
@@ -893,6 +934,107 @@ fun LyricsLineItem(
 }
 
 /**
+ * One line on the Classic lyrics page, as desktop Limusic draws it: the heading face, bold, left,
+ * in the theme's ink. The sung line is full strength and a touch larger; lines already sung fade
+ * further than the ones coming up. Dimming is the line's alpha, so a word-timed line's sweep and its
+ * romanization fade with it. Plain lyrics (no usable timings) read as text, smaller and unemphasised.
+ */
+@Composable
+private fun LimusicLyricLine(
+    words: String,
+    line: Line,
+    syncType: String?,
+    romanized: String?,
+    translated: String?,
+    isCurrent: Boolean,
+    isPast: Boolean,
+    plain: Boolean,
+    currentTimeMs: Long,
+    textScale: Float,
+    onClick: (() -> Unit)?,
+) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val alpha by animateFloatAsState(
+        targetValue =
+            when {
+                plain -> 0.9f
+                isCurrent -> 1f
+                isPast -> 0.4f
+                else -> 0.7f
+            },
+        animationSpec = tween(300),
+        label = "lyricLineAlpha",
+    )
+    val scale by animateFloatAsState(if (isCurrent) 1.04f else 1f, tween(300), label = "lyricLineScale")
+    val size = (if (plain) 18.sp else 26.sp) * textScale
+    val style =
+        typo().headlineLarge.copy(
+            fontSize = size,
+            lineHeight = size * 1.3f,
+            fontWeight = if (plain) FontWeight.Medium else FontWeight.Bold,
+        )
+    val parsed =
+        if (syncType == "RICH_SYNCED" && !plain) {
+            remember(words, line.startTimeMs, line.endTimeMs) { parseRichSyncWords(words, line.startTimeMs, line.endTimeMs) }
+        } else {
+            null
+        }
+    val text = remember(words, syncType) { if (syncType == "RICH_SYNCED") words.stripRichSyncTimestamps() else words }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                this.alpha = alpha
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0f, 0.5f)
+            }.then(
+                if (onClick != null) {
+                    Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
+                } else {
+                    Modifier
+                },
+            ).padding(vertical = if (plain) 4.dp else 9.dp),
+    ) {
+        if (parsed != null) {
+            CompositionLocalProvider(LocalLyricsSungColor provides ink) {
+                RichSyncLyricsLineItem(
+                    parsedLine = parsed,
+                    translatedWords = null,
+                    currentTimeMs = currentTimeMs,
+                    isCurrent = isCurrent,
+                    customFontSize = size,
+                    customPadding = 0.dp,
+                    pendingColorOverride = if (isCurrent) ink.copy(alpha = 0.4f) else ink,
+                    wrappedLineSpacing = 2.dp,
+                )
+            }
+        } else {
+            LyricText(text = text, modifier = Modifier.fillMaxWidth(), style = style, color = ink)
+        }
+        if (romanized != null) {
+            val sub = max(size.value * 0.62f, 11f).sp
+            LyricText(
+                text = romanized,
+                alignmentText = text,
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                style = style.copy(fontSize = sub, lineHeight = sub * 1.3f, fontWeight = FontWeight.SemiBold),
+                color = ink,
+            )
+        }
+        if (translated != null) {
+            LyricText(
+                text = translated,
+                alignmentText = text,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                style = typo().bodyMedium.copy(fontSize = 14.sp * textScale, fontStyle = FontStyle.Italic),
+                color = ink.copy(alpha = 0.8f),
+            )
+        }
+    }
+}
+
+/**
  * The playback position, carried forward between the player's 100 ms position ticks so that it
  * advances once per FRAME instead of ten times a second.
  *
@@ -1085,6 +1227,7 @@ private fun AnimatedWord(
             Bidi(word, fallback)
         }
     val wordDirection = if (wordBidi.baseIsLeftToRight()) TextDirection.Ltr else TextDirection.Rtl
+    val sungColor = LocalLyricsSungColor.current
     val style =
         typo().headlineLarge.copy(
             fontSize = customFontSize ?: typo().headlineLarge.fontSize,
@@ -1312,8 +1455,8 @@ private fun AnimatedWord(
                                 style = style,
                                 color =
                                     when {
-                                        charPast -> Color.White
-                                        charActive -> lerp(restingColor, Color.White, charProgress)
+                                        charPast -> sungColor
+                                        charActive -> lerp(restingColor, sungColor, charProgress)
                                         else -> restingColor
                                     },
                             )
@@ -1354,7 +1497,7 @@ private fun ShapedLyricsWord(
         Text(
             text = word,
             style = style,
-            color = Color.White,
+            color = LocalLyricsSungColor.current,
             modifier =
                 Modifier
                     .clearAndSetSemantics {}
