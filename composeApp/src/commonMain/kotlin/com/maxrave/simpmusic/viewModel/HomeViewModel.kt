@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
@@ -34,6 +35,7 @@ import simpmusic.composeapp.generated.resources.view_count
 class HomeViewModel(
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
+    private val accountRepository: AccountRepository,
 ) : BaseViewModel() {
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -72,9 +74,6 @@ class HomeViewModel(
             .dataSyncId
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
-    private val _mainHomeThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
-    val mainHomeThumbnail: StateFlow<String?> = _mainHomeThumbnail
-
     init {
         if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
             runBlocking {
@@ -98,27 +97,19 @@ class HomeViewModel(
                 .debounce(300)
                 .collectLatest { (_, _, cookie, chip) ->
                     getHomeItemList(chip)
-                    if (!cookie.isNullOrEmpty()) {
-                        _accountInfo.emit(
+                    // The saved account, as Settings shows it. The "AccountName" key is also
+                    // written from the feed's first shelf strapline, which YouTube sends in capitals.
+                    val used = accountRepository.getUsedGoogleAccount().first()
+                    _accountInfo.value =
+                        if (cookie.isNullOrEmpty()) {
+                            null
+                        } else {
                             Pair(
-                                dataStoreManager.getString("AccountName").first(),
-                                dataStoreManager.getString("AccountThumbUrl").first(),
-                            ),
-                        )
-                    }
+                                used?.name ?: dataStoreManager.getString("AccountName").first(),
+                                used?.thumbnailUrl ?: dataStoreManager.getString("AccountThumbUrl").first(),
+                            )
+                        }
                 }
-        }
-        viewModelScope.launch {
-            homeItemList.collectLatest { list ->
-                _mainHomeThumbnail.value =
-                    list
-                        .firstOrNull()
-                        ?.contents
-                        ?.firstOrNull()
-                        ?.thumbnails
-                        ?.lastOrNull()
-                        ?.url
-            }
         }
     }
 

@@ -54,10 +54,10 @@
     <string name="share_url">Share URL</string>
     <string name="unavailable">Unavailable</string>
     <string name="you">You</string>
-    <string name="good_morning">Good Morning</string>
-    <string name="good_afternoon">Good Afternoon</string>
-    <string name="good_evening">Good Evening</string>
-    <string name="good_night">Good Night</string>
+    <string name="good_morning">Good morning</string>
+    <string name="good_afternoon">Good afternoon</string>
+    <string name="good_evening">Good evening</string>
+    <string name="good_night">Good night</string>
     <string name="quick_picks">Quick picks</string>
     <string name="playlist_name_cannot_be_empty">Playlist name cannot be empty</string>
     <string name="this_app_needs_to_access_your_notification">This app needs to access your notification</string>

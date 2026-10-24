@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.home
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -23,14 +22,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -45,14 +47,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -66,23 +72,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.kmpalette.loader.rememberNetworkLoader
-import com.kmpalette.rememberDominantColorState
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
@@ -96,31 +105,30 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
-import com.maxrave.simpmusic.extension.angledGradientBackground
-import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isScrollingUp
-import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
+import com.maxrave.simpmusic.ui.component.EndOfModalBottomSheet
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeDiscoverSection
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
-import com.maxrave.simpmusic.ui.component.LimusicTabTopBar
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
-import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Notifications
+import com.maxrave.simpmusic.ui.icon.PersonAdd
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
@@ -130,10 +138,11 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.AppThemeContent
 import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -153,9 +162,6 @@ import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.http.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -163,7 +169,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.all
-import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.commute
@@ -176,20 +181,24 @@ import simpmusic.composeapp.generated.resources.good_afternoon
 import simpmusic.composeapp.generated.resources.good_evening
 import simpmusic.composeapp.generated.resources.good_morning
 import simpmusic.composeapp.generated.resources.good_night
+import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
+import simpmusic.composeapp.generated.resources.log_in
 import simpmusic.composeapp.generated.resources.log_in_warning
+import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.relax
 import simpmusic.composeapp.generated.resources.romance
 import simpmusic.composeapp.generated.resources.sad
+import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.sleep
 import simpmusic.composeapp.generated.resources.top_artists
 import simpmusic.composeapp.generated.resources.warning
-import simpmusic.composeapp.generated.resources.welcome_back
 import simpmusic.composeapp.generated.resources.what_is_best_choice_today
 import simpmusic.composeapp.generated.resources.workout
+import simpmusic.composeapp.generated.resources.youtube_account
 
 private val listOfHomeChip =
     listOf(
@@ -226,9 +235,6 @@ fun HomeScreen(
     // Quick picks leads Home wherever YouTube put it (stable sort: the rest keep their order).
     val homeData = remember(homeItems, quickPicksTitle) { homeItems.sortedByDescending { it.title == quickPicksTitle } }
     val loading by viewModel.loading.collectAsStateWithLifecycle()
-    var accountShow by rememberSaveable {
-        mutableStateOf(false)
-    }
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -253,31 +259,11 @@ fun HomeScreen(
         } else {
             backgroundColor
         }
-    var topHeaderColor by remember {
-        mutableStateOf(backgroundColor)
-    }
-    val animatedColor by animateColorAsState(topHeaderColor, tween(500))
-    val mainHomeThumbnail by viewModel.mainHomeThumbnail.collectAsStateWithLifecycle()
-    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
-    val dominantColorState =
-        rememberDominantColorState(
-            defaultColor = backgroundColor,
-            defaultOnColor = backgroundColor,
-            loader = networkLoader,
-        )
-
-    LaunchedEffect(mainHomeThumbnail) {
-        mainHomeThumbnail?.let {
-            dominantColorState.updateFrom(Url(it))
-        }
-    }
-
-    LaunchedEffect(dominantColorState, isLightTheme) {
-        snapshotFlow { dominantColorState.color }.collect {
-            // Light theme: pull the artwork color toward white for a soft pastel header;
-            // dark theme keeps the original darkened tone.
-            topHeaderColor = if (isLightTheme) lerp(it, Color.White, 0.85f) else it.rgbFactor(0.3f)
-        }
+    val nowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    val cover = nowPlaying?.songEntity?.thumbnails ?: nowPlaying?.mediaItem?.metadata?.artworkUri
+    var showAccountSheet by rememberSaveable { mutableStateOf(false) }
+    if (showAccountSheet) {
+        AccountSheet(account = accountInfo, navController = navController, onDismiss = { showAccountSheet = false })
     }
 
     var topAppBarHeightPx by rememberSaveable {
@@ -324,10 +310,6 @@ fun HomeScreen(
             }
         }
     }
-    LaunchedEffect(key1 = homeData) {
-        accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
-    }
-
     val shouldStartPaginate =
         remember {
             derivedStateOf {
@@ -459,33 +441,11 @@ fun HomeScreen(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        itemsIndexed(homeData, key = { _, item ->
-                            item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
-                        }) { index, item ->
+                        itemsIndexed(homeData, key = { _, item -> item.hashCode().toString() }) { index, item ->
                             Box {
                                 if (index == 0) {
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                // matchParentSize, not height(300.dp): 300 is the
-                                                // height of this shelf ON A PHONE. On a desktop
-                                                // window the first item is taller, the gradient
-                                                // stopped mid-item and everything below it fell
-                                                // back to the flat background — a hard colour seam
-                                                // straight across Home. Sized by the item, the
-                                                // bottom scrim always lands on the item's edge.
-                                                .matchParentSize()
-                                                .angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
-                                    ) {
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(180.dp)
-                                                    .align(Alignment.BottomCenter)
-                                                    .background(artworkScrimBrush(pageBackground)),
-                                        )
-                                    }
+                                    // Sized by the first item, so the fade always ends on its edge.
+                                    HomeBackdrop(cover, pageBackground, Modifier.matchParentSize())
                                 }
                                 Column(
                                     modifier =
@@ -500,13 +460,6 @@ fun HomeScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    if (index == 0 && accountInfo != null && accountShow) {
-                                        AccountLayout(
-                                            accountName = accountInfo?.first ?: "",
-                                            url = accountInfo?.second ?: "",
-                                        )
-                                        Spacer(Modifier.height(8.dp))
-                                    }
                                     // Quick picks takes the hero carousel and the song-card shelves ("Your
                                     // daily discover") take the 4-row list, swapped from upstream.
                                     if (item.title == quickPicksTitle) {
@@ -595,7 +548,11 @@ fun HomeScreen(
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically(),
                 ) {
-                    HomeTopAppBar(navController)
+                    HomeTopAppBar(
+                        account = accountInfo,
+                        onAvatarClick = { showAccountSheet = true },
+                        onListenTogether = { navController.navigate(ListenTogetherDestination) },
+                    )
                 }
                 AnimatedVisibility(
                     visible = !isScrollingUp,
@@ -660,77 +617,175 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Avatar, desktop's greeting, Listen Together. The avatar opens [AccountSheet]. */
 @Composable
-fun HomeTopAppBar(navController: NavController) {
+fun HomeTopAppBar(
+    account: Pair<String?, String?>?,
+    onAvatarClick: () -> Unit,
+    onListenTogether: () -> Unit,
+) {
+    // Fixed at first composition, as on desktop: a greeting that flips mid-session is uncanny.
     val hour = remember { now().time.hour }
-    LimusicTabTopBar(
-        title = stringResource(Res.string.app_name),
-        subtitle =
-            stringResource(
-                when (hour) {
-                    in 6..12 -> Res.string.good_morning
-                    in 13..17 -> Res.string.good_afternoon
-                    in 18..23 -> Res.string.good_evening
-                    else -> Res.string.good_night
-                },
-            ),
+    val daypart =
+        stringResource(
+            when {
+                hour < 5 -> Res.string.good_night
+                hour < 12 -> Res.string.good_morning
+                hour < 18 -> Res.string.good_afternoon
+                else -> Res.string.good_evening
+            },
+        )
+    val firstName = account?.first?.substringBefore(' ')?.takeIf { it.isNotBlank() }
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(72.dp)
+                .padding(start = 16.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
-        RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
-            navController.navigate(NotificationDestination)
-        }
-        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
-            navController.navigate(SettingsDestination)
-        }
+        Avatar(account?.second, 44.dp, Modifier.clickable(onClick = onAvatarClick))
+        Spacer(Modifier.width(12.dp))
+        Text(
+            text = if (firstName != null) "$daypart, $firstName" else daypart,
+            style = typo().headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        ListenTogetherIconButton(onListenTogether)
     }
 }
 
 @Composable
-fun AccountLayout(
-    accountName: String,
-    url: String,
+private fun Avatar(
+    url: String?,
+    size: Dp,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
-        Text(
-            text = stringResource(Res.string.welcome_back),
-            style = typo().bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 3.dp),
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+    AsyncImage(
+        model = url,
+        placeholder = rememberHolderPainter(),
+        error = rememberHolderPainter(),
+        fallback = rememberHolderPainter(),
+        contentDescription = stringResource(Res.string.youtube_account),
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.size(size).clip(CircleShape).then(modifier),
+    )
+}
+
+/** The avatar's menu: who is signed in, then the pages the bar's bell and gear used to open. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountSheet(
+    account: Pair<String?, String?>?,
+    navController: NavController,
+    onDismiss: () -> Unit,
+) {
+    AppThemeContent {
+        val colors = rememberSurfaceDarkColors()
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0) },
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = colors.container),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.height(5.dp))
+                    Card(
+                        modifier = Modifier.width(60.dp).height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Avatar(account?.second, 48.dp)
+                        Spacer(Modifier.width(14.dp))
+                        Text(
+                            text = account?.first ?: stringResource(Res.string.guest),
+                            style = typo().titleMedium,
+                            color = colors.content,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    val go: (Any) -> Unit = { route ->
+                        onDismiss()
+                        navController.navigate(route)
+                    }
+                    if (account == null) {
+                        ActionButton(icon = SimpIcons.PersonAdd, text = Res.string.log_in) { go(LoginDestination) }
+                    }
+                    ActionButton(icon = SimpIcons.Settings, text = Res.string.settings) { go(SettingsDestination) }
+                    ActionButton(icon = SimpIcons.Notifications, text = Res.string.notification) { go(NotificationDestination) }
+                    EndOfModalBottomSheet()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Desktop's header canvas: the playing cover, blurred, fading into the page under the greeting and
+ * the first shelf. With nothing playing, an accent wash keeps it a header.
+ */
+@Composable
+private fun HomeBackdrop(
+    cover: String?,
+    pageBackground: Color,
+    modifier: Modifier,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    Box(modifier) {
+        if (cover != null) {
+            // 96px: a 40dp blur throws every detail above a few pixels away anyway.
             AsyncImage(
                 model =
                     ImageRequest
                         .Builder(LocalPlatformContext.current)
-                        .data(url)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(url)
+                        .data(cover)
+                        .size(96)
                         .crossfade(true)
                         .build(),
-                placeholder = rememberHolderPainter(),
-                error = rememberHolderPainter(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(
-                            CircleShape,
-                        ),
+                modifier = Modifier.fillMaxSize().blur(40.dp).alpha(.7f),
             )
-            Text(
-                text = accountName,
-                style = typo().headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+        } else {
+            Box(
+                Modifier.fillMaxSize().drawBehind {
+                    drawRect(
+                        Brush.radialGradient(
+                            listOf(primary.copy(alpha = .2f), Color.Transparent),
+                            center = Offset(size.width * .1f, 0f),
+                            radius = size.width * .9f,
+                        ),
+                    )
+                },
             )
         }
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(listOf(pageBackground.copy(alpha = .25f), pageBackground.copy(alpha = .7f), pageBackground)),
+            ),
+        )
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.horizontalGradient(listOf(pageBackground.copy(alpha = .6f), pageBackground.copy(alpha = .15f), Color.Transparent)),
+            ),
+        )
     }
 }
 
