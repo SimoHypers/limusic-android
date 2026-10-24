@@ -34,14 +34,32 @@ internal fun Throwable.isLiveStreamDetected(): Boolean =
     generateSequence(this) { it.cause }.take(8).any { it is LiveStreamDetectedException }
 
 /**
- * The default retry policy, except that a [LiveStreamDetectedException] is never retried. Retrying
- * cannot succeed — the resolver throws it again at once — and the default backs off for several
- * seconds before giving up, which the listener would sit through in silence before the stream starts.
+ * Thrown by the stream resolver when YouTube's player refused the video
+ * ([com.maxrave.domain.data.player.PlaybackRefusals]); [reason] is YouTube's own sentence.
+ */
+class StreamRefusedException(
+    val videoId: String,
+    val reason: String,
+) : IOException("YouTube refused $videoId: $reason")
+
+/** YouTube's reason, if this error, or anything that led to it, is a [StreamRefusedException]. */
+internal fun Throwable.refusalReason(): String? =
+    generateSequence(this) { it.cause }.take(8).filterIsInstance<StreamRefusedException>().firstOrNull()?.reason
+
+/**
+ * The default retry policy, except that a [LiveStreamDetectedException] or a
+ * [StreamRefusedException] is never retried. Retrying cannot succeed: a live track is rebuilt as
+ * HLS, and a refusal was YouTube's answer, which each retry would ask for again (four requests in
+ * five seconds) while the listener sits in silence.
  */
 @UnstableApi
 internal class LiveStreamAwareLoadErrorHandlingPolicy : DefaultLoadErrorHandlingPolicy() {
     override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long =
-        if (loadErrorInfo.exception.isLiveStreamDetected()) C.TIME_UNSET else super.getRetryDelayMsFor(loadErrorInfo)
+        if (loadErrorInfo.exception.isLiveStreamDetected() || loadErrorInfo.exception.refusalReason() != null) {
+            C.TIME_UNSET
+        } else {
+            super.getRetryDelayMsFor(loadErrorInfo)
+        }
 }
 
 /**

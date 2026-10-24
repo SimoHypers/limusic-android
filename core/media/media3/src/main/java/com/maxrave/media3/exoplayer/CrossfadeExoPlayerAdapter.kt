@@ -39,6 +39,7 @@ import com.maxrave.media3.audio.EqualizerAudioProcessor
 import com.maxrave.media3.audio.EqualizerCurve
 import com.maxrave.media3.audio.SleepFadeAudioProcessor
 import com.maxrave.media3.service.mediasourcefactory.isLiveStreamDetected
+import com.maxrave.media3.service.mediasourcefactory.refusalReason
 import com.maxrave.media3.exoplayer.CrossfadeExoPlayerAdapter.Companion.SPEED_PITCH_STEP
 import com.maxrave.media3.service.mediasourcefactory.MergingMediaSourceFactory
 import kotlinx.coroutines.CancellationException
@@ -1511,6 +1512,7 @@ internal class CrossfadeExoPlayerAdapter(
                     },
                 errorCodeName = error.errorCodeName,
                 message = error.message,
+                refusal = error.refusalReason(),
             )
         Logger.e(TAG, "Playback error: ${error.message}")
         listeners.forEach { it.onPlayerError(genericError) }
@@ -1572,18 +1574,12 @@ internal class CrossfadeExoPlayerAdapter(
                 listeners.forEach { it.onIsPlayingChanged(false) }
             }
 
+            // The error itself is reported by whoever failed: propagatePlayerError for the player's
+            // own errors, the catch in loadAndPlayTrackInternal otherwise. Reported here as well, every
+            // failure reached the listener twice, and the second time as an unexplained ERROR_UNKNOWN.
             InternalState.ERROR -> {
                 listeners.forEach { it.onPlaybackStateChanged(PlayerConstants.STATE_IDLE) }
                 listeners.forEach { it.onIsPlayingChanged(false) }
-                listeners.forEach {
-                    it.onPlayerError(
-                        PlayerError(
-                            errorCode = 403,
-                            errorCodeName = "ERROR_UNKNOWN",
-                            message = "Can not extract playable URL or playback error",
-                        ),
-                    )
-                }
             }
         }
     }
@@ -1746,6 +1742,15 @@ internal class CrossfadeExoPlayerAdapter(
                     Logger.e(TAG, "Load track error: ${e.message}", e)
                     forwardingPlayer.suppressPlaybackEnded = false
                     transitionToState(InternalState.ERROR)
+                    listeners.forEach {
+                        it.onPlayerError(
+                            PlayerError(
+                                errorCode = 403,
+                                errorCodeName = "ERROR_UNKNOWN",
+                                message = "Can not extract playable URL or playback error",
+                            ),
+                        )
+                    }
                 }
             }
     }

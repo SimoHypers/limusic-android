@@ -9,12 +9,14 @@ import com.maxrave.data.mapping.toTrack
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.player.LiveStreamRegistry
+import com.maxrave.domain.data.player.PlaybackRefusals
 import com.maxrave.domain.extension.isBefore
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.extension.plusSeconds
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.utils.Resource
+import com.maxrave.kotlinytmusicscraper.PlayerRefusedException
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.logger.Logger
@@ -116,6 +118,7 @@ internal class StreamRepositoryImpl(
                     preferredAudioLanguage = dataStoreManager.preferredAudioLanguage.first(),
                 )
                 .onSuccess { data ->
+                    PlaybackRefusals.clear(videoId)
                     val response = data.second
                     val isLive = response.videoDetails?.isLive == true
                     LiveStreamRegistry.recordLiveStatus(videoId, isLive)
@@ -263,7 +266,11 @@ internal class StreamRepositoryImpl(
                         )
                     }
                 }.onFailure {
-                    it.printStackTrace()
+                    if (it is PlayerRefusedException) {
+                        PlaybackRefusals.record(videoId, it.reason ?: it.status)
+                    } else {
+                        it.printStackTrace()
+                    }
                     Logger.e("Stream", "Error for $videoId: $it")
                     emit(null)
                 }

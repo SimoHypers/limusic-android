@@ -5,6 +5,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
 import simpmusic.composeapp.generated.resources.new_albums
 import simpmusic.composeapp.generated.resources.new_singles
+import simpmusic.composeapp.generated.resources.playback_refused
 import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
@@ -26,6 +27,10 @@ object ComposeResUtils {
                 getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, *format)
             }
 
+            StringType.PLAYBACK_REFUSED -> {
+                getString(Res.string.playback_refused, *format)
+            }
+
             StringType.NEW_SINGLES -> {
                 getString(Res.string.new_singles)
             }
@@ -40,6 +45,7 @@ object ComposeResUtils {
         EXPLICIT_CONTENT_BLOCKED,
         NOTIFICATION_REQUEST,
         TIME_OUT_ERROR,
+        PLAYBACK_REFUSED,
         NEW_SINGLES,
         NEW_ALBUMS,
     }

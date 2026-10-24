@@ -1166,7 +1166,7 @@ class YouTube {
             // A refusal is only visible here; the caller just says "No URL found". A bot check reads
             // "Sign in to confirm you're not a bot".
             Logger.w(TAG, "Player refused $videoId: ${tempRes.playabilityStatus.status} ${tempRes.playabilityStatus.reason}")
-            return null
+            throw PlayerRefusedException(tempRes.playabilityStatus.status, tempRes.playabilityStatus.reason)
         } else {
             sigResponse = tempRes
         }
@@ -2120,3 +2120,9 @@ class YouTube {
 
     }
 }
+
+/** The player answered, but not with OK: [status] is e.g. `UNPLAYABLE`, [reason] YouTube's sentence. */
+class PlayerRefusedException(
+    val status: String,
+    val reason: String?,
+) : Exception("$status: $reason")

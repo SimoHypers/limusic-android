@@ -2682,7 +2682,7 @@ internal class MediaServiceHandlerImpl(
                 Logger.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
                 pushPlayerError(error)
                 if (isAppInForeground()) {
-                    showToast(ToastType.PlayerError(error.errorCodeName))
+                    showToast(error.refusal?.let(ToastType::PlaybackRefused) ?: ToastType.PlayerError(error.errorCodeName))
                 } else {
                     Logger.d("Player Error", "App is not in foreground, skipping toast")
                 }

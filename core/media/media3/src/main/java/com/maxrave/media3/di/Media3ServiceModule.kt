@@ -49,6 +49,7 @@ import com.maxrave.common.Config.PLAYER_CACHE
 import com.maxrave.common.Config.SERVICE_SCOPE
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.player.LiveStreamRegistry
+import com.maxrave.domain.data.player.PlaybackRefusals
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
@@ -72,6 +73,7 @@ import com.maxrave.media3.service.callback.SimpleMediaSessionCallback
 import com.maxrave.media3.service.download.DownloadUtils
 import com.maxrave.media3.service.mediasourcefactory.LiveStreamAwareLoadErrorHandlingPolicy
 import com.maxrave.media3.service.mediasourcefactory.LiveStreamDetectedException
+import com.maxrave.media3.service.mediasourcefactory.StreamRefusedException
 import com.maxrave.media3.service.mediasourcefactory.MergingMediaSourceFactory
 import com.maxrave.media3.service.mediasourcefactory.liveStreamDataSourceFactory
 import com.maxrave.media3.utils.CoilBitmapLoader
@@ -368,6 +370,7 @@ private fun provideResolvingDataSourceFactory(
         // not be read as a file, so this source fails and the track is rebuilt as HLS.
         if (LiveStreamRegistry.isLive(videoId)) throw LiveStreamDetectedException(videoId)
         if (!resolved) {
+            PlaybackRefusals.reasonFor(videoId)?.let { throw StreamRefusedException(videoId, it) }
             Logger.e("Stream", "Failed to resolve stream URL for $mediaId")
             throw java.io.IOException("Failed to resolve stream URL for $mediaId")
         }

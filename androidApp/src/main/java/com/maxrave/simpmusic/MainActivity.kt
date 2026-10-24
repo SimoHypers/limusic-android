@@ -265,6 +265,10 @@ class MainActivity : AppCompatActivity() {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR, type.error) }
                     }
 
+                    is ToastType.PlaybackRefused -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.PLAYBACK_REFUSED, type.reason) }
+                    }
+
                 },
             )
         }

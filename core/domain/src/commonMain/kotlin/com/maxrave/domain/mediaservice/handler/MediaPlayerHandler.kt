@@ -378,4 +378,9 @@ sealed class ToastType(
         val error: String,
     ) : ToastType(error)
 
+    /** YouTube refused the video; [reason] is its own sentence for why. */
+    data class PlaybackRefused(
+        val reason: String,
+    ) : ToastType(reason)
+
 }
