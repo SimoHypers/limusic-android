@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.SnapPosition
@@ -48,13 +49,16 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -113,6 +117,7 @@ import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
+import com.maxrave.simpmusic.ui.component.LocalHomeCardSize
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
@@ -122,6 +127,7 @@ import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
@@ -134,6 +140,8 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.HomeKinds
+import com.maxrave.simpmusic.viewModel.HomeLayout
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_ENERGIZE
@@ -146,7 +154,9 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SAD
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SLEEP
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_WORKOUT
 import com.maxrave.simpmusic.viewModel.ListState
+import com.maxrave.simpmusic.viewModel.SHORTCUTS_SECTION
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.homeShelfKind
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -158,10 +168,12 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.all
+import simpmusic.composeapp.generated.resources.all_hidden
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.commute
 import simpmusic.composeapp.generated.resources.do_not_show_again
+import simpmusic.composeapp.generated.resources.edit_home
 import simpmusic.composeapp.generated.resources.energize
 import simpmusic.composeapp.generated.resources.feel_good
 import simpmusic.composeapp.generated.resources.focus
@@ -220,11 +232,37 @@ fun HomeScreen(
     // Quick picks leads Home wherever YouTube put it (stable sort: the rest keep their order).
     val homeData = remember(homeItems, quickPicksTitle) { homeItems.sortedByDescending { it.title == quickPicksTitle } }
     val params by viewModel.params.collectAsStateWithLifecycle()
-    // Ours ahead of YouTube's shelves, as on desktop. A mood chip's feed is the chip's alone.
-    val blocks =
-        remember(homeData, params) {
-            homeData.map(HomeBlock::Shelf).let { if (params == null) listOf<HomeBlock>(HomeBlock.Shortcuts) + it else it }
+    val layout by viewModel.homeLayout.collectAsStateWithLifecycle()
+    // Home shows the shelves it knows by kind, in the order Edit Home set, ours ahead of YouTube's
+    // as on desktop. A mood chip's feed is the chip's alone, and a signed-out Home lists whatever it
+    // was sent: it carries few of the kinds, and without the rest it is half empty.
+    val signedIn = accountInfo != null
+    val shelves =
+        remember(homeData, params, signedIn) {
+            homeData.mapNotNull { item ->
+                val kind = homeShelfKind(item.title, item.moreEndpoint?.browseId)
+                if (kind != null || params != null || !signedIn) HomeBlock.Shelf(item, kind) else null
+            }
         }
+    val blocks =
+        remember(shelves, params, layout) {
+            if (params != null) {
+                shelves
+            } else {
+                layout.arrange(listOf<HomeBlock>(HomeBlock.Shortcuts) + shelves) { it.section }.filterNot { it.section in layout.hidden }
+            }
+        }
+    // What Edit Home lists: ours and every kind Home knows, in Home's order, whether or not the feed
+    // has sent it yet (it arrives a page at a time, and a section can be moved before it does).
+    val sections =
+        remember(shelves, layout) {
+            val present = shelves.map { it.section }.distinct()
+            layout.arrange(listOf(SHORTCUTS_SECTION) + present + HomeKinds.filterNot { it in present }) { it }
+        }
+    var showEditHome by rememberSaveable { mutableStateOf(false) }
+    if (showEditHome) {
+        EditHomeSheet(layout, sections, onChange = viewModel::updateHomeLayout, onDismiss = { showEditHome = false })
+    }
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -431,15 +469,32 @@ fun HomeScreen(
                         )
                         return@Crossfade
                     }
+                    CompositionLocalProvider(LocalHomeCardSize provides layout.cards.width()) {
                     LazyColumn(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
+                        if (blocks.isEmpty() && params == null) {
+                            // Everything switched off. Say so and hand back the way in, rather than a
+                            // blank page under the chips that looks like a feed that failed to load.
+                            item {
+                                Column(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = with(LocalDensity.current) { topAppBarHeightPx.toDp() } + 80.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    Text(stringResource(Res.string.all_hidden), style = typo().bodyMedium)
+                                    OutlinedButton(onClick = { showEditHome = true }) { Text(stringResource(Res.string.edit_home)) }
+                                }
+                            }
+                        }
                         itemsIndexed(blocks, key = { _, block -> block.key }) { index, block ->
                             Box {
                                 if (index == 0) {
                                     // Sized by the first item, so the fade always ends on its edge.
-                                    HomeBackdrop(cover, pageBackground, Modifier.matchParentSize())
+                                    HomeBackdrop(cover.takeIf { layout.backdrop }, pageBackground, Modifier.matchParentSize())
                                 }
                                 Column(
                                     modifier =
@@ -504,6 +559,7 @@ fun HomeScreen(
                         item {
                             EndOfPage()
                         }
+                    }
                     }
                 } else {
                     Column {
@@ -573,8 +629,32 @@ fun HomeScreen(
                             .padding(vertical = 8.dp, horizontal = 15.dp)
                             .background(Color.Transparent),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    listOfHomeChip.forEach { id ->
+                    // Leads the row and never scrolls away with it: the one way into arranging Home.
+                    // Alone, with the chips switched off, it says what it is. The chips stay while a
+                    // mood is picked, even switched off: "All" is the way out.
+                    val showChips = layout.chips || params != null
+                    if (showChips) {
+                        Box(
+                            Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                .clickable { showEditHome = true },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                SimpIcons.Tune,
+                                contentDescription = stringResource(Res.string.edit_home),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    } else {
+                        Chip(text = stringResource(Res.string.edit_home), icon = SimpIcons.Tune) { showEditHome = true }
+                    }
+                    if (showChips) listOfHomeChip.forEach { id ->
                         val isSelected =
                             when (params) {
                                 HOME_PARAMS_RELAX -> id == Res.string.relax
@@ -615,20 +695,34 @@ fun HomeScreen(
     }
 }
 
-/** One section of Home, keyed so the list keeps its place when the feed changes under it. */
+/**
+ * One section of Home. [key] keeps the list's place when the feed changes under it; [section] is
+ * what Edit Home arranges it by: its kind, or for a shelf of no known kind its title.
+ */
 private sealed interface HomeBlock {
     val key: String
+    val section: String
 
     data object Shortcuts : HomeBlock {
-        override val key = "@shortcuts"
+        override val key = SHORTCUTS_SECTION
+        override val section = SHORTCUTS_SECTION
     }
 
     data class Shelf(
         val item: HomeItem,
+        val kind: String?,
     ) : HomeBlock {
         override val key get() = item.hashCode().toString()
+        override val section get() = kind ?: "title:${item.title}"
     }
 }
+
+private fun HomeLayout.CardSize.width(): Dp =
+    when (this) {
+        HomeLayout.CardSize.SMALL -> 124.dp
+        HomeLayout.CardSize.MEDIUM -> 160.dp
+        HomeLayout.CardSize.LARGE -> 200.dp
+    }
 
 /** Avatar, desktop's greeting, Listen Together and Settings. The avatar opens the account picker. */
 @Composable

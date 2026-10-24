@@ -94,7 +94,14 @@ class HomeViewModel(
             .getLibraryOverview()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val shortcutsLock = Mutex()
+    val homeLayout: StateFlow<HomeLayout> =
+        dataStoreManager
+            .getString(HOME_LAYOUT_KEY)
+            .map(HomeLayout::parse)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, HomeLayout())
+
+    // One lock for both stores: each edit reads, changes and writes back a whole blob.
+    private val storeLock = Mutex()
 
     init {
         if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
@@ -256,9 +263,19 @@ class HomeViewModel(
     private fun editShortcuts(change: (List<Shortcut>) -> List<Shortcut>) {
         viewModelScope.launch {
             // Read the store, not [shortcuts]: two quick taps would both see the list before either write.
-            shortcutsLock.withLock {
+            storeLock.withLock {
                 val now = Shortcut.parse(dataStoreManager.getString(SHORTCUTS_KEY).first())
                 dataStoreManager.putString(SHORTCUTS_KEY, Shortcut.encode(change(now)))
+            }
+        }
+    }
+
+    /** Edit Home's changes land as they are made: Home behind the sheet is the preview. */
+    fun updateHomeLayout(change: (HomeLayout) -> HomeLayout) {
+        viewModelScope.launch {
+            storeLock.withLock {
+                val now = HomeLayout.parse(dataStoreManager.getString(HOME_LAYOUT_KEY).first())
+                dataStoreManager.putString(HOME_LAYOUT_KEY, HomeLayout.encode(change(now)))
             }
         }
     }
@@ -274,6 +291,7 @@ class HomeViewModel(
 
     companion object {
         private const val SHORTCUTS_KEY = "home_shortcuts"
+        private const val HOME_LAYOUT_KEY = "home_layout"
 
         // Home params
         const val HOME_PARAMS_RELAX = "ggM8SgQIBxADSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"

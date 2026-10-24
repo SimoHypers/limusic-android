@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,6 +125,12 @@ import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.subscribers
 import simpmusic.composeapp.generated.resources.you
+
+/**
+ * How wide a shelf's square cards are (a video card is as tall, at 16:9). Home provides Edit Home's
+ * card size; everywhere else gets the 160dp the cards always had.
+ */
+val LocalHomeCardSize = staticCompositionLocalOf { 160.dp }
 
 @Composable
 fun HomeItem(
@@ -498,7 +505,7 @@ fun NavController.navigateToMoreEndpoint(
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
     data: HomeContentType,
-    thumbSize: Dp = 160.dp,
+    thumbSize: Dp = LocalHomeCardSize.current,
     forceDark: Boolean = LocalForceDarkText.current,
     // Fill a grid cell instead of the fixed thumbSize, as Metrolist's browse grid does.
     fillMaxWidth: Boolean = false,
@@ -828,7 +835,7 @@ fun HomeItemSong(
     // Home's hover play button; null leaves the card exactly as it was.
     onPlay: (() -> Unit)? = null,
 ) {
-    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(160.dp)
+    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(LocalHomeCardSize.current)
     val (hoverModifier, hovered) = rememberCardHover(enabled = onPlay != null)
     Box(
         modifier =
@@ -846,7 +853,7 @@ fun HomeItemSong(
             modifier =
                 Modifier
                     .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)
-                    .heightIn(min = 230.dp),
+                    .heightIn(min = LocalHomeCardSize.current + 70.dp),
         ) {
             val thumb =
                 data.thumbnails.lastOrNull()?.url?.let {
@@ -872,7 +879,7 @@ fun HomeItemSong(
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier
-                            .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(160.dp))
+                            .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(LocalHomeCardSize.current))
                             .clip(
                                 RoundedCornerShape(10.dp),
                             ),
@@ -940,7 +947,7 @@ fun HomeItemVideo(
     onPlay: (() -> Unit)? = null,
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
-    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(284.5.dp)
+    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(LocalHomeCardSize.current * 1.778f)
     val (hoverModifier, hovered) = rememberCardHover(enabled = onPlay != null)
     Box(
         Modifier
@@ -957,7 +964,7 @@ fun HomeItemVideo(
             modifier =
                 Modifier
                     .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)
-                    .heightIn(min = 230.dp),
+                    .heightIn(min = LocalHomeCardSize.current + 70.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
             Box(Modifier.align(Alignment.CenterHorizontally)) {
@@ -976,7 +983,7 @@ fun HomeItemVideo(
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier
-                            .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.height(160.dp))
+                            .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.height(LocalHomeCardSize.current))
                             .aspectRatio(16f / 9f)
                             .clip(
                                 RoundedCornerShape(10.dp),
@@ -1061,7 +1068,7 @@ fun HomeItemArtist(
     fillMaxWidth: Boolean = false,
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
-    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(160.dp)
+    val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(LocalHomeCardSize.current)
     Box(
         Modifier
             .fillMaxSize()
@@ -1075,7 +1082,7 @@ fun HomeItemArtist(
             modifier =
                 Modifier
                     .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)
-                    .heightIn(min = 230.dp),
+                    .heightIn(min = LocalHomeCardSize.current + 70.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
             AsyncImage(
@@ -1094,7 +1101,7 @@ fun HomeItemArtist(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(160.dp))
+                        .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(LocalHomeCardSize.current))
                         .clip(
                             CircleShape,
                         ),
