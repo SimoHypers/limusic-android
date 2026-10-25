@@ -4,10 +4,15 @@ import com.maxrave.domain.data.entities.QueueEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.entities.SongInfoEntity
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.download.CollectionDownload
+import com.maxrave.domain.data.model.download.DownloadCount
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.data.player.PlaybackRefusals
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDateTime
 
 interface SongRepository {
@@ -22,9 +27,31 @@ interface SongRepository {
 
     fun getDownloadedSongs(): Flow<List<SongEntity>?>
 
-    fun getDownloadingSongs(): Flow<List<SongEntity>?>
+    /** Inserts the songs that have no row yet, in one transaction. */
+    suspend fun insertSongs(songs: List<SongEntity>)
 
-    fun getPreparingSongs(): Flow<List<SongEntity>>
+    /** One write for many songs; rows already in [downloadState] are left alone. */
+    suspend fun updateDownloadStates(
+        videoIds: List<String>,
+        downloadState: Int,
+    )
+
+    /**
+     * Startup: songs a previous run left queued or downloading that the download index no longer
+     * has in flight ([active]) go back to not downloaded, and [completed] ones are marked downloaded.
+     */
+    suspend fun reconcileDownloads(
+        active: List<String>,
+        completed: List<String>,
+    )
+
+    /** After every download was removed: no song, playlist or album is downloaded any more. */
+    suspend fun forgetAllDownloads()
+
+    /** Every song a downloaded playlist, album or local playlist holds. */
+    suspend fun keptVideoIds(): Set<String>
+
+    fun downloadCount(videoIds: List<String>): Flow<DownloadCount>
 
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>): Flow<List<String>>
 
@@ -148,3 +175,15 @@ interface SongRepository {
 
     fun getRadioFromEndpoint(endpoint: YouTubeWatchEndpoint): Flow<Resource<Pair<List<Track>, String?>>>
 }
+fun SongRepository.collectionDownload(
+    kept: Boolean,
+    videoIds: List<String>,
+): Flow<CollectionDownload> =
+    if (!kept || videoIds.isEmpty()) {
+        flowOf(CollectionDownload(kept, videoIds.size))
+    } else {
+        // ponytail: a refused song is taken as not downloaded; only getStream records refusals, and a downloaded song never goes through it.
+        combine(downloadCount(videoIds), PlaybackRefusals.all) { count, refusals ->
+            CollectionDownload(true, videoIds.size, count.downloaded, count.active, videoIds.count { it in refusals })
+        }
+    }

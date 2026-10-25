@@ -24,4 +24,12 @@
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
+    <plurals name="downloads_finished">
+        <item quantity="one">%d song downloaded</item>
+        <item quantity="other">%d songs downloaded</item>
+    </plurals>
+    <plurals name="downloads_failed">
+        <item quantity="one">%d couldn\'t download</item>
+        <item quantity="other">%d couldn\'t download</item>
+    </plurals>
 </resources>

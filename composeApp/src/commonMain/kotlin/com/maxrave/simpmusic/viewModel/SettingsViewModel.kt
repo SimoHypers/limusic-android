@@ -11,7 +11,6 @@ import com.maxrave.common.Config
 import com.maxrave.common.QUALITY
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.VIDEO_QUALITY
-import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.player.GenericCastState
@@ -939,15 +938,11 @@ class SettingsViewModel(
 
     fun clearDownloadedCache() {
         viewModelScope.launch {
+            downloadUtils.removeAllDownloads()
             cacheRepository.clearCache(Config.DOWNLOAD_CACHE)
-            songRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
-                songs.forEach { song ->
-                    songRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                }
-            }
+            songRepository.forgetAllDownloads()
             makeToast(getString(Res.string.clear_downloaded_cache))
             getDownloadedCacheSize()
-            downloadUtils.removeAllDownloads()
         }
     }
 

@@ -55,8 +55,6 @@ internal class LocalDataSource(
 
     suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()
 
-    suspend fun getAllDownloadingPlaylist() = databaseDao.getAllDownloadingPlaylist()
-
     suspend fun getSearchHistory() = databaseDao.getSearchHistory()
 
     suspend fun deleteSearchHistory() = databaseDao.deleteSearchHistory()
@@ -89,13 +87,18 @@ internal class LocalDataSource(
 
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) = databaseDao.getDownloadedVideoIdByListVideoId(listVideoId)
 
-    suspend fun getDownloadingSongs(
-        limit: Int,
-        offset: Int,
-    ) = databaseDao.getDownloadingSongs(
-        limit,
-        offset,
-    )
+    suspend fun updateDownloadStates(
+        videoIds: List<String>,
+        downloadState: Int,
+    ) = databaseDao.updateDownloadStates(videoIds, downloadState)
+
+    suspend fun resetStaleDownloads(active: List<String>) = databaseDao.resetStaleDownloads(active)
+
+    suspend fun forgetAllDownloads() = databaseDao.forgetAllDownloads()
+
+    suspend fun keptVideoIds() = databaseDao.keptVideoIds()
+
+    fun downloadCount(videoIds: List<String>) = databaseDao.downloadCount(videoIds)
 
     // ===== Clear listening history + drop orphaned songs =====
 
@@ -383,14 +386,6 @@ internal class LocalDataSource(
         offset,
     )
 
-    suspend fun getAllDownloadingLocalPlaylists(
-        limit: Int,
-        offset: Int,
-    ) = databaseDao.getAllDownloadingLocalPlaylists(
-        limit,
-        offset,
-    )
-
     suspend fun getLocalPlaylist(id: Long) = databaseDao.getLocalPlaylist(id)
 
     suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity) = databaseDao.insertLocalPlaylist(localPlaylist)
@@ -456,14 +451,6 @@ internal class LocalDataSource(
     suspend fun deleteLyrics(videoId: String) = databaseDao.deleteLyrics(videoId)
 
     suspend fun deleteUnpinnedLyrics() = databaseDao.deleteUnpinnedLyrics()
-
-    suspend fun getPreparingSongs(
-        limit: Int,
-        offset: Int,
-    ) = databaseDao.getPreparingSongs(
-        limit,
-        offset,
-    )
 
     suspend fun insertNewFormat(format: NewFormatEntity) = databaseDao.insertNewFormat(format)
 

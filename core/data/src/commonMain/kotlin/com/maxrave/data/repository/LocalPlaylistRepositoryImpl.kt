@@ -88,15 +88,6 @@ internal class LocalPlaylistRepositoryImpl(
 
     override fun downloadStateFlow(id: Long): Flow<Int> = localDataSource.getDownloadStateFlowOfLocalPlaylist(id)
 
-    override fun getAllDownloadingLocalPlaylists(): Flow<List<LocalPlaylistEntity>> =
-        flow {
-            emit(
-                getFullDataFromDB { limit, offset ->
-                    localDataSource.getAllDownloadingLocalPlaylists(limit, offset)
-                },
-            )
-        }.flowOn(Dispatchers.IO)
-
     override fun listTrackFlow(id: Long): Flow<List<String>> =
         localDataSource
             .getListTracksFlowOfLocalPlaylist(id)

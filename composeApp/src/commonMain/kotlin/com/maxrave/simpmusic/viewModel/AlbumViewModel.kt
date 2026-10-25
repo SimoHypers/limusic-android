@@ -6,6 +6,7 @@ import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.artist.ResultAlbum
+import com.maxrave.domain.data.model.download.CollectionDownload
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
@@ -13,30 +14,38 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.collectionDownload
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
-import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.radio_not_available
+import simpmusic.composeapp.generated.resources.removed_download
 import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class AlbumViewModel(
@@ -48,7 +57,15 @@ class AlbumViewModel(
     val uiState: StateFlow<AlbumUIState> = _uiState
 
     private var job: Job? = null
-    private var collectDownloadStateJob: Job? = null
+
+    // Downloaded = asked for; how many of its songs have landed is the progress.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val download =
+        _uiState
+            .map { (it.downloadState == DownloadState.STATE_DOWNLOADED) to it.listTrack.map { track -> track.videoId } }
+            .distinctUntilChanged()
+            .flatMapLatest { (kept, ids) -> songRepository.collectionDownload(kept, ids) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), CollectionDownload())
 
     fun updateBrowseId(browseId: String) {
         viewModelScope.launch {
@@ -177,7 +194,6 @@ class AlbumViewModel(
 
     private fun getAlbumFlow(browseId: String) {
         job?.cancel()
-        collectDownloadStateJob?.cancel()
         job =
             viewModelScope.launch {
                 albumRepository.getAlbumAsFlow(browseId).collectLatest { album ->
@@ -186,25 +202,6 @@ class AlbumViewModel(
                             it.copy(
                                 downloadState = album.downloadState,
                                 liked = album.liked,
-                            )
-                        }
-                    }
-                }
-            }
-        collectDownloadStateJob =
-            viewModelScope.launch {
-                downloadUtils.downloadTask.collectLatest { downloadTask ->
-                    var count = 0
-                    uiState.value.listTrack.forEach { track ->
-                        if (downloadTask[track.videoId] == DownloadState.STATE_DOWNLOADED) {
-                            count++
-                        }
-                    }
-                    if (count == uiState.value.listTrack.size) {
-                        albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADED)
-                        _uiState.update {
-                            it.copy(
-                                downloadState = DownloadState.STATE_DOWNLOADED,
                             )
                         }
                     }
@@ -271,38 +268,32 @@ class AlbumViewModel(
     }
 
     fun downloadFullAlbum() {
+        val tracks = uiState.value.listTrack
         viewModelScope.launch {
-            // Insert all song to database
-            uiState.value.listTrack.forEach { track ->
-                songRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
-                    log("Insert Song $it")
-                }
-            }
-            val fullListSong =
-                songRepository
-                    .getSongsByListVideoId(uiState.value.listTrack.map { it.videoId })
-                    .singleOrNull() ?: emptyList()
-            log("Full list song: $fullListSong")
-            if (fullListSong.isEmpty()) {
+            if (tracks.isEmpty()) {
                 makeToast(getString(Res.string.playlist_is_empty))
                 return@launch
             }
-            val listJob = fullListSong.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
-            log("List job: $listJob")
-            if (listJob.isEmpty()) {
-                makeToast(getString(Res.string.downloaded))
-                return@launch
-            }
-            albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADING)
-            listJob.forEach {
-                log("Download: ${it.videoId} ${it.thumbnails}")
-                downloadUtils.downloadTrack(
-                    it.videoId,
-                    it.title,
-                    it.thumbnails ?: "",
-                )
-            }
+            makeToast(getString(Res.string.downloading))
+            albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADED)
+            downloadUtils.downloadTracks(tracks.map { it.toSongEntity() })
         }
+    }
+
+    /** Tapped again on a kept album: its songs go, unless another download keeps them. */
+    fun removeDownload() {
+        val state = uiState.value
+        viewModelScope.launch {
+            albumRepository.updateAlbumDownloadState(state.browseId, DownloadState.STATE_NOT_DOWNLOADED)
+            downloadUtils.releaseDownloads(state.listTrack.map { it.videoId })
+            makeToast(getString(Res.string.removed_download))
+        }
+    }
+
+    /** Retries the songs of a kept album that are not on the phone. */
+    fun downloadMissing() {
+        val tracks = uiState.value.listTrack
+        viewModelScope.launch { downloadUtils.downloadTracks(tracks.map { it.toSongEntity() }) }
     }
 }
 

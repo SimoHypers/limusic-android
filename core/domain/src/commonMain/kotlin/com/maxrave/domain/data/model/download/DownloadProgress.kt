@@ -18,3 +18,20 @@ data class DownloadProgress(
         val INIT = DownloadProgress(0f, 0f, 0, "", isMerging = false, isError = false, isDone = false)
     }
 }
+/** How many of a list's songs are on the phone, and how many are still queued or downloading. */
+data class DownloadCount(
+    val downloaded: Int = 0,
+    val active: Int = 0,
+)
+
+/**
+ * A playlist or album's download: [kept] once the user asked for it, and how far its [total] songs
+ * got. [refused] counts the songs YouTube would not play this run, which no retry will fetch.
+ */
+data class CollectionDownload(
+    val kept: Boolean = false,
+    val total: Int = 0,
+    val downloaded: Int = 0,
+    val active: Int = 0,
+    val refused: Int = 0,
+)

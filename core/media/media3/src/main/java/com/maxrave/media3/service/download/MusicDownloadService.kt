@@ -1,13 +1,9 @@
 package com.maxrave.media3.service.download
 
 import android.app.Notification
-import android.content.Context
-import androidx.media3.common.util.NotificationUtil
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadManager
-import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
@@ -46,47 +42,6 @@ internal class MusicDownloadService :
             downloads,
             notMetRequirements,
         )
-
-    class TerminalStateNotificationHelper(
-        private val context: Context,
-        private val notificationHelper: DownloadNotificationHelper,
-        private var nextNotificationId: Int,
-    ) : DownloadManager.Listener {
-        override fun onDownloadChanged(
-            downloadManager: DownloadManager,
-            download: Download,
-            finalException: Exception?,
-        ) {
-            if (download.state == Download.STATE_FAILED) {
-                val notification =
-                    notificationHelper.buildDownloadFailedNotification(
-                        context,
-                        R.drawable.baseline_error_outline_24,
-                        null,
-                        Util.fromUtf8Bytes(download.request.data),
-                    )
-                NotificationUtil.setNotification(context, nextNotificationId++, notification)
-            } else if (download.state == Download.STATE_COMPLETED) {
-                val notification =
-                    notificationHelper.buildDownloadCompletedNotification(
-                        context,
-                        R.drawable.baseline_downloaded,
-                        null,
-                        Util.fromUtf8Bytes(download.request.data),
-                    )
-                NotificationUtil.setNotification(context, nextNotificationId++, notification)
-            }
-        }
-
-        override fun onDownloadsPausedChanged(
-            downloadManager: DownloadManager,
-            downloadsPaused: Boolean,
-        ) {
-            if (downloadsPaused) {
-                downloadManager.resumeDownloads()
-            }
-        }
-    }
 
     companion object {
         const val CHANNEL_ID = "download"

@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -234,37 +235,13 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.Download -> {
-                    when (songUIState.downloadState) {
-                        DownloadState.STATE_NOT_DOWNLOADED -> {
-                            songRepository.updateDownloadState(
-                                videoId = songUIState.videoId,
-                                downloadState = DownloadState.STATE_PREPARING,
-                            )
-                            downloadUtils.downloadTrack(
-                                videoId = songUIState.videoId,
-                                title = songUIState.title,
-                                thumbnail = songUIState.thumbnails ?: "",
-                            )
-                            makeToast(getString(Res.string.downloading))
-                        }
-
-                        DownloadState.STATE_PREPARING, DownloadState.STATE_DOWNLOADING -> {
-                            downloadUtils.removeDownload(songUIState.videoId)
-                            songRepository.updateDownloadState(
-                                songUIState.videoId,
-                                DownloadState.STATE_NOT_DOWNLOADED,
-                            )
-                            makeToast(getString(Res.string.removed_download))
-                        }
-
-                        DownloadState.STATE_DOWNLOADED -> {
-                            downloadUtils.removeDownload(songUIState.videoId)
-                            songRepository.updateDownloadState(
-                                songUIState.videoId,
-                                DownloadState.STATE_NOT_DOWNLOADED,
-                            )
-                            makeToast(getString(Res.string.removed_download))
-                        }
+                    // The handler writes the song's state as the download moves (or is removed).
+                    if (songUIState.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                        songRepository.getSongById(songUIState.videoId).first()?.let { downloadUtils.downloadTracks(listOf(it)) }
+                        makeToast(getString(Res.string.downloading))
+                    } else {
+                        downloadUtils.removeDownload(songUIState.videoId)
+                        makeToast(getString(Res.string.removed_download))
                     }
                 }
 

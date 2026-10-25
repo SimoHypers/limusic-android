@@ -48,8 +48,6 @@ interface PlaylistRepository {
 
     fun getAllDownloadedPlaylist(): Flow<List<PlaylistType>>
 
-    fun getAllDownloadingPlaylist(): Flow<List<PlaylistType>>
-
     fun getRadio(
         radioId: String,
         defaultDescription: String,

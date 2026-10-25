@@ -39,6 +39,7 @@ import com.maxrave.domain.data.entities.analytics.query.TopPlayedAlbum
 import com.maxrave.domain.data.entities.analytics.query.TopPlayedArtist
 import com.maxrave.domain.data.entities.analytics.query.TopPlayedArtistTime
 import com.maxrave.domain.data.entities.analytics.query.TopPlayedTracks
+import com.maxrave.domain.data.model.download.DownloadCount
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.extension.now
@@ -125,7 +126,7 @@ interface DatabaseDao {
             val fetched =
                 getDownloadedPlaylists(
                     limit = 100,
-                    offset = shouldContinue.second,
+                    offset = shouldContinuePlaylist.second,
                 )
             a.addAll(
                 fetched,
@@ -165,46 +166,6 @@ interface DatabaseDao {
                 },
             )
         return sortedList
-    }
-
-    @Transaction
-    suspend fun getAllDownloadingPlaylist(): List<PlaylistType> {
-        val a = mutableListOf<PlaylistType>()
-        var shouldContinue = true to 0
-        while (shouldContinue.first) {
-            val fetched =
-                getDownloadingAlbums(
-                    limit = 100,
-                    offset = shouldContinue.second,
-                )
-            a.addAll(
-                fetched,
-            )
-            shouldContinue =
-                if (fetched.size < 100) {
-                    false to 0
-                } else {
-                    true to shouldContinue.second + 100
-                }
-        }
-        var shouldContinuePlaylist = true to 0
-        while (shouldContinuePlaylist.first) {
-            val fetched =
-                getDownloadingPlaylists(
-                    limit = 100,
-                    offset = shouldContinue.second,
-                )
-            a.addAll(
-                fetched,
-            )
-            shouldContinuePlaylist =
-                if (fetched.size < 100) {
-                    false to 0
-                } else {
-                    true to shouldContinuePlaylist.second + 100
-                }
-        }
-        return a
     }
 
     // Get search history
@@ -425,11 +386,55 @@ interface DatabaseDao {
         offset: Int,
     ): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
-    suspend fun getDownloadingSongs(
-        limit: Int,
-        offset: Int,
-    ): List<SongEntity>
+    @Query(
+        "UPDATE song SET downloadState = :downloadState, downloadedAt = :downloadedAt " +
+            "WHERE videoId IN (:videoIds) AND downloadState != :downloadState",
+    )
+    suspend fun updateDownloadStates(
+        videoIds: List<String>,
+        downloadState: Int,
+        downloadedAt: LocalDateTime? = if (downloadState == 3) now() else null,
+    )
+
+    @Query("UPDATE song SET downloadState = 0 WHERE downloadState != 0")
+    suspend fun resetSongDownloads()
+
+    @Query("UPDATE playlist SET downloadState = 0 WHERE downloadState != 0")
+    suspend fun resetPlaylistDownloads()
+
+    @Query("UPDATE album SET downloadState = 0 WHERE downloadState != 0")
+    suspend fun resetAlbumDownloads()
+
+    @Query("UPDATE local_playlist SET downloadState = 0 WHERE downloadState != 0")
+    suspend fun resetLocalPlaylistDownloads()
+
+    /** After every download was removed: no song, playlist or album is downloaded any more. */
+    @Transaction
+    suspend fun forgetAllDownloads() {
+        resetSongDownloads()
+        resetPlaylistDownloads()
+        resetAlbumDownloads()
+        resetLocalPlaylistDownloads()
+    }
+
+    @Query("UPDATE song SET downloadState = 0 WHERE downloadState IN (1, 2) AND videoId NOT IN (:active)")
+    suspend fun resetStaleDownloads(active: List<String>)
+
+    // `tracks` on playlist and album is a JSON array of video ids; local playlists keep theirs in
+    // the pair table.
+    @Query(
+        "SELECT value FROM playlist, json_each(playlist.tracks) WHERE playlist.downloadState = 3 " +
+            "UNION SELECT value FROM album, json_each(album.tracks) WHERE album.downloadState = 3 " +
+            "UNION SELECT songId FROM pair_song_local_playlist " +
+            "WHERE playlistId IN (SELECT id FROM local_playlist WHERE downloadState = 3)",
+    )
+    suspend fun keptVideoIds(): List<String>
+
+    @Query(
+        "SELECT COUNT(CASE WHEN downloadState = 3 THEN 1 END) AS downloaded, " +
+            "COUNT(CASE WHEN downloadState IN (1, 2) THEN 1 END) AS active FROM song WHERE videoId IN (:videoIds)",
+    )
+    fun downloadCount(videoIds: List<String>): Flow<DownloadCount>
 
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 1000")
     suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>): List<SongEntity>
@@ -544,12 +549,6 @@ interface DatabaseDao {
         offset: Int,
     ): List<AlbumEntity>
 
-    @Query("SELECT * FROM album WHERE downloadState = 2 OR downloadState = 1 LIMIT :limit OFFSET :offset")
-    suspend fun getDownloadingAlbums(
-        limit: Int,
-        offset: Int,
-    ): List<AlbumEntity>
-
     // Playlist
     @Query("SELECT * FROM playlist ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
     suspend fun getAllPlaylists(limit: Int): List<PlaylistEntity>
@@ -598,21 +597,9 @@ interface DatabaseDao {
         offset: Int,
     ): List<PlaylistEntity>
 
-    @Query("SELECT * FROM playlist WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
-    suspend fun getDownloadingPlaylists(
-        limit: Int,
-        offset: Int,
-    ): List<PlaylistEntity>
-
     // Local Playlist
     @Query("SELECT * FROM local_playlist ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
     suspend fun getAllLocalPlaylists(
-        limit: Int,
-        offset: Int,
-    ): List<LocalPlaylistEntity>
-
-    @Query("SELECT * FROM local_playlist WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
-    suspend fun getAllDownloadingLocalPlaylists(
         limit: Int,
         offset: Int,
     ): List<LocalPlaylistEntity>
@@ -743,12 +730,6 @@ interface DatabaseDao {
     // VACUUM deliberately does NOT live here: [raw] is generated as a read-only statement, and
     // Room's reader connections run under `PRAGMA query_only = 1`, which rejects it. See
     // `MusicDatabase.vacuum()`.
-
-    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2 ORDER BY downloadedAt ASC LIMIT :limit OFFSET :offset")
-    suspend fun getPreparingSongs(
-        limit: Int,
-        offset: Int,
-    ): List<SongEntity>
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertNewFormat(format: NewFormatEntity)

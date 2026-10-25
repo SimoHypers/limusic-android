@@ -48,6 +48,15 @@
     <string name="error">Error</string>
     <string name="retry">Retry</string>
     <string name="removed_download">Removed download</string>
+    <string name="remove">Remove</string>
+    <string name="remove_download_confirm">Remove download?</string>
+    <string name="download_progress_text">%1$d of %2$d songs are on this phone.</string>
+    <string name="download_kept_note">Songs another downloaded playlist or album holds stay.</string>
+    <string name="download_missing">Download missing</string>
+    <plurals name="download_refused">
+        <item quantity="one">YouTube Music won't play %1$d of the missing songs.</item>
+        <item quantity="other">YouTube Music won't play %1$d of the missing songs.</item>
+    </plurals>
     <string name="share_url">Share URL</string>
     <string name="unavailable">Unavailable</string>
     <string name="you">You</string>

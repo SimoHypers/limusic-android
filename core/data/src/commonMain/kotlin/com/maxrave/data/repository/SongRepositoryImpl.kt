@@ -11,6 +11,7 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.entities.SongInfoEntity
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.download.DownloadCount
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.manager.DataStoreManager
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlin.concurrent.Volatile
 import kotlinx.datetime.LocalDateTime
@@ -81,23 +81,26 @@ internal class SongRepositoryImpl(
             )
         }.flowOn(Dispatchers.IO)
 
-    override fun getDownloadingSongs(): Flow<List<SongEntity>?> =
-        flow {
-            emit(
-                getFullDataFromDB { limit, offset ->
-                    localDataSource.getDownloadingSongs(limit, offset)
-                },
-            )
-        }.flowOn(Dispatchers.IO)
+    override suspend fun insertSongs(songs: List<SongEntity>) = withContext(Dispatchers.IO) { localDataSource.insertSongs(songs) }
 
-    override fun getPreparingSongs(): Flow<List<SongEntity>> =
-        flow {
-            emit(
-                getFullDataFromDB { limit, offset ->
-                    localDataSource.getPreparingSongs(limit, offset)
-                },
-            )
-        }.flowOn(Dispatchers.IO)
+    override suspend fun updateDownloadStates(
+        videoIds: List<String>,
+        downloadState: Int,
+    ) = withContext(Dispatchers.IO) { localDataSource.updateDownloadStates(videoIds, downloadState) }
+
+    override suspend fun reconcileDownloads(
+        active: List<String>,
+        completed: List<String>,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.resetStaleDownloads(active)
+        localDataSource.updateDownloadStates(completed, DownloadState.STATE_DOWNLOADED)
+    }
+
+    override suspend fun forgetAllDownloads() = withContext(Dispatchers.IO) { localDataSource.forgetAllDownloads() }
+
+    override suspend fun keptVideoIds(): Set<String> = withContext(Dispatchers.IO) { localDataSource.keptVideoIds().toSet() }
+
+    override fun downloadCount(videoIds: List<String>): Flow<DownloadCount> = localDataSource.downloadCount(videoIds)
 
     override fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
         localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
@@ -118,9 +121,7 @@ internal class SongRepositoryImpl(
                     localDataSource.getLikedSongs(limit, offset)
                 }.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
             Logger.d(TAG, "Auto-download: queueing ${pending.size} liked songs")
-            pending.forEach { song ->
-                downloadHandler.downloadTrack(song.videoId, song.title, song.thumbnails.orEmpty())
-            }
+            downloadHandler.downloadTracks(pending)
             pending.size
         }
 
@@ -279,7 +280,7 @@ internal class SongRepositoryImpl(
             if (likeStatus == 1 && song?.liked != true && dataStoreManager.autoDownloadLikedSongs.first() == TRUE) {
                 if (song != null && song.downloadState != DownloadState.STATE_DOWNLOADED) {
                     Logger.d(TAG, "Auto-downloading liked song: $videoId")
-                    downloadHandler.downloadTrack(videoId, song.title, song.thumbnails.orEmpty())
+                    downloadHandler.downloadTracks(listOf(song))
                 }
             }
             true
@@ -305,7 +306,7 @@ internal class SongRepositoryImpl(
     override suspend fun updateDownloadState(
         videoId: String,
         downloadState: Int,
-    ) = withContext(Dispatchers.Main) {
+    ) = withContext(Dispatchers.IO) {
         localDataSource.updateDownloadState(
             downloadState,
             videoId,

@@ -1,6 +1,8 @@
 package com.maxrave.domain.data.player
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
@@ -14,6 +16,9 @@ import kotlinx.coroutines.flow.update
  */
 object PlaybackRefusals {
     private val reasons = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    /** Video id to reason, for a download page saying why its missing songs are missing. */
+    val all: StateFlow<Map<String, String>> = reasons.asStateFlow()
 
     fun record(
         videoId: String,

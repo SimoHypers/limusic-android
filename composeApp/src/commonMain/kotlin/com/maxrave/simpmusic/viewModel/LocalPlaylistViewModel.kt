@@ -17,8 +17,8 @@ import com.maxrave.common.TITLE
 import com.maxrave.data.db.Converters
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
-import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
 import com.maxrave.domain.data.entities.DownloadState.STATE_NOT_DOWNLOADED
+import com.maxrave.domain.data.model.download.CollectionDownload
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
@@ -30,6 +30,7 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.collectionDownload
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.collectResource
@@ -40,9 +41,7 @@ import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,10 +54,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
@@ -75,6 +74,8 @@ import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.playlist_is_empty
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.removed_download
 import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.updated
@@ -103,6 +104,20 @@ class LocalPlaylistViewModel(
 
     private val _uiState: MutableStateFlow<LocalPlaylistState> = MutableStateFlow(LocalPlaylistState.initial())
     val uiState: StateFlow<LocalPlaylistState> get() = _uiState
+
+    // Downloaded = asked for; how many of its songs have landed is the progress.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val download =
+        _uiState
+            .map { it.id to (it.downloadState == STATE_DOWNLOADED) }
+            .distinctUntilChanged()
+            .flatMapLatest { (id, kept) ->
+                if (kept) {
+                    localPlaylistRepository.listTrackFlow(id).flatMapLatest { ids -> songRepository.collectionDownload(true, ids) }
+                } else {
+                    flowOf(CollectionDownload())
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), CollectionDownload())
 
     private fun setFilter(filterState: FilterState) {
         _uiState.update {
@@ -133,51 +148,19 @@ class LocalPlaylistViewModel(
                     else -> FilterState.OlderFirst
                 },
             )
+            // A song added to a downloaded playlist downloads too.
             val listTrackStringJob =
                 launch {
                     uiState
-                        .map { it.downloadState }
+                        .map { it.id to (it.downloadState == STATE_DOWNLOADED) }
                         .distinctUntilChanged()
-                        .collectLatest { downloadState ->
-                            if (downloadState == STATE_DOWNLOADED || downloadState == STATE_DOWNLOADING) {
-                                newUpdateJob?.cancel()
-                                newUpdateJob =
-                                    launch(Dispatchers.IO) {
-                                        localPlaylistRepository
-                                            .listTrackFlow(uiState.value.id)
-                                            .distinctUntilChanged()
-                                            .collectLatest { list ->
-                                                delay(500)
-                                                val currentList = uiState.value.trackCount
-                                                val newList = list.size
-                                                log("newList: $list")
-                                                log("currentList: $currentList, newList: $newList")
-                                                if (newList > currentList) {
-                                                    updatePlaylistState(uiState.value.id, refresh = true)
-                                                }
-                                                delay(500)
-                                                val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
-                                                val notDownloadedList =
-                                                    fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
-                                                if (fullTracks.isEmpty()) {
-                                                    updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
-                                                } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } &&
-                                                    downloadState != STATE_DOWNLOADED
-                                                ) {
-                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
-                                                } else if (
-                                                    fullTracks.any { it.downloadState == STATE_DOWNLOADING } &&
-                                                    notDownloadedList.isNotEmpty() &&
-                                                    downloadState != STATE_DOWNLOADING
-                                                ) {
-                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                                } else if (notDownloadedList.isNotEmpty()) {
-                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                                    downloadTracks(notDownloadedList)
-                                                }
-                                            }
-                                    }
-                            }
+                        .collectLatest { (id, kept) ->
+                            if (!kept) return@collectLatest
+                            localPlaylistRepository
+                                .listTrackFlow(id)
+                                .distinctUntilChanged()
+                                .drop(1)
+                                .collectLatest { downloadUtils.downloadTracks(localPlaylistRepository.getFullPlaylistTracks(id)) }
                         }
                 }
             val resetSuggestions =
@@ -404,48 +387,6 @@ class LocalPlaylistViewModel(
         }
     }
 
-    val listJob: MutableStateFlow<ArrayList<SongEntity>> = MutableStateFlow(arrayListOf())
-
-//        var downloadState: StateFlow<List<Download?>>
-//        viewModelScope.launch {
-//            downloadState = downloadUtils.getAllDownloads().stateIn(viewModelScope)
-//            downloadState.collectLatest { down ->
-//                if (down.isNotEmpty()){
-//                    var count = 0
-//                    down.forEach { downloadItem ->
-//                        if (downloadItem?.state == Download.STATE_COMPLETED) {
-//                            count++
-//                        }
-//                        else if (downloadItem?.state == Download.STATE_FAILED) {
-//                            updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADING)
-//                        }
-//                    }
-//                    if (count == down.size) {
-//                        mainRepository.getLocalPlaylist(id).collect{ playlist ->
-//                            mainRepository.getSongsByListVideoId(playlist.tracks!!).collect{ tracks ->
-//                                tracks.forEach { track ->
-//                                    if (track.downloadState != DownloadState.STATE_DOWNLOADED) {
-//                                        mainRepository.updateDownloadState(track.videoId, DownloadState.STATE_NOT_DOWNLOADED)
-//                                        Toast.makeText(getApplication(), "Download Failed", Toast.LENGTH_SHORT).show()
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        Logger.d("Check Downloaded", "Downloaded")
-//                        updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADED)
-//                        Toast.makeText(getApplication(), "Download Completed", Toast.LENGTH_SHORT).show()
-//                    }
-//                    else {
-//                        updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADING)
-//                    }
-//                }
-//                else {
-//                    updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
-//                }
-//            }
-//        }
-//    }
-
     fun updatePlaylistTitle(
         title: String,
         id: Long,
@@ -537,42 +478,6 @@ class LocalPlaylistViewModel(
                         makeToast(it)
                     },
                 )
-        }
-    }
-
-    /**
-     * Mirrors the download state of [listJob] onto the playlist while the batch runs.
-     *
-     * A missing entry in `downloadTask` means "nothing reported yet", which is NOT the same as
-     * "finished and not downloaded" — collapsing the two into a trailing `else` is what pinned
-     * every playlist to STATE_NOT_DOWNLOADED whenever the map had not been populated. An
-     * unresolved batch therefore leaves the current state alone instead of overwriting it.
-     *
-     * The repository write also has to happen OUTSIDE `_uiState.update`: that helper is a
-     * compare-and-set retry loop, so a lambda with a suspending side effect in it can run more
-     * than once per emission and issue duplicate writes.
-     */
-    fun downloadFullPlaylistState(
-        id: Long,
-        listJob: List<String>,
-    ) {
-        if (listJob.isEmpty()) return
-        viewModelScope.launch {
-            downloadUtils.downloadTask.collect { download ->
-                val states = listJob.map { download[it] }
-                val resolved =
-                    when {
-                        // Checked before completeness: one track actively downloading is enough
-                        // to call the playlist downloading, even if the rest are still unreported.
-                        states.any { it == STATE_DOWNLOADING } -> STATE_DOWNLOADING
-                        states.all { it == STATE_DOWNLOADED } -> STATE_DOWNLOADED
-                        states.any { it == null } -> null
-                        else -> STATE_NOT_DOWNLOADED
-                    }
-                if (resolved == null || resolved == uiState.value.downloadState) return@collect
-                localPlaylistRepository.updateLocalPlaylistDownloadState(resolved, id)
-                _uiState.update { it.copy(downloadState = resolved) }
-            }
         }
     }
 
@@ -844,31 +749,35 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private fun downloadTracks(listJob: List<String>) {
+    fun downloadFullPlaylist() {
+        val id = uiState.value.id
         viewModelScope.launch {
-            listJob.forEach { videoId ->
-                songRepository.getSongById(videoId).singleOrNull()?.let { song ->
-                    if (song.downloadState != STATE_DOWNLOADED) {
-                        downloadUtils.downloadTrack(videoId, song.title, song.thumbnails ?: "")
-                    }
-                }
+            val tracks = localPlaylistRepository.getFullPlaylistTracks(id = id)
+            if (tracks.isEmpty()) {
+                makeToast(getString(Res.string.playlist_is_empty))
+                return@launch
             }
+            makeToast(getString(Res.string.downloading))
+            updatePlaylistDownloadState(id, STATE_DOWNLOADED)
+            downloadUtils.downloadTracks(tracks)
         }
     }
 
-    fun downloadFullPlaylist() {
+    /** Tapped again on a kept playlist: its songs go, unless another download keeps them. */
+    fun removeDownload() {
+        val id = uiState.value.id
         viewModelScope.launch {
-            val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
-            val listJob = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
-            if (listJob.isNotEmpty()) {
-                downloadTracks(listJob)
-                downloadFullPlaylistState(uiState.value.id, listJob)
-            } else if (fullTracks.isNotEmpty() && fullTracks.all { it.downloadState == STATE_DOWNLOADED }) {
-                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
-            } else {
-                makeToast(getString(Res.string.playlist_is_empty))
-            }
+            localPlaylistRepository.updateLocalPlaylistDownloadState(STATE_NOT_DOWNLOADED, id)
+            _uiState.update { it.copy(downloadState = STATE_NOT_DOWNLOADED) }
+            downloadUtils.releaseDownloads(localPlaylistRepository.getFullPlaylistTracks(id).map { it.videoId })
+            makeToast(getString(Res.string.removed_download))
         }
+    }
+
+    /** Retries the songs of a kept playlist that are not on the phone. */
+    fun downloadMissing() {
+        val id = uiState.value.id
+        viewModelScope.launch { downloadUtils.downloadTracks(localPlaylistRepository.getFullPlaylistTracks(id)) }
     }
 
     /**

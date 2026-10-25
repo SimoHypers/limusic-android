@@ -100,7 +100,6 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
-import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SongEntity
@@ -117,9 +116,9 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.CollectionDownloadButton
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
-import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
@@ -143,7 +142,6 @@ import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Delete
-import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
@@ -172,23 +170,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
-import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_downloaded
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.created_at
-import simpmusic.composeapp.generated.resources.downloaded
-import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.search
@@ -244,9 +236,7 @@ fun LocalPlaylistScreen(
             lazyState.firstVisibleItemIndex == 0
         }
     }
-    val downloadState by viewModel.uiState.map { it.downloadState }.collectAsState(
-        initial = DownloadState.STATE_NOT_DOWNLOADED,
-    )
+    val download by viewModel.download.collectAsStateWithLifecycle()
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
 
@@ -841,77 +831,12 @@ fun LocalPlaylistScreen(
                                                         )
                                                     }
                                                 }
-                                                Box(
-                                                    modifier =
-                                                        Modifier
-                                                            .size(48.dp)
-                                                            .clip(CircleShape)
-                                                            .background(Color.White.copy(alpha = 0.12f)),
-                                                    contentAlignment = Alignment.Center,
-                                                ) {
-                                                    Crossfade(targetState = downloadState) { state ->
-                                                        when (state) {
-                                                            DownloadState.STATE_DOWNLOADED -> {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .fillMaxSize()
-                                                                            .clickable {
-                                                                                viewModel.makeToast(
-                                                                                    runBlocking { getString(Res.string.downloaded) },
-                                                                                )
-                                                                            },
-                                                                    contentAlignment = Alignment.Center,
-                                                                ) {
-                                                                    Icon(
-                                                                        painter = painterResource(Res.drawable.baseline_downloaded),
-                                                                        tint = Color(0xFF00A0CB),
-                                                                        contentDescription = "",
-                                                                        modifier = Modifier.size(22.dp),
-                                                                    )
-                                                                }
-                                                            }
-
-                                                            DownloadState.STATE_DOWNLOADING -> {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .fillMaxSize()
-                                                                            .clickable {
-                                                                                viewModel.makeToast(
-                                                                                    runBlocking { getString(Res.string.downloading) },
-                                                                                )
-                                                                            },
-                                                                    contentAlignment = Alignment.Center,
-                                                                ) {
-                                                                    DownloadingIndicator(
-                                                                        modifier = Modifier.size(28.dp),
-                                                                    )
-                                                                }
-                                                            }
-
-                                                            else -> {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .fillMaxSize()
-                                                                            .clickable {
-                                                                                Logger.d("PlaylistScreen", "downloadState: $downloadState")
-                                                                                viewModel.downloadFullPlaylist()
-                                                                            },
-                                                                    contentAlignment = Alignment.Center,
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = SimpIcons.DownloadForOffline,
-                                                                        tint = Color.White,
-                                                                        contentDescription = "Download",
-                                                                        modifier = Modifier.size(22.dp),
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                CollectionDownloadButton(
+                                                    download = download,
+                                                    onDownload = viewModel::downloadFullPlaylist,
+                                                    onRemove = viewModel::removeDownload,
+                                                    onDownloadMissing = viewModel::downloadMissing,
+                                                )
                                             }
                                         }
                                     }
@@ -1086,77 +1011,12 @@ fun LocalPlaylistScreen(
                                                 )
                                             }
                                         }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color.White.copy(alpha = 0.12f)),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = downloadState) { state ->
-                                                when (state) {
-                                                    DownloadState.STATE_DOWNLOADED -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        viewModel.makeToast(
-                                                                            runBlocking { getString(Res.string.downloaded) },
-                                                                        )
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            Icon(
-                                                                painter = painterResource(Res.drawable.baseline_downloaded),
-                                                                tint = Color(0xFF00A0CB),
-                                                                contentDescription = "",
-                                                                modifier = Modifier.size(22.dp),
-                                                            )
-                                                        }
-                                                    }
-
-                                                    DownloadState.STATE_DOWNLOADING -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        viewModel.makeToast(
-                                                                            runBlocking { getString(Res.string.downloading) },
-                                                                        )
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            DownloadingIndicator(
-                                                                modifier = Modifier.size(28.dp),
-                                                            )
-                                                        }
-                                                    }
-
-                                                    else -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        Logger.d("PlaylistScreen", "downloadState: $downloadState")
-                                                                        viewModel.downloadFullPlaylist()
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = SimpIcons.DownloadForOffline,
-                                                                tint = Color.White,
-                                                                contentDescription = "Download",
-                                                                modifier = Modifier.size(22.dp),
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        CollectionDownloadButton(
+                                            download = download,
+                                            onDownload = viewModel::downloadFullPlaylist,
+                                            onRemove = viewModel::removeDownload,
+                                            onDownloadMissing = viewModel::downloadMissing,
+                                        )
                                     }
                                 }
                                 Text(

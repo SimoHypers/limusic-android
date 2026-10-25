@@ -91,8 +91,6 @@ interface LocalPlaylistRepository {
 
     fun downloadStateFlow(id: Long): Flow<Int>
 
-    fun getAllDownloadingLocalPlaylists(): Flow<List<LocalPlaylistEntity>>
-
     fun listTrackFlow(id: Long): Flow<List<String>>
 
     /**

@@ -8,14 +8,11 @@ import com.maxrave.common.Config.SONG_CLICK
 import com.maxrave.common.LibraryChipType
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
-import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.DownloadState
-import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.entities.NewFormatEntity
-import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.entities.SongInfoEntity
 import com.maxrave.domain.data.model.browse.album.Track
@@ -33,7 +30,6 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.ControlState
-import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.NowPlayingTrackState
 import com.maxrave.domain.mediaservice.handler.PlayerEvent
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -60,7 +56,6 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -75,7 +70,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -97,7 +91,6 @@ import simpmusic.composeapp.generated.resources.lastfm_scrobbling_as
 import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.shared
-import simpmusic.composeapp.generated.resources.updated
 import java.io.FileOutputStream
 import kotlin.reflect.KClass
 
@@ -515,10 +508,6 @@ class SharedViewModel(
             playlistNameJob.join()
             liveStreamJob.join()
         }
-        // Reset downloading songs & playlists to not downloaded
-        checkAllDownloadingSongs()
-        checkAllDownloadingPlaylists()
-        checkAllDownloadingLocalPlaylists()
     }
 
     fun setIntent(intent: GenericIntent?) {
@@ -825,75 +814,11 @@ class SharedViewModel(
         mediaPlayerHandler.sleepStop()
     }
 
-    private var _downloadState: MutableStateFlow<DownloadHandler.Download?> = MutableStateFlow(null)
-    var downloadState: StateFlow<DownloadHandler.Download?> = _downloadState.asStateFlow()
-
     fun checkIsRestoring() {
         viewModelScope.launch {
-            val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE)
-            songRepository.getDownloadedSongs().first().let { songs ->
-                songs?.forEach { song ->
-                    if (!downloadedCacheKeys.contains(song.videoId)) {
-                        songRepository.updateDownloadState(
-                            song.videoId,
-                            DownloadState.STATE_NOT_DOWNLOADED,
-                        )
-                    }
-                }
-            }
-            playlistRepository.getAllDownloadedPlaylist().first().let { list ->
-                for (data in list) {
-                    when (data) {
-                        is AlbumEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                albumRepository.updateAlbumDownloadState(
-                                    data.browseId,
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                )
-                            }
-                        }
-
-                        is PlaylistEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                playlistRepository.updatePlaylistDownloadState(
-                                    data.id,
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                )
-                            }
-                        }
-
-                        is LocalPlaylistEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                localPlaylistRepository.updateLocalPlaylistDownloadState(
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                    data.id,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE).toSet()
+            val missing = songRepository.getDownloadedSongs().first().orEmpty().map { it.videoId }.filterNot { it in downloadedCacheKeys }
+            songRepository.updateDownloadStates(missing, DownloadState.STATE_NOT_DOWNLOADED)
         }
     }
 
@@ -1029,59 +954,6 @@ class SharedViewModel(
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
-
-    private fun checkAllDownloadingLocalPlaylists() {
-        viewModelScope.launch {
-            localPlaylistRepository.getAllDownloadingLocalPlaylists().collectLatest { playlists ->
-                playlists.forEach { playlist ->
-                    localPlaylistRepository.updateDownloadState(playlist.id, 0, successMessage = getString(Res.string.updated)).lastOrNull()
-                }
-            }
-        }
-    }
-
-    private fun checkAllDownloadingPlaylists() {
-        viewModelScope.launch {
-            playlistRepository.getAllDownloadingPlaylist().collectLatest { list ->
-                list.forEach { data ->
-                    when (data) {
-                        is AlbumEntity -> {
-                            albumRepository.updateAlbumDownloadState(data.browseId, 0)
-                        }
-
-                        is PlaylistEntity -> {
-                            playlistRepository.updatePlaylistDownloadState(data.id, 0)
-                        }
-
-                        else -> {
-                            // Skip
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun checkAllDownloadingSongs() {
-        viewModelScope.launch {
-            songRepository.getDownloadingSongs().collect { songs ->
-                songs?.forEach { song ->
-                    songRepository.updateDownloadState(
-                        song.videoId,
-                        DownloadState.STATE_NOT_DOWNLOADED,
-                    )
-                }
-            }
-            songRepository.getPreparingSongs().collect { songs ->
-                songs.forEach { song ->
-                    songRepository.updateDownloadState(
-                        song.videoId,
-                        DownloadState.STATE_NOT_DOWNLOADED,
-                    )
-                }
-            }
-        }
     }
 
     private fun getFormat(mediaId: String?) {

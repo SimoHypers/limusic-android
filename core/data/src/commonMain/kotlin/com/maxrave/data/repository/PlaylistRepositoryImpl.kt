@@ -146,9 +146,6 @@ internal class PlaylistRepositoryImpl(
     override fun getAllDownloadedPlaylist(): Flow<List<PlaylistType>> =
         flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
 
-    override fun getAllDownloadingPlaylist(): Flow<List<PlaylistType>> =
-        flow { emit(localDataSource.getAllDownloadingPlaylist()) }.flowOn(Dispatchers.IO)
-
     private suspend fun insertSetVideoId(setVideoId: SetVideoIdEntity) = withContext(Dispatchers.IO) { localDataSource.insertSetVideoId(setVideoId) }
 
     override fun getRadio(

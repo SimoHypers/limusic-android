@@ -1,48 +1,23 @@
 package com.maxrave.domain.mediaservice.handler
 
-import kotlinx.coroutines.flow.StateFlow
+import com.maxrave.domain.data.entities.SongEntity
 
+/**
+ * The song rows are the only download state the UI reads: the handler writes each song's
+ * `downloadState` as its download moves, and a playlist or album is downloaded once the user asked
+ * for it (its own `downloadState`), however many of its songs have landed so far.
+ */
 interface DownloadHandler {
-    suspend fun downloadTrack(
-        videoId: String,
-        title: String,
-        thumbnail: String,
-    )
+    /** Queues the songs that are neither downloaded nor in flight, as one batch. */
+    suspend fun downloadTracks(songs: List<SongEntity>)
 
     fun removeDownload(videoId: String)
 
-    fun removeAllDownloads()
-
-    val downloads: StateFlow<Map<String, Pair<Download?, Download?>>>
-
-    val downloadTask: StateFlow<Map<String, Int>>
-
     /**
-     * Copy from Media3
+     * Removes these songs' downloads, except the ones a downloaded playlist, album or local
+     * playlist still holds. Clear the collection's own state first, or it keeps them all.
      */
-    companion object State {
-        const val STATE_QUEUED: Int = 0
+    suspend fun releaseDownloads(videoIds: List<String>)
 
-        /** The download is stopped for a specified [.stopReason].  */
-        const val STATE_STOPPED: Int = 1
-
-        /** The download is currently started.  */
-        const val STATE_DOWNLOADING: Int = 2
-
-        /** The download completed.  */
-        const val STATE_COMPLETED: Int = 3
-
-        /** The download failed.  */
-        const val STATE_FAILED: Int = 4
-
-        /** The download is being removed.  */
-        const val STATE_REMOVING: Int = 5
-
-        /** The download will restart after all downloaded data is removed.  */
-        const val STATE_RESTARTING: Int = 7
-    }
-
-    data class Download(
-        val state: Int,
-    )
+    fun removeAllDownloads()
 }

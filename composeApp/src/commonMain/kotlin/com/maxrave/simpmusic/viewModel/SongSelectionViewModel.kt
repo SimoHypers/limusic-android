@@ -89,17 +89,7 @@ class SongSelectionViewModel(
                     it.downloadState == DownloadState.STATE_NOT_DOWNLOADED
                 }
             if (pending.isEmpty()) return@launch
-            pending.forEach { song ->
-                songRepository.updateDownloadState(
-                    videoId = song.videoId,
-                    downloadState = DownloadState.STATE_PREPARING,
-                )
-                downloadUtils.downloadTrack(
-                    videoId = song.videoId,
-                    title = song.title,
-                    thumbnail = song.thumbnails ?: "",
-                )
-            }
+            downloadUtils.downloadTracks(pending)
             makeToast(getString(Res.string.downloading))
         }
     }
