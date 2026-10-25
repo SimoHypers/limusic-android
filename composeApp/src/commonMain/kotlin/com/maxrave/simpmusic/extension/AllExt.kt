@@ -184,6 +184,7 @@ fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =
         playCount = this.views,
         isChannel = this.songs == null,
         channelId = this.channelId,
+        subscribeChannelId = this.subscribeChannelId,
         radioParam = this.radioId,
         shuffleParam = this.shuffleId,
         description = this.description,

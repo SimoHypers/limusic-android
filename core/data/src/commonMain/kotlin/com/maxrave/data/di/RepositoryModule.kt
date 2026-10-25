@@ -11,6 +11,7 @@ import com.maxrave.data.lyrics.LyricsRomanizerRepositoryImpl
 import com.maxrave.data.repository.CommonRepositoryImpl
 import com.maxrave.data.repository.HomeRepositoryImpl
 import com.maxrave.data.repository.ImportRepositoryImpl
+import com.maxrave.data.repository.LibrarySync
 import com.maxrave.data.repository.LocalPlaylistRepositoryImpl
 import com.maxrave.data.repository.LyricsCanvasRepositoryImpl
 import com.maxrave.data.repository.PlaylistRepositoryImpl
@@ -42,8 +43,10 @@ val repositoryModule =
             AccountRepositoryImpl(get(), get())
         }
 
+        single { LibrarySync(get(), get()) }
+
         single<AlbumRepository>(createdAtStart = true) {
-            AlbumRepositoryImpl(get(), get())
+            AlbumRepositoryImpl(get(), get(), get())
         }
 
         single<ArtistRepository>(createdAtStart = true) {
@@ -51,7 +54,7 @@ val repositoryModule =
         }
 
         single<CommonRepository>(createdAtStart = true) {
-            CommonRepositoryImpl(get(named(SERVICE_SCOPE)), get(), get(), get()).apply {
+            CommonRepositoryImpl(get(named(SERVICE_SCOPE)), get(), get(), get(), get()).apply {
                 this.init("${fileDir()}/ytdlp-cookie.txt", get(), get<AppIdentity>().isDevBuild)
             }
         }
@@ -88,7 +91,7 @@ val repositoryModule =
         }
 
         single<PlaylistRepository>(createdAtStart = true) {
-            PlaylistRepositoryImpl(get(), get(), get())
+            PlaylistRepositoryImpl(get(), get(), get(), get())
         }
 
         single<PodcastRepository>(createdAtStart = true) {
@@ -100,7 +103,7 @@ val repositoryModule =
         }
 
         single<SongRepository>(createdAtStart = true) {
-            SongRepositoryImpl(get(), get(), get())
+            SongRepositoryImpl(get(), get(), get(), get())
         }
 
         single<StreamRepository>(createdAtStart = true) {

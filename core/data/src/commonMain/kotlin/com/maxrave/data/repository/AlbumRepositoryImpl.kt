@@ -25,6 +25,7 @@ private const val TAG = "AlbumRepositoryImpl"
 internal class AlbumRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val librarySync: LibrarySync,
 ) : AlbumRepository {
     override fun getAllAlbums(limit: Int): Flow<List<AlbumEntity>> =
         flow {
@@ -58,7 +59,36 @@ internal class AlbumRepositoryImpl(
     override suspend fun updateAlbumLiked(
         albumId: String,
         likeStatus: Int,
-    ) = withContext(Dispatchers.Main) { localDataSource.updateAlbumLiked(likeStatus, albumId) }
+    ): Boolean =
+        withContext(Dispatchers.Main) {
+            val album = localDataSource.getAlbum(albumId)
+            localDataSource.updateAlbumLiked(likeStatus, albumId)
+            val key = LibrarySync.album(albumId)
+            if (!librarySync.loggedIn()) {
+                librarySync.mark(key, likeStatus == 1)
+                return@withContext true
+            }
+            val written =
+                album?.audioPlaylistId?.takeIf { it.isNotEmpty() }?.let { playlistId ->
+                    withContext(Dispatchers.IO) { youTube.likePlaylist(playlistId, likeStatus == 1) }
+                }
+            if (written?.isSuccess != true) {
+                Logger.w(TAG, "Album save on YouTube failed: ${written?.exceptionOrNull()?.message ?: "no audio playlist"}")
+                localDataSource.updateAlbumLiked(if (album?.liked == true) 1 else 0, albumId)
+                return@withContext false
+            }
+            librarySync.mark(key, false)
+            true
+        }
+
+    override suspend fun mirrorAlbumSaved(
+        albumId: String,
+        saved: Boolean,
+    ) = withContext(Dispatchers.Main) {
+        if (!librarySync.loggedIn() || librarySync.isUnsynced(LibrarySync.album(albumId))) return@withContext
+        val album = localDataSource.getAlbum(albumId) ?: return@withContext
+        if (album.liked != saved) localDataSource.updateAlbumLiked(if (saved) 1 else 0, albumId)
+    }
 
     override suspend fun updateAlbumInLibrary(
         inLibrary: LocalDateTime,

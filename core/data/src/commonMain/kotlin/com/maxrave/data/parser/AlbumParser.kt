@@ -78,5 +78,6 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                     year = data.album.year.toString(),
                 )
             },
+        inLibrary = data.inLibrary,
     )
 }

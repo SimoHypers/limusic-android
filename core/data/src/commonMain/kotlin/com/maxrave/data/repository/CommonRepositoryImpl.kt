@@ -36,6 +36,7 @@ internal class CommonRepositoryImpl(
     private val database: MusicDatabase,
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val librarySync: LibrarySync,
 ) : CommonRepository {
     @OptIn(ExperimentalTime::class)
     override fun init(
@@ -174,6 +175,10 @@ internal class CommonRepositoryImpl(
         flow {
             emit(localDataSource.getAllRecentData())
         }.flowOn(Dispatchers.IO)
+
+    override fun unsyncedLibrary(): Flow<Set<String>> = librarySync.keys()
+
+    override suspend fun markSynced(key: String) = librarySync.mark(key, false)
 
     override fun getLibraryOverview(): Flow<LibraryOverview> =
         combine(

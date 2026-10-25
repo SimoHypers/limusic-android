@@ -202,8 +202,6 @@
     <string name="plays">Oynatma/Görüntüleme Sayısı</string>
     <string name="published_at">Yayınlanma tarihi %1$s</string>
     <string name="less">Daha az</string>
-    <string name="added_to_youtube_liked">YouTube Beğenilenler'e eklendi</string>
-    <string name="removed_from_youtube_liked">YouTube Beğenilenler'den kaldırıldı</string>
     <string name="no_album">Albüm yok</string>
     <string name="delete">Sil</string>
     <string name="new_singles">Yeni singlelar</string>

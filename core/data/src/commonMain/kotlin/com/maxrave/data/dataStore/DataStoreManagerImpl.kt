@@ -520,19 +520,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val syncFollowToYouTube: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[SYNC_FOLLOW_TO_YOUTUBE] ?: FALSE
-        }
-
-    override suspend fun setSyncFollowToYouTube(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SYNC_FOLLOW_TO_YOUTUBE] = if (enabled) TRUE else FALSE
-            }
-        }
-    }
-
     override val amAnimatedArtwork: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[AM_ANIMATED_ARTWORK] ?: FALSE
@@ -1271,7 +1258,6 @@ internal class DataStoreManagerImpl(
         val RADIO_AUDIO_ONLY = stringPreferencesKey("radio_audio_only")
         val VIDEO_QUALITY = stringPreferencesKey("video_quality")
         val PLAYER_VOLUME = floatPreferencesKey("player_volume")
-        val SYNC_FOLLOW_TO_YOUTUBE = stringPreferencesKey("sync_follow_to_youtube")
         val EQUALIZER_AUTOEQ_PROFILE = stringPreferencesKey("equalizer_autoeq_profile")
         val EQUALIZER_BANDS = stringPreferencesKey("equalizer_bands")
         val EQUALIZER_ENABLED = stringPreferencesKey("equalizer_enabled")

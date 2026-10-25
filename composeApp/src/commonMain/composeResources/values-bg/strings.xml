@@ -188,8 +188,6 @@
     <string name="plays">Изпълни/Виж броя</string>
     <string name="published_at">Публикувано на %1$s</string>
     <string name="less">По-малко</string>
-    <string name="added_to_youtube_liked">Добавено в YouTube харесани</string>
-    <string name="removed_from_youtube_liked">Премахнато от YouTube харесани</string>
     <string name="no_album">Без албум</string>
     <string name="delete">Изтриване</string>
     <string name="new_singles">Нови сигнали</string>

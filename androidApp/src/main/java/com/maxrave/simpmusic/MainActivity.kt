@@ -269,6 +269,10 @@ class MainActivity : AppCompatActivity() {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.PLAYBACK_REFUSED, type.reason) }
                     }
 
+                    is ToastType.YouTubeWriteFailed -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.YOUTUBE_WRITE_FAILED) }
+                    }
+
                 },
             )
         }

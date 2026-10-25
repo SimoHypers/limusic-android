@@ -18,6 +18,8 @@ data class ArtistBrowse(
     val featuredOn: List<ResultPlaylist>?,
     val videoList: String?,
     val subscribed: Boolean?,
+    /** Where subscribe and unsubscribe go; not always [channelId]. */
+    val subscribeChannelId: String? = null,
     val subscribers: String?,
     val thumbnails: List<Thumbnail>?,
     val views: String?,

@@ -58,6 +58,7 @@ import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.shuffle
 import simpmusic.composeapp.generated.resources.view_count
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class PlaylistViewModel(
     private val songRepository: SongRepository,
@@ -346,6 +347,10 @@ class PlaylistViewModel(
                             inLibrary = now(),
                         )
                     }
+                    playlistBrowse.saved?.let { saved ->
+                        playlistRepository.mirrorPlaylistSaved(id, saved)
+                        playlistRepository.getPlaylist(id).firstOrNull()?.let { _playlistEntity.value = it }
+                    }
                     playlistBrowse.tracks.forEach { tracks ->
                         songRepository
                             .insertSong(
@@ -425,12 +430,11 @@ class PlaylistViewModel(
         id: String,
     ) {
         viewModelScope.launch {
-            val tempLiked = if (liked) 1 else 0
-            playlistRepository.updatePlaylistLiked(id, tempLiked)
-            _playlistEntity.update {
-                it?.copy(
-                    liked = tempLiked == 1,
-                )
+            _playlistEntity.update { it?.copy(liked = liked) }
+            if (!playlistRepository.updatePlaylistLiked(id, if (liked) 1 else 0)) {
+                _playlistEntity.update { it?.copy(liked = !liked) }
+                makeToast(getString(Res.string.youtube_write_failed))
+                return@launch
             }
             getFullTracks { }
         }

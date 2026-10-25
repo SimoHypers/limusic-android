@@ -188,15 +188,11 @@ fun NowPlayingScreenContent(
     val globalLyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
     // Plus this song's own nudge from the source picker.
     val lyricsOffsetMs = globalLyricsOffsetMs + (screenDataState.lyricsData?.offsetMs ?: 0)
-    val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
     // Apple Music style's quality line under the progress bar — see NowPlayingContentState.toAudioQualityLabel.
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
-    val isUserLoggedIn by sharedViewModel
-        .isUserLoggedInFlow()
-        .collectAsStateWithLifecycle(initialValue = false)
 
     // Which Now Playing style renders the content layer (Settings → Now Playing style).
     val nowPlayingStyle by sharedViewModel
@@ -625,10 +621,8 @@ fun NowPlayingScreenContent(
             controllerState = controllerState,
             timelineState = timelineState,
             timelineFlow = sharedViewModel.timeline,
-            likeStatus = likeStatus,
             castState = castState,
             shouldShowVideo = shouldShowVideo,
-            isUserLoggedIn = isUserLoggedIn,
             artworkQueue = artworkQueue,
             currentOrderIndex = currentOrderIndex,
             artworkPagerState = artworkPagerState,
@@ -690,7 +684,6 @@ fun NowPlayingScreenContent(
                 onDismiss()
                 navController.navigate(ListenTogetherDestination)
             },
-            onAddToYouTubeLiked = { sharedViewModel.addToYouTubeLiked() },
             onShowMoreSheet = { showSheet = true },
             onShowQueue = { showQueueBottomSheet = true },
             onShowInfo = { showInfoBottomSheet = true },

@@ -509,7 +509,8 @@ fun PlaylistScreen(
                                                                 .pillSurface(RoundedCornerShape(24.dp)),
                                                         verticalAlignment = Alignment.CenterVertically,
                                                     ) {
-                                                        if (!data.isRadio) {
+                                                        // Nothing to save: your own playlists and Liked Music are yours already.
+                                                        if (!data.isRadio && !data.owned && data.id != "LM") {
                                                             Box(
                                                                 modifier = Modifier.size(48.dp),
                                                                 contentAlignment = Alignment.Center,
@@ -797,7 +798,7 @@ fun PlaylistScreen(
                                                             .pillSurface(RoundedCornerShape(24.dp)),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                 ) {
-                                                    if (!data.isRadio) {
+                                                    if (!data.isRadio && !data.owned && data.id != "LM") {
                                                         Box(
                                                             modifier = Modifier.size(48.dp),
                                                             contentAlignment = Alignment.Center,

@@ -193,7 +193,6 @@
     <string name="new_release">Neuerscheinung</string>
     <string name="youtube_account">YouTube Account</string>
     <string name="manage_your_youtube_accounts">YouTube-Accounts verwalten</string>
-    <string name="sync_follow_to_youtube">„Abonnements“ mit YouTube/YTM synchronisieren</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Gestalten Sie den Sound mit einer 10-Band-Kurve</string>
     <string name="equalizer_type">Equalizer Typ</string>
@@ -209,10 +208,6 @@
     <string name="equalizer_autoeq_unavailable">Konnte AutoEq nicht erreichen. Überprüfe deine Verbindung und versuche es erneut.</string>
     <string name="equalizer_autoeq_empty">Keine Kopfhörer die diesem Namen entsprechen</string>
     <string name="equalizer_autoeq_failed">Das Profil konnte nicht geladen werden – beim ersten Mal ist eine Verbindung erforderlich.</string>
-    <string name="sync_follow_to_youtube_description">Das Abonnieren eines Künstler in Limusic abonniert auch seinen Kanal auf Ihrem YouTube/YTM-Konto</string>
-    <string name="sync_follow_failed">YouTube-Abonnement konnte nicht aktualisiert werden</string>
-    <string name="subscribed_on_youtube">Auf YouTube/YTM abonniert </string>
-    <string name="unsubscribed_on_youtube">Auf YouTube/YTM deabonniert </string>
     <string name="no_account">Kein Account</string>
     <string name="add_an_account">Account hinzufügen</string>
     <string name="signed_in">Eingeloggt</string>
@@ -225,8 +220,6 @@
     <string name="less">Weniger</string>
     <string name="enable_animated_artwork">Animiertes Cover</string>
     <string name="animated_artwork_info">Spiele das animierte Cover des Albums anstelle eines Canvas ab. Es ist kein Konto erforderlich. Bei Alben ohne animiertes Cover wird weiterhin das Standbild angezeigt.</string>
-    <string name="added_to_youtube_liked">Zu YouTube-Like-Playlist hinzugefügt</string>
-    <string name="removed_from_youtube_liked">Aus YouTube-Like-Playlist entfernt </string>
     <string name="no_album">Kein Album</string>
     <string name="delete">Löschen</string>
     <string name="new_singles">Neue Singles</string>

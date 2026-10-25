@@ -81,10 +81,15 @@ interface SongRepository {
 
     suspend fun resetTotalPlayTime(videoId: String)
 
+    /**
+     * The heart. Signed in it is a YouTube Music like, mirrored into the local row so every heart
+     * agrees; signed out it stays on the phone until Library's Sync button. False when YouTube
+     * refused, with the local row put back.
+     */
     suspend fun updateLikeStatus(
         videoId: String,
         likeStatus: Int,
-    )
+    ): Boolean
 
     fun updateSongInLibrary(
         inLibrary: LocalDateTime,
@@ -126,11 +131,8 @@ interface SongRepository {
 
     fun getSongInfo(videoId: String): Flow<SongInfoEntity?>
 
-    suspend fun getLikeStatus(videoId: String): Flow<Boolean>
-
-    suspend fun addToYouTubeLiked(mediaId: String?): Flow<Int>
-
-    suspend fun removeFromYouTubeLiked(mediaId: String?): Flow<Int>
+    /** Signed in, copy YouTube's like for [videoId] onto the local row the hearts read. */
+    suspend fun refreshLikeFromYouTube(videoId: String)
 
     fun downloadToFile(
         track: Track,

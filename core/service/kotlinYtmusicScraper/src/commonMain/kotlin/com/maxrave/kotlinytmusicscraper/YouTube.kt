@@ -19,6 +19,7 @@ import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.Run
+import com.maxrave.kotlinytmusicscraper.models.savedToLibrary
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongInfo
@@ -438,6 +439,17 @@ class YouTube {
                                 it.musicTwoRowItemRenderer,
                             )
                         } ?: emptyList(),
+                inLibrary =
+                    response.contents.twoColumnBrowseResultsRenderer.tabs
+                        .firstOrNull()
+                        ?.tabRenderer
+                        ?.content
+                        ?.sectionListRenderer
+                        ?.contents
+                        ?.firstOrNull()
+                        ?.musicResponsiveHeaderRenderer
+                        ?.buttons
+                        .savedToLibrary(),
             )
         }
 
@@ -564,6 +576,18 @@ class YouTube {
                         ?.description
                         ?.runs
                         ?.let(::getDescription),
+                subscribed =
+                    response.header
+                        ?.musicImmersiveHeaderRenderer
+                        ?.subscriptionButton
+                        ?.subscribeButtonRenderer
+                        ?.subscribed,
+                subscribeChannelId =
+                    response.header
+                        ?.musicImmersiveHeaderRenderer
+                        ?.subscriptionButton
+                        ?.subscribeButtonRenderer
+                        ?.channelId,
                 subscribers =
                     response.header
                         ?.musicImmersiveHeaderRenderer
@@ -1063,7 +1087,8 @@ class YouTube {
             return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
         }
 
-    suspend fun getLikedInfo(videoId: String): Result<LikeStatus> =
+    /** Null when the response carries no like button, which says nothing about the like. */
+    suspend fun getLikedInfo(videoId: String): Result<LikeStatus?> =
         runCatching {
             val response =
                 ytMusic
@@ -1085,7 +1110,7 @@ class YouTube {
                     ?.likeStatus
                     ?.toLikeStatus()
             Logger.d("YouTube", "Like status: $likeStatus")
-            return@runCatching likeStatus ?: LikeStatus.INDIFFERENT
+            return@runCatching likeStatus
         }
 
     suspend fun getSongInfo(videoId: String): Result<SongInfo> =
@@ -1977,6 +2002,14 @@ class YouTube {
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
+
+    /** Save a playlist to the library or take it out; for an album pass its `OLAK5uy_` playlist. */
+    suspend fun likePlaylist(
+        playlistId: String,
+        like: Boolean,
+    ) = runCatching {
+        ytMusic.likePlaylist(playlistId.removePrefix("VL"), like).status.value
+    }
 
     // Any format carrying a signatureCipher would do; medium Opus is the one YouTube returns for
     // every video, logged in or not, which is why the lookup pins that itag rather than scanning.

@@ -46,6 +46,7 @@ import simpmusic.composeapp.generated.resources.removed_download
 import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.sleep_timer_off_done
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class NowPlayingBottomSheetViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -224,10 +225,12 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.ToggleLike -> {
-                    songRepository.updateLikeStatus(
-                        songUIState.videoId,
-                        if (songUIState.liked) 0 else 1,
-                    )
+                    val written =
+                        songRepository.updateLikeStatus(
+                            songUIState.videoId,
+                            if (songUIState.liked) 0 else 1,
+                        )
+                    if (!written) makeToast(getString(Res.string.youtube_write_failed))
                 }
 
                 is NowPlayingBottomSheetUIEvent.Download -> {

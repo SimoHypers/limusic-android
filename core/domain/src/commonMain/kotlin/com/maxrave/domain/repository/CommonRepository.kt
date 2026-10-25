@@ -23,6 +23,15 @@ interface CommonRepository {
     /** Counts and newest artwork for the Your library cards; re-emits whenever any of them changes. */
     fun getLibraryOverview(): Flow<LibraryOverview>
 
+    /**
+     * Likes, follows and saves this phone has that the YouTube account doesn't yet, as `kind:id`
+     * keys (song, album, playlist, artist). What Library's Sync button pushes.
+     */
+    fun unsyncedLibrary(): Flow<Set<String>>
+
+    /** Drop a key the account already has, without writing anything to it. */
+    suspend fun markSynced(key: String)
+
     // Notifications
     suspend fun insertNotification(notificationEntity: NotificationEntity)
 

@@ -188,8 +188,6 @@
     <string name="plays">Liczba odtworzeń/wyświetleń</string>
     <string name="published_at">Opublikowano %1$s</string>
     <string name="less">Mniej</string>
-    <string name="added_to_youtube_liked">Dodano do polubień YouTube</string>
-    <string name="removed_from_youtube_liked">Usunięto z polubionych YouTube</string>
     <string name="no_album">Brak albumów</string>
     <string name="delete">Usuń</string>
     <string name="new_singles">Nowe single</string>

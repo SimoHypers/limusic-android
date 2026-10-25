@@ -192,8 +192,6 @@
     <string name="codec">کدک</string>
     <string name="plays">تعداد پخش/نمایش</string>
     <string name="less">کمتر</string>
-    <string name="added_to_youtube_liked">به فهرست پسندیده‌های یوتیوب افزوده شد</string>
-    <string name="removed_from_youtube_liked">از فهرست پسندیده‌های یوتیوب پاک شد</string>
     <string name="no_album">هیچ آلبومی وجود ندارد</string>
     <string name="delete">پاک‌کردن</string>
     <string name="new_singles">تک‌آهنگ‌های جدید</string>

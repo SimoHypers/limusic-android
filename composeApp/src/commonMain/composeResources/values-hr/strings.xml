@@ -184,7 +184,6 @@
     <string name="new_release">Nevo izdanje</string>
     <string name="youtube_account">YouTube Account</string>
     <string name="manage_your_youtube_accounts">Manage your YouTube Accounts</string>
-    <string name="sync_follow_to_youtube">Sync Prati with YouTube</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Shape the sound with a ten-band curve</string>
     <string name="equalizer_type">Equalizer type</string>
@@ -200,10 +199,6 @@
     <string name="equalizer_autoeq_unavailable">Couldn't reach AutomatskiEq. Check your connection and try again.</string>
     <string name="equalizer_autoeq_empty">Ne headphone matches that name</string>
     <string name="equalizer_autoeq_failed">Couldn't load that profile — it needs a connection the first time</string>
-    <string name="sync_follow_to_youtube_description">Pratiing an artist in Limusic also subscribes to their channel on your YouTube account</string>
-    <string name="sync_follow_failed">Couldn't update your YouTube subscription</string>
-    <string name="subscribed_on_youtube">Subscribed on YouTube</string>
-    <string name="unsubscribed_on_youtube">Unsubscribed on YouTube</string>
     <string name="no_account">Ne account</string>
     <string name="add_an_account">Dodaj an account</string>
     <string name="signed_in">Signed in</string>
@@ -216,8 +211,6 @@
     <string name="less">Less</string>
     <string name="enable_animated_artwork">Animated artwork</string>
     <string name="animated_artwork_info">Play the album's animated cover instead of a Canvas. Ne account needed. Albumi without one keep the still cover.</string>
-    <string name="added_to_youtube_liked">Dodajed to YouTube Sviđa mi se</string>
-    <string name="removed_from_youtube_liked">Removed from YouTube Sviđa mi se</string>
     <string name="no_album">Ne album</string>
     <string name="delete">Izbriši</string>
     <string name="new_singles">Nevo singles</string>

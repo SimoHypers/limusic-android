@@ -195,7 +195,6 @@
     <string name="new_release">Новинки</string>
     <string name="youtube_account">Обліковий запис YouTube</string>
     <string name="manage_your_youtube_accounts">Керувати своїми YouTube акаунтами</string>
-    <string name="sync_follow_to_youtube">Синхронізувати підписки з YouTube</string>
     <string name="equalizer">Еквалайзер</string>
     <string name="equalizer_description">Налаштуйте звук за допомогою десятисмугової кривої</string>
     <string name="equalizer_type">Тип еквалайзера</string>
@@ -211,10 +210,6 @@
     <string name="equalizer_autoeq_unavailable">Не вдалося встановити зв’язок з AutoEq. Перевірте з’єднання та спробуйте ще раз.</string>
     <string name="equalizer_autoeq_empty">Жодні навушники не відповідають цій назві</string>
     <string name="equalizer_autoeq_failed">Не вдалося завантажити цей профіль — для першого завантаження потрібне підключення</string>
-    <string name="sync_follow_to_youtube_description">Підписка на виконавця в Limusic також означає підписку на його канал у вашому акаунті YouTube</string>
-    <string name="sync_follow_failed">Не вдалося оновити вашу підписку на YouTube</string>
-    <string name="subscribed_on_youtube">Підписано на YouTube</string>
-    <string name="unsubscribed_on_youtube">Відписано на YouTube</string>
     <string name="no_account">Немає облікового запису</string>
     <string name="add_an_account">Додати обліковий запис</string>
     <string name="signed_in">Вхід виконано</string>
@@ -227,8 +222,6 @@
     <string name="less">Менше</string>
     <string name="enable_animated_artwork">Анімовані ілюстрації</string>
     <string name="animated_artwork_info">Відтворюйте анімовану обкладинку альбому замість Canvas. Реєстрація не потрібна. Альбоми без анімованої обкладинки відображаються зі статичною обкладинкою.</string>
-    <string name="added_to_youtube_liked">Додано у вподобані на YouTube</string>
-    <string name="removed_from_youtube_liked">Видалено з YouTube вподобаних</string>
     <string name="no_album">Немає альбому</string>
     <string name="delete">Видалити</string>
     <string name="new_singles">Нові сингли</string>

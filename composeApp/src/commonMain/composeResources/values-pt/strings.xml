@@ -191,8 +191,6 @@
     <string name="plays">Quantidade de visualizações</string>
     <string name="published_at">Publicado em %1$s</string>
     <string name="less">Menos</string>
-    <string name="added_to_youtube_liked">Adicionado aos "Curtidos" do YouTube</string>
-    <string name="removed_from_youtube_liked">Removido dos "Curtidos" do YouTube</string>
     <string name="no_album">Sem álbuns</string>
     <string name="delete">Apagar</string>
     <string name="new_singles">Novos “singles”</string>

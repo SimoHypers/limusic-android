@@ -29,6 +29,8 @@ data class ArtistPage(
     val description: String?,
     val subscribers: String? = null,
     val view: String? = null,
+    val subscribed: Boolean? = null,
+    val subscribeChannelId: String? = null,
 ) {
     companion object {
         fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? =

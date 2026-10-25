@@ -189,8 +189,6 @@
     <string name="plays">Recompte de reproduccions/visualitzacions</string>
     <string name="published_at">Publicat en %1$s</string>
     <string name="less">Menys</string>
-    <string name="added_to_youtube_liked">S'ha afegit a YouTube M'agrada</string>
-    <string name="removed_from_youtube_liked">S'ha eliminat de YouTube M'agrada</string>
     <string name="no_album">Cap àlbum</string>
     <string name="delete">Eliminar</string>
     <string name="new_singles">Nous singles</string>

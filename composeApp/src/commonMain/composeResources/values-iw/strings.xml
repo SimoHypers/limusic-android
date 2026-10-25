@@ -183,8 +183,6 @@
     <string name="plays">ספירת ניגון/צפייה</string>
     <string name="published_at">פורסם ב %1$s</string>
     <string name="less">פחות</string>
-    <string name="added_to_youtube_liked">נוסף ליוטיוב 'אהבתי'</string>
-    <string name="removed_from_youtube_liked">הוסר מיוטיוב 'אהבתי'</string>
     <string name="no_album">אין אלבום</string>
     <string name="delete">מחק</string>
     <string name="new_singles">סינגלים חדשים</string>

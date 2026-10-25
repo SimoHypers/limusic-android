@@ -24,9 +24,16 @@ interface PlaylistRepository {
 
     suspend fun insertRadioPlaylist(playlistEntity: PlaylistEntity)
 
+    /** Save to library: on YouTube Music too while signed in, for Sync while signed out. False when YouTube refused. */
     suspend fun updatePlaylistLiked(
         playlistId: String,
         likeStatus: Int,
+    ): Boolean
+
+    /** Signed in, copy what the playlist page says about the account's library onto the local row. */
+    suspend fun mirrorPlaylistSaved(
+        playlistId: String,
+        saved: Boolean,
     )
 
     suspend fun updatePlaylistInLibrary(

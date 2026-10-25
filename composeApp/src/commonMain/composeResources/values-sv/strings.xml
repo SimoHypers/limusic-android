@@ -192,7 +192,6 @@
     <string name="new_release">Nytt släpp</string>
     <string name="youtube_account">YouTube-konto</string>
     <string name="manage_your_youtube_accounts">Hantera dina YouTube-konton</string>
-    <string name="sync_follow_to_youtube">Synkronisera följda artister med YouTube</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Forma ljudet med en tiobandskurva</string>
     <string name="equalizer_type">Typ av equalizer</string>
@@ -208,10 +207,6 @@
     <string name="equalizer_autoeq_unavailable">Det gick inte att nå AutoEq. Kontrollera anslutningen och försök igen.</string>
     <string name="equalizer_autoeq_empty">Inga hörlurar matchar det namnet</string>
     <string name="equalizer_autoeq_failed">Det gick inte att läsa in profilen – en anslutning krävs första gången</string>
-    <string name="sync_follow_to_youtube_description">När du följer en artist i Limusic börjar du även prenumerera på artistens kanal via ditt YouTube-konto</string>
-    <string name="sync_follow_failed">Det gick inte att uppdatera din YouTube-prenumeration</string>
-    <string name="subscribed_on_youtube">Prenumerationen på YouTube har aktiverats</string>
-    <string name="unsubscribed_on_youtube">Prenumerationen på YouTube har avslutats</string>
     <string name="no_account">Inget konto</string>
     <string name="add_an_account">Lägg till ett konto</string>
     <string name="signed_in">Inloggad</string>
@@ -224,8 +219,6 @@
     <string name="less">Mindre</string>
     <string name="enable_animated_artwork">Animerat omslag</string>
     <string name="animated_artwork_info">Spela upp albumets animerade omslag i stället för en Canvas. Inget konto behövs. Album utan animerat omslag behåller den stilla omslagsbilden.</string>
-    <string name="added_to_youtube_liked">Har lagts till bland gillade låtar på YouTube</string>
-    <string name="removed_from_youtube_liked">Har tagits bort från gillade låtar på YouTube</string>
     <string name="no_album">Inget album</string>
     <string name="delete">Ta bort</string>
     <string name="new_singles">Nya singlar</string>

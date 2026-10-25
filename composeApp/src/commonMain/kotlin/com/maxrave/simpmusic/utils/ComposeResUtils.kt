@@ -8,6 +8,7 @@ import simpmusic.composeapp.generated.resources.new_singles
 import simpmusic.composeapp.generated.resources.playback_refused
 import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 object ComposeResUtils {
     suspend fun getResString(
@@ -39,6 +40,10 @@ object ComposeResUtils {
                 getString(Res.string.new_albums)
             }
 
+            StringType.YOUTUBE_WRITE_FAILED -> {
+                getString(Res.string.youtube_write_failed)
+            }
+
         }
 
     enum class StringType {
@@ -48,5 +53,6 @@ object ComposeResUtils {
         PLAYBACK_REFUSED,
         NEW_SINGLES,
         NEW_ALBUMS,
+        YOUTUBE_WRITE_FAILED,
     }
 }

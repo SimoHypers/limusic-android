@@ -19,6 +19,8 @@ data class AlbumPage(
     val thumbnails: Thumbnails?,
     val duration: String?,
     val otherVersion: List<AlbumItem>,
+    /** Saved to the signed-in account's library; null when the page did not say. */
+    val inLibrary: Boolean? = null,
 ) {
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer?): AlbumItem? {

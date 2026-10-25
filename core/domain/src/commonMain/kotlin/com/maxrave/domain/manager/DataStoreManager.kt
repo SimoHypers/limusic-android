@@ -189,10 +189,6 @@ interface DataStoreManager {
         bandsDb: List<Float>,
     )
 
-    val syncFollowToYouTube: Flow<String>
-
-    suspend fun setSyncFollowToYouTube(enabled: Boolean)
-
     /**
      * Animated album artwork from the hidden AM catalog. Needs no account. Also gates the AM
      * artist logo and motion header on artist pages, so with it off nothing is sent to AM.

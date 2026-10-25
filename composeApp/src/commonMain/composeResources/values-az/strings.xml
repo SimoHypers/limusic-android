@@ -178,8 +178,6 @@
     <string name="codec">Kodlama</string>
     <string name="plays">Səsləndirmə/Baxış Sayı</string>
     <string name="less">Daha az</string>
-    <string name="added_to_youtube_liked">YouTube Bəyənməyə Əlavə Edildi</string>
-    <string name="removed_from_youtube_liked">YouTube Bəyənilənlərdən Silindi</string>
     <string name="no_album">Albom yoxdur</string>
     <string name="delete">Sil</string>
     <string name="new_singles">Yeni seçmələr</string>

@@ -28,6 +28,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.savedToLibrary
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
@@ -49,6 +50,7 @@ internal class PlaylistRepositoryImpl(
     private val dataStoreManager: DataStoreManager,
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val librarySync: LibrarySync,
 ) : PlaylistRepository {
     override fun getAllPlaylists(limit: Int): Flow<List<PlaylistEntity>> =
         flow {
@@ -93,11 +95,32 @@ internal class PlaylistRepositoryImpl(
     override suspend fun updatePlaylistLiked(
         playlistId: String,
         likeStatus: Int,
+    ): Boolean =
+        withContext(Dispatchers.Main) {
+            val playlist = localDataSource.getPlaylist(playlistId)
+            localDataSource.updatePlaylistLiked(likeStatus, playlistId)
+            val key = LibrarySync.playlist(playlistId)
+            if (!librarySync.loggedIn()) {
+                librarySync.mark(key, likeStatus == 1)
+                return@withContext true
+            }
+            val written = withContext(Dispatchers.IO) { youTube.likePlaylist(playlistId, likeStatus == 1) }
+            if (written.isFailure) {
+                Logger.w("PlaylistRepositoryImpl", "Playlist save on YouTube failed: ${written.exceptionOrNull()?.message}")
+                localDataSource.updatePlaylistLiked(if (playlist?.liked == true) 1 else 0, playlistId)
+                return@withContext false
+            }
+            librarySync.mark(key, false)
+            true
+        }
+
+    override suspend fun mirrorPlaylistSaved(
+        playlistId: String,
+        saved: Boolean,
     ) = withContext(Dispatchers.Main) {
-        localDataSource.updatePlaylistLiked(
-            likeStatus,
-            playlistId,
-        )
+        if (!librarySync.loggedIn() || librarySync.isUnsynced(LibrarySync.playlist(playlistId))) return@withContext
+        val playlist = localDataSource.getPlaylist(playlistId) ?: return@withContext
+        if (playlist.liked != saved) localDataSource.updatePlaylistLiked(if (saved) 1 else 0, playlistId)
     }
 
     override suspend fun updatePlaylistInLibrary(
@@ -527,6 +550,19 @@ internal class PlaylistRepositoryImpl(
                                         ?.firstOrNull()
                                         ?.musicEditablePlaylistDetailHeaderRenderer
                         val privacy = editableHeader?.editHeader?.musicPlaylistEditHeaderRenderer?.privacy
+                        val saved =
+                            result.contents
+                                ?.twoColumnBrowseResultsRenderer
+                                ?.tabs
+                                ?.firstOrNull()
+                                ?.tabRenderer
+                                ?.content
+                                ?.sectionListRenderer
+                                ?.contents
+                                ?.firstOrNull()
+                                ?.musicResponsiveHeaderRenderer
+                                ?.buttons
+                                .savedToLibrary()
                         try {
                             parsePlaylistData(header, data ?: emptyList(), playlistId, viewString)?.let { playlist ->
                                 emit(
@@ -542,6 +578,7 @@ internal class PlaylistRepositoryImpl(
                                                 radioEndpoint = radioEndpoint?.toYouTubeWatchEndpoint(),
                                                 privacy = privacy ?: playlist.privacy,
                                                 owned = editableHeader != null,
+                                                saved = saved,
                                             ),
                                             continueParam,
                                         ),

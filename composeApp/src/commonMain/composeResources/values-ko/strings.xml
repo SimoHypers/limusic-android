@@ -194,8 +194,6 @@
     <string name="plays">재생/조회수</string>
     <string name="published_at">발매일: %1$s</string>
     <string name="less">간단히</string>
-    <string name="added_to_youtube_liked">YouTube 좋아요 표시한 항목에 추가 완료</string>
-    <string name="removed_from_youtube_liked">YouTube 좋아요 표시한 항목에서 제거 완료</string>
     <string name="no_album">앨범 없음</string>
     <string name="delete">삭제</string>
     <string name="new_singles">새 싱글</string>

@@ -193,7 +193,6 @@
     <string name="new_release">新作</string>
     <string name="youtube_account">YouTubeアカウント</string>
     <string name="manage_your_youtube_accounts">YouTubeアカウントの管理</string>
-    <string name="sync_follow_to_youtube">Youtubeとフォローを同期</string>
     <string name="equalizer">イコライザー</string>
     <string name="equalizer_description">10バンドの周波数カーブで音質を細かく調整します</string>
     <string name="equalizer_type">イコライザーの種類</string>
@@ -209,10 +208,6 @@
     <string name="equalizer_autoeq_unavailable">AutoEq に接続できませんでした。ネットワーク接続を確認して、もう一度お試しください。</string>
     <string name="equalizer_autoeq_empty">その名前に一致するヘッドフォンがありません</string>
     <string name="equalizer_autoeq_failed">プロファイルを読み込めませんでした — 初めて接続する必要があります</string>
-    <string name="sync_follow_to_youtube_description">Limusicのアーティストをフォローすると、自分のYouTubeアカウントでチャンネルを登録することができます</string>
-    <string name="sync_follow_failed">YouTubeのサブスクリプションを更新できませんでした</string>
-    <string name="subscribed_on_youtube">YouTubeで登録済み</string>
-    <string name="unsubscribed_on_youtube">YouTubeで登録解除済み</string>
     <string name="no_account">アカウントなし</string>
     <string name="add_an_account">アカウントの追加</string>
     <string name="signed_in">ログイン済み</string>
@@ -225,8 +220,6 @@
     <string name="less">少なく表示</string>
     <string name="enable_animated_artwork">アニメーションアートワーク</string>
     <string name="animated_artwork_info">Canvasの代わりにアルバムのアニメーションカバーを再生します。アカウントは必要ありません。アルバムを持たない状態でもアルバムを保持できます。</string>
-    <string name="added_to_youtube_liked">YouTubeの高評価に追加しました</string>
-    <string name="removed_from_youtube_liked">YouTubeの高評価から削除しました</string>
     <string name="no_album">アルバムなし</string>
     <string name="delete">削除</string>
     <string name="new_singles">ニューシングル</string>

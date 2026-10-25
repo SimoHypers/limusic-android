@@ -763,26 +763,6 @@ internal fun ExpressiveTrackInfoRow(
                 )
             }
         }
-        if (state.isUserLoggedIn) {
-            Spacer(modifier = Modifier.size(12.dp))
-            IconButton(
-                onClick = { actions.onAddToYouTubeLiked() },
-                shape = CircleShape,
-                colors =
-                    IconButtonDefaults.iconButtonColors(
-                        containerColor = colorScheme.surfaceContainerHigh,
-                        contentColor = colorScheme.onSurface,
-                    ),
-                modifier = Modifier.size(48.dp),
-            ) {
-                Crossfade(targetState = state.likeStatus) { liked ->
-                    Icon(
-                        imageVector = if (liked) SimpIcons.CheckCircle else SimpIcons.AddCircleOutline,
-                        contentDescription = "",
-                    )
-                }
-            }
-        }
         Spacer(modifier = Modifier.size(8.dp))
         val likeBurst = rememberHeartBurstState()
         FilledIconToggleButton(

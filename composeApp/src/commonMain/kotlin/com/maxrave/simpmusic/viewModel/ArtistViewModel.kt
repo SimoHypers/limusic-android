@@ -37,9 +37,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.radio
-import simpmusic.composeapp.generated.resources.sync_follow_failed
-import simpmusic.composeapp.generated.resources.subscribed_on_youtube
-import simpmusic.composeapp.generated.resources.unsubscribed_on_youtube
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 import org.jetbrains.compose.resources.getString
 
 class ArtistViewModel(
@@ -93,6 +91,7 @@ class ArtistViewModel(
                                         ?.lastOrNull()
                                         ?.url,
                                 ),
+                                data.subscribed,
                             )
                         }
                         _artistScreenState.value =
@@ -136,10 +135,14 @@ class ArtistViewModel(
         }
     }
 
-    fun insertArtist(artist: ArtistEntity) {
+    fun insertArtist(
+        artist: ArtistEntity,
+        subscribed: Boolean? = null,
+    ) {
         viewModelScope.launch {
             artistRepository.insertArtist(artist)
             artistRepository.updateArtistInLibrary(now(), artist.channelId)
+            subscribed?.let { artistRepository.mirrorArtistSubscribed(artist.channelId, it) }
             delay(100)
             artistRepository.getArtistById(artist.channelId).collect { artistEntity ->
                 if (artistEntity != null) {
@@ -179,27 +182,13 @@ class ArtistViewModel(
         channelId: String,
     ) {
         viewModelScope.launch {
+            val was = _followed.value
             _followed.value = (followed == 1)
-            // Both outcomes are reported; only null stays quiet, because that means mirroring
-            // is switched off and nothing was attempted. The local follow above stands either
-            // way — these toasts speak for the account, not for the follow itself.
-            val synced = artistRepository.updateFollowedStatus(channelId, followed)
-            when (synced) {
-                true ->
-                    makeToast(
-                        getString(
-                            if (followed == 1) {
-                                Res.string.subscribed_on_youtube
-                            } else {
-                                Res.string.unsubscribed_on_youtube
-                            },
-                        ),
-                    )
-
-                false -> makeToast(getString(Res.string.sync_follow_failed))
-                null -> Unit
+            val subscribeId = artistScreenState.value.data.subscribeChannelId
+            if (!artistRepository.updateFollowedStatus(channelId, followed, subscribeId)) {
+                _followed.value = was
+                makeToast(getString(Res.string.youtube_write_failed))
             }
-            log("updateFollowed: ${_followed.value}, synced: $synced")
         }
     }
 
@@ -274,6 +263,7 @@ data class ArtistScreenData(
     val playCount: String? = null,
     val isChannel: Boolean = false,
     val channelId: String? = null,
+    val subscribeChannelId: String? = null,
     val radioParam: YouTubeWatchEndpoint? = null,
     val shuffleParam: YouTubeWatchEndpoint? = null,
     val description: String? = null,

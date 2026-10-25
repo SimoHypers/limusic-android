@@ -956,10 +956,12 @@ internal class MediaServiceHandlerImpl(
                 if (id.contains("Video")) {
                     id = id.removePrefix("Video")
                 }
-                songRepository.updateLikeStatus(
-                    id,
-                    if (!(controlState.first().isLiked)) 1 else 0,
-                )
+                val written =
+                    songRepository.updateLikeStatus(
+                        id,
+                        if (!(controlState.first().isLiked)) 1 else 0,
+                    )
+                if (!written) showToast(ToastType.YouTubeWriteFailed)
                 delay(200)
             }
     }

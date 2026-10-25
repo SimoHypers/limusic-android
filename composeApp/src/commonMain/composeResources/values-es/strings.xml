@@ -192,7 +192,6 @@
     <string name="new_release">Nuevo lanzamiento</string>
     <string name="youtube_account">Cuenta de YouTube</string>
     <string name="manage_your_youtube_accounts">Administra tus cuentas de YouTube</string>
-    <string name="sync_follow_to_youtube">Sincronizar seguimientos con YouTube</string>
     <string name="equalizer">Ecualizador</string>
     <string name="equalizer_description">Moldea el sonido con una curva de diez bandas</string>
     <string name="equalizer_type">Tipo de ecualizador</string>
@@ -208,10 +207,6 @@
     <string name="equalizer_autoeq_unavailable">No se pudo contactar con AutoEq. Compruebe su conexión y vuelva a intentarlo.</string>
     <string name="equalizer_autoeq_empty">Ningún auricular coincide con ese nombre</string>
     <string name="equalizer_autoeq_failed">No se pudo cargar ese perfil; necesita una conexión la primera vez</string>
-    <string name="sync_follow_to_youtube_description">Seguir a un artista en Limusic también se suscribe a su canal en tu cuenta de YouTube</string>
-    <string name="sync_follow_failed">No se pudo actualizar tu suscripción de YouTube</string>
-    <string name="subscribed_on_youtube">Suscrito en YouTube</string>
-    <string name="unsubscribed_on_youtube">Suscripción eliminada en YouTube</string>
     <string name="no_account">Sin cuenta</string>
     <string name="add_an_account">Añadir una cuenta</string>
     <string name="signed_in">Sesión iniciada</string>
@@ -224,8 +219,6 @@
     <string name="less">Menos</string>
     <string name="enable_animated_artwork">Arte animado</string>
     <string name="animated_artwork_info">Reproduce la portada animada del álbum en lugar del Canvas. No se necesita una cuenta. Los álbumes sin una portada animada mantendrán la portada estática.</string>
-    <string name="added_to_youtube_liked">Añadido a YouTube me gustó</string>
-    <string name="removed_from_youtube_liked">Eliminado de la lista de reproducción de YouTube Liked</string>
     <string name="no_album">Sin álbum</string>
     <string name="delete">Eliminar</string>
     <string name="new_singles">Nuevos sencillos</string>

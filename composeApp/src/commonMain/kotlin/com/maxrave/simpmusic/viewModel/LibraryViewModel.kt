@@ -13,6 +13,7 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
@@ -25,20 +26,28 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import org.jetbrains.compose.resources.getString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_local_playlist
+import simpmusic.composeapp.generated.resources.library_synced_all
+import simpmusic.composeapp.generated.resources.library_synced_none
+import simpmusic.composeapp.generated.resources.library_synced_partial
+import simpmusic.composeapp.generated.resources.library_syncing
 import simpmusic.composeapp.generated.resources.youtube_liked_music
 
 class LibraryViewModel(
@@ -49,6 +58,7 @@ class LibraryViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val albumRepository: AlbumRepository,
     private val podcastRepository: PodcastRepository,
+    private val artistRepository: ArtistRepository,
 ) : BaseViewModel() {
     private val _currentScreen: MutableStateFlow<LibraryChipType> = MutableStateFlow(LibraryChipType.YOUR_LIBRARY)
     val currentScreen: StateFlow<LibraryChipType> get() = _currentScreen.asStateFlow()
@@ -92,6 +102,14 @@ class LibraryViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
+
+    /** What the Sync button would push; zero while signed out, which hides it. */
+    val unsyncedCount: StateFlow<Int> =
+        combine(commonRepository.unsyncedLibrary(), youtubeLoggedIn) { keys, signedIn -> if (signedIn) keys.size else 0 }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    private val _syncing = MutableStateFlow(false)
+    val syncing: StateFlow<Boolean> get() = _syncing.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -244,6 +262,52 @@ class LibraryViewModel(
         }
     }
 
+    /**
+     * Desktop's Sync button: put everything saved on this phone onto the YouTube account, through
+     * the same writes a tap makes. One at a time, because these are writes to someone's account
+     * and a burst is what gets a session rate-limited. What fails keeps its key, so pressing
+     * again retries exactly what is left.
+     */
+    fun syncToYouTube() {
+        if (_syncing.value) return
+        _syncing.value = true
+        viewModelScope.launch {
+            val keys = commonRepository.unsyncedLibrary().first()
+            makeToast(getString(Res.string.library_syncing, keys.size))
+            // A playlist the account library already lists needs no write; your own refuse one.
+            val known =
+                if (keys.any { it.startsWith("playlist:") }) {
+                    playlistRepository.getLibraryPlaylist().first().orEmpty().map { it.browseId.removePrefix("VL") }.toSet()
+                } else {
+                    emptySet()
+                }
+            var failed = 0
+            for (key in keys) {
+                val id = key.substringAfter(':')
+                val synced =
+                    when (key.substringBefore(':')) {
+                        "song" -> songRepository.updateLikeStatus(id, 1)
+                        "album" -> albumRepository.updateAlbumLiked(id, 1)
+                        "artist" -> artistRepository.updateFollowedStatus(id, 1)
+                        "playlist" if id in known -> true.also { commonRepository.markSynced(key) }
+                        "playlist" -> playlistRepository.updatePlaylistLiked(id, 1)
+                        else -> true.also { commonRepository.markSynced(key) }
+                    }
+                if (!synced) failed++
+                delay(SYNC_GAP_MS)
+            }
+            val done = keys.size - failed
+            makeToast(
+                when {
+                    failed == 0 -> getString(Res.string.library_synced_all, done)
+                    done == 0 -> getString(Res.string.library_synced_none, failed)
+                    else -> getString(Res.string.library_synced_partial, done, keys.size, failed)
+                },
+            )
+            _syncing.value = false
+        }
+    }
+
     fun createPlaylist(title: String) {
         viewModelScope.launch {
             val localPlaylistEntity = LocalPlaylistEntity(title = title)
@@ -268,5 +332,8 @@ class LibraryViewModel(
             getRecentlyAdded()
         }
     }
-
 }
+
+// ponytail: a fixed gap between Sync's writes, not a rate limiter; enough to keep a few hundred
+// likes from leaving as one burst.
+private const val SYNC_GAP_MS = 250L

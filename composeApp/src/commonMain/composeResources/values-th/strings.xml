@@ -179,7 +179,6 @@
     <string name="new_release">เวอร์ชั่นล่าสุด</string>
     <string name="youtube_account">บัญชี YouTube</string>
     <string name="manage_your_youtube_accounts">จัดการบัญชี YouTube ของคุณ</string>
-    <string name="sync_follow_to_youtube">ซิงค์การติดตามศิลปินกับ YouTube</string>
     <string name="equalizer">อีควอไลเซอร์</string>
     <string name="equalizer_description">ปรับแต่งเสียงด้วยเส้นโค้ง 10 แบนด์</string>
     <string name="equalizer_preamp">พรีแอมป์</string>
@@ -192,10 +191,6 @@
     <string name="equalizer_autoeq_unavailable">ไม่สามารถเชื่อมต่อกับ AutoEq ได้ ตรวจสอบการเชื่อมต่อและลองอีกครั้ง</string>
     <string name="equalizer_autoeq_empty">ไม่มีพบโปรไฟล์ชุดหูฟังที่ตรงกับชื่อนี้</string>
     <string name="equalizer_autoeq_failed">ไม่สามารถโหลดโปรไฟล์นี้ได้ — ต้องมีเชื่อมต่ออินเทอร์เน็ตในครั้งแรก</string>
-    <string name="sync_follow_to_youtube_description">การติดตามศิลปินใน Limusic จะเป็นการติดตามช่องของศิลปินบนบัญชี YouTube ของคุณด้วย</string>
-    <string name="sync_follow_failed">ไม่สามารถอัปเดตการสมัครสมาชิก YouTube ของคุณ</string>
-    <string name="subscribed_on_youtube">ติดตามแล้วบน YouTube</string>
-    <string name="unsubscribed_on_youtube">ยกเลิกการติดตามแล้วบน YouTube</string>
     <string name="no_account">ยังไม่มีบัญชีผู้ใช้</string>
     <string name="add_an_account">เพิ่มบัญชีผู้ใช้</string>
     <string name="signed_in">ลงชื่อเข้าใช้แล้ว</string>
@@ -207,8 +202,6 @@
     <string name="published_at">เผยแพร่เมื่อ %1$s</string>
     <string name="less">น้อยลง</string>
     <string name="enable_animated_artwork">ปกภาพเคลื่อนไหว</string>
-    <string name="added_to_youtube_liked">เพิ่มถูกใจไปยัง YouTube แล้ว</string>
-    <string name="removed_from_youtube_liked">ลบถูกใจออกจาก YouTube</string>
     <string name="no_album">ไม่มีอัลบั้ม</string>
     <string name="delete">ลบ</string>
     <string name="new_singles">ซิงเกิลใหม่</string>

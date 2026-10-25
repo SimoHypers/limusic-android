@@ -37,6 +37,7 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.radio_not_available
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class AlbumViewModel(
     private val songRepository: SongRepository,
@@ -103,6 +104,7 @@ class AlbumViewModel(
                                     }
                                 }
                             }
+                            data.inLibrary?.let { albumRepository.mirrorAlbumSaved(browseId, it) }
                             getAlbumFlow(browseId)
                         } else {
                             makeToast(getString(Res.string.error) + ": Null data")
@@ -164,13 +166,11 @@ class AlbumViewModel(
         }
     }
 
+    // The heart follows the row through getAlbumFlow, refusal included.
     fun setAlbumLike() {
         viewModelScope.launch {
-            albumRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)
-            _uiState.update {
-                it.copy(
-                    liked = !it.liked,
-                )
+            if (!albumRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)) {
+                makeToast(getString(Res.string.youtube_write_failed))
             }
         }
     }

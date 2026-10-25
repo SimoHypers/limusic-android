@@ -189,8 +189,6 @@
     <string name="plays">播放/查看计数</string>
     <string name="published_at">发布在 %1$s</string>
     <string name="less">减少</string>
-    <string name="added_to_youtube_liked">添加到 YouTube 赞过</string>
-    <string name="removed_from_youtube_liked">已从 YouTube 赞过中移除</string>
     <string name="no_album">无专辑</string>
     <string name="delete">删除</string>
     <string name="new_singles">新单曲</string>

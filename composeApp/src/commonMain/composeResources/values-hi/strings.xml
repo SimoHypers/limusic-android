@@ -192,8 +192,6 @@
     <string name="codec">कोडेक</string>
     <string name="plays">प्ले/व्यू काउंट</string>
     <string name="less">कम</string>
-    <string name="added_to_youtube_liked">YouTube पसंदीदा में जोड़ा गया</string>
-    <string name="removed_from_youtube_liked">YouTube पसंदीदा से हटाया गया</string>
     <string name="no_album">कोई एल्बम नहीं</string>
     <string name="delete">हटाएं</string>
     <string name="new_singles">नए सिंगल्स</string>

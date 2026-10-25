@@ -184,8 +184,6 @@
     <string name="codec">الترميز</string>
     <string name="plays">عدد تشغيل/عرض</string>
     <string name="less">أقل</string>
-    <string name="added_to_youtube_liked">تمت الإضافة إلى إعجابات YouTube</string>
-    <string name="removed_from_youtube_liked">تمت إزالته من إعجابات YouTube</string>
     <string name="no_album">لا توجد ألبومات</string>
     <string name="delete">حذف</string>
     <string name="new_singles">الفردي الجديد</string>

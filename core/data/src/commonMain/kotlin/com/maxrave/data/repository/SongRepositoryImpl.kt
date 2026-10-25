@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.Volatile
 import kotlinx.datetime.LocalDateTime
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -48,6 +49,7 @@ internal class SongRepositoryImpl(
     private val dataStoreManager: DataStoreManager,
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val librarySync: LibrarySync,
 ) : SongRepository {
     override fun getAllSongs(limit: Int): Flow<List<SongEntity>> =
         flow {
@@ -237,36 +239,50 @@ internal class SongRepositoryImpl(
     private val mediaPlayerHandler: MediaPlayerHandler by lazy { getKoin().get() }
 
     /**
+     * Bumped by every like or unlike, so a [refreshLikeFromYouTube] already in flight can tell its
+     * answer was asked for before the tap and must not overwrite it.
+     */
+    @Volatile
+    private var likeEpoch = 0
+
+    /**
      * Note the side effect: liking a song can start a download, when the user has asked for that.
      *
-     * Deliberately one-way. It fires only on the way *in* (`likeStatus == 1`) and only for songs
-     * not already offline, so re-liking something you already have does not queue it twice, and
-     * unliking never removes a file — the user downloaded it, only they should undo that.
+     * Deliberately one-way. It fires only on the way *in*, for a song not liked here before and not
+     * already offline, so a re-like (or Sync pushing old likes) does not queue it twice, and
+     * unliking never removes a file: the user downloaded it, only they should undo that.
      */
     override suspend fun updateLikeStatus(
         videoId: String,
         likeStatus: Int,
-    ) = withContext(Dispatchers.Main) {
-        localDataSource.updateLiked(likeStatus, videoId)
-        if (likeStatus == 1 && dataStoreManager.autoDownloadLikedSongs.first() == TRUE) {
+    ): Boolean =
+        withContext(Dispatchers.Main) {
+            likeEpoch++
             val song = localDataSource.getSong(videoId)
-            if (song != null && song.downloadState != DownloadState.STATE_DOWNLOADED) {
-                Logger.d(TAG, "Auto-downloading liked song: $videoId")
-                downloadHandler.downloadTrack(videoId, song.title, song.thumbnails.orEmpty())
+            localDataSource.updateLiked(likeStatus, videoId)
+            val key = LibrarySync.song(videoId)
+            if (librarySync.loggedIn()) {
+                val written =
+                    withContext(Dispatchers.IO) {
+                        if (likeStatus == 1) youTube.addToLiked(videoId) else youTube.removeFromLiked(videoId)
+                    }
+                if (written.isFailure) {
+                    Logger.w(TAG, "Like on YouTube failed: ${written.exceptionOrNull()?.message}")
+                    localDataSource.updateLiked(if (song?.liked == true) 1 else 0, videoId)
+                    return@withContext false
+                }
+                librarySync.mark(key, false)
+            } else {
+                librarySync.mark(key, likeStatus == 1)
             }
+            if (likeStatus == 1 && song?.liked != true && dataStoreManager.autoDownloadLikedSongs.first() == TRUE) {
+                if (song != null && song.downloadState != DownloadState.STATE_DOWNLOADED) {
+                    Logger.d(TAG, "Auto-downloading liked song: $videoId")
+                    downloadHandler.downloadTrack(videoId, song.title, song.thumbnails.orEmpty())
+                }
+            }
+            true
         }
-//        if (dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE) {
-//            if (likeStatus == 1) {
-//                addToYouTubeLiked(videoId).collect { result ->
-//                    Logger.d(TAG, "updateLikeStatus -> addToYouTubeLiked: $result")
-//                }
-//            } else {
-//                removeFromYouTubeLiked(videoId).collect { result ->
-//                    Logger.d(TAG, "updateLikeStatus -> removeFromYouTubeLiked: $result")
-//                }
-//            }
-//        }
-    }
 
     override fun updateSongInLibrary(
         inLibrary: LocalDateTime,
@@ -465,53 +481,19 @@ internal class SongRepositoryImpl(
             }
         }.flowOn(Dispatchers.IO)
 
-    override suspend fun getLikeStatus(videoId: String): Flow<Boolean> =
-        flow {
-            runCatching {
-                youTube
-                    .getLikedInfo(videoId)
-                    .onSuccess {
-                        if (it == LikeStatus.LIKE) emit(true) else emit(false)
-                    }.onFailure {
-                        it.printStackTrace()
-                        emit(false)
-                    }
-            }
-        }
-
-    override suspend fun addToYouTubeLiked(mediaId: String?): Flow<Int> =
-        flow {
-            if (mediaId != null) {
-                runCatching {
-                    youTube
-                        .addToLiked(mediaId)
-                        .onSuccess {
-                            Logger.d(TAG, "Liked -> Success: $it")
-                            emit(it)
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(0)
-                        }
-                }
-            }
-        }.flowOn(Dispatchers.IO)
-
-    override suspend fun removeFromYouTubeLiked(mediaId: String?): Flow<Int> =
-        flow {
-            if (mediaId != null) {
-                runCatching {
-                    youTube
-                        .removeFromLiked(mediaId)
-                        .onSuccess {
-                            Logger.d(TAG, "Liked -> Success: $it")
-                            emit(it)
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(0)
-                        }
-                }
-            }
-        }.flowOn(Dispatchers.IO)
+    /**
+     * A like still waiting for Sync wins over YouTube's "not liked": the account hasn't heard of it
+     * yet. Failures write nothing, and neither does an answer a tap overtook.
+     */
+    override suspend fun refreshLikeFromYouTube(videoId: String) {
+        if (!librarySync.loggedIn() || librarySync.isUnsynced(LibrarySync.song(videoId))) return
+        val epoch = likeEpoch
+        val status = withContext(Dispatchers.IO) { youTube.getLikedInfo(videoId) }.getOrNull() ?: return
+        if (epoch != likeEpoch) return
+        val liked = status == LikeStatus.LIKE
+        val song = localDataSource.getSong(videoId) ?: return
+        if (song.liked != liked) localDataSource.updateLiked(if (liked) 1 else 0, videoId)
+    }
 
     override fun downloadToFile(
         track: Track,

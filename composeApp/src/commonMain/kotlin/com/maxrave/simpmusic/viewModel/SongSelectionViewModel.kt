@@ -31,6 +31,7 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 /**
  * Runs the bulk actions offered by
@@ -105,9 +106,12 @@ class SongSelectionViewModel(
 
     fun addToFavorite(videoIds: List<String>) {
         viewModelScope.launch {
-            songsOf(videoIds)
-                .filterNot { it.liked }
-                .forEach { songRepository.updateLikeStatus(it.videoId, 1) }
+            // One at a time: signed in each is a write to the YouTube account.
+            val failed =
+                songsOf(videoIds)
+                    .filterNot { it.liked }
+                    .count { !songRepository.updateLikeStatus(it.videoId, 1) }
+            if (failed > 0) makeToast(getString(Res.string.youtube_write_failed))
         }
     }
 

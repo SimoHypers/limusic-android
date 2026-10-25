@@ -251,7 +251,6 @@ class SettingsViewModel(
         getPlayVideoInsteadOfAudio()
         getRadioAudioOnly()
         getVideoQuality()
-        getSyncFollowToYouTube()
         getEqualizer()
         getAMAnimatedArtwork()
         getUsingProxy()
@@ -1342,10 +1341,6 @@ class SettingsViewModel(
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("", null)
                 Logger.i("Auth", "YouTube: signed out")
-                // Mirroring follows needs a session to write to, so signing out clears the flag
-                // here rather than from the Settings row — same teardown as setSpotifyLogIn and
-                // logOutDiscord. Only this branch: acc != null is switching account, not logout.
-                dataStoreManager.setSyncFollowToYouTube(false)
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -1363,7 +1358,6 @@ class SettingsViewModel(
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("", null)
             Logger.i("Auth", "YouTube: signed out of all accounts")
-            dataStoreManager.setSyncFollowToYouTube(false)
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()
@@ -1492,33 +1486,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setEqualizerBands(List(EQUALIZER_BAND_COUNT) { 0f })
             dataStoreManager.setEqualizerPreamp(0f)
-        }
-    }
-
-    private var _syncFollowToYouTube: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val syncFollowToYouTube: StateFlow<Boolean> = _syncFollowToYouTube
-
-    fun getSyncFollowToYouTube() {
-        viewModelScope.launch {
-            dataStoreManager.syncFollowToYouTube.collect {
-                _syncFollowToYouTube.emit(it == DataStoreManager.TRUE)
-            }
-        }
-    }
-
-    fun setSyncFollowToYouTube(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setSyncFollowToYouTube(enabled)
-            // Turning it on is a statement about the whole library: artists followed before the
-            // switch would otherwise never reach the account. Turning it off deliberately does
-            // NOT unsubscribe — stopping the mirroring is not the same as asking us to undo it.
-            if (enabled) {
-                // Runs silently. The only toast in this feature belongs to the Follow button on
-                // the artist screen, where the user performed the action and is waiting to see it
-                // take effect; a switch in Settings is not the place to report on a background
-                // sweep the user is not watching.
-                artistRepository.syncFollowedArtistsToYouTube().collect { }
-            }
         }
     }
 

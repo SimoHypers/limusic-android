@@ -192,7 +192,6 @@
     <string name="new_release">最新發行</string>
     <string name="youtube_account">YouTube帳號</string>
     <string name="manage_your_youtube_accounts">管理您的YouTube帳戶</string>
-    <string name="sync_follow_to_youtube">將追蹤名單與YouTube同步</string>
     <string name="equalizer">等化器</string>
     <string name="equalizer_description">透過分割為十頻段的曲線來重塑音樂</string>
     <string name="equalizer_type">等化器類型</string>
@@ -208,10 +207,6 @@
     <string name="equalizer_autoeq_unavailable">無法連線AutoEq。請檢查您的網路連線並重試。</string>
     <string name="equalizer_autoeq_empty">找不到耳機</string>
     <string name="equalizer_autoeq_failed">無法載入該設定檔：初次使用時需要連線</string>
-    <string name="sync_follow_to_youtube_description">在Limusic上追蹤某位歌手，也請在您的YouTube帳號上訂閱他們的頻道。</string>
-    <string name="sync_follow_failed">無法更新您的YouTube訂閱</string>
-    <string name="subscribed_on_youtube">到 YouTube 上訂閱</string>
-    <string name="unsubscribed_on_youtube">到 YouTube 上取消訂閱</string>
     <string name="no_account">沒有帳號</string>
     <string name="add_an_account">新增帳號</string>
     <string name="signed_in">已登入</string>
@@ -224,8 +219,6 @@
     <string name="less">收起</string>
     <string name="enable_animated_artwork">動態專輯封面</string>
     <string name="animated_artwork_info">播放專輯的動態封面，而非Canvas封面。無需註冊帳號。沒有動態封面的專輯將保留靜態封面。</string>
-    <string name="added_to_youtube_liked">已新增到YouTube「喜歡的影片」</string>
-    <string name="removed_from_youtube_liked">已從YouTube「喜歡的影片」中移除</string>
     <string name="no_album">沒有專輯</string>
     <string name="delete">刪除</string>
     <string name="new_singles">最新單曲</string>

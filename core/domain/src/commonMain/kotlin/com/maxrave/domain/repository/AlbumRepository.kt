@@ -19,9 +19,19 @@ interface AlbumRepository {
 
     fun insertAlbum(albumEntity: AlbumEntity): Flow<Long>
 
+    /**
+     * Save to library. Signed in it saves on YouTube Music too (a like on the album's audio
+     * playlist); signed out it waits for Sync. False when YouTube refused, local row put back.
+     */
     suspend fun updateAlbumLiked(
         albumId: String,
         likeStatus: Int,
+    ): Boolean
+
+    /** Signed in, copy what the album page says about the account's library onto the local row. */
+    suspend fun mirrorAlbumSaved(
+        albumId: String,
+        saved: Boolean,
     )
 
     suspend fun updateAlbumInLibrary(

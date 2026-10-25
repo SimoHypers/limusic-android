@@ -828,6 +828,19 @@ class Ytmusic {
             )
         }
 
+    suspend fun likePlaylist(
+        playlistId: String,
+        like: Boolean,
+    ) = httpClient.post(if (like) "like/like" else "like/removelike") {
+        ytClient(WEB_REMIX, true)
+        setBody(
+            LikeBody(
+                context = WEB_REMIX.toContext(locale, visitorData),
+                target = LikeBody.Target(playlistId = playlistId),
+            ),
+        )
+    }
+
     fun download(
         url: String,
         pathString: String,

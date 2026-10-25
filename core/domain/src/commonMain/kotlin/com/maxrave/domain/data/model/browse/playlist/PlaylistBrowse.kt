@@ -20,4 +20,6 @@ data class PlaylistBrowse(
     val radioEndpoint: YouTubeWatchEndpoint? = null,
     /** Yours to edit: the page came with YouTube's edit header. */
     val owned: Boolean = false,
+    /** Saved to the YouTube account's library; null when the page did not say (your own playlist). */
+    val saved: Boolean? = null,
 )

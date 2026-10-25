@@ -24,9 +24,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -88,6 +92,7 @@ import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Podcasts
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
@@ -111,6 +116,7 @@ import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.library_downloads
 import simpmusic.composeapp.generated.resources.library_mixes
 import simpmusic.composeapp.generated.resources.library_saved
+import simpmusic.composeapp.generated.resources.library_sync_to_youtube
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
 import simpmusic.composeapp.generated.resources.no_mixes_found
@@ -141,6 +147,8 @@ fun LibraryScreen(
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
     val libraryOverview by viewModel.libraryOverview.collectAsStateWithLifecycle()
+    val unsyncedCount by viewModel.unsyncedCount.collectAsStateWithLifecycle()
+    val syncing by viewModel.syncing.collectAsStateWithLifecycle()
 
     val selectionState = rememberSongSelectionState()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
@@ -452,6 +460,26 @@ fun LibraryScreen(
             },
     ) {
         LimusicTabTopBar(title = stringResource(Res.string.library)) {
+            // Only with something to push: what was liked, followed or saved while signed out
+            // (or before likes went to YouTube) lives on the phone until this puts it on the account.
+            if (unsyncedCount > 0) {
+                IconButton(onClick = viewModel::syncToYouTube, enabled = !syncing) {
+                    BadgedBox(
+                        badge = {
+                            // Badge's labelSmall comes from typo(), which bakes in a grey; the owner wants white.
+                            Badge(containerColor = MaterialTheme.colorScheme.primary) {
+                                Text(unsyncedCount.toString(), color = Color.White)
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = SimpIcons.Sync,
+                            contentDescription = stringResource(Res.string.library_sync_to_youtube, unsyncedCount),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                        )
+                    }
+                }
+            }
             RippleIconButton(imageVector = SimpIcons.Add, tint = MaterialTheme.colorScheme.onBackground) {
                 showAddSheet = true
             }
