@@ -77,13 +77,12 @@ import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.suggest
-import simpmusic.composeapp.generated.resources.synced
-import simpmusic.composeapp.generated.resources.syncing
-import simpmusic.composeapp.generated.resources.unsynced
-import simpmusic.composeapp.generated.resources.unsyncing
 import simpmusic.composeapp.generated.resources.updated
 import simpmusic.composeapp.generated.resources.updated_to_youtube_playlist
 import simpmusic.composeapp.generated.resources.updating
+import simpmusic.composeapp.generated.resources.moving_to_youtube_music
+import simpmusic.composeapp.generated.resources.moved_to_youtube_music
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class LocalPlaylistViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -589,140 +588,23 @@ class LocalPlaylistViewModel(
         }
     }
 
-    fun syncPlaylistWithYouTubePlaylist(id: Long) {
-        makeToast(getString(Res.string.syncing))
-        showLoadingDialog(message = getString(Res.string.syncing))
-        viewModelScope.launch {
-            localPlaylistRepository
-                .syncLocalPlaylistToYouTubePlaylist(id, getString(Res.string.synced), getString(Res.string.error))
-                .collectLatestResource(
-                    onSuccess = { ytId ->
-                        _uiState.update {
-                            it.copy(
-                                syncState = LocalPlaylistEntity.YouTubeSyncState.Synced,
-                                ytPlaylistId = ytId,
-                            )
-                        }
-                        makeToast(getString(Res.string.synced))
-                        hideLoadingDialog()
-                    },
-                    onError = {
-                        makeToast(it)
-                        updateLocalPlaylistSyncState(id, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
-                        hideLoadingDialog()
-                    },
-                )
-//            mainRepository.createYouTubePlaylist(playlist).collect {
-//                if (it != null) {
-//                    val ytId = "VL$it"
-//                    mainRepository.updateLocalPlaylistYouTubePlaylistId(playlist.id, ytId)
-//                    mainRepository.updateLocalPlaylistYouTubePlaylistSynced(playlist.id, 1)
-//                    mainRepository.getLocalPlaylistByYoutubePlaylistId(ytId).collect { yt ->
-//                        if (yt != null) {
-//                            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-//                                yt.id,
-//                                LocalPlaylistEntity.YouTubeSyncState.Synced,
-//                            )
-//                            mainRepository.getLocalPlaylist(playlist.id).collect { last ->
-//                                _localPlaylist.emit(last)
-//                                Toast
-//                                    .makeText(
-//                                        application,
-//                                        application.getString(Res.string.synced),
-//                                        Toast.LENGTH_SHORT,
-//                                    ).show()
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    Toast
-//                        .makeText(
-//                            application,
-//                            application.getString(Res.string.error),
-//                            Toast.LENGTH_SHORT,
-//                        ).show()
-//                }
-//            }
-        }
-    }
-
-    private fun updateLocalPlaylistSyncState(
+    /**
+     * Sync became a move, as desktop keeps no phone copy of a YouTube playlist. [onMoved] gets
+     * the new playlist's id; the local one is gone by then.
+     */
+    fun moveToYouTube(
         id: Long,
-        syncState: Int,
-        ytId: String? = null,
+        onMoved: (String) -> Unit,
     ) {
-        showLoadingDialog()
+        showLoadingDialog(message = getString(Res.string.moving_to_youtube_music))
         viewModelScope.launch {
             localPlaylistRepository
-                .updateSyncState(id, syncState, getString(Res.string.synced))
-                .collectLatestResource(
-                    onSuccess = { mess ->
-                        makeToast(mess)
-                        _uiState.update {
-                            it.copy(
-                                syncState = syncState,
-                            )
-                        }
-                        hideLoadingDialog()
-                    },
-                    onError = {
-                        makeToast(it)
-                        hideLoadingDialog()
-                    },
-                )
-            if (ytId != null) {
-                localPlaylistRepository
-                    .updateYouTubePlaylistId(id, ytId, getString(Res.string.updated))
-                    .collectLatestResource(
-                        onSuccess = { mess ->
-                            Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
-                            _uiState.update {
-                                it.copy(
-                                    ytPlaylistId = ytId,
-                                )
-                            }
-                        },
-                    )
-            }
-        }
-    }
-
-    fun unsyncPlaylistWithYouTubePlaylist(id: Long) {
-        makeToast(getString(Res.string.unsyncing))
-        showLoadingDialog(message = getString(Res.string.unsyncing))
-        viewModelScope.launch {
-            localPlaylistRepository
-                .unsyncLocalPlaylist(id, getString(Res.string.unsynced))
-                .collectLatestResource(
-                    onSuccess = { mess ->
-                        makeToast(mess)
-                        _uiState.update {
-                            it.copy(
-                                syncState = LocalPlaylistEntity.YouTubeSyncState.NotSynced,
-                                ytPlaylistId = null,
-                            )
-                        }
-                        hideLoadingDialog()
-                    },
-                    onError = {
-                        makeToast(it)
-                        hideLoadingDialog()
-                    },
-                )
-        }
-    }
-
-    fun updateListTrackSynced(id: Long) {
-        makeToast(getString(Res.string.syncing))
-        showLoadingDialog(message = getString(Res.string.syncing))
-        viewModelScope.launch {
-            localPlaylistRepository.updateListTrackSynced(id).collectLatest { done ->
-                if (done) {
-                    makeToast(getString(Res.string.updated))
-                    updatePlaylistState(id, refresh = true)
-                }
-                hideLoadingDialog()
-            }
+                .moveLocalPlaylistToYouTube(id)
+                .onSuccess {
+                    makeToast(getString(Res.string.moved_to_youtube_music))
+                    onMoved(it)
+                }.onFailure { makeToast(getString(Res.string.youtube_write_failed)) }
+            hideLoadingDialog()
         }
     }
 

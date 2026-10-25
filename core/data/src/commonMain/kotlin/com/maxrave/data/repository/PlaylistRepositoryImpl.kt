@@ -608,6 +608,15 @@ internal class PlaylistRepositoryImpl(
             }
         }.flowOn(Dispatchers.IO)
 
+    override suspend fun createYouTubePlaylist(title: String): String? =
+        withContext(Dispatchers.IO) {
+            youTube
+                .createPlaylist(title, null)
+                .onFailure { Logger.w("PlaylistRepositoryImpl", "Create playlist failed: ${it.message}") }
+                .getOrNull()
+                ?.playlistId
+        }
+
     override fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?> =
         flow {
             youTube
@@ -823,11 +832,21 @@ internal class PlaylistRepositoryImpl(
 
     override fun deleteYourYouTubePlaylist(playlistId: String): Flow<Resource<String>> =
         flow {
-            youTube
-                .deletePlaylist(playlistId)
-                .mapCatching { status -> check(status in 200..299) { "HTTP $status" } }
-                .onSuccess { emit(Resource.Success("")) }
-                .onFailure { emit(Resource.Error<String>(it.message ?: "Unknown error")) }
+            val deleted =
+                youTube
+                    .deletePlaylist(playlistId)
+                    .mapCatching { status -> check(status in 200..299) { "HTTP $status" } }
+            if (deleted.isFailure) {
+                emit(Resource.Error<String>(deleted.exceptionOrNull()?.message ?: "Unknown error"))
+                return@flow
+            }
+            // A phone copy synced to it, from when Sync kept both, goes too: Library hides it only
+            // while its YouTube twin is listed, so it would come back the moment that one went.
+            val bare = playlistId.removePrefix("VL")
+            listOf(bare, "VL$bare").forEach { id ->
+                localDataSource.getLocalPlaylistByYoutubePlaylistId(id)?.let { localDataSource.deleteLocalPlaylist(it.id) }
+            }
+            emit(Resource.Success(""))
         }.flowOn(Dispatchers.IO)
 
     override suspend fun insertYourYouTubePlaylist(yourYouTubePlaylist: YourYouTubePlaylistList) =

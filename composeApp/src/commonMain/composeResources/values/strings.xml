@@ -176,20 +176,12 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
-    <string name="added_local_playlist">Added Local Playlist</string>
-    <string name="sync">Sync to YouTube Music</string>
-    <string name="synced">Synced with YouTube Music</string>
     <string name="song">Song</string>
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Auto created by YouTube Music</string>
     <string name="start_radio">Start radio</string>
-    <string name="sync_playlist_warning">Limusic will create a YouTube Music Playlist automatically. Are you sure?</string>
-    <string name="syncing">Syncing</string>
-    <string name="unsync_playlist_warning">"Unsync this playlist? This playlist will not be removed from YouTube Music "</string>
-    <string name="unsyncing">Unsyncing</string>
     <string name="added_to_youtube_playlist">Added to YouTube Playlist</string>
     <string name="removed_from_YouTube_playlist">Removed from YouTube Playlist</string>
-    <string name="update_playlist">Update playlist from YouTube Music</string>
     <string name="backup_create_success">Backup create success</string>
     <string name="backup_create_failed">Backup create failed</string>
     <string name="invalid_language_code">Invalid language code</string>
@@ -761,4 +753,15 @@
     <string name="library_synced_all">Synced %1$d to YouTube Music</string>
     <string name="library_synced_partial">Synced %1$d of %2$d. %3$d failed, still saved here.</string>
     <string name="library_synced_none">Nothing synced. %1$d failed, still saved here.</string>
+    <string name="move">Move</string>
+    <string name="move_to_youtube_music">Move to YouTube Music</string>
+    <string name="move_playlist_desc">“%1$s” goes onto your YouTube Music account and leaves this phone.</string>
+    <string name="moving_to_youtube_music">Moving to YouTube Music</string>
+    <string name="moved_to_youtube_music">Moved to YouTube Music</string>
+    <string name="new_playlist_where_youtube">YouTube Music</string>
+    <string name="new_playlist_where_youtube_desc">On your account, wherever you sign in</string>
+    <string name="new_playlist_where_device">This phone</string>
+    <string name="new_playlist_where_device_desc">No account needed, it stays on this phone</string>
+    <string name="new_playlist_device_only">It stays on this phone, no account needed. Sign in to make playlists on YouTube Music instead.</string>
+    <string name="playlist_created">Created “%1$s”</string>
 </resources>

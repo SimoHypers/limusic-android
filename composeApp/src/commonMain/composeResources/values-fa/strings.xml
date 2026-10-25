@@ -141,22 +141,12 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">تاریخچه شنیداری خود را به سرور یوتیوب موزیک بارگذاری کنید، این کار باعث بهبود سامانه پیشنهاد یوتیوب موزیک می‌شود. فقط در صورت ورود به سامانه کار می‌کند</string>
     <string name="send_back_listening_data_to_google">ارسال داده‌های شنیداری به گوگل</string>
     <string name="your_youtube_playlists">فهرست‌های پخش یوتیوب شما</string>
-    <string name="added_local_playlist">به فهرست پخش محلی افزوده شد</string>
-    <string name="sync">همگام‌سازی با یوتیوب موزیک</string>
-    <string name="synced">با یوتیوب موزیک همگام‌سازی شد</string>
     <string name="song">آهنگ</string>
     <string name="radio">رادیو</string>
     <string name="auto_created_by_youtube_music">به‌طور خودکار توسط یوتیوب موزیک ایجاد شده</string>
     <string name="start_radio">رادیو را شروع کنید</string>
-    <string name="sync_playlist_warning">Limusic به‌طور خودکار یک فهرست پخش یوتیوب موزیک ایجاد خواهد
-    کرد. آیا مطمئن هستید؟</string>
-    <string name="syncing">در حال همگام‌سازی</string>
-    <string name="unsync_playlist_warning">"آیا این فهرست پخش را از همگام‌سازی خارج کنید؟ این فهرست پخش
-    از یوتیوب موزیک پاک نخواهد شد "</string>
-    <string name="unsyncing">در حال خارج کردن از همگام‌سازی</string>
     <string name="added_to_youtube_playlist">به فهرست پخش یوتیوب افزوده شد</string>
     <string name="removed_from_YouTube_playlist">از فهرست پخش یوتیوب پاک شد</string>
-    <string name="update_playlist">به‌روزرسانی فهرست پخش از یوتیوب موزیک</string>
     <string name="backup_create_success">ایجاد پشتیبان با موفقیت انجام شد</string>
     <string name="backup_create_failed">ایجاد پشتیبان ناموفق بود</string>
     <string name="invalid_language_code">کد زبان نامعتبر است</string>

@@ -12,6 +12,7 @@ import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.LyricsEntity
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -1148,6 +1149,33 @@ class SharedViewModel(
 
     fun youTubePlaylistsChanged() {
         _youTubePlaylistsVersion.value++
+    }
+
+    private val _createdPlaylists = MutableStateFlow<List<PlaylistsResult>>(emptyList())
+
+    /**
+     * Playlists made on YouTube from this phone. YouTube's library list leaves a new one out for a
+     * few seconds, so Library shows these in front of it until it lists them itself, as desktop does.
+     */
+    val createdPlaylists: StateFlow<List<PlaylistsResult>> = _createdPlaylists
+
+    fun playlistCreatedOnYouTube(
+        title: String,
+        playlistId: String,
+    ) {
+        viewModelScope.launch {
+            val created =
+                PlaylistsResult(
+                    author = dataStoreManager.getString("AccountName").first().orEmpty(),
+                    browseId = "VL" + playlistId.removePrefix("VL"),
+                    category = "",
+                    itemCount = "",
+                    resultType = "",
+                    thumbnails = emptyList(),
+                    title = title,
+                )
+            _createdPlaylists.update { listOf(created) + it }
+        }
     }
 
     /** [from] names the album or playlist the tracks came from: shuffle keeps such a block together. */

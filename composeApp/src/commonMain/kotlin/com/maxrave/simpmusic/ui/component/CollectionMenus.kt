@@ -12,9 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.viewModel.AlbumUIState
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
@@ -33,10 +33,9 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.delete_playlist_desc
 import simpmusic.composeapp.generated.resources.delete_playlist_desc_local
-import simpmusic.composeapp.generated.resources.sync_playlist_warning
-import simpmusic.composeapp.generated.resources.unsync_playlist_warning
-import simpmusic.composeapp.generated.resources.warning
-import simpmusic.composeapp.generated.resources.yes
+import simpmusic.composeapp.generated.resources.move
+import simpmusic.composeapp.generated.resources.move_playlist_desc
+import simpmusic.composeapp.generated.resources.move_to_youtube_music
 
 // The ⋮ menus of a playlist, an album and a local playlist, with everything their rows open, so a
 // page and a Home shortcut show the same menu. Each one calls onClose once its sheet and whatever
@@ -196,24 +195,25 @@ fun LocalPlaylistMenu(
     onClose: () -> Unit,
     onDeleted: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    // The playlist is on YouTube now and gone from here; by default that is a delete.
+    onMoved: (youTubeId: String) -> Unit = { onDeleted() },
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
     val coroutineScope = rememberCoroutineScope()
+    val signedIn by sharedViewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(initialValue = null)
     var menu by remember { mutableStateOf(true) }
     var fetching by remember { mutableStateOf(false) }
     var saveTracks by remember { mutableStateOf<List<Track>?>(null) }
     var editing by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
-    var syncing by remember { mutableStateOf(false) }
-    var unsyncing by remember { mutableStateOf(false) }
-    if (!menu && !fetching && saveTracks == null && !editing && !deleting && !syncing && !unsyncing) {
+    var moving by remember { mutableStateOf(false) }
+    if (!menu && !fetching && saveTracks == null && !editing && !deleting && !moving) {
         LaunchedEffect(Unit) { onClose() }
     }
 
     if (menu) {
         LocalPlaylistBottomSheet(
             onDismiss = { menu = false },
-            ytPlaylistId = uiState.ytPlaylistId,
             onPlayNext = { viewModel.withFullTracks { sharedViewModel.playListNext(it, uiState.title) } },
             onAddToQueue = { viewModel.addAllToQueue() },
             onSaveToPlaylist = {
@@ -221,10 +221,8 @@ fun LocalPlaylistMenu(
                 viewModel.withFullTracks(onDone = { fetching = false }) { saveTracks = it }
             },
             onEditPlaylist = { editing = true },
-            onSync = {
-                if (uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) unsyncing = true else syncing = true
-            },
-            onUpdatePlaylist = { viewModel.updateListTrackSynced(uiState.id) },
+            // Signed in only, and not for a playlist synced back when Sync kept both copies.
+            onMoveToYouTube = { moving = true }.takeIf { signedIn == DataStoreManager.TRUE && uiState.ytPlaylistId == null },
             onDelete = { deleting = true },
             onRemoveShortcut = onRemoveShortcut,
             onPlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick) },
@@ -264,21 +262,19 @@ fun LocalPlaylistMenu(
         )
     }
     saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }, exceptLocalId = uiState.id) }
-    if (syncing) {
-        SyncDialog(Res.string.sync_playlist_warning, onDismiss = { syncing = false }) {
-            viewModel.syncPlaylistWithYouTubePlaylist(uiState.id)
-        }
-    }
-    if (unsyncing) {
-        SyncDialog(Res.string.unsync_playlist_warning, onDismiss = { unsyncing = false }) {
-            viewModel.unsyncPlaylistWithYouTubePlaylist(uiState.id)
+    if (moving) {
+        MoveDialog(stringResource(Res.string.move_playlist_desc, uiState.title), onDismiss = { moving = false }) {
+            viewModel.moveToYouTube(uiState.id) { youTubeId ->
+                sharedViewModel.playlistCreatedOnYouTube(uiState.title, youTubeId)
+                onMoved(youTubeId)
+            }
         }
     }
 }
 
 @Composable
-private fun SyncDialog(
-    text: org.jetbrains.compose.resources.StringResource,
+private fun MoveDialog(
+    text: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -287,15 +283,15 @@ private fun SyncDialog(
         containerColor = colors.container,
         titleContentColor = colors.content,
         textContentColor = colors.content,
-        title = { Text(text = stringResource(Res.string.warning)) },
-        text = { Text(text = stringResource(text)) },
+        title = { Text(text = stringResource(Res.string.move_to_youtube_music)) },
+        text = { Text(text = text) },
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
                 onConfirm()
                 onDismiss()
             }) {
-                Text(text = stringResource(Res.string.yes))
+                Text(text = stringResource(Res.string.move))
             }
         },
         dismissButton = {

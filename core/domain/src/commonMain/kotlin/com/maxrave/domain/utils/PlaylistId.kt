@@ -1,5 +1,8 @@
 package com.maxrave.domain.utils
 
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+
 /**
  * Prefixes of YouTube Music playlist ids that are really radios: YouTube keeps generating tracks
  * for them and never stops handing out a continuation token, so their track list has no end.
@@ -36,3 +39,13 @@ fun String.isRadioPlaylistId(): Boolean = RADIO_PLAYLIST_ID_PREFIXES.any { start
 fun String.isRadioQueueId(): Boolean = removePrefix("VL").startsWith("RD")
 
 fun String.isRadioMix(): Boolean = RADIO_MIX_ID_PREFIXES.any { startsWith(it) }
+
+/**
+ * These local playlists minus the ones synced to a playlist in [youTube]. Sync used to keep a phone
+ * copy beside the YouTube one; now it is a move, so the YouTube one stands for both.
+ */
+fun List<LocalPlaylistEntity>.withoutYouTubeTwins(youTube: List<PlaylistsResult>): List<LocalPlaylistEntity> {
+    if (youTube.isEmpty()) return this
+    val ids = youTube.mapTo(HashSet()) { it.browseId.removePrefix("VL") }
+    return filter { it.youtubePlaylistId?.removePrefix("VL") !in ids }
+}

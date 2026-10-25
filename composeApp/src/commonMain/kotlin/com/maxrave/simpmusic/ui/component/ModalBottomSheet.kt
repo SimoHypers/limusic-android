@@ -155,9 +155,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
-import com.maxrave.simpmusic.ui.icon.SyncDisabled
 import com.maxrave.simpmusic.ui.icon.Tune
-import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.AppThemeContent
@@ -246,18 +244,18 @@ import simpmusic.composeapp.generated.resources.sleep_timer_warning
 import simpmusic.composeapp.generated.resources.song_info
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.start_radio
-import simpmusic.composeapp.generated.resources.sync
-import simpmusic.composeapp.generated.resources.synced
 import simpmusic.composeapp.generated.resources.title
 import simpmusic.composeapp.generated.resources.to_download_folder
 import simpmusic.composeapp.generated.resources.unknown
-import simpmusic.composeapp.generated.resources.update_playlist
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_cookie
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
 import simpmusic.composeapp.generated.resources.youtube_url
+import com.maxrave.domain.utils.withoutYouTubeTwins
+import com.maxrave.simpmusic.ui.icon.Cloud
+import simpmusic.composeapp.generated.resources.move_to_youtube_music
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sentinel value used by SleepTimerBottomSheet to signal "end of current song"
@@ -2170,8 +2168,11 @@ fun AddToPlaylistModalBottomSheet(
                         }
 
                         val keyword = query.trim()
+                        // A playlist synced before Sync became a move shows once, as the YouTube one.
                         val shownLocalPlaylist =
-                            remember(listLocalPlaylist, keyword) { listLocalPlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                            remember(listLocalPlaylist, listYouTubePlaylist, keyword) {
+                                listLocalPlaylist.withoutYouTubeTwins(listYouTubePlaylist).filter { it.title.contains(keyword, ignoreCase = true) }
+                            }
                         val shownYouTubePlaylist =
                             remember(listYouTubePlaylist, keyword) { listYouTubePlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
                         // While searching, the list takes the rest of the sheet. Otherwise the sheet resizes with every
@@ -2457,19 +2458,18 @@ fun PlaylistBottomSheet(
 
 /**
  * The ⋮ menu of a playlist on this device: [PlaylistBottomSheet]'s rows minus radio and share
- * (there is no YouTube playlist behind it until it is synced), plus sync and update.
+ * (there is no YouTube playlist behind it), plus Move to YouTube Music when [onMoveToYouTube] is
+ * given (signed in).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistBottomSheet(
     onDismiss: () -> Unit,
-    ytPlaylistId: String? = null,
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onSaveToPlaylist: () -> Unit,
     onEditPlaylist: () -> Unit,
-    onSync: () -> Unit,
-    onUpdatePlaylist: () -> Unit,
+    onMoveToYouTube: (() -> Unit)?,
     onDelete: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
     onPlay: () -> Unit,
@@ -2515,15 +2515,9 @@ fun LocalPlaylistBottomSheet(
                         ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
                     }
                     ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
-                    ActionButton(
-                        icon = if (ytPlaylistId != null) SimpIcons.SyncDisabled else SimpIcons.Sync,
-                        text = if (ytPlaylistId != null) Res.string.synced else Res.string.sync,
-                    ) { run(onSync) }
-                    ActionButton(
-                        icon = SimpIcons.Update,
-                        text = Res.string.update_playlist,
-                        enable = ytPlaylistId != null,
-                    ) { run(onUpdatePlaylist) }
+                    if (onMoveToYouTube != null) {
+                        ActionButton(icon = SimpIcons.Cloud, text = Res.string.move_to_youtube_music) { run(onMoveToYouTube) }
+                    }
                     val danger = MaterialTheme.colorScheme.error
                     ActionButton(
                         icon = SimpIcons.Delete,

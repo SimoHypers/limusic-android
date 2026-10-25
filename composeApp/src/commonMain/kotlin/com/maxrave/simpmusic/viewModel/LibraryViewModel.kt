@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,12 +44,13 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import org.jetbrains.compose.resources.getString
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.added_local_playlist
 import simpmusic.composeapp.generated.resources.library_synced_all
 import simpmusic.composeapp.generated.resources.library_synced_none
 import simpmusic.composeapp.generated.resources.library_synced_partial
 import simpmusic.composeapp.generated.resources.library_syncing
+import simpmusic.composeapp.generated.resources.playlist_created
 import simpmusic.composeapp.generated.resources.youtube_liked_music
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 class LibraryViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -308,18 +310,40 @@ class LibraryViewModel(
         }
     }
 
-    fun createPlaylist(title: String) {
+    /** Where New playlist puts one, desktop's choice: the account unless the last pick was this phone. */
+    val newPlaylistOnYouTube: StateFlow<Boolean> =
+        dataStoreManager
+            .getString(NEW_PLAYLIST_WHERE)
+            .map { it != "device" }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    /** [onCreated] gets the YouTube playlist's id, or null for one made on this phone. */
+    fun createPlaylist(
+        title: String,
+        onYouTube: Boolean,
+        onResult: (Boolean) -> Unit,
+        onCreated: (String?) -> Unit,
+    ) {
         viewModelScope.launch {
-            val localPlaylistEntity = LocalPlaylistEntity(title = title)
-            localPlaylistRepository
-                .insertLocalPlaylist(
-                    localPlaylistEntity,
-                    getString(Res.string.added_local_playlist),
-                ).lastOrNull()
-                ?.let {
-                    log("Created playlist with id: $it")
+            // Signed out there was no choice to remember.
+            if (dataStoreManager.loggedIn.first() == DataStoreManager.TRUE) {
+                dataStoreManager.putString(NEW_PLAYLIST_WHERE, if (onYouTube) "youtube" else "device")
+            }
+            if (onYouTube) {
+                val id = playlistRepository.createYouTubePlaylist(title)
+                if (id == null) {
+                    makeToast(getString(Res.string.youtube_write_failed))
+                    onResult(false)
+                    return@launch
                 }
-            getLocalPlaylist()
+                onCreated(id)
+            } else {
+                localPlaylistRepository.insertLocalPlaylist(LocalPlaylistEntity(title = title), "").lastOrNull()
+                getLocalPlaylist()
+                onCreated(null)
+            }
+            makeToast(getString(Res.string.playlist_created, title))
+            onResult(true)
         }
     }
 
@@ -337,3 +361,5 @@ class LibraryViewModel(
 // ponytail: a fixed gap between Sync's writes, not a rate limiter; enough to keep a few hundred
 // likes from leaving as one burst.
 private const val SYNC_GAP_MS = 250L
+
+private const val NEW_PLAYLIST_WHERE = "new_playlist_where"

@@ -154,6 +154,7 @@ import com.maxrave.simpmusic.ui.icon.Sort
 import com.maxrave.simpmusic.ui.icon.TipsAndUpdates
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -1487,6 +1488,11 @@ fun LocalPlaylistScreen(
                 uiState = uiState,
                 onClose = { playlistBottomSheetShow = false },
                 onDeleted = { navController.navigateUp() },
+                // Straight to the playlist where it lives now, in place of this page.
+                onMoved = { youTubeId ->
+                    navController.navigateUp()
+                    navController.navigate(PlaylistDestination("VL$youTubeId", isYourYouTubePlaylist = true))
+                },
             )
         }
     }

@@ -76,6 +76,9 @@ interface PlaylistRepository {
 
     fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?>
 
+    /** A new, empty playlist on the YouTube account. Its id, or null when YouTube refused. */
+    suspend fun createYouTubePlaylist(title: String): String?
+
     fun getMixedForYou(): Flow<List<PlaylistsResult>?>
 
     /** Edits a playlist you own. A null field is left as it is; [cover] is a square JPEG/PNG. */

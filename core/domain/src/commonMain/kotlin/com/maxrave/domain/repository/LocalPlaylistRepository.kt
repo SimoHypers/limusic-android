@@ -6,7 +6,6 @@ import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.browse.playlist.PlaylistState
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.LocalResource
 import kotlinx.coroutines.flow.Flow
@@ -148,37 +147,8 @@ interface LocalPlaylistRepository {
         successMessage: String,
     ): Flow<LocalResource<String>>
 
-    fun syncYouTubePlaylistToLocalPlaylist(
-        playlist: PlaylistState,
-        tracks: List<Track>,
-        successMessage: String,
-        errorMessage: String,
-    ): Flow<LocalResource<String>>
-
-    fun syncLocalPlaylistToYouTubePlaylist(
-        playlistId: Long,
-        successMessage: String,
-        errorMessage: String,
-    ): Flow<LocalResource<String>>
-
-    fun unsyncLocalPlaylist(
-        id: Long,
-        successMessage: String,
-    ): Flow<LocalResource<String>>
-
-    fun updateSyncState(
-        id: Long,
-        syncState: Int,
-        successMessage: String,
-    ): Flow<LocalResource<String>>
-
-    fun updateYouTubePlaylistId(
-        id: Long,
-        youtubePlaylistId: String,
-        successMessage: String,
-    ): Flow<LocalResource<String>>
-
-    fun updateListTrackSynced(id: Long): Flow<Boolean>
+    /** Put the playlist on the YouTube account, then delete it here. Answers the new playlist's id. */
+    suspend fun moveLocalPlaylistToYouTube(id: Long): Result<String>
 
     fun addTrackToLocalPlaylist(
         id: Long,

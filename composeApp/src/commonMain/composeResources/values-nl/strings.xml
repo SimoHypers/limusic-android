@@ -128,15 +128,9 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube-muziekserver, het zal de aanbeveling van YT Music systeem verbeteren. Het werkt alleen als je ingelogd bent</string>
     <string name="send_back_listening_data_to_google">Stuur luistergegevens terug naar Google</string>
     <string name="your_youtube_playlists">Je YouTube-afspeellijsten</string>
-    <string name="added_local_playlist">Lokale afspeellijst toegevoegd</string>
-    <string name="sync">Synchroniseer met YouTube Muziek</string>
-    <string name="synced">Gesynchroniseerd met YouTube Music</string>
     <string name="song">Nummer</string>
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Automatisch gemaakt door YouTube Muziek</string>
     <string name="start_radio">Radio starten</string>
-    <string name="sync_playlist_warning">Limusic maakt automatisch een YouTube-afspeellijst aan. Weet je het zeker?</string>
-    <string name="syncing">Synchroniseren</string>
-    <string name="unsync_playlist_warning">"Deze afspeellijst de-synchroniseren? Deze afspeellijst zal niet verwijderd worden van YouTube Muziek "</string>
     <!-- Listen Together -->
 </resources>

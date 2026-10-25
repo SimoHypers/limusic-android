@@ -9,26 +9,19 @@ import com.maxrave.data.db.Converters
 import com.maxrave.data.db.datasource.LocalDataSource
 import com.maxrave.data.io.readLocalImageBytes
 import com.maxrave.data.extension.getFullDataFromDB
-import com.maxrave.data.mapping.toListTrack
 import com.maxrave.data.mapping.toTrack
 import com.maxrave.data.paging.LocalPlaylistPagingSource
 import com.maxrave.data.paging.LocalPlaylistTimeBasedPagingSource
 import com.maxrave.data.parser.parseSetVideoId
-import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
-import com.maxrave.domain.data.entities.LocalPlaylistEntity.YouTubeSyncState.Synced
-import com.maxrave.domain.data.entities.LocalPlaylistEntity.YouTubeSyncState.Syncing
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.data.model.browse.playlist.PlaylistState
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.LocalResource
-import com.maxrave.domain.utils.toListVideoId
-import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.wrapDataResource
 import com.maxrave.domain.utils.wrapMessageResource
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -39,7 +32,6 @@ import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
-import com.maxrave.kotlinytmusicscraper.parser.playlistContinuationContents
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -274,157 +266,22 @@ internal class LocalPlaylistRepositoryImpl(
         localDataSource.updateLocalPlaylistDownloadState(id = id, downloadState = downloadState)
     }
 
-    override fun syncYouTubePlaylistToLocalPlaylist(
-        playlist: PlaylistState,
-        tracks: List<Track>,
-        successMessage: String,
-        errorMessage: String,
-    ): Flow<LocalResource<String>> =
-        flow<LocalResource<String>> {
-            emit(LocalResource.Loading())
-            val localPlaylistEntity =
-                LocalPlaylistEntity(
-                    title = playlist.title,
-                    thumbnail = playlist.thumbnail,
-                    youtubePlaylistId = playlist.id,
-                    tracks = tracks.toListVideoId(),
-                    downloadState = DownloadState.STATE_NOT_DOWNLOADED,
-                    syncState = Syncing,
-                )
-            runBlocking { localDataSource.insertLocalPlaylist(localPlaylistEntity) }
-            val localPlaylistId =
-                localDataSource.getLocalPlaylistByYoutubePlaylistId(playlist.id)?.id
-                    ?: throw Exception(errorMessage)
-            tracks.forEachIndexed { i, track ->
-                runBlocking {
-                    localDataSource.insertSong(
-                        track.toSongEntity(),
-                    )
-                    localDataSource.insertPairSongLocalPlaylist(
-                        PairSongLocalPlaylist(
-                            playlistId = localPlaylistId,
-                            songId = track.videoId,
-                            position = i,
-                            inPlaylist = now(),
-                        ),
-                    )
-                }
-            }
-            val ytPlaylistId = playlist.id
-            val id = ytPlaylistId.verifyYouTubePlaylistId()
-            youTube
-                .customQuery(browseId = id, setLogin = true)
-                .onSuccess { res ->
-                    val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
-                    val data =
-                        res.contents
-                            ?.twoColumnBrowseResultsRenderer
-                            ?.secondaryContents
-                            ?.sectionListRenderer
-                            ?.contents
-                            ?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer
-                            ?.contents
-                    data?.let { listContent.addAll(it) }
-                    // Follow the track shelf's own continuation, as the playlist screen does. The
-                    // section list's token leads to a carousel of other playlists, not to the next
-                    // tracks, so every track past the first page (100) was left without a setVideoId.
-                    var continueParam = res.getPlaylistContinuation()
-                    // A token seen twice would loop forever.
-                    val seenContinuations = mutableSetOf<String>()
-                    while (continueParam != null && seenContinuations.add(continueParam)) {
-                        youTube
-                            .customQuery(
-                                "",
-                                continuation = continueParam,
-                                setLogin = true,
-                            ).onSuccess { values ->
-                                values.playlistContinuationContents()?.let { listContent.addAll(it) }
-                                continueParam = values.getPlaylistContinuation()
-                            }.onFailure { continueParam = null }
-                    }
-                    if (listContent.isEmpty()) {
-                        emit(LocalResource.Error("Can't get setVideoId"))
-                    }
-                    val parsed = parseSetVideoId(ytPlaylistId, listContent)
-                    if (parsed.isEmpty()) {
-                        emit(LocalResource.Error("Can't get setVideoId"))
-                    }
-                    parsed.forEach { setVideoId ->
-                        localDataSource.insertSetVideoId(setVideoId)
-                    }
-                    localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(
-                        localPlaylistId,
-                        Synced,
-                    )
-                    emit(LocalResource.Success(successMessage))
-                }.onFailure {
-                    emit(LocalResource.Error("Can't get setVideoId"))
-                }
-        }.flowOn(
-            Dispatchers.IO,
-        )
-
     /**
-     * Sync local playlist to YouTube playlist
-     * return youtubePlaylistId
-     * @param playlistId
-     * @return Flow<LocalResource<String>>
+     * "Move to YouTube Music": the playlist goes onto the account with its tracks and a cover the
+     * user picked, then the copy on the phone goes. Answers the new playlist's id.
      */
-    override fun syncLocalPlaylistToYouTubePlaylist(
-        playlistId: Long,
-        successMessage: String,
-        errorMessage: String,
-    ) = flow<LocalResource<String>> {
-        emit(LocalResource.Loading())
-        val playlist = localDataSource.getLocalPlaylist(playlistId) ?: return@flow
-        val res =
-            youTube.createPlaylist(
-                playlist.title,
-                playlist.tracks,
-            )
-        val value = res.getOrNull()
-        if (res.isSuccess && value != null) {
-            val ytId = value.playlistId
-            Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: $ytId")
-            youTube
-                .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
-                .onSuccess { list ->
-                    Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: onSuccess song ${list.map { it.first.title }}")
-                    Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: onSuccess setVideoId ${list.map { it.second }}")
-                    list.forEach { new ->
-                        localDataSource.insertSong(new.first.toTrack().toSongEntity())
-                        localDataSource.insertSetVideoId(
-                            SetVideoIdEntity(
-                                videoId = new.first.id,
-                                setVideoId = new.second,
-                                youtubePlaylistId = ytId,
-                            ),
-                        )
-                    }
-                    if (list.isEmpty()) Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: SetVideoIds Empty list")
-                    localDataSource.updateLocalPlaylistYouTubePlaylistId(playlistId, ytId)
-                    localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(playlistId, Synced)
-                    // Carry a cover the user picked over to the new YouTube playlist. Without this
-                    // the playlist arrives wearing YouTube's own four-song collage, which is what
-                    // the user was trying to replace in the first place.
-                    //
-                    // The returned reason is deliberately dropped HERE and only logged: the sync
-                    // itself has already succeeded, and reporting a cover problem as a sync error
-                    // would tell the user the playlist did not sync when it did. The other caller,
-                    // where changing the cover IS the whole operation, does surface it.
-                    pushCustomThumbnailToYouTube(playlistId, playlist.thumbnail)
-                    Logger.d(TAG, "syncLocalPlaylistToYouTubePlaylist: $ytId")
-                    emit(LocalResource.Success(ytId))
-                }.onFailure {
-                    emit(LocalResource.Error(it.message ?: errorMessage))
-                }
-        } else {
-            val e = res.exceptionOrNull()
-            e?.printStackTrace()
-            emit(LocalResource.Error(e?.message ?: errorMessage))
+    override suspend fun moveLocalPlaylistToYouTube(id: Long): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val playlist = localDataSource.getLocalPlaylist(id) ?: error("Playlist not found")
+                val ytId = youTube.createPlaylist(playlist.title, playlist.tracks).getOrThrow().playlistId
+                // The cover push reads the YouTube id off the row, so it goes on before the push.
+                localDataSource.updateLocalPlaylistYouTubePlaylistId(id, ytId)
+                pushCustomThumbnailToYouTube(id, playlist.thumbnail)
+                localDataSource.deleteLocalPlaylist(id)
+                ytId
+            }
         }
-    }
 
     /**
      * Mirrors a locally picked cover onto the YouTube playlist backing this local one.
@@ -477,87 +334,6 @@ internal class LocalPlaylistRepositoryImpl(
                 },
             )
     }
-
-    override fun unsyncLocalPlaylist(
-        id: Long,
-        successMessage: String,
-    ) = wrapMessageResource(
-        successMessage = successMessage,
-    ) {
-        localDataSource.unsyncLocalPlaylist(id)
-    }
-
-    override fun updateSyncState(
-        id: Long,
-        syncState: Int,
-        successMessage: String,
-    ) = wrapMessageResource(
-        successMessage = successMessage,
-    ) {
-        localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
-    }
-
-    override fun updateYouTubePlaylistId(
-        id: Long,
-        youtubePlaylistId: String,
-        successMessage: String,
-    ) = wrapMessageResource(
-        successMessage = successMessage,
-    ) {
-        localDataSource.updateLocalPlaylistYouTubePlaylistId(id, youtubePlaylistId)
-    }
-
-    override fun updateListTrackSynced(id: Long) =
-        flow<Boolean> {
-            val localPlaylist = localDataSource.getLocalPlaylist(id) ?: return@flow
-            val tracks = localPlaylist.tracks ?: emptyList()
-            val currentTracks = tracks.toMutableList()
-            localPlaylist.youtubePlaylistId?.let { ytId ->
-                Logger.d(TAG, "updateListTrackSynced: $ytId")
-                youTube
-                    .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
-                    .onSuccess { list ->
-                        Logger.d(TAG, "updateListTrackSynced: onSuccess ${list.map { it.first.title }}")
-                        val newTrack =
-                            list
-                                .map { it.first }
-                                .toListTrack()
-                                .map { it.videoId }
-                                .toMutableSet()
-                                .subtract(tracks.toMutableSet())
-                        val newTrackList = list.filter { newTrack.contains(it.first.id) }
-                        Logger.d(TAG, "updateListTrackSynced: newTrackList ${newTrackList.map { it.first.title }}")
-                        newTrackList.forEach { new ->
-                            localDataSource.insertSong(new.first.toTrack().toSongEntity())
-                            Logger.i(TAG, "insertSong: ${new.first.toTrack().toSongEntity()}")
-                            localDataSource.insertPairSongLocalPlaylist(
-                                PairSongLocalPlaylist(
-                                    playlistId = id,
-                                    songId = new.first.id,
-                                    position = currentTracks.size,
-                                    inPlaylist = now(),
-                                ),
-                            )
-                            localDataSource.insertSetVideoId(
-                                SetVideoIdEntity(
-                                    videoId = new.first.id,
-                                    setVideoId = new.second,
-                                    youtubePlaylistId = ytId,
-                                ),
-                            )
-                            currentTracks.add(new.first.id)
-                        }
-                        localDataSource.updateLocalPlaylistTracks(currentTracks, id).let {
-                            emit(true)
-                        }
-                    }.onFailure { e ->
-                        Logger.e(TAG, "updateListTrackSynced: onFailure ${e.message}")
-                        e.printStackTrace()
-                        emit(false)
-                    }
-            }
-            emit(false)
-        }
 
     // Update
     override fun addTrackToLocalPlaylist(
