@@ -316,7 +316,6 @@ internal fun ExpressiveArtworkCardPage(
                                 .Builder(LocalPlatformContext.current)
                                 .data(artworkUrl)
                                 .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(artworkUrl + "BIGGER")
                                 .crossfade(550)
                                 .build(),
                         contentDescription = "",

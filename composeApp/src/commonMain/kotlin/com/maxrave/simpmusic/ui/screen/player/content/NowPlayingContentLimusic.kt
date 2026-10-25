@@ -239,7 +239,6 @@ private fun CurrentArtwork(
                         .Builder(LocalPlatformContext.current)
                         .data(artworkUrl)
                         .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(artworkUrl + "BIGGER")
                         // A fixed memory key, used as the placeholder too: when a queue reorder
                         // (shuffle) rebuilds the pager page, the cover redraws from memory at once
                         // instead of flashing the placeholder.

@@ -19,6 +19,10 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.Requirements
+import coil3.imageLoader
+import coil3.request.CachePolicy
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.SongEntity
@@ -42,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
@@ -184,6 +189,7 @@ internal class DownloadUtils(
     // Song states waiting for the next batched write.
     private val pending = HashMap<String, Int>()
     private var flushJob: Job? = null
+    private var coversChecked = false
 
     private val _queue = MutableStateFlow(DownloadQueue())
     override val queue: StateFlow<DownloadQueue> = _queue.asStateFlow()
@@ -350,6 +356,8 @@ internal class DownloadUtils(
             dataStoreManager.downloadWifiOnly.distinctUntilChanged().collect {
                 downloadManager.requirements =
                     Requirements(if (it == DataStoreManager.Values.TRUE) Requirements.NETWORK_UNMETERED else Requirements.NETWORK)
+                // Setting the same requirements again reports no change, so check here as well.
+                saveMissingCovers()
             }
         }
         val bySong = states.keys.groupBy { songState(it) }
@@ -371,7 +379,10 @@ internal class DownloadUtils(
                     states[id] = download.state
                     when (download.state) {
                         Download.STATE_COMPLETED -> {
-                            coroutineScope.launch { playerCache.removeResource(id) }
+                            coroutineScope.launch {
+                                playerCache.removeResource(id)
+                                saveCover(songRepository.getSongById(id).firstOrNull()?.thumbnails)
+                            }
                             _queue.update { it.copy(done = it.done + 1) }
                         }
                         Download.STATE_FAILED -> {
@@ -409,9 +420,39 @@ internal class DownloadUtils(
                     downloadManager: DownloadManager,
                     requirements: Requirements,
                     notMetRequirements: Int,
-                ) = updateQueue()
+                ) {
+                    updateQueue()
+                    saveMissingCovers()
+                }
             },
         )
+    }
+
+    /**
+     * Once a run, when the network the downloads may use is there: covers of songs downloaded
+     * before covers were saved, or that the image cache has since evicted.
+     */
+    private fun saveMissingCovers() {
+        if (coversChecked || downloadManager.notMetRequirements != 0) return
+        coversChecked = true
+        coroutineScope.launch {
+            songRepository.getDownloadedSongs().first().orEmpty().forEach { saveCover(it.thumbnails) }
+        }
+    }
+
+    /**
+     * The cover into the image disk cache under its plain URL, the key every screen reads, so a
+     * downloaded song has it offline too. The image cache is a 512 MB LRU in the app's cache dir,
+     * so a cover can still be evicted; saveMissingCovers fetches it again on the next run.
+     */
+    private suspend fun saveCover(url: String?) {
+        if (url.isNullOrEmpty()) return
+        val loader = context.imageLoader
+        // The player falls back to hqdefault when a video has no maxresdefault.
+        val fallback = url.replace("maxresdefault", "hqdefault")
+        if (setOf(url, fallback).any { key -> loader.diskCache?.openSnapshot(key)?.use { true } == true }) return
+        val request = ImageRequest.Builder(context).memoryCachePolicy(CachePolicy.DISABLED)
+        if (loader.execute(request.data(url).build()) is ErrorResult && fallback != url) loader.execute(request.data(fallback).build())
     }
 
     private companion object {

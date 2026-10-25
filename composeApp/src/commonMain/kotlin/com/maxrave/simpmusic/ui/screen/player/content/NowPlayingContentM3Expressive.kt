@@ -698,7 +698,6 @@ internal fun ExpressiveTrackInfoRow(
                         .Builder(LocalPlatformContext.current)
                         .data(state.screenData.thumbnailURL)
                         .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(state.screenData.thumbnailURL + "BIGGER")
                         .crossfade(true)
                         .build(),
                 placeholder = rememberHolderPainter(),

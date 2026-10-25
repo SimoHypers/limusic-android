@@ -798,7 +798,6 @@ internal fun BoxScope.AppleMusicArtworkBackdrop(
                     .Builder(LocalPlatformContext.current)
                     .data(backdropUrl)
                     .diskCachePolicy(CachePolicy.ENABLED)
-                    .diskCacheKey(backdropUrl + "BIGGER")
                     .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
@@ -912,7 +911,6 @@ private fun AppleMusicArtworkPage(
                     .Builder(LocalPlatformContext.current)
                     .data(artworkUrl)
                     .diskCachePolicy(CachePolicy.ENABLED)
-                    .diskCacheKey(artworkUrl + "BIGGER")
                     .crossfade(550)
                     .build()
             val coverAlpha = if (pageShowsFullscreen) 0f else 1f - clipAlpha
