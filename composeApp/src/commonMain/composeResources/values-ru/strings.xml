@@ -24,7 +24,6 @@
     <string name="favorite">Избранное</string>
     <string name="followed">Подписки</string>
     <string name="most_played">Самые популярные</string>
-    <string name="no_favorite_playlists">Нет избранных плейлистов</string>
     <string name="no_playlists_downloaded">Нет скаченных плейлистов</string>
     <string name="your_playlists">Ваши локальные плейлисты</string>
     <string name="no_playlists_added">Плейлисты не добавлены</string>

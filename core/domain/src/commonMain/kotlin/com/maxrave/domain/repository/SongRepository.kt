@@ -131,6 +131,9 @@ interface SongRepository {
 
     fun getSongInfo(videoId: String): Flow<SongInfoEntity?>
 
+    /** One page of Library ▸ Songs, or the page after [continuation]; null when YouTube refused. */
+    suspend fun getLibrarySongs(continuation: String?): Pair<List<Track>, String?>?
+
     /** Signed in, copy YouTube's like for [videoId] onto the local row the hearts read. */
     suspend fun refreshLikeFromYouTube(videoId: String)
 

@@ -15,7 +15,6 @@
     <string name="favorite">Afegir a preferits</string>
     <string name="followed">Seguits</string>
     <string name="most_played">Més reproduïdes</string>
-    <string name="no_favorite_playlists">No hi ha llistes de reproducció preferides</string>
     <string name="no_playlists_downloaded">No s'ha baixat cap llista de reproducció</string>
     <string name="your_playlists">Les vostres llistes de reproducció locals</string>
     <string name="no_playlists_added">No s'han afegit llistes de reproducció</string>

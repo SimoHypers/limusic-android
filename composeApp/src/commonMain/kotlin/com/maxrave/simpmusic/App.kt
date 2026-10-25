@@ -213,11 +213,6 @@ fun App(
                     }
                 Logger.d("MainActivity", "simpmusic.org deep link, appPath: $appPath")
                 // A path added to the when below must also go into APP_LINK_PATHS in AppLinks.kt.
-                // Some screens exist only while signed in to YouTube; see isAppLinkAvailable. Read
-                // before setIntent(null): clearing the intent changes this effect's key, and the next
-                // frame cancels the effect wherever it is suspended, which would lose a navigation
-                // waiting on this read.
-                val youTubeLoggedIn = viewModel.getYouTubeLoggedIn().first() == TRUE
                 viewModel.setIntent(null)
                 when (appPath) {
                     "watch" -> {
@@ -277,7 +272,7 @@ fun App(
                             // simpmusic://library?tab=chart → the Library tab on one of its chips,
                             // named as LibraryChipType stores them.
                             val tab = libraryTabOf(data)
-                            if (!isAppLinkAvailable(appPath, tab, youTubeLoggedIn)) {
+                            if (!isAppLinkAvailable(appPath)) {
                                 viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                             } else {
                                 viewModel.requestLibraryTab(tab)

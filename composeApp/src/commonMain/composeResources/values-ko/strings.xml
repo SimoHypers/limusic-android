@@ -15,7 +15,6 @@
     <string name="favorite">즐겨찾기</string>
     <string name="followed">팔로우됨</string>
     <string name="most_played">가장 많이 재생한 노래</string>
-    <string name="no_favorite_playlists">즐겨 찾은 재생 목록 없음</string>
     <string name="no_playlists_downloaded">저장한 재생 목록 없음</string>
     <string name="your_playlists">내 로컬 재생 목록</string>
     <string name="no_playlists_added">추가된 재생 목록 없음</string>

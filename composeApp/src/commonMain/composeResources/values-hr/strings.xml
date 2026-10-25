@@ -15,7 +15,6 @@
     <string name="favorite">Omiljen</string>
     <string name="followed">Pratim</string>
     <string name="most_played">Najviše poslušano</string>
-    <string name="no_favorite_playlists">Nema omiljenih popisa za reprodukciju</string>
     <string name="no_playlists_downloaded">Nema preuzetih popisa za reprodukciju</string>
     <string name="your_playlists">Vaši lokalni popisi za reprodukciju</string>
     <string name="no_playlists_added">Nema dodanih popisa za reprodukciju</string>

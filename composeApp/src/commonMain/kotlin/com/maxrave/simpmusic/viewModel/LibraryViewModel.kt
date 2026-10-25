@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.common.LibraryChipType
-import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -21,6 +20,11 @@ import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.isRadioPlaylistId
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.type.ArtistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.PlaylistType as QueuePlaylistType
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,8 +43,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import org.jetbrains.compose.resources.getString
 import simpmusic.composeapp.generated.resources.Res
@@ -49,6 +51,7 @@ import simpmusic.composeapp.generated.resources.library_synced_none
 import simpmusic.composeapp.generated.resources.library_synced_partial
 import simpmusic.composeapp.generated.resources.library_syncing
 import simpmusic.composeapp.generated.resources.playlist_created
+import simpmusic.composeapp.generated.resources.songs
 import simpmusic.composeapp.generated.resources.youtube_liked_music
 import simpmusic.composeapp.generated.resources.youtube_write_failed
 
@@ -83,9 +86,30 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val youTubeMixForYou: StateFlow<LocalResource<List<PlaylistsResult>>> get() = _youTubeMixForYou.asStateFlow()
 
-    private val _favoritePlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
-        MutableStateFlow(LocalResource.Loading())
-    val favoritePlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _favoritePlaylist.asStateFlow()
+    private val _savedPlaylists: MutableStateFlow<List<PlaylistEntity>> = MutableStateFlow(emptyList())
+
+    /** Other people's playlists saved on this phone that the account's list doesn't carry. */
+    val savedPlaylists: StateFlow<List<PlaylistEntity>> get() = _savedPlaylists.asStateFlow()
+
+    private val _albums: MutableStateFlow<LocalResource<List<PlaylistType>>> = MutableStateFlow(LocalResource.Loading())
+    val albums: StateFlow<LocalResource<List<PlaylistType>>> get() = _albums.asStateFlow()
+
+    private val _artists: MutableStateFlow<LocalResource<List<ArtistType>>> = MutableStateFlow(LocalResource.Loading())
+
+    /** The artists behind the songs in the account's library (signed in only). */
+    val artists: StateFlow<LocalResource<List<ArtistType>>> get() = _artists.asStateFlow()
+
+    private val _subscriptions: MutableStateFlow<LocalResource<List<ArtistType>>> = MutableStateFlow(LocalResource.Loading())
+
+    /** The account's subscriptions plus follows still waiting for Sync; signed out, the phone's follows. */
+    val subscriptions: StateFlow<LocalResource<List<ArtistType>>> get() = _subscriptions.asStateFlow()
+
+    private val _songs: MutableStateFlow<LocalResource<List<Track>>> = MutableStateFlow(LocalResource.Loading())
+
+    /** Library ▸ Songs signed in, the phone's liked songs signed out. */
+    val songs: StateFlow<LocalResource<List<Track>>> get() = _songs.asStateFlow()
+    private var songsContinuation: String? = null
+    private var songsLoadingMore = false
 
     private val _favoritePodcasts: MutableStateFlow<LocalResource<List<PlaylistType>>> =
         MutableStateFlow(LocalResource.Loading())
@@ -196,44 +220,106 @@ class LibraryViewModel(
 
     fun getYouTubeLoggedIn(): Boolean = runBlocking { dataStoreManager.loggedIn.first() } == DataStoreManager.TRUE
 
-    fun getPlaylistFavorite() {
+    private suspend fun signedIn() = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
+
+    /**
+     * What a tab merges in from the phone, like desktop's `mergeSaved`: signed out the phone's own
+     * saves are the whole library; signed in only those still waiting for Sync, because the
+     * account's list is the truth for the rest.
+     */
+    private suspend fun <T> phoneSaves(
+        all: List<T>,
+        key: (T) -> String,
+    ): List<T> {
+        if (!signedIn()) return all
+        val unsynced = commonRepository.unsyncedLibrary().first()
+        return all.filter { key(it) in unsynced }
+    }
+
+    fun getSavedPlaylists() {
         viewModelScope.launch {
-            albumRepository.getLikedAlbums().collect { album ->
-                val temp: MutableList<PlaylistType> = mutableListOf()
-                temp.addAll(album)
-                playlistRepository.getLikedPlaylists().collect { playlist ->
-                    temp.addAll(playlist)
-                    val sortedList =
-                        temp.sortedWith<PlaylistType>(
-                            Comparator { p0, p1 ->
-                                val timeP0: LocalDateTime? =
-                                    when (p0) {
-                                        is AlbumEntity -> p0.favoriteAt ?: p0.inLibrary
-                                        is PlaylistEntity -> p0.favoriteAt ?: p0.inLibrary
-                                        else -> null
-                                    }
-                                val timeP1: LocalDateTime? =
-                                    when (p1) {
-                                        is AlbumEntity -> p1.favoriteAt ?: p1.inLibrary
-                                        is PlaylistEntity -> p1.favoriteAt ?: p1.inLibrary
-                                        else -> null
-                                    }
-                                if (timeP0 == null || timeP1 == null) {
-                                    return@Comparator if (timeP0 == null && timeP1 == null) {
-                                        0
-                                    } else if (timeP0 == null) {
-                                        -1
-                                    } else {
-                                        1
-                                    }
-                                }
-                                timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
-                            },
-                        )
-                    _favoritePlaylist.value = LocalResource.Success(sortedList)
-                }
-            }
+            val liked =
+                playlistRepository
+                    .getLikedPlaylists()
+                    .first()
+                    .filter { it.id.removePrefix("VL") != "LM" && !it.id.isRadioPlaylistId() }
+            _savedPlaylists.value = phoneSaves(liked) { "playlist:${it.id.removePrefix("VL")}" }
         }
+    }
+
+    fun getAlbums() {
+        _albums.value = LocalResource.Loading()
+        viewModelScope.launch {
+            val youTube = if (signedIn()) albumRepository.getLibraryAlbums() else null
+            val listed = youTube.orEmpty().mapTo(HashSet()) { it.browseId }
+            val local = phoneSaves(albumRepository.getLikedAlbums().first()) { "album:${it.browseId}" }
+            _albums.value = LocalResource.Success(local.filter { it.browseId !in listed } + youTube.orEmpty())
+        }
+    }
+
+    fun getArtists() {
+        _subscriptions.value = LocalResource.Loading()
+        viewModelScope.launch {
+            val followed = artistRepository.getFollowedArtists().first()
+            if (!signedIn()) {
+                _subscriptions.value = LocalResource.Success(followed)
+                _artists.value = LocalResource.Success(emptyList())
+                return@launch
+            }
+            val youTube = artistRepository.getLibraryArtists(subscriptions = true)
+            val listed = youTube.orEmpty().mapTo(HashSet()) { it.browseId }
+            // The account could not be asked: the phone's follows are the best answer there is.
+            val local = if (youTube == null) followed else phoneSaves(followed) { "artist:${it.channelId}" }
+            _subscriptions.value = LocalResource.Success(local.filter { it.channelId !in listed } + youTube.orEmpty())
+            _artists.value = LocalResource.Success(artistRepository.getLibraryArtists(subscriptions = false).orEmpty())
+        }
+    }
+
+    fun getSongs() {
+        _songs.value = LocalResource.Loading()
+        songsContinuation = null
+        viewModelScope.launch {
+            if (!signedIn()) {
+                _songs.value = LocalResource.Success(songRepository.getLikedSongs().first().map { it.toTrack() })
+                return@launch
+            }
+            val page = songRepository.getLibrarySongs(null)
+            songsContinuation = page?.second
+            _songs.value = page?.let { LocalResource.Success(it.first.distinctBy { track -> track.videoId }) } ?: LocalResource.Error("")
+        }
+    }
+
+    /** The next page of Library ▸ Songs, when the list is scrolled to its end. */
+    fun getMoreSongs() {
+        val token = songsContinuation ?: return
+        if (songsLoadingMore) return
+        songsLoadingMore = true
+        viewModelScope.launch {
+            val page = songRepository.getLibrarySongs(token)
+            if (page != null) {
+                songsContinuation = page.second
+                // Keyed by videoId on screen, so a song two pages both carry must not show twice.
+                _songs.value = LocalResource.Success((_songs.value.data.orEmpty() + page.first).distinctBy { it.videoId })
+            }
+            songsLoadingMore = false
+        }
+    }
+
+    // ponytail: the queue is the songs loaded so far; it does not page further on its own.
+    fun playSong(videoId: String) {
+        val list = _songs.value.data ?: return
+        val track = list.find { it.videoId == videoId } ?: return
+        setQueueData(
+            QueueData.Data(
+                listTracks = ArrayList(list),
+                firstPlayedTrack = track,
+                playlistId = null,
+                playlistName = getString(Res.string.songs),
+                playlistType = QueuePlaylistType.RADIO,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(track, Config.PLAYLIST_CLICK, list.indexOf(track))
     }
 
     fun getFavoritePodcasts() {

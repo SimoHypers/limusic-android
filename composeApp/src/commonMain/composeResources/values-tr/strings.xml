@@ -15,7 +15,6 @@
     <string name="favorite">Favori</string>
     <string name="followed">Takip edilenler</string>
     <string name="most_played">En Çok Oynatılanlar</string>
-    <string name="no_favorite_playlists">Favori oynatma listesi yok</string>
     <string name="no_playlists_downloaded">Oynatma listesi indirilmedi</string>
     <string name="your_playlists">Yerel Oynatma Listeleriniz</string>
     <string name="no_playlists_added">Oynatma listesi eklenmedi</string>

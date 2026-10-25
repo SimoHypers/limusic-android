@@ -6,6 +6,7 @@ import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 
 interface ArtistRepository {
     fun getAllArtists(limit: Int): Flow<List<ArtistEntity>>
@@ -45,6 +46,12 @@ interface ArtistRepository {
         followedStatus: Int,
         subscribeChannelId: String? = null,
     ): Boolean
+
+    /**
+     * The artists behind the songs in your library, or with [subscriptions] the ones you subscribe
+     * to, paged to the end. Null when YouTube could not be asked.
+     */
+    suspend fun getLibraryArtists(subscriptions: Boolean): List<ArtistsResult>?
 
     /** Signed in, copy the artist page's subscription onto the local follow. */
     suspend fun mirrorArtistSubscribed(

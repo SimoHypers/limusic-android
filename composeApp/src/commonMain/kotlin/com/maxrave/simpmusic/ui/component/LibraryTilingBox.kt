@@ -50,6 +50,7 @@ import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.TrendingUp
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.typo
@@ -74,6 +75,8 @@ import simpmusic.composeapp.generated.resources.see_all
 fun LibraryTilingBox(
     navController: NavController,
     overview: LibraryOverview?,
+    signedIn: Boolean,
+    onOpenArtists: () -> Unit,
 ) {
     val open = { type: LibraryDynamicPlaylistType ->
         navController.navigate(LibraryDynamicPlaylistDestination(type = type.toStringParams()))
@@ -87,10 +90,13 @@ fun LibraryTilingBox(
             QuickTile(
                 icon = SimpIcons.Favorite,
                 title = stringResource(Res.string.liked_songs),
-                countText = songs(overview?.favorite?.count),
+                // Signed in this is YouTube's Liked Music, which the phone's count doesn't know.
+                countText = if (signedIn) null else songs(overview?.favorite?.count),
                 cover = overview?.favorite?.thumbnails?.firstOrNull(),
                 modifier = Modifier.weight(1f),
-            ) { open(LibraryDynamicPlaylistType.Favorite) }
+            ) {
+                if (signedIn) navController.navigate(PlaylistDestination("LM")) else open(LibraryDynamicPlaylistType.Favorite)
+            }
             QuickTile(
                 icon = SimpIcons.DownloadForOffline,
                 title = stringResource(Res.string.library_downloads),
@@ -110,10 +116,13 @@ fun LibraryTilingBox(
             QuickTile(
                 icon = SimpIcons.PeopleAlt,
                 title = stringResource(Res.string.artists),
-                countText = overview?.followed?.count?.let { pluralStringResource(Res.plurals.library_followed_count, it, it) },
+                // Signed in the tab lists the account's subscriptions, which the phone's count doesn't know.
+                countText =
+                    if (signedIn) null else overview?.followed?.count?.let { pluralStringResource(Res.plurals.library_followed_count, it, it) },
                 cover = overview?.followed?.thumbnails?.firstOrNull(),
                 modifier = Modifier.weight(1f),
-            ) { open(LibraryDynamicPlaylistType.Followed) }
+                onClick = onOpenArtists,
+            )
         }
     }
 }

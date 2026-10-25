@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
@@ -86,6 +87,8 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.podcasts
+import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.add
 import simpmusic.composeapp.generated.resources.add_shortcut
 import simpmusic.composeapp.generated.resources.album
@@ -93,7 +96,6 @@ import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.library_downloads
 import simpmusic.composeapp.generated.resources.library_followed_count
-import simpmusic.composeapp.generated.resources.library_saved
 import simpmusic.composeapp.generated.resources.liked_songs
 import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.most_played
@@ -379,19 +381,23 @@ private fun ShortcutPicker(
     val loggedIn by library.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val local by library.yourLocalPlaylist.collectAsStateWithLifecycle()
     val youTube by library.youTubePlaylist.collectAsStateWithLifecycle()
-    val saved by library.favoritePlaylist.collectAsStateWithLifecycle()
+    val saved by library.savedPlaylists.collectAsStateWithLifecycle()
+    val albums by library.albums.collectAsStateWithLifecycle()
     val podcasts by library.favoritePodcasts.collectAsStateWithLifecycle()
     LaunchedEffect(loggedIn) {
         library.getLocalPlaylist()
-        library.getPlaylistFavorite()
+        library.getSavedPlaylists()
+        library.getAlbums()
         library.getFavoritePodcasts()
         if (loggedIn && youTube.data.isNullOrEmpty()) library.getYouTubePlaylist()
     }
     val groups =
         listOf(
             Res.string.library to Collections.map { it.toShortcut() },
-            Res.string.playlists to (local.data.orEmpty() + if (loggedIn) youTube.data.orEmpty() else emptyList()).mapNotNull { it.toShortcut() },
-            Res.string.library_saved to (saved.data.orEmpty() + podcasts.data.orEmpty()).mapNotNull { it.toShortcut() },
+            Res.string.playlists to
+                (local.data.orEmpty() + saved + if (loggedIn) youTube.data.orEmpty() else emptyList()).mapNotNull { it.toShortcut() },
+            Res.string.albums to albums.data.orEmpty().mapNotNull { it.toShortcut() },
+            Res.string.podcasts to podcasts.data.orEmpty().mapNotNull { it.toShortcut() },
         ).filter { it.second.isNotEmpty() }
     val full = shortcuts.size >= Shortcut.MAX
 
@@ -504,6 +510,14 @@ private fun PlaylistType.toShortcut(): Shortcut? =
         is PlaylistsResult -> Shortcut(Shortcut.Kind.OWN_PLAYLIST, browseId, title, author, thumbnails.lastOrNull()?.url)
         is AlbumEntity ->
             Shortcut(Shortcut.Kind.ALBUM, browseId, title, artistName?.connectArtists() ?: stringResource(Res.string.album), thumbnails)
+        is AlbumsResult ->
+            Shortcut(
+                Shortcut.Kind.ALBUM,
+                browseId,
+                title,
+                artists.joinToString { it.name }.ifEmpty { stringResource(Res.string.album) },
+                thumbnails.lastOrNull()?.url,
+            )
         is PlaylistEntity -> Shortcut(Shortcut.Kind.PLAYLIST, id, title, author ?: stringResource(Res.string.playlist), thumbnails)
         is PodcastsEntity -> Shortcut(Shortcut.Kind.PODCAST, podcastId, title, authorName, thumbnail)
         else -> null

@@ -21,7 +21,6 @@
     <string name="favorite">Favorito</string>
     <string name="followed">Seguido</string>
     <string name="most_played">Más reproducidas</string>
-    <string name="no_favorite_playlists">No hay listas de reproducción favoritas</string>
     <string name="no_playlists_downloaded">No hay listas de reproducción descargadas</string>
     <string name="your_playlists">Tus listas de reproducción locales</string>
     <string name="no_playlists_added">No hay listas de reproducción añadidas</string>

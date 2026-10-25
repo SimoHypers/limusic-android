@@ -21,7 +21,6 @@
     <string name="favorite">お気に入り</string>
     <string name="followed">フォロー中</string>
     <string name="most_played">最も再生した順</string>
-    <string name="no_favorite_playlists">お気に入りの再生リストなし</string>
     <string name="no_playlists_downloaded">ダウンロード済みの再生リストなし</string>
     <string name="your_playlists">端末内の再生リスト</string>
     <string name="no_playlists_added">再生リストなし</string>

@@ -15,7 +15,6 @@
     <string name="favorite">Suosikki</string>
     <string name="followed">Seuratut</string>
     <string name="most_played">Toistetuimmat</string>
-    <string name="no_favorite_playlists">Ei suosikkisoittolistoja</string>
     <string name="no_playlists_downloaded">Ei ladattuja soittolistoja</string>
     <string name="your_playlists">Paikalliset soittolistat</string>
     <string name="no_playlists_added">Ei lisättyjä soittolistoja</string>

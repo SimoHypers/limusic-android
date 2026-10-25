@@ -73,14 +73,15 @@ import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.Add
-import com.maxrave.simpmusic.ui.icon.AutoAwesome
-import com.maxrave.simpmusic.ui.icon.Bookmark
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.GridView
 import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Podcasts
 import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.Album
+import com.maxrave.simpmusic.ui.icon.PeopleAlt
+import com.maxrave.simpmusic.ui.icon.LibraryMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
@@ -97,15 +98,15 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.no_saved_albums
+import simpmusic.composeapp.generated.resources.songs
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.all
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.library_downloads
-import simpmusic.composeapp.generated.resources.library_mixes
-import simpmusic.composeapp.generated.resources.library_saved
 import simpmusic.composeapp.generated.resources.library_sync_to_youtube
-import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
-import simpmusic.composeapp.generated.resources.no_mixes_found
 import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlists
@@ -126,7 +127,11 @@ fun LibraryScreen(
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
-    val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
+    val savedPlaylists by viewModel.savedPlaylists.collectAsStateWithLifecycle()
+    val albums by viewModel.albums.collectAsStateWithLifecycle()
+    val artists by viewModel.artists.collectAsStateWithLifecycle()
+    val subscriptions by viewModel.subscriptions.collectAsStateWithLifecycle()
+    val songs by viewModel.songs.collectAsStateWithLifecycle()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
@@ -176,33 +181,25 @@ fun LibraryScreen(
     val createdPlaylists by sharedViewModel.createdPlaylists.collectAsStateWithLifecycle()
     // Local first, then the account's: the shelf on All and the Playlists grid show both. A local
     // playlist synced back when Sync kept two copies shows once, as its YouTube one, and one just
-    // made on YouTube shows until YouTube's own list catches up.
+    // made on YouTube shows until YouTube's own list catches up. Saved playlists the account's
+    // list doesn't carry (saved signed out, waiting for Sync) sit in front of it, as on desktop.
     val allPlaylists: List<PlaylistType> =
-        remember(yourLocalPlaylist, youTubePlaylist, createdPlaylists, loggedIn) {
+        remember(yourLocalPlaylist, youTubePlaylist, createdPlaylists, savedPlaylists, loggedIn) {
             val youTube = if (loggedIn) youTubePlaylist.data.orEmpty() else emptyList()
-            val listed = youTube.mapTo(HashSet()) { it.browseId }
-            val created = if (loggedIn) createdPlaylists.filter { it.browseId !in listed } else emptyList()
-            yourLocalPlaylist.data.orEmpty().withoutYouTubeTwins(youTube) + created + youTube
+            val listed = youTube.mapTo(HashSet()) { it.browseId.removePrefix("VL") }
+            val created = if (loggedIn) createdPlaylists.filter { it.browseId.removePrefix("VL") !in listed } else emptyList()
+            val saved = savedPlaylists.filter { it.id.removePrefix("VL") !in listed }
+            yourLocalPlaylist.data.orEmpty().withoutYouTubeTwins(youTube) + created + saved + youTube
         }
     val playlistsLoading = yourLocalPlaylist is LocalResource.Loading || (loggedIn && youTubePlaylist is LocalResource.Loading)
-    val mixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
     val loadPlaylists = { force: Boolean ->
         viewModel.getLocalPlaylist()
+        viewModel.getSavedPlaylists()
         if (loggedIn && (force || youTubePlaylist.data.isNullOrEmpty())) viewModel.getYouTubePlaylist()
     }
 
     LaunchedEffect(currentFilter, loggedIn) {
         when (currentFilter) {
-            // The account's playlists joined the Playlists chip. A saved choice or a link asking
-            // for the old chip lands there instead.
-            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> {
-                viewModel.setCurrentScreen(LibraryChipType.LOCAL_PLAYLIST)
-            }
-
-            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
-                if (loggedIn && mixForYou.data.isNullOrEmpty()) viewModel.getYouTubeMixedForYou()
-            }
-
             LibraryChipType.YOUR_LIBRARY -> {
                 viewModel.getRecentlyAdded()
                 loadPlaylists(false)
@@ -212,8 +209,17 @@ fun LibraryScreen(
                 loadPlaylists(false)
             }
 
-            LibraryChipType.FAVORITE_PLAYLIST -> {
-                viewModel.getPlaylistFavorite()
+            // Once per visit, not per chip switch: each is a walk through the account's library.
+            LibraryChipType.ALBUMS -> {
+                if (albums.data == null) viewModel.getAlbums()
+            }
+
+            LibraryChipType.ARTISTS -> {
+                if (subscriptions.data == null) viewModel.getArtists()
+            }
+
+            LibraryChipType.SONGS -> {
+                if (songs.data == null) viewModel.getSongs()
             }
 
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
@@ -269,7 +275,12 @@ fun LibraryScreen(
                         state = state,
                     ) {
                         item {
-                            LibraryTilingBox(navController, libraryOverview)
+                            LibraryTilingBox(
+                                navController,
+                                libraryOverview,
+                                signedIn = loggedIn,
+                                onOpenArtists = { viewModel.setCurrentScreen(LibraryChipType.ARTISTS) },
+                            )
                         }
                         item {
                             LibrarySectionHeader(
@@ -296,21 +307,6 @@ fun LibraryScreen(
                 }
             }
 
-            // Nothing to draw: the effect above sends this filter on to Playlists.
-            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> Unit
-
-            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
-                GridLibraryPlaylist(
-                    navController,
-                    innerPadding.copy(top = topAppBarHeight),
-                    mixForYou,
-                    emptyText = Res.string.no_mixes_found,
-                    onScrolling = onScrolling,
-                ) {
-                    viewModel.getYouTubeMixedForYou()
-                }
-            }
-
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -326,16 +322,41 @@ fun LibraryScreen(
                 }
             }
 
-            LibraryChipType.FAVORITE_PLAYLIST -> {
+            LibraryChipType.ALBUMS -> {
                 GridLibraryPlaylist(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
-                    favoritePlaylist,
-                    emptyText = Res.string.no_favorite_playlists,
+                    albums,
+                    emptyText = Res.string.no_saved_albums,
                     onScrolling = onScrolling,
                 ) {
-                    viewModel.getPlaylistFavorite()
+                    viewModel.getAlbums()
                 }
+            }
+
+            LibraryChipType.ARTISTS -> {
+                LibraryArtistsTab(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    signedIn = loggedIn,
+                    artists = artists,
+                    subscriptions = subscriptions,
+                    onScrolling = onScrolling,
+                    onReload = viewModel::getArtists,
+                )
+            }
+
+            LibraryChipType.SONGS -> {
+                LibrarySongsTab(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    songs = songs,
+                    playingVideoId = nowPlaying,
+                    onPlay = viewModel::playSong,
+                    onLoadMore = viewModel::getMoreSongs,
+                    onScrolling = onScrolling,
+                    onReload = viewModel::getSongs,
+                )
             }
 
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
@@ -454,10 +475,6 @@ fun LibraryScreen(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             LibraryChips.forEach { (type, icon, label) ->
-                // Mixes come from the signed-in YouTube account.
-                if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU && !loggedIn) {
-                    return@forEach
-                }
                 Chip(
                     isAnimated = false,
                     isSelected = type == currentFilter,
@@ -524,8 +541,9 @@ private val LibraryChips =
     listOf(
         Triple(LibraryChipType.YOUR_LIBRARY, SimpIcons.GridView, Res.string.all),
         Triple(LibraryChipType.LOCAL_PLAYLIST, SimpIcons.QueueMusic, Res.string.playlists),
-        Triple(LibraryChipType.YOUTUBE_MIX_FOR_YOU, SimpIcons.AutoAwesome, Res.string.library_mixes),
-        Triple(LibraryChipType.FAVORITE_PLAYLIST, SimpIcons.Bookmark, Res.string.library_saved),
+        Triple(LibraryChipType.ALBUMS, SimpIcons.Album, Res.string.albums),
+        Triple(LibraryChipType.ARTISTS, SimpIcons.PeopleAlt, Res.string.artists),
+        Triple(LibraryChipType.SONGS, SimpIcons.LibraryMusic, Res.string.songs),
         Triple(LibraryChipType.DOWNLOADED_PLAYLIST, SimpIcons.DownloadForOffline, Res.string.library_downloads),
         Triple(LibraryChipType.FAVORITE_PODCAST, SimpIcons.Podcasts, Res.string.podcasts),
     )

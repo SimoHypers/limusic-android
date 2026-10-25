@@ -15,7 +15,6 @@
     <string name="favorite">مفضل</string>
     <string name="followed">متابِع</string>
     <string name="most_played">الأكثر تشغيلًا</string>
-    <string name="no_favorite_playlists">لا توجد قوائم تشغيل مفضلة</string>
     <string name="no_playlists_downloaded">لم يتم تنزيل قوائم تشغيل</string>
     <string name="your_playlists">قوائمك للتشغيل المحلية</string>
     <string name="no_playlists_added">لم يتم إضافة قوائم تشغيل</string>

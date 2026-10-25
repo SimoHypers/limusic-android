@@ -21,6 +21,7 @@ kotlin {
         namespace = "com.maxrave.kotlinytmusicscraper"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     dependencies {

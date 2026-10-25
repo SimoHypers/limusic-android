@@ -81,6 +81,11 @@ internal class AlbumRepositoryImpl(
             true
         }
 
+    override suspend fun getLibraryAlbums(): List<AlbumsResult>? =
+        withContext(Dispatchers.IO) {
+            youTube.wholeLibrary(LIBRARY_ALBUMS)?.cards?.mapNotNull { it.toLibraryAlbum() }?.distinctBy { it.browseId }
+        }
+
     override suspend fun mirrorAlbumSaved(
         albumId: String,
         saved: Boolean,

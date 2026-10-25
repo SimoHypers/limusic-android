@@ -15,7 +15,6 @@
     <string name="favorite">รายการโปรด</string>
     <string name="followed">กำลังติดตาม</string>
     <string name="most_played">เล่นบ่อยที่สุด</string>
-    <string name="no_favorite_playlists">ยังไม่มีเพลย์ลิสต์โปรด</string>
     <string name="no_playlists_downloaded">ยังไม่มีการดาวน์โหลดเพลย์ลิสต์</string>
     <string name="your_playlists">เพลย์ลิสต์ในอุปกรณ์</string>
     <string name="no_playlists_added">ยังไม่มีการเพิ่มเพลย์ลิสต์</string>

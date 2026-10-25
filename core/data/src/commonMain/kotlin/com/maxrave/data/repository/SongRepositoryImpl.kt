@@ -42,6 +42,7 @@ import kotlinx.coroutines.withContext
 import kotlin.concurrent.Volatile
 import kotlinx.datetime.LocalDateTime
 import org.koin.mp.KoinPlatform.getKoin
+import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 
 private const val TAG = "SongRepositoryImpl"
 
@@ -485,6 +486,15 @@ internal class SongRepositoryImpl(
      * A like still waiting for Sync wins over YouTube's "not liked": the account hasn't heard of it
      * yet. Failures write nothing, and neither does an answer a tap overtook.
      */
+    override suspend fun getLibrarySongs(continuation: String?): Pair<List<Track>, String?>? =
+        withContext(Dispatchers.IO) {
+            val page = youTube.libraryPage(LIBRARY_SONGS, continuation).getOrNull() ?: return@withContext null
+            // The shelf opens with a "Shuffle all" row, which has no video and drops out here.
+            val songs = page.rows.mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }.toListTrack()
+            // A page with nothing on it ends the list even if it carries a token.
+            songs to page.continuation?.takeIf { songs.isNotEmpty() }
+        }
+
     override suspend fun refreshLikeFromYouTube(videoId: String) {
         if (!librarySync.loggedIn() || librarySync.isUnsynced(LibrarySync.song(videoId))) return
         val epoch = likeEpoch

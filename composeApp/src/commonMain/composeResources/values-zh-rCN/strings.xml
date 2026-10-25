@@ -15,7 +15,6 @@
     <string name="favorite">收藏</string>
     <string name="followed">已关注</string>
     <string name="most_played">最常播放</string>
-    <string name="no_favorite_playlists">未收藏歌单</string>
     <string name="no_playlists_downloaded">未下载歌单</string>
     <string name="your_playlists">本地歌单</string>
     <string name="no_playlists_added">未添加歌单</string>

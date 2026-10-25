@@ -15,8 +15,6 @@
     <string name="like">Like</string>
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
-    <string name="library_mixes">Mixes</string>
-    <string name="library_saved">Saved</string>
     <string name="library_downloads">Downloads</string>
     <string name="new_playlist">New playlist</string>
     <string name="see_all">See all</string>
@@ -31,7 +29,6 @@
     <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>
     <string name="most_played">Most Played</string>
-    <string name="no_favorite_playlists">No favorite playlists</string>
     <string name="no_playlists_downloaded">No playlists downloaded</string>
     <string name="your_playlists">Your Local Playlists</string>
     <string name="no_playlists_added">No playlists added</string>
@@ -764,4 +761,11 @@
     <string name="new_playlist_where_device_desc">No account needed, it stays on this phone</string>
     <string name="new_playlist_device_only">It stays on this phone, no account needed. Sign in to make playlists on YouTube Music instead.</string>
     <string name="playlist_created">Created “%1$s”</string>
+    <string name="library_subscriptions">Subscriptions</string>
+    <string name="no_saved_albums">No saved albums yet. Open an album and tap the heart to save it.</string>
+    <string name="no_saved_artists">No artists yet. Follow one from their page to keep them here.</string>
+    <string name="no_library_artists">No artists yet. They show up once you save their songs or albums.</string>
+    <string name="no_subscriptions">No subscriptions yet. Follow an artist from their page to subscribe.</string>
+    <string name="no_library_songs">No songs in your library yet. Like a song and it lands here.</string>
+    <string name="library_load_failed">Couldn’t reach YouTube Music. Pull down to try again.</string>
 </resources>

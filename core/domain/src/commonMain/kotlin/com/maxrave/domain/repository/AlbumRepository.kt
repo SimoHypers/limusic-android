@@ -28,6 +28,9 @@ interface AlbumRepository {
         likeStatus: Int,
     ): Boolean
 
+    /** The account's saved albums, paged to the end; null when YouTube could not be asked. */
+    suspend fun getLibraryAlbums(): List<AlbumsResult>?
+
     /** Signed in, copy what the album page says about the account's library onto the local row. */
     suspend fun mirrorAlbumSaved(
         albumId: String,

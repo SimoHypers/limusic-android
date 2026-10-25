@@ -563,12 +563,13 @@ object MERGING_DATA_TYPE {
     const val VIDEO = "Video"
 }
 
+/** Library's chips, desktop's tabs plus Downloads and Podcasts. */
 enum class LibraryChipType {
     YOUR_LIBRARY,
-    YOUTUBE_MUSIC_PLAYLIST,
-    YOUTUBE_MIX_FOR_YOU,
     LOCAL_PLAYLIST,
-    FAVORITE_PLAYLIST,
+    ALBUMS,
+    ARTISTS,
+    SONGS,
     DOWNLOADED_PLAYLIST,
     FAVORITE_PODCAST,
     ;
@@ -576,10 +577,10 @@ enum class LibraryChipType {
     fun toStringValue(): String =
         when (this) {
             YOUR_LIBRARY -> "your_library"
-            YOUTUBE_MUSIC_PLAYLIST -> "youtube_music_playlist"
-            YOUTUBE_MIX_FOR_YOU -> "youtube_mix_for_you"
             LOCAL_PLAYLIST -> "local_playlist"
-            FAVORITE_PLAYLIST -> "favorite_playlist"
+            ALBUMS -> "albums"
+            ARTISTS -> "artists"
+            SONGS -> "songs"
             DOWNLOADED_PLAYLIST -> "downloaded_playlist"
             FAVORITE_PODCAST -> "favorite_podcast"
         }
@@ -588,10 +589,12 @@ enum class LibraryChipType {
         fun fromStringValue(value: String): LibraryChipType? =
             when (value) {
                 "your_library" -> YOUR_LIBRARY
-                "youtube_music_playlist" -> YOUTUBE_MUSIC_PLAYLIST
-                "youtube_mix_for_you" -> YOUTUBE_MIX_FOR_YOU
-                "local_playlist" -> LOCAL_PLAYLIST
-                "favorite_playlist" -> FAVORITE_PLAYLIST
+                // The old YouTube playlists and Mixes chips, and Saved, which split into
+                // Playlists and Albums: a stored choice or a link naming them lands next door.
+                "local_playlist", "youtube_music_playlist", "youtube_mix_for_you" -> LOCAL_PLAYLIST
+                "albums", "favorite_playlist" -> ALBUMS
+                "artists" -> ARTISTS
+                "songs" -> SONGS
                 "downloaded_playlist" -> DOWNLOADED_PLAYLIST
                 "favorite_podcast" -> FAVORITE_PODCAST
                 else -> null

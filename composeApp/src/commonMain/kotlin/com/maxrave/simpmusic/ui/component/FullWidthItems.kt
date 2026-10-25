@@ -697,6 +697,8 @@ fun PlaylistFullWidthItems(
 @Composable
 fun ArtistFullWidthItems(
     data: ArtistType,
+    // YouTube's own second line ("12 songs", "1.2M subscribers"); "Artists" without one.
+    subtitle: String? = null,
     onClickListener: (() -> Unit)? = null,
     rightView: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -765,7 +767,7 @@ fun ArtistFullWidthItems(
                 )
 
                 Text(
-                    text = stringResource(Res.string.artists),
+                    text = subtitle ?: stringResource(Res.string.artists),
                     style = typo().bodySmall,
                     maxLines = 1,
                     color = subtitleColor,

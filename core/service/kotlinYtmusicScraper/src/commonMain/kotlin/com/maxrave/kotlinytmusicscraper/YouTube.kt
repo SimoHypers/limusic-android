@@ -20,6 +20,8 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.savedToLibrary
+import com.maxrave.kotlinytmusicscraper.parser.LibraryPage
+import com.maxrave.kotlinytmusicscraper.parser.parseLibraryPage
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongInfo
@@ -1839,6 +1841,25 @@ class YouTube {
     suspend fun getLibraryPlaylists() =
         runCatching {
             ytMusic.browse(WEB_REMIX, "FEmusic_liked_playlists", setLogin = true).body<BrowseResponse>()
+        }
+
+    /**
+     * One page of the account's library: `FEmusic_liked_albums`, `FEmusic_library_corpus_track_artists`
+     * (the artists behind your songs), `FEmusic_library_corpus_artists` (subscriptions) or
+     * `FEmusic_liked_videos` (Library ▸ Songs), or the page after [continuation].
+     */
+    suspend fun libraryPage(
+        browseId: String,
+        continuation: String? = null,
+    ): Result<LibraryPage> =
+        runCatching {
+            val response =
+                if (continuation == null) {
+                    ytMusic.browse(WEB_REMIX, browseId, setLogin = true)
+                } else {
+                    ytMusic.nextCtoken(WEB_REMIX, continuation)
+                }
+            parseLibraryPage(response.body<JsonObject>(), ytMusic.normalJson)
         }
 
     suspend fun getMixedForYou() =

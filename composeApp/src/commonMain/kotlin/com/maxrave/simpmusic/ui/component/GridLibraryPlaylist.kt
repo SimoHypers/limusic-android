@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
@@ -207,6 +208,7 @@ fun NavController.openLibraryItem(item: PlaylistType) {
         is LocalPlaylistEntity -> navigate(LocalPlaylistDestination(item.id))
         is PlaylistsResult -> navigate(PlaylistDestination(item.browseId, isYourYouTubePlaylist = true))
         is AlbumEntity -> navigate(AlbumDestination(item.browseId))
+        is AlbumsResult -> navigate(AlbumDestination(item.browseId))
         is PlaylistEntity -> navigate(PlaylistDestination(item.id))
         is PodcastsEntity -> navigate(PodcastDestination(podcastId = item.podcastId))
     }

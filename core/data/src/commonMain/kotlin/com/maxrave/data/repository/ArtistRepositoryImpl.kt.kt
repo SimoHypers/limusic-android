@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 
 internal class ArtistRepositoryImpl(
     private val localDataSource: LocalDataSource,
@@ -106,6 +107,12 @@ internal class ArtistRepositoryImpl(
             }
             if (followedStatus == 0) dropFollowData(channelId)
             true
+        }
+
+    override suspend fun getLibraryArtists(subscriptions: Boolean): List<ArtistsResult>? =
+        withContext(Dispatchers.IO) {
+            val page = youTube.wholeLibrary(if (subscriptions) LIBRARY_SUBSCRIPTIONS else LIBRARY_ARTISTS) ?: return@withContext null
+            (page.rows.mapNotNull { it.toLibraryArtist() } + page.cards.mapNotNull { it.toLibraryArtist() }).distinctBy { it.browseId }
         }
 
     override suspend fun mirrorArtistSubscribed(
