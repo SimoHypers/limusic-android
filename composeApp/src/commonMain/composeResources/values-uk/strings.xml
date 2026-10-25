@@ -320,9 +320,6 @@
     <string name="crossfade_auto">Авто</string>
     <string name="crossfade_dj_mode">DJ-Style Перехід</string>
     <string name="crossfade_dj_mode_description">Застосовуйте низькочастотні та високочастотні фільтри під час кросфейду для плавнішого переходу, подібного до діджейського (подібно до Apple Music Automix).</string>
-    <string name="auto_download_liked_songs">Завантажити пісні, які вам подобаються</string>
-    <string name="auto_download_liked_songs_description">При додаванні пісні до Обраного автоматично завантажує її для відтворення в автономному режимі відповідно до налаштувань якості завантаження. Увімкнення цієї функції також призведе до завантаження пісень, які вам уже сподобалися. Видалення позначки «Сподобалося» ніколи не призводить до видалення композиції.</string>
-    <string name="downloading_liked_songs">Завантаження %1$d улюблених пісень</string>
     <string name="crossfade_skip_album">Залишати альбоми неперервними</string>
     <string name="crossfade_skip_album_description">Пропустити перехід із плавним згасанням між треками одного альбому, щоб альбоми, призначені для відтворення без пауз, і надалі відтворювалися без них. Перехід за межі альбому все одно відбуватиметься із плавним згасанням.</string>
     <string name="preferred_audio_language">Бажана мова аудіо</string>

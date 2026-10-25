@@ -28,6 +28,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +66,7 @@ import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.Downloading
 import com.maxrave.simpmusic.ui.icon.Error
+import com.maxrave.simpmusic.ui.icon.LibraryMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -74,10 +76,15 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.checking_library
 import simpmusic.composeapp.generated.resources.downloaded_songs
 import simpmusic.composeapp.generated.resources.downloading_progress
+import simpmusic.composeapp.generated.resources.downloads_blocked_at
 import simpmusic.composeapp.generated.resources.downloads_missing
 import simpmusic.composeapp.generated.resources.downloads_paused_at
+import simpmusic.composeapp.generated.resources.downloads_waiting_wifi
+import simpmusic.composeapp.generated.resources.keep_library_downloaded
+import simpmusic.composeapp.generated.resources.keep_library_downloaded_description
 import simpmusic.composeapp.generated.resources.library_load_failed
 import simpmusic.composeapp.generated.resources.library_subscriptions
 import simpmusic.composeapp.generated.resources.liked_songs_count
@@ -239,6 +246,9 @@ private fun <T> LibraryList(
 /** The rows above the Downloads grid: what is downloading, the downloaded songs, what failed. */
 @Composable
 fun DownloadsHeader(
+    keepLibrary: Boolean,
+    checkingLibrary: Boolean,
+    onKeepLibrary: (Boolean) -> Unit,
     queue: DownloadQueue,
     songCount: Int,
     bytes: Long,
@@ -251,13 +261,33 @@ fun DownloadsHeader(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        DownloadsRow(
+            icon = SimpIcons.LibraryMusic,
+            title = stringResource(Res.string.keep_library_downloaded),
+            subtitle = stringResource(if (checkingLibrary) Res.string.checking_library else Res.string.keep_library_downloaded_description),
+            subtitleLines = 2,
+            trailing = { Switch(checked = keepLibrary, onCheckedChange = onKeepLibrary) },
+        )
         if (queue.remaining > 0) {
             val total = queue.done + queue.failed + queue.remaining
+            val title =
+                when {
+                    queue.blocked != null -> Res.string.downloads_blocked_at
+                    queue.paused -> Res.string.downloads_paused_at
+                    queue.waitingForWifi -> Res.string.downloads_waiting_wifi
+                    else -> Res.string.downloading_progress
+                }
             DownloadsRow(
                 icon = SimpIcons.Downloading,
-                title = stringResource(if (queue.paused) Res.string.downloads_paused_at else Res.string.downloading_progress, queue.done, total),
+                title = stringResource(title, queue.done, total),
+                subtitle = queue.blocked,
+                subtitleLines = 2,
                 progress = queue.done.toFloat() / total,
-                action = stringResource(if (queue.paused) Res.string.resume else Res.string.pause) to { onPause(!queue.paused) },
+                trailing = {
+                    TextButton(onClick = { onPause(!queue.paused) }) {
+                        Text(stringResource(if (queue.paused) Res.string.resume else Res.string.pause), color = MaterialTheme.colorScheme.primary)
+                    }
+                },
             )
         }
         DownloadsRow(
@@ -271,7 +301,7 @@ fun DownloadsHeader(
             DownloadsRow(
                 icon = SimpIcons.Error,
                 title = pluralStringResource(Res.plurals.downloads_missing, missing, missing),
-                action = stringResource(Res.string.retry) to onRetry,
+                trailing = { TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry), color = MaterialTheme.colorScheme.primary) } },
             )
         }
     }
@@ -287,8 +317,9 @@ private fun DownloadsRow(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
+    subtitleLines: Int = 1,
     progress: Float? = null,
-    action: Pair<String, () -> Unit>? = null,
+    trailing: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val accent = MaterialTheme.colorScheme.primary
@@ -317,7 +348,7 @@ private fun DownloadsRow(
             Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
                 Text(title, style = typo().labelSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (subtitle != null) {
-                    Text(subtitle, style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text(subtitle, style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = subtitleLines)
                 }
                 if (progress != null) {
                     LinearProgressIndicator(
@@ -328,8 +359,8 @@ private fun DownloadsRow(
                     )
                 }
             }
-            if (action != null) {
-                TextButton(onClick = action.second) { Text(action.first, color = accent) }
+            if (trailing != null) {
+                trailing()
             } else if (onClick != null) {
                 Icon(
                     SimpIcons.ArrowForwardIos,

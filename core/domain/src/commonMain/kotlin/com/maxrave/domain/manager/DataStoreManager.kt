@@ -295,15 +295,18 @@ interface DataStoreManager {
     suspend fun setCrossfadeSkipAlbum(enabled: Boolean)
 
     /**
-     * When on, liking a song also queues it for offline download, at the existing download quality.
-     *
-     * Off by default — it spends storage and data without the user asking each time. Only applies
-     * from the moment it is switched on: songs liked earlier are left alone, and unliking never
-     * removes a download that already exists.
+     * Keep library downloaded: the liked songs, library playlists and saved albums stay downloaded,
+     * checked for new songs once a day, and a song liked meanwhile downloads straight away. Turning
+     * it off stops that; nothing already downloaded goes.
      */
-    val autoDownloadLikedSongs: Flow<String>
+    val keepLibraryDownloaded: Flow<String>
 
-    suspend fun setAutoDownloadLikedSongs(enabled: Boolean)
+    suspend fun setKeepLibraryDownloaded(enabled: Boolean)
+
+    /** Downloads wait for an unmetered network (Wi-Fi) while on. Off by default. */
+    val downloadWifiOnly: Flow<String>
+
+    suspend fun setDownloadWifiOnly(enabled: Boolean)
 
     /**
      * Language code (e.g. "vi") of the audio track to prefer on videos that ship several — dubbed

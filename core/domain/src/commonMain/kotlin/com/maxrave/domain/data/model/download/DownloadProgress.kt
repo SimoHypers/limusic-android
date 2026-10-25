@@ -36,10 +36,16 @@ data class CollectionDownload(
     val refused: Int = 0,
 )
 
-/** What the downloader is working through: [done] and [failed] since the queue last ran dry, [remaining] still to go. */
+/**
+ * What the downloader is working through: [done] and [failed] since the queue last ran dry,
+ * [remaining] still to go. [waitingForWifi] while Wi-Fi only holds it back on another network;
+ * [blocked] is what YouTube said when it pushed back on the IP, which paused everything.
+ */
 data class DownloadQueue(
     val done: Int = 0,
     val failed: Int = 0,
     val remaining: Int = 0,
     val paused: Boolean = false,
+    val waitingForWifi: Boolean = false,
+    val blocked: String? = null,
 )

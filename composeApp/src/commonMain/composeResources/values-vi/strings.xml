@@ -318,9 +318,6 @@
     <string name="crossfade_auto">Tự động</string>
     <string name="crossfade_dj_mode">Chuyển tiếp dạng DJ</string>
     <string name="crossfade_dj_mode_description">Áp dụng các bộ lọc thông thấp và thông cao trong quá trình chuyển tiếp mượt mà hơn, tạo hiệu ứng giống DJ (tương tự như tính năng Automix của Apple Music).</string>
-    <string name="auto_download_liked_songs">Tải bài hát bạn đã thích</string>
-    <string name="auto_download_liked_songs_description">Tự động tải xuống bài hát để phát lại ngoại tuyến khi bạn thêm bài hát đó vào Mục yêu thích bằng cách sử dụng cài đặt chất lượng tải xuống của bạn. Bật tính năng này cũng sẽ tải xuống các bài hát bạn đã thích. Việc xóa lượt thích không bao giờ xóa lượt tải xuống.</string>
-    <string name="downloading_liked_songs">Đang tải xuống %1$d bài hát đã thích</string>
     <string name="crossfade_skip_album">Giữ album phát liên tục</string>
     <string name="crossfade_skip_album_description">Bỏ qua chuyển bài mượt mà giữa các bản nhạc trong cùng một album, vì vậy các album có mục đích chạy không có khoảng trống vẫn được thực hiện. Quá trình chuyển đổi ra khỏi album vẫn áp dụng chuyển bài mượt mà nếu bật.</string>
     <string name="preferred_audio_language">Ngôn ngữ âm thanh ưu tiên</string>

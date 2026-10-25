@@ -364,6 +364,9 @@ fun LibraryScreen(
 
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
                 val downloadedIds by viewModel.downloadedIds.collectAsStateWithLifecycle()
+                val checkingLibrary by sharedViewModel.checkingLibrary.collectAsStateWithLifecycle()
+                // The library pass adds playlists and albums: show them once it is done.
+                LaunchedEffect(checkingLibrary) { if (!checkingLibrary) viewModel.getDownloadedPlaylist() }
                 GridLibraryPlaylist(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
@@ -375,7 +378,11 @@ fun LibraryScreen(
                         val queue by viewModel.downloadQueue.collectAsStateWithLifecycle()
                         val bytes by viewModel.downloadedBytes.collectAsStateWithLifecycle()
                         val missing by viewModel.missingDownloads.collectAsStateWithLifecycle()
+                        val keepLibrary by sharedViewModel.keepLibraryDownloaded.collectAsStateWithLifecycle()
                         DownloadsHeader(
+                            keepLibrary = keepLibrary,
+                            checkingLibrary = checkingLibrary,
+                            onKeepLibrary = sharedViewModel::setKeepLibraryDownloaded,
                             queue = queue,
                             songCount = libraryOverview?.downloaded?.count ?: 0,
                             bytes = bytes,

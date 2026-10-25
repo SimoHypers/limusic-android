@@ -28,4 +28,26 @@ object PlaybackRefusals {
     fun clear(videoId: String) = reasons.update { it - videoId }
 
     fun reasonFor(videoId: String): String? = reasons.value[videoId]
+
+    private val _blocked = MutableStateFlow<String?>(null)
+
+    /**
+     * Set when YouTube pushed back on the IP itself (a bot check, a rate limit), with what it said.
+     * Downloads stop on it and ask nothing more until the user resumes them.
+     */
+    val blocked: StateFlow<String?> = _blocked.asStateFlow()
+
+    /** What [blocked] holds for an HTTP 429, which comes without a sentence. */
+    const val RATE_LIMITED = "Too many requests"
+
+    fun block(reason: String) {
+        _blocked.value = reason
+    }
+
+    /** The user resumed: forget the push-back, and the songs it was recorded against. */
+    fun unblock() {
+        val reason = _blocked.value ?: return
+        _blocked.value = null
+        reasons.update { it.filterValues { r -> r != reason } }
+    }
 }

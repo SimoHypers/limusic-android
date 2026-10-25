@@ -276,7 +276,6 @@
     <string name="crossfade_auto">자동</string>
     <string name="crossfade_dj_mode">DJ 스타일 전환</string>
     <string name="crossfade_dj_mode_description">크로스페이드 중에 로우패스 및 하이패스 필터 스윕을 적용하여 더욱 부드럽고 DJ 스타일의 전환 효과를 만드세요 (Apple Music의 Automix와 유사).</string>
-    <string name="auto_download_liked_songs">좋아요한 곡 다운로드</string>
     <string name="backup_in_progress">백업 진행 중</string>
     <string name="restore_in_progress">복원 진행 중</string>
     <string name="backup_downloaded">다운로드한 데이터 백업</string>

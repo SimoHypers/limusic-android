@@ -68,7 +68,6 @@ import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_listening_history_done
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
-import simpmusic.composeapp.generated.resources.downloading_liked_songs
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
@@ -145,8 +144,8 @@ class SettingsViewModel(
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
     private val _crossfadeSkipAlbum = MutableStateFlow<Boolean>(false)
     val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
-    private val _autoDownloadLikedSongs = MutableStateFlow<Boolean>(false)
-    val autoDownloadLikedSongs: StateFlow<Boolean> = _autoDownloadLikedSongs
+    private val _downloadWifiOnly = MutableStateFlow(false)
+    val downloadWifiOnly: StateFlow<Boolean> = _downloadWifiOnly
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
     private val _preferredAudioLanguage = MutableStateFlow("")
@@ -259,7 +258,7 @@ class SettingsViewModel(
         getCrossfadeDuration()
         getCrossfadeDjMode()
         getCrossfadeSkipAlbum()
-        getAutoDownloadLikedSongs()
+        getDownloadWifiOnly()
         getBackupDownloaded()
         getExplicitContentEnabled()
         getDiscordLoggedIn()
@@ -410,28 +409,14 @@ class SettingsViewModel(
         }
     }
 
-    private fun getAutoDownloadLikedSongs() {
+    private fun getDownloadWifiOnly() {
         viewModelScope.launch {
-            dataStoreManager.autoDownloadLikedSongs.collect { enabled ->
-                _autoDownloadLikedSongs.value = enabled == DataStoreManager.TRUE
-            }
+            dataStoreManager.downloadWifiOnly.collect { _downloadWifiOnly.value = it == DataStoreManager.TRUE }
         }
     }
 
-    fun setAutoDownloadLikedSongs(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setAutoDownloadLikedSongs(enabled)
-            // Switching it on also catches up on everything liked before now. Songs already
-            // downloaded are skipped, so toggling it off and on again queues nothing.
-            if (enabled) {
-                val queued = songRepository.downloadAllLikedSongs()
-                if (queued > 0) {
-                    // Not BaseViewModel.getString: that one takes no format arguments and would
-                    // leave the placeholder in the text.
-                    makeToast(formatString(Res.string.downloading_liked_songs, queued))
-                }
-            }
-        }
+    fun setDownloadWifiOnly(enabled: Boolean) {
+        viewModelScope.launch { dataStoreManager.setDownloadWifiOnly(enabled) }
     }
 
     private fun getDiscordLoggedIn() {

@@ -5,7 +5,9 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.NotificationUtil
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
+import android.os.SystemClock
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
@@ -16,9 +18,7 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import coil3.SingletonImageLoader
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
+import androidx.media3.exoplayer.scheduler.Requirements
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.SongEntity
@@ -41,7 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
@@ -67,6 +67,7 @@ internal class DownloadUtils(
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val resolveLock = Mutex()
+    private var lastLookupAt = 0L
 
     private val dataSourceFactory =
         ResolvingDataSource.Factory(
@@ -74,16 +75,17 @@ internal class DownloadUtils(
                 .Factory()
                 .setCache(playerCache)
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(
-                        OkHttpClient
-                            .Builder()
-                            .build(),
+                    ChunkedDataSource.Factory(
+                        OkHttpDataSource.Factory(
+                            OkHttpClient
+                                .Builder()
+                                .build(),
+                        ),
                     ),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             Logger.d("Stream", mediaId)
-            Logger.d("Stream", mediaId.startsWith(MERGING_DATA_TYPE.VIDEO).toString())
             // Already downloaded in full: hand the DataSpec back untouched so the enclosing
             // CacheDataSource reads straight off disk. Safe precisely because the whole track
             // is there — it never needs the upstream, which is the only thing the bare media id
@@ -105,7 +107,9 @@ internal class DownloadUtils(
             // misleading error for what is really "we could not get a stream URL". Fail loudly
             // instead, and let DownloadManager mark the download failed for the true reason.
             // Refused once this run: the downloader's retries would only ask again for the same no.
-            PlaybackRefusals.reasonFor(mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO))?.let {
+            // Pushed back on altogether: ask nothing until the user resumes.
+            PlaybackRefusals.blocked.value?.let { throw java.io.IOException("YouTube pushed back: $it") }
+            PlaybackRefusals.reasonFor(mediaId)?.let {
                 throw java.io.IOException("YouTube refused $mediaId: $it")
             }
             var dataSpecReturn: DataSpec = dataSpec
@@ -113,64 +117,42 @@ internal class DownloadUtils(
             runBlocking(Dispatchers.IO) {
                 // One lookup at a time: three downloads in flight never mean three /player calls at once.
                 resolveLock.withLock {
-                    if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
-                        val id = mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
-                        streamRepository.getNewFormat(id).lastOrNull()?.let {
-                            val videoUrl = it.videoUrl
-                            if (videoUrl != null && it.expiredTime > now()) {
-                                Logger.d("Stream", videoUrl)
-                                Logger.d("Stream", "Video from format")
-                                val is403Url = streamRepository.is403Url(videoUrl).firstOrNull() != false
-                                if (!is403Url) {
-                                    dataSpecReturn = dataSpec.withUri(videoUrl.toUri())
-                                    resolved = true
-                                    return@withLock
-                                }
+                    streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
+                        val audioUrl = it.audioUrl
+                        if (audioUrl != null && it.expiredTime > now()) {
+                            Logger.d("Stream", audioUrl)
+                            Logger.d("Stream", "Audio from format")
+                            val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false
+                            if (!is403Url) {
+                                dataSpecReturn = dataSpec.withUri(audioUrl.toUri())
+                                resolved = true
+                                return@withLock
                             }
                         }
-                        streamRepository
-                            .getStream(
-                                dataStoreManager,
-                                id,
-                                isDownloading = true,
-                                true,
-                            ).lastOrNull()
-                            ?.let {
-                                dataSpecReturn = dataSpec.withUri(it.toUri())
-                                resolved = true
-                            }
-                    } else {
-                        streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
-                            val audioUrl = it.audioUrl
-                            if (audioUrl != null && it.expiredTime > now()) {
-                                Logger.d("Stream", audioUrl)
-                                Logger.d("Stream", "Audio from format")
-                                val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false
-                                if (!is403Url) {
-                                    dataSpecReturn = dataSpec.withUri(audioUrl.toUri())
-                                    resolved = true
-                                    return@withLock
-                                }
-                            }
-                        }
-                        streamRepository
-                            .getStream(
-                                dataStoreManager,
-                                mediaId,
-                                isDownloading = true,
-                                isVideo = false,
-                            ).lastOrNull()
-                            ?.let {
-                                if (it.contains("MPD")) {
-                                    DashManifestParser().parse(
-                                        it.toUri(),
-                                        ByteArrayInputStream(it.toByteArray()),
-                                    )
-                                }
-                                dataSpecReturn = dataSpec.withUri(it.toUri())
-                                resolved = true
-                            }
                     }
+                    // At most one lookup per LOOKUP_GAP_MS however fast the songs come in: a library
+                    // is a thousand of them from the listener's IP.
+                    val wait = lastLookupAt + LOOKUP_GAP_MS - SystemClock.elapsedRealtime()
+                    if (wait > 0) delay(wait)
+                    if (PlaybackRefusals.blocked.value != null) return@withLock
+                    lastLookupAt = SystemClock.elapsedRealtime()
+                    streamRepository
+                        .getStream(
+                            dataStoreManager,
+                            mediaId,
+                            isDownloading = true,
+                            isVideo = false,
+                        ).lastOrNull()
+                        ?.let {
+                            if (it.contains("MPD")) {
+                                DashManifestParser().parse(
+                                    it.toUri(),
+                                    ByteArrayInputStream(it.toByteArray()),
+                                )
+                            }
+                            dataSpecReturn = dataSpec.withUri(it.toUri())
+                            resolved = true
+                        }
                 }
             }
             if (!resolved) {
@@ -196,8 +178,7 @@ internal class DownloadUtils(
             minRetryCount = 3
         }
 
-    // Main thread only, like every DownloadManager callback: request id (video parts carry
-    // MERGING_DATA_TYPE.VIDEO) to its Media3 state.
+    // Main thread only, like every DownloadManager callback: song id to its Media3 state.
     private val states = HashMap<String, Int>()
 
     // Song states waiting for the next batched write.
@@ -207,7 +188,11 @@ internal class DownloadUtils(
     private val _queue = MutableStateFlow(DownloadQueue())
     override val queue: StateFlow<DownloadQueue> = _queue.asStateFlow()
 
-    /** The video stream is fetched only while "play video instead of audio" is on: playback merges it in for nothing else. */
+    /**
+     * Audio only, even while "play video instead of audio" is on: a music video is often ten times
+     * the song, and playback streams it next to the downloaded audio online and plays the audio
+     * alone offline (MergingMediaSourceFactory.isVideoUnreachable).
+     */
     override suspend fun downloadTracks(songs: List<SongEntity>) {
         if (songs.isEmpty()) return
         // A download's state lives on its song row, and a playlist page may not have saved every one.
@@ -219,14 +204,7 @@ internal class DownloadUtils(
                 }
             }
         if (wanted.isEmpty()) return
-        val withVideo = dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == DataStoreManager.Values.TRUE
-        val requests =
-            wanted.flatMap { song ->
-                listOfNotNull(
-                    request(song.videoId, song.title),
-                    if (withVideo && isVideo(song.thumbnails)) request(MERGING_DATA_TYPE.VIDEO + song.videoId, "Video ${song.title}") else null,
-                )
-            }
+        val requests = wanted.map { request(it.videoId, it.title) }
         withContext(Dispatchers.Main) { requests.forEach(downloadManager::addDownload) }
         // Added straight to the manager; the service only has to be up to keep them going in the background.
         DownloadService.start(context, MusicDownloadService::class.java)
@@ -241,33 +219,11 @@ internal class DownloadUtils(
         .setCustomCacheKey(id)
         .build()
 
-    // Videos have wide covers, songs square ones.
-    private suspend fun isVideo(thumbnail: String?): Boolean {
-        if (thumbnail.isNullOrEmpty()) return false
-        val image =
-            SingletonImageLoader
-                .get(context)
-                .execute(
-                    ImageRequest
-                        .Builder(context)
-                        .data(thumbnail)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .build(),
-                ).image ?: return false
-        return image.height != image.width
-    }
-
     override fun removeDownload(videoId: String) {
         DownloadService.sendRemoveDownload(
             context,
             MusicDownloadService::class.java,
             videoId,
-            false,
-        )
-        DownloadService.sendRemoveDownload(
-            context,
-            MusicDownloadService::class.java,
-            MERGING_DATA_TYPE.VIDEO + videoId,
             false,
         )
     }
@@ -276,10 +232,7 @@ internal class DownloadUtils(
         val kept = songRepository.keptVideoIds()
         val released = videoIds.filterNot { it in kept }
         withContext(Dispatchers.Main) {
-            released.forEach {
-                downloadManager.removeDownload(it)
-                downloadManager.removeDownload(MERGING_DATA_TYPE.VIDEO + it)
-            }
+            released.forEach(downloadManager::removeDownload)
         }
     }
 
@@ -287,7 +240,13 @@ internal class DownloadUtils(
         downloadManager.removeAllDownloads()
     }
 
+    // The manager starts every process paused until the service comes up; only the user's Pause
+    // should keep it that way.
+    private var userPaused = false
+
     override fun setPaused(paused: Boolean) {
+        userPaused = paused
+        if (!paused) PlaybackRefusals.unblock()
         if (paused) {
             DownloadService.sendPauseDownloads(context, MusicDownloadService::class.java, false)
         } else {
@@ -295,26 +254,33 @@ internal class DownloadUtils(
         }
     }
 
-    private fun updateQueue() {
-        val remaining =
-            states.count { (id, state) ->
-                !id.startsWith(MERGING_DATA_TYPE.VIDEO) &&
-                    state != Download.STATE_COMPLETED && state != Download.STATE_FAILED && state != Download.STATE_REMOVING
-            }
-        _queue.update { it.copy(remaining = remaining, paused = downloadManager.downloadsPaused) }
-    }
-
-    /** The song's state in [DownloadState] terms, from its audio download and its video part if any. */
-    private fun songState(songId: String): Int {
-        val audio = states[songId] ?: return DownloadState.STATE_NOT_DOWNLOADED
-        val video = states[MERGING_DATA_TYPE.VIDEO + songId]
-        return when {
-            audio == Download.STATE_FAILED || video == Download.STATE_FAILED -> DownloadState.STATE_NOT_DOWNLOADED
-            audio == Download.STATE_COMPLETED && (video == null || video == Download.STATE_COMPLETED) -> DownloadState.STATE_DOWNLOADED
-            audio == Download.STATE_DOWNLOADING || video == Download.STATE_DOWNLOADING -> DownloadState.STATE_DOWNLOADING
-            else -> DownloadState.STATE_PREPARING
+    override fun resumeLeftovers() {
+        if (!userPaused && PlaybackRefusals.blocked.value == null && downloadManager.downloadsPaused && queue.value.remaining > 0) {
+            DownloadService.start(context, MusicDownloadService::class.java)
         }
     }
+
+    private fun updateQueue() {
+        val remaining =
+            states.values.count { it != Download.STATE_COMPLETED && it != Download.STATE_FAILED && it != Download.STATE_REMOVING }
+        _queue.update {
+            it.copy(
+                remaining = remaining,
+                paused = downloadManager.downloadsPaused,
+                waitingForWifi = downloadManager.notMetRequirements != 0,
+                blocked = PlaybackRefusals.blocked.value,
+            )
+        }
+    }
+
+    /** The song's state in [DownloadState] terms. */
+    private fun songState(songId: String): Int =
+        when (states[songId]) {
+            null, Download.STATE_FAILED -> DownloadState.STATE_NOT_DOWNLOADED
+            Download.STATE_COMPLETED -> DownloadState.STATE_DOWNLOADED
+            Download.STATE_DOWNLOADING -> DownloadState.STATE_DOWNLOADING
+            else -> DownloadState.STATE_PREPARING
+        }
 
     /**
      * Collects song states and writes them in batches. A 500-song playlist changes state about
@@ -356,12 +322,37 @@ internal class DownloadUtils(
     }
 
     init {
+        val videos = mutableListOf<String>()
         downloadManager.downloadIndex.getDownloads().use { cursor ->
-            while (cursor.moveToNext()) states[cursor.download.request.id] = cursor.download.state
+            while (cursor.moveToNext()) {
+                val id = cursor.download.request.id
+                if (id.startsWith(MERGING_DATA_TYPE.VIDEO)) videos += id else states[id] = cursor.download.state
+            }
         }
+        // Video parts older builds downloaded next to the audio go, done or queued.
+        videos.forEach(downloadManager::removeDownload)
         updateQueue()
-        val songIds = states.keys.filterNot { it.startsWith(MERGING_DATA_TYPE.VIDEO) }
-        val bySong = songIds.groupBy { songState(it) }
+        mainScope.launch {
+            PlaybackRefusals.blocked.collect { reason ->
+                if (reason != null) {
+                    downloadManager.pauseDownloads()
+                    val text = context.getString(R.string.downloads_blocked, reason)
+                    NotificationUtil.setNotification(
+                        context,
+                        MusicDownloadService.NOTIFICATION_ID + 2,
+                        downloadNotificationHelper.buildDownloadFailedNotification(context, R.drawable.baseline_error_outline_24, null, text),
+                    )
+                }
+                updateQueue()
+            }
+        }
+        mainScope.launch {
+            dataStoreManager.downloadWifiOnly.distinctUntilChanged().collect {
+                downloadManager.requirements =
+                    Requirements(if (it == DataStoreManager.Values.TRUE) Requirements.NETWORK_UNMETERED else Requirements.NETWORK)
+            }
+        }
+        val bySong = states.keys.groupBy { songState(it) }
         coroutineScope.launch {
             songRepository.reconcileDownloads(
                 active = bySong[DownloadState.STATE_PREPARING].orEmpty() + bySong[DownloadState.STATE_DOWNLOADING].orEmpty(),
@@ -376,17 +367,24 @@ internal class DownloadUtils(
                     finalException: Exception?,
                 ) {
                     val id = download.request.id
+                    if (id.startsWith(MERGING_DATA_TYPE.VIDEO)) return
                     states[id] = download.state
-                    val isAudio = !id.startsWith(MERGING_DATA_TYPE.VIDEO)
                     when (download.state) {
                         Download.STATE_COMPLETED -> {
                             coroutineScope.launch { playerCache.removeResource(id) }
-                            if (isAudio) _queue.update { it.copy(done = it.done + 1) }
+                            _queue.update { it.copy(done = it.done + 1) }
                         }
-                        Download.STATE_FAILED -> if (isAudio) _queue.update { it.copy(failed = it.failed + 1) }
+                        Download.STATE_FAILED -> {
+                            _queue.update { it.copy(failed = it.failed + 1) }
+                            // googlevideo itself saying too many requests.
+                            val rateLimited =
+                                generateSequence(finalException as Throwable?) { it.cause }
+                                    .any { (it as? HttpDataSource.InvalidResponseCodeException)?.responseCode == 429 }
+                            if (rateLimited) PlaybackRefusals.block(PlaybackRefusals.RATE_LIMITED)
+                        }
                     }
                     updateQueue()
-                    write(id.removePrefix(MERGING_DATA_TYPE.VIDEO))
+                    write(id)
                 }
 
                 override fun onDownloadRemoved(
@@ -394,9 +392,10 @@ internal class DownloadUtils(
                     download: Download,
                 ) {
                     val id = download.request.id
+                    if (id.startsWith(MERGING_DATA_TYPE.VIDEO)) return
                     states.remove(id)
                     updateQueue()
-                    write(id.removePrefix(MERGING_DATA_TYPE.VIDEO))
+                    write(id)
                 }
 
                 override fun onIdle(downloadManager: DownloadManager) = notifyFinished()
@@ -405,7 +404,17 @@ internal class DownloadUtils(
                     downloadManager: DownloadManager,
                     downloadsPaused: Boolean,
                 ) = updateQueue()
+
+                override fun onRequirementsStateChanged(
+                    downloadManager: DownloadManager,
+                    requirements: Requirements,
+                    notMetRequirements: Int,
+                ) = updateQueue()
             },
         )
+    }
+
+    private companion object {
+        const val LOOKUP_GAP_MS = 3000L
     }
 }

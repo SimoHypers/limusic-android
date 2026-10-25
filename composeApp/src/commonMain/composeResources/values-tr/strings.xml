@@ -285,7 +285,6 @@
     <string name="crossfade_auto">Oto</string>
     <string name="crossfade_dj_mode">DJ Tarzı Geçiş</string>
     <string name="crossfade_dj_mode_description">Geçiş sırasında daha yumuşak, DJ benzeri bir geçiş için alçak geçiren ve yüksek geçiren filtre taramaları uygulayın (Apple Music Automix'e benzer).</string>
-    <string name="downloading_liked_songs">%1$d beğenilen şarkı indiriliyor</string>
     <string name="backup_in_progress">Yedekleme devam ediyor</string>
     <string name="restore_in_progress">Geri yükleme devam ediyor</string>
     <string name="backup_downloaded">İndirilen verileri yedekleyin</string>

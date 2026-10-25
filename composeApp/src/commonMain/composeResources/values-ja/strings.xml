@@ -318,9 +318,6 @@
     <string name="crossfade_auto">オート</string>
     <string name="crossfade_dj_mode">DJスタイルのトランジション</string>
     <string name="crossfade_dj_mode_description">クロスフェード中にローパス フィルターとハイパス フィルターのスイープを適用して、よりスムーズな DJ のようなトランジションを実現します (Apple Music Automix と同様)。</string>
-    <string name="auto_download_liked_songs">高評価済みの曲をダウンロード</string>
-    <string name="auto_download_liked_songs_description">ダウンロード品質の設定を使用して、お気に入りに追加したときに、オフライン再生用の曲を自動的にダウンロードします。 これをオンにすると、すでに好きな曲もダウンロードできます。似たような曲を削除すると、ダウンロードが削除されることはありません。</string>
-    <string name="downloading_liked_songs">%1$d高評価済みの曲をダウンロード中</string>
     <string name="crossfade_skip_album">アルバム内の曲を途切れずに再生</string>
     <string name="crossfade_skip_album_description">同じアルバム内の曲間ではクロスフェードをスキップし、曲間を空けずに続くよう意図されたアルバムでは、そのまま再生します。アルバムから次の曲への切り替えでは、通常どおりクロスフェードします。</string>
     <string name="preferred_audio_language">優先する音声言語</string>

@@ -321,9 +321,6 @@
     <string name="crossfade_auto">Авто</string>
     <string name="crossfade_dj_mode">DJ-переход</string>
     <string name="crossfade_dj_mode_description">Применять фильтры низких и высоких частот во время кроссфейда для более плавного перехода в стиле DJ (аналогично Automix в Apple Music).</string>
-    <string name="auto_download_liked_songs">Автоматически скачивать понравившиеся песни</string>
-    <string name="auto_download_liked_songs_description">Автоматически загружает песню для воспроизведения в офлайн режиме при добавлении ее в Понравившееся, используя параметры качества загрузки. Включение этой опции также загружает песни, которые уже есть в Понравившемся. Удаление лайка не удаляет загрузку.</string>
-    <string name="downloading_liked_songs">Загрузка %1$d понравившихся песен</string>
     <string name="crossfade_skip_album">Убрать кроссфейд в альбомах</string>
     <string name="crossfade_skip_album_description">Убирает кроссфейд между песнями в альбомах, в которых предусмотрен свой переход. На выходе из альбома кроссфейд сохраняется.</string>
     <string name="preferred_audio_language">Предпочитаемый язык аудио</string>

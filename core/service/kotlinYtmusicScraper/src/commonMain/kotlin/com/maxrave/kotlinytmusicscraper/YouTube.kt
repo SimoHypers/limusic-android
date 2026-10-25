@@ -79,9 +79,11 @@ import com.maxrave.logger.Logger
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.http
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
@@ -2179,4 +2181,11 @@ class YouTube {
 class PlayerRefusedException(
     val status: String,
     val reason: String?,
-) : Exception("$status: $reason")
+) : Exception("$status: $reason") {
+    /** "Sign in to confirm you're not a bot": about the IP, not the song. Age checks also say "Sign in". */
+    val isBotCheck: Boolean get() = reason?.contains("not a bot", ignoreCase = true) == true
+}
+
+/** YouTube answered 429: too many requests from this IP for now. */
+val Throwable.isRateLimit: Boolean
+    get() = (this as? ClientRequestException)?.response?.status == HttpStatusCode.TooManyRequests

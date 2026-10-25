@@ -317,9 +317,6 @@
     <string name="crossfade_auto">自動</string>
     <string name="crossfade_dj_mode">DJ風格過渡</string>
     <string name="crossfade_dj_mode_description">在交叉淡入淡出期間套用低通和高通濾波器掃描，以獲得更平滑、類似 DJ 的過渡效果（類似於 Apple Music Automix）。</string>
-    <string name="auto_download_liked_songs">下載您想要的曲目</string>
-    <string name="auto_download_liked_songs_description">將歌曲新增至收藏夾後，即可自動下載歌曲以供離線播放，下載品質將根據您的設定自動調整。啟用此功能後，您已收藏的歌曲也會自動下載。取消收藏不會刪除已下載的歌曲。</string>
-    <string name="downloading_liked_songs">正在下載%1$d首喜愛的曲子</string>
     <string name="crossfade_skip_album">保持專輯連貫</string>
     <string name="crossfade_skip_album_description">跳過同一張專輯內曲目之間的淡入淡出，因此原本應該無縫播放的專輯仍然保持無縫播放。專輯結束時的過渡仍然會使用淡入淡出效果。</string>
     <string name="preferred_audio_language">偏好的音軌語言</string>

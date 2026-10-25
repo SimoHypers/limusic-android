@@ -56,9 +56,16 @@
     <string name="downloading_progress">Downloading %1$d of %2$d</string>
     <string name="download_progress_short">%1$d of %2$d</string>
     <string name="downloads_paused_at">Paused at %1$d of %2$d</string>
+    <string name="downloads_blocked_at">Paused by YouTube at %1$d of %2$d</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="downloaded_songs">Downloaded songs</string>
+    <string name="downloads_waiting_wifi">Waiting for Wi-Fi at %1$d of %2$d</string>
+    <string name="keep_library_downloaded">Keep library downloaded</string>
+    <string name="keep_library_downloaded_description">Liked songs, playlists and saved albums. New ones download too, checked once a day.</string>
+    <string name="checking_library">Checking your library…</string>
+    <string name="download_wifi_only">Download over Wi-Fi only</string>
+    <string name="download_wifi_only_description">Downloads wait for Wi-Fi or another unmetered network.</string>
     <plurals name="downloads_missing">
         <item quantity="one">%1$d song couldn't download</item>
         <item quantity="other">%1$d songs couldn't download</item>
@@ -397,9 +404,6 @@
     <string name="crossfade_auto">Auto</string>
     <string name="crossfade_dj_mode">DJ-Style Transition</string>
     <string name="crossfade_dj_mode_description">Apply low-pass and high-pass filter sweeps during crossfade for a smoother, DJ-like transition (similar to Apple Music Automix).</string>
-    <string name="auto_download_liked_songs">Download songs you like</string>
-    <string name="auto_download_liked_songs_description">Automatically download a song for offline playback when you add it to Favorites, using your download quality setting. Turning this on also downloads the songs you already liked. Removing a like never deletes a download.</string>
-    <string name="downloading_liked_songs">Downloading %1$d liked songs</string>
     <string name="crossfade_skip_album">Keep albums continuous</string>
     <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="preferred_audio_language">Preferred audio language</string>

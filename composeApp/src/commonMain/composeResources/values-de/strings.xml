@@ -318,9 +318,6 @@
     <string name="crossfade_auto">Automatisch</string>
     <string name="crossfade_dj_mode">Übergang im DJ-Style</string>
     <string name="crossfade_dj_mode_description">Einen Tiefpass- und Hochpassfilter Sweep während des Crossfades für einen DJ-artigen Übergang (ähnlich dem Apple Music Automix) anwenden.</string>
-    <string name="auto_download_liked_songs">Lade Songs herunter, die dir gefallen</string>
-    <string name="auto_download_liked_songs_description">Wenn du einen Titel zu deinen Favoriten hinzufügst, wird er automatisch in der von dir gewählten Download-Qualität für die Offline-Wiedergabe heruntergeladen. Wenn du diese Funktion aktivierst, werden auch die Titel heruntergeladen, die du bereits mit „Gefällt mir“ markiert hast. Das Entfernen eines „Gefällt mir“ führt niemals zum Löschen eines Downloads.</string>
-    <string name="downloading_liked_songs">Lade %1$d Songs herunter</string>
     <string name="crossfade_skip_album">Alben fortlaufend anzeigen</string>
     <string name="crossfade_skip_album_description">Crossfade zwischen Songs desselben Albums wird übersprungen, sodass Alben, die lückenlos abgespielt werden sollen, dies auch weiterhin tun. Der Übergang aus dem Album erfolgt weiterhin mit Crossfade.</string>
     <string name="preferred_audio_language">Bevorzugte Audio-Sprache</string>

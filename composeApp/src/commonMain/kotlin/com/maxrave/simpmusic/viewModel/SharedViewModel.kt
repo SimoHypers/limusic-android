@@ -72,7 +72,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
@@ -814,7 +817,43 @@ class SharedViewModel(
         mediaPlayerHandler.sleepStop()
     }
 
+    private val downloadHandler: DownloadHandler by inject()
+    private val libraryDownloader = LibraryDownloader()
+    private var libraryDownloadJob: Job? = null
+    private val _checkingLibrary = MutableStateFlow(false)
+
+    /** While Keep library downloaded reads the library's lists. */
+    val checkingLibrary: StateFlow<Boolean> = _checkingLibrary.asStateFlow()
+
+    val keepLibraryDownloaded: StateFlow<Boolean> =
+        dataStoreManager.keepLibraryDownloaded
+            .map { it == DataStoreManager.TRUE }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /** On reads the whole library now; off stops the daily check and leaves every download where it is. */
+    fun setKeepLibraryDownloaded(on: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setKeepLibraryDownloaded(on)
+            if (on) syncLibraryDownloads(force = true) else libraryDownloadJob?.cancel()
+        }
+    }
+
+    private fun syncLibraryDownloads(force: Boolean = false) {
+        if (libraryDownloadJob?.isActive == true) return
+        libraryDownloadJob =
+            viewModelScope.launch {
+                _checkingLibrary.value = true
+                try {
+                    libraryDownloader.runIfDue(force)
+                } finally {
+                    _checkingLibrary.value = false
+                }
+            }
+    }
+
     fun checkIsRestoring() {
+        downloadHandler.resumeLeftovers()
+        syncLibraryDownloads()
         viewModelScope.launch {
             val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE).toSet()
             val missing = songRepository.getDownloadedSongs().first().orEmpty().map { it.videoId }.filterNot { it in downloadedCacheKeys }

@@ -235,6 +235,11 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
+        <!-- Restarts downloads held back by a network requirement (Wi-Fi only) once it is met. -->
+        <service
+            android:name="androidx.media3.exoplayer.scheduler.PlatformScheduler$PlatformSchedulerService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name="com.maxrave.media3.service.download.MusicDownloadService"
             android:exported="true"

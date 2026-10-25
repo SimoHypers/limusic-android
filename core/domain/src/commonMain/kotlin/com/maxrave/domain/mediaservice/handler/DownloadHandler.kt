@@ -27,4 +27,7 @@ interface DownloadHandler {
 
     /** A pause lasts until resumed, or until the app's process ends. */
     fun setPaused(paused: Boolean)
+
+    /** Restarts what an earlier run of the app left queued. Call it with the app in front. */
+    fun resumeLeftovers()
 }

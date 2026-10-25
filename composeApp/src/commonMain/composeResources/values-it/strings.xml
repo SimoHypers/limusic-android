@@ -311,9 +311,6 @@
     <string name="crossfade_auto">Automatico</string>
     <string name="crossfade_dj_mode">Transizione in stile DJ</string>
     <string name="crossfade_dj_mode_description">Applica filtri passa-basso e passa-alto durante la dissolvenza incrociata per una transizione più fluida e simile a DJ (simile a Apple Music Automix).</string>
-    <string name="auto_download_liked_songs">Scarica i brani che ti piacciono</string>
-    <string name="auto_download_liked_songs_description">Scarica automaticamente una canzone per la riproduzione offline quando la aggiungi ai Preferiti, utilizzando l'impostazione di qualità del download. Attivando questa opzione si scaricano anche i brani che ti sono già piaciuti. La rimozione di un tipo non elimina mai un download.</string>
-    <string name="downloading_liked_songs">Download di %1$d brani piaciuti</string>
     <string name="backup_in_progress">Duplicazione in corso</string>
     <string name="restore_in_progress">Ripristino in corso</string>
     <string name="backup_downloaded">Copia dei dati scaricati</string>

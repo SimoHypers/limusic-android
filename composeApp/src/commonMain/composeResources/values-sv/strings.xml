@@ -317,9 +317,6 @@
     <string name="crossfade_auto">Automatiskt</string>
     <string name="crossfade_dj_mode">Övergång i DJ-stil</string>
     <string name="crossfade_dj_mode_description">Använd svepande lågpass- och högpassfilter under övertoningen för en mjukare övergång i DJ-stil (liknande Automix i Apple Music).</string>
-    <string name="auto_download_liked_songs">Hämta låtar du gillar</string>
-    <string name="auto_download_liked_songs_description">Hämta automatiskt en låt för offlinelyssning när du lägger till den i Favoriter, med den hämtningskvalitet du har valt. När du aktiverar detta hämtas även låtar som du redan gillar. Om du tar bort en gilla-markering raderas aldrig den hämtade låten.</string>
-    <string name="downloading_liked_songs">Hämtar gillade låtar: %1$d</string>
     <string name="crossfade_skip_album">Spela album utan avbrott</string>
     <string name="crossfade_skip_album_description">Hoppa över övertoningen mellan låtar på samma album, så att album som är avsedda att spelas utan mellanrum fortfarande gör det. Övergången från albumet använder fortfarande övertoning.</string>
     <string name="preferred_audio_language">Föredraget ljudspråk</string>

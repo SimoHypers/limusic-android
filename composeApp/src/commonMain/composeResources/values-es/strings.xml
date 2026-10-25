@@ -316,9 +316,6 @@
     <string name="crossfade_auto">Automático</string>
     <string name="crossfade_dj_mode">Transición estilo DJ</string>
     <string name="crossfade_dj_mode_description">Aplica un filtro de barrido durante el efecto crossfade para una transición más suave (similar al Automix de Apple Music).</string>
-    <string name="auto_download_liked_songs">Descargar canciones que te gustan</string>
-    <string name="auto_download_liked_songs_description">Descargue automáticamente una canción para la reproducción sin conexión cuando la añada a Favoritas, usando su configuración de calidad de descarga. Activar esto también la descarga las canciones que ya te gustaron. Eliminar un favorito nunca borra una descarga.</string>
-    <string name="downloading_liked_songs">Descargando %1$d canciones que me gustan</string>
     <string name="crossfade_skip_album">Mantener álbumes continuos</string>
     <string name="crossfade_skip_album_description">Saltar el cruce entre pistas del mismo álbum, por lo que los álbumes deben funcionar sin lagunas todavía. La transición fuera del álbum todavía cruzada.</string>
     <string name="backup_in_progress">Copia de seguridad en curso</string>

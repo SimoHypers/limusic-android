@@ -1030,15 +1030,28 @@ internal class DataStoreManagerImpl(
     }
 
     // Defaults to FALSE: it spends storage and mobile data on the user's behalf.
-    override val autoDownloadLikedSongs: Flow<String> =
+    override val keepLibraryDownloaded: Flow<String> =
         settingsDataStore.data.map { preferences ->
-            preferences[AUTO_DOWNLOAD_LIKED_SONGS] ?: FALSE
+            preferences[KEEP_LIBRARY_DOWNLOADED] ?: FALSE
         }
 
-    override suspend fun setAutoDownloadLikedSongs(enabled: Boolean) {
+    override suspend fun setKeepLibraryDownloaded(enabled: Boolean) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[AUTO_DOWNLOAD_LIKED_SONGS] = if (enabled) TRUE else FALSE
+                settings[KEEP_LIBRARY_DOWNLOADED] = if (enabled) TRUE else FALSE
+            }
+        }
+    }
+
+    override val downloadWifiOnly: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[DOWNLOAD_WIFI_ONLY] ?: FALSE
+        }
+
+    override suspend fun setDownloadWifiOnly(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[DOWNLOAD_WIFI_ONLY] = if (enabled) TRUE else FALSE
             }
         }
     }
@@ -1249,7 +1262,8 @@ internal class DataStoreManagerImpl(
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         val CROSSFADE_DJ_MODE = stringPreferencesKey("crossfade_dj_mode")
         val CROSSFADE_SKIP_ALBUM = stringPreferencesKey("crossfade_skip_album")
-        val AUTO_DOWNLOAD_LIKED_SONGS = stringPreferencesKey("auto_download_liked_songs")
+        val KEEP_LIBRARY_DOWNLOADED = stringPreferencesKey("keep_library_downloaded")
+        val DOWNLOAD_WIFI_ONLY = stringPreferencesKey("download_wifi_only")
         val LYRICS_PROVIDERS = stringPreferencesKey("lyrics_providers")
 
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")

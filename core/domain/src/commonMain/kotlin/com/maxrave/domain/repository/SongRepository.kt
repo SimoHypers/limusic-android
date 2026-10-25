@@ -63,15 +63,6 @@ interface SongRepository {
     fun getLikedSongsByArtist(channelId: String): Flow<List<SongEntity>>
 
     /**
-     * Queue every liked song that is not already offline, and return how many were queued.
-     *
-     * Used when the user switches auto-download on: liking a song from then on downloads it, and
-     * this catches up on everything they liked before. Songs already downloaded are skipped, so
-     * turning the setting off and on again costs nothing.
-     */
-    suspend fun downloadAllLikedSongs(): Int
-
-    /**
      * Erase the local listening history and drop every song row nothing refers to any more.
      *
      * A song is kept when its id appears anywhere else at all: in an album, a YouTube playlist, a

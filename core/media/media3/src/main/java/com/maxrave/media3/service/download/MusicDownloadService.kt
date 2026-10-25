@@ -1,6 +1,7 @@
 package com.maxrave.media3.service.download
 
 import android.app.Notification
+import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.offline.Download
@@ -26,22 +27,27 @@ internal class MusicDownloadService :
 
     override fun getScheduler(): Scheduler = PlatformScheduler(this, JOB_ID)
 
+    // Progress through the whole queue (Media3's own helper averages the songs in flight, so its
+    // bar refills with every song), and the song downloading under it.
     override fun getForegroundNotification(
         downloads: MutableList<Download>,
         notMetRequirements: Int,
-    ): Notification =
-        (downloadUtil as DownloadUtils).downloadNotificationHelper.buildProgressNotification(
-            this,
-            R.drawable.mono,
-            null,
-            if (downloads.size == 1) {
-                Util.fromUtf8Bytes(downloads[0].request.data)
-            } else {
-                resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size)
-            },
-            downloads,
-            notMetRequirements,
-        )
+    ): Notification {
+        val queue = (downloadUtil as DownloadUtils).queue.value
+        val total = queue.done + queue.failed + queue.remaining
+        val current = downloads.firstOrNull { it.state == Download.STATE_DOWNLOADING }?.let { Util.fromUtf8Bytes(it.request.data) }
+        return NotificationCompat
+            .Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.mono)
+            .setContentTitle(getString(R.string.downloads_progress, queue.done, total))
+            .setContentText(if (notMetRequirements != 0) getString(R.string.downloads_waiting_wifi) else current)
+            .setProgress(total, queue.done, total == 0)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .build()
+    }
 
     companion object {
         const val CHANNEL_ID = "download"

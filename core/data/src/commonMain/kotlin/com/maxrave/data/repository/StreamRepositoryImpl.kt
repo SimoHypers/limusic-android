@@ -17,6 +17,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.kotlinytmusicscraper.PlayerRefusedException
+import com.maxrave.kotlinytmusicscraper.isRateLimit
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.logger.Logger
@@ -268,7 +269,9 @@ internal class StreamRepositoryImpl(
                 }.onFailure {
                     if (it is PlayerRefusedException) {
                         PlaybackRefusals.record(videoId, it.reason ?: it.status)
+                        if (it.isBotCheck) PlaybackRefusals.block(it.reason ?: it.status)
                     } else {
+                        if (it.isRateLimit) PlaybackRefusals.block(PlaybackRefusals.RATE_LIMITED)
                         it.printStackTrace()
                     }
                     Logger.e("Stream", "Error for $videoId: $it")

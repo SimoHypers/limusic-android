@@ -172,8 +172,8 @@ import simpmusic.composeapp.generated.resources.audio
 import simpmusic.composeapp.generated.resources.author
 import simpmusic.composeapp.generated.resources.auto_backup
 import simpmusic.composeapp.generated.resources.auto_backup_description
-import simpmusic.composeapp.generated.resources.auto_download_liked_songs
-import simpmusic.composeapp.generated.resources.auto_download_liked_songs_description
+import simpmusic.composeapp.generated.resources.download_wifi_only
+import simpmusic.composeapp.generated.resources.download_wifi_only_description
 import simpmusic.composeapp.generated.resources.backup
 import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
@@ -437,7 +437,7 @@ fun SettingScreen(
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
-    val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
+    val downloadWifiOnly by viewModel.downloadWifiOnly.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
@@ -1596,10 +1596,10 @@ fun SettingScreen(
                     SettingsSection.DATA -> {
                         SettingGroup(title = stringResource(Res.string.settings_downloads)) {
                             SettingItem(
-                                title = stringResource(Res.string.auto_download_liked_songs),
-                                subtitle = stringResource(Res.string.auto_download_liked_songs_description),
+                                title = stringResource(Res.string.download_wifi_only),
+                                subtitle = stringResource(Res.string.download_wifi_only_description),
                                 smallSubtitle = true,
-                                switch = (autoDownloadLikedSongs to { viewModel.setAutoDownloadLikedSongs(it) }),
+                                switch = (downloadWifiOnly to { viewModel.setDownloadWifiOnly(it) }),
                             )
                         }
                         if (getPlatform() == Platform.Android) {

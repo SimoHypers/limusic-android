@@ -116,17 +116,6 @@ internal class SongRepositoryImpl(
             )
         }.flowOn(Dispatchers.IO)
 
-    override suspend fun downloadAllLikedSongs(): Int =
-        withContext(Dispatchers.IO) {
-            val pending =
-                getFullDataFromDB { limit, offset ->
-                    localDataSource.getLikedSongs(limit, offset)
-                }.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
-            Logger.d(TAG, "Auto-download: queueing ${pending.size} liked songs")
-            downloadHandler.downloadTracks(pending)
-            pending.size
-        }
-
     /**
      * The order below is the whole feature.
      *
@@ -250,7 +239,7 @@ internal class SongRepositoryImpl(
     private var likeEpoch = 0
 
     /**
-     * Note the side effect: liking a song can start a download, when the user has asked for that.
+     * Note the side effect: liking a song starts its download while Keep library downloaded is on.
      *
      * Deliberately one-way. It fires only on the way *in*, for a song not liked here before and not
      * already offline, so a re-like (or Sync pushing old likes) does not queue it twice, and
@@ -279,7 +268,7 @@ internal class SongRepositoryImpl(
             } else {
                 librarySync.mark(key, likeStatus == 1)
             }
-            if (likeStatus == 1 && song?.liked != true && dataStoreManager.autoDownloadLikedSongs.first() == TRUE) {
+            if (likeStatus == 1 && song?.liked != true && dataStoreManager.keepLibraryDownloaded.first() == TRUE) {
                 if (song != null && song.downloadState != DownloadState.STATE_DOWNLOADED) {
                     Logger.d(TAG, "Auto-downloading liked song: $videoId")
                     downloadHandler.downloadTracks(listOf(song))
