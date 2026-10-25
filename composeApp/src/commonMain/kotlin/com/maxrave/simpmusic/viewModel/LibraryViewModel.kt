@@ -3,16 +3,20 @@ package com.maxrave.simpmusic.viewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.common.LibraryChipType
+import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.download.DownloadQueue
 import com.maxrave.domain.data.model.library.LibraryOverview
+import com.maxrave.domain.data.player.PlaybackRefusals
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.ArtistRepository
+import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
@@ -22,6 +26,7 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.type.ArtistType
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.PlaylistType as QueuePlaylistType
 import com.maxrave.domain.utils.toTrack
@@ -45,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.plus
 import org.jetbrains.compose.resources.getString
+import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.library_synced_all
 import simpmusic.composeapp.generated.resources.library_synced_none
@@ -136,6 +142,40 @@ class LibraryViewModel(
 
     private val _syncing = MutableStateFlow(false)
     val syncing: StateFlow<Boolean> get() = _syncing.asStateFlow()
+
+    private val downloadHandler: DownloadHandler by inject()
+    private val cacheRepository: CacheRepository by inject()
+
+    val downloadQueue: StateFlow<DownloadQueue> get() = downloadHandler.queue
+
+    /** Every downloaded song: the Downloads tiles count theirs against it. */
+    val downloadedIds: StateFlow<Set<String>> =
+        songRepository.downloadedVideoIds().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /** The space downloads take, read again whenever the downloaded count moves. */
+    val downloadedBytes: StateFlow<Long> =
+        libraryOverview
+            .map { it?.downloaded?.count }
+            .distinctUntilChanged()
+            .map { cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    /** Songs of the downloaded playlists and albums that are not on the phone, minus those YouTube refused this run. */
+    val missingDownloads: StateFlow<List<String>> =
+        combine(downloadedPlaylist, downloadedIds, PlaybackRefusals.all) { lists, downloaded, refused ->
+            lists.data
+                .orEmpty()
+                .flatMap { it.trackIds() }
+                .distinct()
+                .filter { it !in downloaded && it !in refused }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun retryMissingDownloads() {
+        val ids = missingDownloads.value
+        viewModelScope.launch { downloadHandler.downloadTracks(songRepository.getSongsByListVideoId(ids).first()) }
+    }
+
+    fun setDownloadsPaused(paused: Boolean) = downloadHandler.setPaused(paused)
 
     init {
         viewModelScope.launch {
@@ -449,3 +489,12 @@ class LibraryViewModel(
 private const val SYNC_GAP_MS = 250L
 
 private const val NEW_PLAYLIST_WHERE = "new_playlist_where"
+
+/** The songs a downloaded playlist, album or local playlist was asked to hold. */
+fun PlaylistType.trackIds(): List<String> =
+    when (this) {
+        is PlaylistEntity -> tracks
+        is AlbumEntity -> tracks
+        is LocalPlaylistEntity -> tracks
+        else -> null
+    }.orEmpty()

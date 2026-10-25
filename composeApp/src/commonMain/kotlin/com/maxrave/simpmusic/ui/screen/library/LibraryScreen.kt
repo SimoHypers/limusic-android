@@ -57,6 +57,9 @@ import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.viewModel.trackIds
+import simpmusic.composeapp.generated.resources.download_progress_short
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -360,12 +363,35 @@ fun LibraryScreen(
             }
 
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
+                val downloadedIds by viewModel.downloadedIds.collectAsStateWithLifecycle()
                 GridLibraryPlaylist(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     downloadedPlaylist,
                     emptyText = Res.string.no_playlists_downloaded,
                     onScrolling = onScrolling,
+                    // Read in here, so a queue tick redraws these rows and not the whole screen.
+                    header = {
+                        val queue by viewModel.downloadQueue.collectAsStateWithLifecycle()
+                        val bytes by viewModel.downloadedBytes.collectAsStateWithLifecycle()
+                        val missing by viewModel.missingDownloads.collectAsStateWithLifecycle()
+                        DownloadsHeader(
+                            queue = queue,
+                            songCount = libraryOverview?.downloaded?.count ?: 0,
+                            bytes = bytes,
+                            missing = missing.size,
+                            onPause = viewModel::setDownloadsPaused,
+                            onOpenSongs = {
+                                navController.navigate(LibraryDynamicPlaylistDestination(type = LibraryDynamicPlaylistType.Downloaded.toStringParams()))
+                            },
+                            onRetry = viewModel::retryMissingDownloads,
+                        )
+                    },
+                    subtitleOf = { item ->
+                        val ids = item.trackIds()
+                        val done = remember(ids, downloadedIds) { ids.count { it in downloadedIds } }
+                        if (done < ids.size) stringResource(Res.string.download_progress_short, done, ids.size) else null
+                    },
                 ) {
                     viewModel.getDownloadedPlaylist()
                 }

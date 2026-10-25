@@ -53,6 +53,8 @@ interface SongRepository {
 
     fun downloadCount(videoIds: List<String>): Flow<DownloadCount>
 
+    fun downloadedVideoIds(): Flow<Set<String>>
+
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>): Flow<List<String>>
 
     fun getLikedSongs(): Flow<List<SongEntity>>

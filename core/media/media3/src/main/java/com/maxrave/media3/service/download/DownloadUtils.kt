@@ -22,6 +22,7 @@ import coil3.request.ImageRequest
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.download.DownloadQueue
 import com.maxrave.domain.data.player.PlaybackRefusals
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
@@ -37,9 +38,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -195,12 +200,12 @@ internal class DownloadUtils(
     // MERGING_DATA_TYPE.VIDEO) to its Media3 state.
     private val states = HashMap<String, Int>()
 
-    // Song states waiting for the next batched write, and what finished since the queue last
-    // ran dry (for the one notification that says how it went).
+    // Song states waiting for the next batched write.
     private val pending = HashMap<String, Int>()
     private var flushJob: Job? = null
-    private var finished = 0
-    private var failed = 0
+
+    private val _queue = MutableStateFlow(DownloadQueue())
+    override val queue: StateFlow<DownloadQueue> = _queue.asStateFlow()
 
     /** The video stream is fetched only while "play video instead of audio" is on: playback merges it in for nothing else. */
     override suspend fun downloadTracks(songs: List<SongEntity>) {
@@ -282,6 +287,23 @@ internal class DownloadUtils(
         downloadManager.removeAllDownloads()
     }
 
+    override fun setPaused(paused: Boolean) {
+        if (paused) {
+            DownloadService.sendPauseDownloads(context, MusicDownloadService::class.java, false)
+        } else {
+            DownloadService.sendResumeDownloads(context, MusicDownloadService::class.java, false)
+        }
+    }
+
+    private fun updateQueue() {
+        val remaining =
+            states.count { (id, state) ->
+                !id.startsWith(MERGING_DATA_TYPE.VIDEO) &&
+                    state != Download.STATE_COMPLETED && state != Download.STATE_FAILED && state != Download.STATE_REMOVING
+            }
+        _queue.update { it.copy(remaining = remaining, paused = downloadManager.downloadsPaused) }
+    }
+
     /** The song's state in [DownloadState] terms, from its audio download and its video part if any. */
     private fun songState(songId: String): Int {
         val audio = states[songId] ?: return DownloadState.STATE_NOT_DOWNLOADED
@@ -314,8 +336,10 @@ internal class DownloadUtils(
             }
     }
 
+    // Once the queue runs dry, not when a pause idles it.
     private fun notifyFinished() {
-        if (finished + failed == 0) return
+        val (finished, failed, remaining) = queue.value
+        if (remaining > 0 || finished + failed == 0) return
         val text =
             listOfNotNull(
                 finished.takeIf { it > 0 }?.let { context.resources.getQuantityString(R.plurals.downloads_finished, it, it) },
@@ -328,14 +352,14 @@ internal class DownloadUtils(
                 downloadNotificationHelper.buildDownloadFailedNotification(context, R.drawable.baseline_error_outline_24, null, text)
             }
         NotificationUtil.setNotification(context, MusicDownloadService.NOTIFICATION_ID + 1, notification)
-        finished = 0
-        failed = 0
+        _queue.update { it.copy(done = 0, failed = 0) }
     }
 
     init {
         downloadManager.downloadIndex.getDownloads().use { cursor ->
             while (cursor.moveToNext()) states[cursor.download.request.id] = cursor.download.state
         }
+        updateQueue()
         val songIds = states.keys.filterNot { it.startsWith(MERGING_DATA_TYPE.VIDEO) }
         val bySong = songIds.groupBy { songState(it) }
         coroutineScope.launch {
@@ -357,10 +381,11 @@ internal class DownloadUtils(
                     when (download.state) {
                         Download.STATE_COMPLETED -> {
                             coroutineScope.launch { playerCache.removeResource(id) }
-                            if (isAudio) finished++
+                            if (isAudio) _queue.update { it.copy(done = it.done + 1) }
                         }
-                        Download.STATE_FAILED -> if (isAudio) failed++
+                        Download.STATE_FAILED -> if (isAudio) _queue.update { it.copy(failed = it.failed + 1) }
                     }
+                    updateQueue()
                     write(id.removePrefix(MERGING_DATA_TYPE.VIDEO))
                 }
 
@@ -370,6 +395,7 @@ internal class DownloadUtils(
                 ) {
                     val id = download.request.id
                     states.remove(id)
+                    updateQueue()
                     write(id.removePrefix(MERGING_DATA_TYPE.VIDEO))
                 }
 
@@ -378,9 +404,7 @@ internal class DownloadUtils(
                 override fun onDownloadsPausedChanged(
                     downloadManager: DownloadManager,
                     downloadsPaused: Boolean,
-                ) {
-                    if (downloadsPaused) downloadManager.resumeDownloads()
-                }
+                ) = updateQueue()
             },
         )
     }

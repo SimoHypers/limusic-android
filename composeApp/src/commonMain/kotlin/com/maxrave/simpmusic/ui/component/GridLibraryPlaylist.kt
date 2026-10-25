@@ -102,6 +102,8 @@ internal inline fun <reified T> GridLibraryPlaylist(
     // the scroll offset by hand, which is what left a screen-tall hole above the Wrapped tab.
     noinline header: (@Composable () -> Unit)? = null,
     noinline createNewPlaylist: (() -> Unit)? = null,
+    // A line under a tile's title in place of its own, for the items it returns non-null.
+    noinline subtitleOf: @Composable (PlaylistType) -> String? = { null },
     noinline onReload: () -> Unit,
 ) {
     Logger.d("GridLibraryPlaylist", "Generic Type: ${T::class.simpleName}")
@@ -177,6 +179,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                             // The cell decides the width now, so the artwork follows it instead of
                             // being pinned to thumbSize and cropped by a narrower cell.
                             fillMaxWidth = true,
+                            subtitle = subtitleOf(item),
                         )
                     }
 

@@ -511,6 +511,8 @@ fun HomeItemContentPlaylist(
     fillMaxWidth: Boolean = false,
     // Home's hover play button; null leaves the card exactly as it was.
     onPlay: (() -> Unit)? = null,
+    // In place of the line the item would show under its title.
+    subtitle: String? = null,
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(thumbSize)
@@ -629,7 +631,7 @@ fun HomeItemContentPlaylist(
             )
             Text(
                 text =
-                    when (data) {
+                    subtitle ?: when (data) {
                         is Content -> {
                             data.description
                                 ?: if (data.playlistId == null) {

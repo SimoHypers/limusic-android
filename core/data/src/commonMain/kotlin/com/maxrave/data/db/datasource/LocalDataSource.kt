@@ -100,6 +100,8 @@ internal class LocalDataSource(
 
     fun downloadCount(videoIds: List<String>) = databaseDao.downloadCount(videoIds)
 
+    fun downloadedVideoIds() = databaseDao.downloadedVideoIds()
+
     // ===== Clear listening history + drop orphaned songs =====
 
     suspend fun deleteAllPlaybackEvents() = databaseDao.deleteAllPlaybackEvents()

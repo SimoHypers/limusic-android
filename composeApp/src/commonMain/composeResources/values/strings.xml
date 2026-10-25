@@ -53,6 +53,16 @@
     <string name="download_progress_text">%1$d of %2$d songs are on this phone.</string>
     <string name="download_kept_note">Songs another downloaded playlist or album holds stay.</string>
     <string name="download_missing">Download missing</string>
+    <string name="downloading_progress">Downloading %1$d of %2$d</string>
+    <string name="download_progress_short">%1$d of %2$d</string>
+    <string name="downloads_paused_at">Paused at %1$d of %2$d</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="downloaded_songs">Downloaded songs</string>
+    <plurals name="downloads_missing">
+        <item quantity="one">%1$d song couldn't download</item>
+        <item quantity="other">%1$d songs couldn't download</item>
+    </plurals>
     <plurals name="download_refused">
         <item quantity="one">YouTube Music won't play %1$d of the missing songs.</item>
         <item quantity="other">YouTube Music won't play %1$d of the missing songs.</item>

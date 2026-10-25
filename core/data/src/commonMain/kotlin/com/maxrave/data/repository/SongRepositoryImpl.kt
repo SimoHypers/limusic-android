@@ -102,6 +102,8 @@ internal class SongRepositoryImpl(
 
     override fun downloadCount(videoIds: List<String>): Flow<DownloadCount> = localDataSource.downloadCount(videoIds)
 
+    override fun downloadedVideoIds(): Flow<Set<String>> = localDataSource.downloadedVideoIds().map { it.toSet() }.flowOn(Dispatchers.IO)
+
     override fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
         localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
 

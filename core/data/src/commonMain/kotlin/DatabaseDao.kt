@@ -138,6 +138,8 @@ interface DatabaseDao {
                     true to shouldContinuePlaylist.second + 100
                 }
         }
+        // ponytail: local playlists in one read, nobody keeps thousands of them.
+        a.addAll(getDownloadedLocalPlaylists(limit = Int.MAX_VALUE, offset = 0))
         val sortedList =
             a.sortedWith<PlaylistType>(
                 Comparator { p0, p1 ->
@@ -145,12 +147,14 @@ interface DatabaseDao {
                         when (p0) {
                             is AlbumEntity -> p0.downloadedAt ?: p0.inLibrary
                             is PlaylistEntity -> p0.downloadedAt ?: p0.inLibrary
+                            is LocalPlaylistEntity -> p0.downloadedAt ?: p0.inLibrary
                             else -> null
                         }
                     val timeP1: LocalDateTime? =
                         when (p1) {
                             is AlbumEntity -> p1.downloadedAt ?: p1.inLibrary
                             is PlaylistEntity -> p1.downloadedAt ?: p1.inLibrary
+                            is LocalPlaylistEntity -> p1.downloadedAt ?: p1.inLibrary
                             else -> null
                         }
                     if (timeP0 == null || timeP1 == null) {
@@ -357,6 +361,9 @@ interface DatabaseDao {
 
     @Query("SELECT COUNT(*) FROM song WHERE downloadState = 3")
     fun countDownloadedSongs(): Flow<Int>
+
+    @Query("SELECT videoId FROM song WHERE downloadState = 3")
+    fun downloadedVideoIds(): Flow<List<String>>
 
     @Query("SELECT thumbnails FROM song WHERE downloadState = 3 AND thumbnails IS NOT NULL ORDER BY downloadedAt DESC LIMIT :limit")
     fun getDownloadedSongThumbnails(limit: Int): Flow<List<String?>>

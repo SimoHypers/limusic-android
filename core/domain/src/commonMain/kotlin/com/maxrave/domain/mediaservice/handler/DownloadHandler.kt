@@ -1,6 +1,8 @@
 package com.maxrave.domain.mediaservice.handler
 
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.download.DownloadQueue
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The song rows are the only download state the UI reads: the handler writes each song's
@@ -20,4 +22,9 @@ interface DownloadHandler {
     suspend fun releaseDownloads(videoIds: List<String>)
 
     fun removeAllDownloads()
+
+    val queue: StateFlow<DownloadQueue>
+
+    /** A pause lasts until resumed, or until the app's process ends. */
+    fun setPaused(paused: Boolean)
 }

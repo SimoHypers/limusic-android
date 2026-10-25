@@ -35,3 +35,11 @@ data class CollectionDownload(
     val active: Int = 0,
     val refused: Int = 0,
 )
+
+/** What the downloader is working through: [done] and [failed] since the queue last ran dry, [remaining] still to go. */
+data class DownloadQueue(
+    val done: Int = 0,
+    val failed: Int = 0,
+    val remaining: Int = 0,
+    val paused: Boolean = false,
+)
