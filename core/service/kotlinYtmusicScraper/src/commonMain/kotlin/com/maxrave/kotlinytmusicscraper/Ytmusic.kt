@@ -57,6 +57,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
@@ -224,15 +225,17 @@ class Ytmusic {
             append("X-Goog-Api-Format-Version", "1")
             append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
-            append("X-Goog-Authuser", authUser.toString())
-            pageId?.let {
-                append("X-Goog-Pageid", it)
-            }
             append("x-origin", "https://music.youtube.com")
             if (client.referer != null && isUsingReferer) {
                 append("Referer", client.referer)
             }
+            // The account markers only travel with the cookie: on an anonymous request they can
+            // make YouTube demand the credential that is not there (desktop Limusic, transport.rs).
             if (setLogin) {
+                append("X-Goog-Authuser", authUser.toString())
+                pageId?.let {
+                    append("X-Goog-Pageid", it)
+                }
                 val cookie = customCookie ?: this@Ytmusic.cookie
                 cookie?.let { cookie ->
                     append("Cookie", cookie)
@@ -260,7 +263,36 @@ class Ytmusic {
             "SAPISIDHASH ${currentTime}_$sapisidHash"
         }
 
-    fun getNewPipePlayer(videoId: String): List<Pair<Int, String>> = extractor.newPipePlayer(videoId)
+    val cipher get() = extractor.cipher
+
+    /** BotGuard's tokens for this session and [videoId]; null without a session or a working minter. */
+    suspend fun webPoTokens(videoId: String) = visitorData?.let { extractor.webPoTokens(videoId, it) }
+
+    /**
+     * Will googlevideo serve [url] all the way to the end? Asks for its last 256 bytes, the one
+     * request that tells a whole stream from one capped after its first MiB: a HEAD or an opening
+     * range passes on both (desktop Limusic's validate_stream, KNOWN-ISSUES KI-11). No client
+     * headers, because the player sends none either. A HEAD when there is no length to aim at.
+     */
+    suspend fun servesToTheEnd(
+        url: String,
+        contentLength: Long?,
+    ): Boolean =
+        try {
+            if (contentLength == null || contentLength <= 0) {
+                httpClient.head(url).status.isSuccess()
+            } else {
+                httpClient
+                    .get(url) {
+                        header(HttpHeaders.Range, "bytes=${maxOf(0, contentLength - 256)}-${contentLength - 1}")
+                        header(HttpHeaders.AcceptEncoding, "identity")
+                    }.status
+                    .isSuccess()
+            }
+        } catch (e: Exception) {
+            Logger.w(TAG, "stream probe failed: ${e.message?.substringBefore('?')}")
+            false
+        }
 
     fun getLiveHlsUrl(videoId: String): String? = extractor.liveHlsUrl(videoId)
 
@@ -333,8 +365,10 @@ class Ytmusic {
         playlistId: String?,
         cpn: String?,
         signatureTimestamp: Int? = null,
+        setLogin: Boolean = true,
+        poToken: String? = null,
     ) = httpClient.post("player") {
-        ytClient(client, setLogin = true)
+        ytClient(client, setLogin = setLogin)
         setBody(
             PlayerBody(
                 context =
@@ -354,20 +388,13 @@ class Ytmusic {
                 playlistId = playlistId,
                 cpn = cpn,
                 playbackContext =
-                    PlayerBody.PlaybackContext(
-                        contentPlaybackContext =
-                            PlayerBody.PlaybackContext.ContentPlaybackContext(
-                                signatureTimestamp = signatureTimestamp ?: 20073,
-                            ),
-                    ),
-//                serviceIntegrityDimensions =
-//                    if (poToken != null) {
-//                        PlayerBody.ServiceIntegrityDimensions(
-//                            poToken = poToken,
-//                        )
-//                    } else {
-//                        null
-//                    },
+                    signatureTimestamp?.let {
+                        PlayerBody.PlaybackContext(
+                            contentPlaybackContext =
+                                PlayerBody.PlaybackContext.ContentPlaybackContext(signatureTimestamp = it),
+                        )
+                    },
+                serviceIntegrityDimensions = poToken?.let { PlayerBody.ServiceIntegrityDimensions(poToken = it) },
             ),
         )
     }

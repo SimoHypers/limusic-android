@@ -16,6 +16,9 @@ private val ENGLISH_DESCRIPTIVE = url("acont%3Ddescriptive%3Alang%3Den")
 private val ORIGINAL = url("acont%3Doriginal%3Alang%3Den-US", clen = 24140597)
 private val SINGLE_TRACK = url(null)
 
+/** How YouTube.player orders formats: a stable sort on the rank. */
+private fun List<Pair<Int, String>>.orderByAudioTrack(preferredLanguage: String?) = sortedBy { audioTrackRank(it.second, preferredLanguage) }
+
 class AudioTrackOrderTest {
     private val multiTrack = listOf(ARABIC, ENGLISH_DESCRIPTIVE, ORIGINAL, VIETNAMESE_AUTO).map { 251 to it }
 
@@ -46,11 +49,5 @@ class AudioTrackOrderTest {
     fun singleTrackVideoKeepsItsOrder() {
         val streams = listOf(140 to SINGLE_TRACK, 251 to SINGLE_TRACK)
         assertEquals(streams, streams.orderByAudioTrack("vi"))
-    }
-
-    @Test
-    fun contentLengthComesFromTheChosenUrl() {
-        assertEquals(24140597L, contentLengthOf(ORIGINAL))
-        assertEquals(25099982L, contentLengthOf(ARABIC))
     }
 }

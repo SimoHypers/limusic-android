@@ -42,7 +42,10 @@ internal class StreamRepositoryImpl(
 
     override suspend fun getFormatFlow(videoId: String) = localDataSource.getNewFormatAsFlow(videoId)
 
-    override fun getExtractSource(videoId: String): String? = youTube.getExtractSource(videoId)
+    override fun getExtractSource(
+        videoId: String,
+        streamUrl: String?,
+    ): String? = youTube.getExtractSource(videoId, streamUrl)
 
     override suspend fun updateFormat(videoId: String) {
         localDataSource.getNewFormat(videoId)?.let { oldFormat ->
@@ -355,6 +358,8 @@ internal class StreamRepositoryImpl(
     override fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 
     override suspend fun invalidateFormat(videoId: String) {
+        // Every caller is a stream that just failed: the player's retry, or the cast receiver's.
+        youTube.markStreamFailed(videoId.removePrefix(MERGING_DATA_TYPE.VIDEO))
         withContext(Dispatchers.IO) {
             localDataSource.getNewFormat(videoId)?.let { format ->
                 Logger.d("Stream", "Invalidating cached format for $videoId")

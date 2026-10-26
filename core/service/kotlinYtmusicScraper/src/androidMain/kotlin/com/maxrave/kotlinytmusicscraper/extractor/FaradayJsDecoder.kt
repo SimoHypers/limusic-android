@@ -27,26 +27,6 @@ private const val JS_THREAD_STACK_BYTES = 32L * 1024L * 1024L
  */
 internal class FaradayJsDecoder : YoutubeJavaScriptDecoder {
     /**
-     * How the last decode was answered, for the log line in [Extractor].
-     *
-     * Process-wide rather than per-track: PipePipe hands the decoder a player id, never a video id,
-     * so two tracks resolving at once cannot be told apart here. Good enough to see which path is
-     * carrying the load, not for attributing a single stream.
-     */
-    @Volatile
-    var lastOutcome: String = "unused"
-        private set
-
-    /** [lastOutcome] reduced to the three words a user can act on. */
-    val lastOutcomeLabel: String
-        get() =
-            when {
-                lastOutcome.startsWith("local") -> "local"
-                lastOutcome.startsWith("fallback") -> "pipepipe.dev"
-                else -> "cached"
-            }
-
-    /**
      * One thread, 32 MB of stack.
      *
      * YouTube's n-transform recurses far past what a default ~1 MB JVM thread holds, and QuickJS
@@ -58,15 +38,13 @@ internal class FaradayJsDecoder : YoutubeJavaScriptDecoder {
             .newSingleThreadExecutor { runnable -> Thread(null, runnable, "QuickJs", JS_THREAD_STACK_BYTES) }
             .asCoroutineDispatcher()
 
-    private val engine by lazy { FaradayCipherEngine(HttpClient(getEngine()), jsThread, bridgedLogger) }
+    /** Shared with the stream chain in YouTube.player through [Extractor.cipher]. */
+    val engine by lazy { FaradayCipherEngine(HttpClient(getEngine()), jsThread, bridgedLogger) }
 
     override fun getPlayerData(videoId: String): YoutubeJavaScriptDecoder.PlayerData {
         val info =
             runBlocking { engine.playerInfo() }
-                ?: run {
-                    lastOutcome = "fallback:no-player-metadata"
-                    throw ParsingException("Faraday: no player metadata")
-                }
+                ?: throw ParsingException("Faraday: no player metadata")
         return YoutubeJavaScriptDecoder.PlayerData(info.playerId, info.signatureTimestamp)
     }
 
@@ -86,17 +64,10 @@ internal class FaradayJsDecoder : YoutubeJavaScriptDecoder {
             wantedSignatures.count { it !in result.signatures } +
                 wantedNParameters.count { it !in result.nParameters }
         val wanted = wantedSignatures.size + wantedNParameters.size
-        if (missing > 0) {
-            lastOutcome = "fallback:$missing-of-$wanted-unsolved"
-            throw ParsingException("Faraday: $missing of $wanted unsolved")
-        }
-        lastOutcome = "local:sig=${wantedSignatures.size},n=${wantedNParameters.size}"
+        if (missing > 0) throw ParsingException("Faraday: $missing of $wanted unsolved")
         Logger.d(TAG, "solved $wanted locally (sig=${wantedSignatures.size} n=${wantedNParameters.size})")
         return YoutubeApiDecoder.BatchDecodeResult(result.signatures, result.nParameters)
     }
-
-    /** Discard the cached player table and solver after the CDN rejected a URL we deciphered. */
-    fun invalidate() = runBlocking { engine.invalidate() }
 
     private val bridgedLogger =
         InnerTubeLogger { event ->

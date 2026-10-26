@@ -16,8 +16,7 @@ data class PlayerBody(
 ) {
     @Serializable
     data class ServiceIntegrityDimensions(
-        val poToken: String =
-            "Mlt6vqPMnRAc93qGSJr4d9wyzWNClpcDwVQGZ7ooTJoc6IjxwPaMoyTMXRkU5OHQQvLdQqF4v9W_U6JRCUmCPatLIOlbBqjasxsmO3PnigwoLSQ81o0MpFeX8nJA",
+        val poToken: String,
     )
 
     @Serializable

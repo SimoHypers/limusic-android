@@ -38,4 +38,16 @@ object ExtractSource {
     }
 
     fun of(videoId: String): String? = sources[videoId]
+
+    private val CLIENT = Regex("[?&]c=([^&]+)")
+    private val POT = Regex("[?&]pot=")
+
+    /**
+     * What a saved stream URL says about where it came from, in [record]'s words: googlevideo writes
+     * the client into `c=`. For a song that plays from its saved URL, so nothing was resolved this run.
+     */
+    fun fromStreamUrl(url: String): String? {
+        val client = CLIENT.find(url)?.groupValues?.get(1) ?: return null
+        return client + if (POT.containsMatchIn(url)) " · PoToken" else ""
+    }
 }

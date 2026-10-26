@@ -52,10 +52,11 @@ interface StreamRepository {
     suspend fun invalidateFormat(videoId: String)
 
     /**
-     * Which extractor and cipher decoder produced this video's stream URLs, for the info sheet.
-     *
-     * Null until the video has actually been extracted in this run — it is not persisted, because it
-     * describes one extraction rather than the format row, which outlives it in the cache.
+     * Which client produced this video's stream, for the info sheet: this run's resolve, else what
+     * [streamUrl] (the saved URL it plays from) names. Null when neither says.
      */
-    fun getExtractSource(videoId: String): String?
+    fun getExtractSource(
+        videoId: String,
+        streamUrl: String?,
+    ): String?
 }

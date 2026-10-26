@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.extractor
 
-import com.maxrave.common.ITAG
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -10,40 +9,6 @@ import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.IOException
 import java.net.Proxy
-
-internal fun List<Pair<Int, String>>.hasRequiredItags(): Boolean {
-    val itags = this.mapTo(HashSet()) { it.first }
-    val hasAudio = ITAG.AUDIO.any { it in itags }
-    val hasVideo = ITAG.VIDEO.any { it in itags }
-    return hasAudio && hasVideo
-}
-
-private val streamHealthCheckClient: OkHttpClient by lazy {
-    OkHttpClient
-        .Builder()
-        .build()
-}
-
-/**
- * Pick one random URL whose itag belongs to [ITAG.AUDIO] or [ITAG.VIDEO] and HEAD it. Returns true
- * only when the response code is in the 200..299 range. We only health-check those URLs because
- * they are the ones the player will actually use; lower-quality extras can stay unverified.
- */
-internal fun List<Pair<Int, String>>.headCheckRandomStream(): Boolean {
-    val required = ITAG.AUDIO + ITAG.VIDEO
-    val candidate = this.filter { it.first in required }.randomOrNull() ?: return false
-    return runCatching {
-        val request =
-            okhttp3.Request
-                .Builder()
-                .head()
-                .url(candidate.second)
-                .build()
-        streamHealthCheckClient.newCall(request).execute().use { response ->
-            response.code in 200..299
-        }
-    }.getOrDefault(false)
-}
 
 class BraveNewPipeDownloaderImpl(
     proxy: Proxy?,

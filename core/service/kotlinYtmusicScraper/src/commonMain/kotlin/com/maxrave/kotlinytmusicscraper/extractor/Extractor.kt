@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.extractor
 
+import com.maxrave.kotlinytmusicscraper.cipher.FaradayCipherEngine
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 
@@ -15,15 +16,23 @@ expect class Extractor() {
         track: SongItem,
     ): DownloadProgress
 
-    fun newPipePlayer(videoId: String): List<Pair<Int, String>>
+    /** Solves signature and `n` challenges on the device, for the stream chain in YouTube.player. */
+    val cipher: FaradayCipherEngine
+
+    /** BotGuard's tokens for WEB_REMIX, or null when they cannot be minted right now. */
+    suspend fun webPoTokens(
+        videoId: String,
+        visitorData: String,
+    ): WebPoTokens?
 
     /**
      * The HLS playlist of a video that is broadcasting live right now, or null when no extractor
      * produced one.
-     *
-     * Kept apart from [newPipePlayer] on purpose: that path is built for videos of a fixed length,
-     * and every tier there rejects a result without the regular audio and video itags — which a
-     * live stream never carries, so a perfectly good live extraction looked like a failed one.
      */
     fun liveHlsUrl(videoId: String): String?
 }
+/** [session] goes in the `/player` body, [video] on the stream URL as `&pot=` (desktop Limusic's pair). */
+data class WebPoTokens(
+    val session: String,
+    val video: String,
+)

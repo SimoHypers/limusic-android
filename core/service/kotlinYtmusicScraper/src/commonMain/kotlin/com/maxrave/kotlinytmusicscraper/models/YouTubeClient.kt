@@ -92,6 +92,24 @@ data class YouTubeClient(
                 referer = REFERER_YOUTUBE_MUSIC,
             )
 
+        /**
+         * Apple Vision Pro: direct stream URLs, no cipher and no PoToken. Copied from desktop
+         * Limusic's clients.json, where it is the first fallback behind WEB_REMIX. Anonymous: it
+         * takes no cookie.
+         */
+        val VISIONOS =
+            YouTubeClient(
+                clientName = "VISIONOS",
+                clientVersion = "0.1",
+                api_key = "",
+                userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+                osName = "visionOS",
+                osVersion = "1.3.21O771",
+                deviceMake = "Apple",
+                deviceModel = "RealityDevice14,1",
+                xClientName = 101,
+            )
+
         val WEB_EMBEDDED =
             YouTubeClient(
                 clientName = "WEB_EMBEDDED_PLAYER",
@@ -101,12 +119,19 @@ data class YouTubeClient(
                 referer = REFERER_YOUTUBE_MUSIC,
             )
 
+        /**
+         * A TV identity on its own numeric id (75), so a network where the bot check refuses the web
+         * identity still has somewhere to go. Ciphered and PoToken-bound like WEB_REMIX: without the
+         * signature timestamp or the token it is UNPLAYABLE for every video. Anonymous. Copied from
+         * desktop Limusic's clients.json, measured there 2026-09-22.
+         */
         val TVHTML5_SIMPLY =
             YouTubeClient(
-                clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
-                clientVersion = "2.0",
-                api_key = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
-                userAgent = "Mozilla/5.0 (PlayStation; PlayStation 4/12.00) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
+                clientName = "TVHTML5_SIMPLY",
+                clientVersion = "1.0",
+                api_key = "",
+                userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)",
+                xClientName = 75,
             )
 
         val TVHTML5 =

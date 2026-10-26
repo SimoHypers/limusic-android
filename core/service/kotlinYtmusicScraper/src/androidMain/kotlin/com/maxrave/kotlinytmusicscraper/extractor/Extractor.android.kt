@@ -1,7 +1,9 @@
 package com.maxrave.kotlinytmusicscraper.extractor
 
+import android.content.Context
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
+import com.maxrave.kotlinytmusicscraper.cipher.FaradayCipherEngine
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.logger.Logger
@@ -10,6 +12,7 @@ import dev.maxrave.pipepipe.extractor.ServiceList
 import dev.maxrave.pipepipe.extractor.services.youtube.YoutubeApiDecoder
 import dev.maxrave.pipepipe.extractor.stream.StreamInfo
 import okio.FileSystem
+import org.koin.mp.KoinPlatform.getKoin
 import okio.IOException
 import okio.Path.Companion.toPath
 import org.schabi.newpipe.extractor.NewPipe as BraveNewPipe
@@ -36,21 +39,21 @@ actual class Extractor {
         ServiceList.YouTube.tokens = cookie ?: ""
     }
 
-    actual fun newPipePlayer(videoId: String): List<Pair<Int, String>> {
+    actual val cipher: FaradayCipherEngine get() = faradayDecoder.engine
+
+    private val poTokenMinter by lazy { WebPoTokenMinter(getKoin().get<Context>()) }
+
+    actual suspend fun webPoTokens(
+        videoId: String,
+        visitorData: String,
+    ): WebPoTokens? = poTokenMinter.tokens(videoId, visitorData)
+
+    actual fun liveHlsUrl(videoId: String): String? {
         // Ciphers are only ever solved on the device. PipePipe would otherwise send them to
         // api.pipepipe.dev, which NewPipeDownloaderImpl refuses to reach.
         // Re-registered every time: PipePipe drops the local decoder for good the first time it
         // throws, and the getter is package-private so its state cannot be read from here. Setting
         // it again turns "disabled forever" into "skipped for one track".
-        YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
-        pipePipeStreams(videoId, LOCAL_TIER)?.let { return it }
-
-        // Then a different extractor entirely.
-        return braveStreams(videoId)
-    }
-
-    actual fun liveHlsUrl(videoId: String): String? {
-        // The same order as newPipePlayer, for the same reasons.
         YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
         pipePipeLiveHlsUrl(videoId, LOCAL_TIER)?.let { return it }
         return braveLiveHlsUrl(videoId)
@@ -82,59 +85,6 @@ actual class Extractor {
                 ExtractSource.record(videoId, "BravePipe · live")
                 Logger.d(TAG, "live HLS from BravePipe for $videoId")
             }
-
-    /**
-     * One PipePipe extraction with whatever decoder is currently registered. Returns null when the
-     * attempt produced nothing usable, so the caller moves on to the next tier.
-     */
-    private fun pipePipeStreams(
-        videoId: String,
-        tier: String,
-    ): List<Pair<Int, String>>? {
-        try {
-            val streamInfo =
-                StreamInfo.getInfo(ServiceList.YouTube, "https://music.youtube.com/watch?v=$videoId")
-            val streamsList = streamInfo.audioStreams + streamInfo.videoStreams + streamInfo.videoOnlyStreams
-            val pipeResult =
-                streamsList.mapNotNull {
-                    (it.itagItem?.id ?: return@mapNotNull null) to it.content
-                }
-            if (!pipeResult.hasRequiredItags()) {
-                Logger.d(TAG, "PipePipe[$tier] missing required itags for $videoId (got=${pipeResult.map { it.first }})")
-                return null
-            }
-            if (!pipeResult.headCheckRandomStream()) {
-                Logger.d(TAG, "PipePipe[$tier] stream URL HEAD check failed (non 2xx) for $videoId")
-                // A rejected URL is the one symptom of a stale player table: the signature is
-                // well-formed and still wrong, so nothing threw on the way here.
-                faradayDecoder.invalidate()
-                return null
-            }
-            val label = faradayDecoder.lastOutcomeLabel
-            ExtractSource.record(videoId, "PipePipe · $label")
-            Logger.d(TAG, "extract source=PipePipe[$tier] itags=${pipeResult.map { it.first }} for $videoId")
-            return pipeResult
-        } catch (e: Throwable) {
-            Logger.w(TAG, "PipePipe[$tier] extractor failed for $videoId: ${e.message}")
-            return null
-        }
-    }
-
-    private fun braveStreams(videoId: String): List<Pair<Int, String>> =
-        runCatching {
-            val streamInfo =
-                BraveStreamInfo.getInfo(BraveServiceList.YouTube, "https://www.youtube.com/watch?v=$videoId")
-            val streamsList = streamInfo.audioStreams + streamInfo.videoStreams + streamInfo.videoOnlyStreams
-            streamsList
-                .mapNotNull {
-                    (it.itagItem?.id ?: return@mapNotNull null) to it.content
-                }.also {
-                    ExtractSource.record(videoId, "BravePipe")
-                    Logger.d(TAG, "extract source=BravePipe itags=${it.map { pair -> pair.first }} for $videoId")
-                }
-        }.onFailure {
-            Logger.w(TAG, "BravePipe extractor failed for $videoId: ${it.message}")
-        }.getOrElse { emptyList() }
 
     actual fun mergeAudioVideoDownload(filePath: String): DownloadProgress {
         val command =

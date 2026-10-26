@@ -998,7 +998,7 @@ class SharedViewModel(
     private fun getFormat(mediaId: String?) {
         if (mediaId != _format.value?.videoId && !mediaId.isNullOrEmpty()) {
             _format.value = null
-            _extractSource.value = streamRepository.getExtractSource(mediaId)
+            _extractSource.value = streamRepository.getExtractSource(mediaId, null)
             getFormatFlowJob?.cancel()
             getFormatFlowJob =
                 viewModelScope.launch {
@@ -1011,7 +1011,7 @@ class SharedViewModel(
                         }
                         // Re-read on every emission: the first one usually lands before the
                         // extractor has finished, so the source is only known on a later pass.
-                        _extractSource.value = streamRepository.getExtractSource(mediaId)
+                        _extractSource.value = streamRepository.getExtractSource(mediaId, f?.audioUrl)
                     }
                 }
         }
