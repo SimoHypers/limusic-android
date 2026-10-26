@@ -21,6 +21,10 @@ data class AlbumPage(
     val otherVersion: List<AlbumItem>,
     /** Saved to the signed-in account's library; null when the page did not say. */
     val inLibrary: Boolean? = null,
+    /** The header's first subtitle run: "Album", "Single", "EP", in YouTube's language. */
+    val kind: String? = null,
+    /** The artist's round picture from the header's strapline. */
+    val artistThumbnail: String? = null,
 ) {
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer?): AlbumItem? {

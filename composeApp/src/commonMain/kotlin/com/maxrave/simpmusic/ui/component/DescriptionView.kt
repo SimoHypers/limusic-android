@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
@@ -177,7 +178,7 @@ fun DescriptionView(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
+        androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton, Modifier.align(Alignment.End)) {
             Text(
                 text = if (expanded) stringResource(Res.string.less) else stringResource(Res.string.more),
                 color = Color.LightGray,

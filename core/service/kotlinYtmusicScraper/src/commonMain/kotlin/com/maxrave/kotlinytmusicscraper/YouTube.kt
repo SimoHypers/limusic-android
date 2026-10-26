@@ -371,8 +371,19 @@ class YouTube {
                             ?.musicThumbnailRenderer
                             ?.getThumbnailUrl()!!,
                 )
+            val header =
+                response.contents.twoColumnBrowseResultsRenderer.tabs
+                    .firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.sectionListRenderer
+                    ?.contents
+                    ?.firstOrNull()
+                    ?.musicResponsiveHeaderRenderer
             AlbumPage(
                 album = albumItem,
+                kind = header?.subtitle?.runs?.firstOrNull()?.text,
+                artistThumbnail = header?.straplineThumbnail?.musicThumbnailRenderer?.getThumbnailUrl(),
                 songs =
                     if (withSongs) {
                         albumSongs(

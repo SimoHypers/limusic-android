@@ -386,7 +386,7 @@
     <string name="to_download_folder">" to Download folder"</string>
     <string name="download_speed">Download speed:  %1$s </string>
     <string name="shuffle">Shuffle</string>
-    <string name="other_version">Other version</string>
+    <string name="other_version">Other versions</string>
     <string name="shuffle_not_available">Shuffle endpoint is not available</string>
     <string name="radio_not_available">Radio Endpoint is not available</string>
     <string name="no_results_found">No results found</string>

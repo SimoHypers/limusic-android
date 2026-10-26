@@ -66,7 +66,7 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
         title = data.album.title,
         trackCount = songs.size,
         tracks = songs,
-        type = "Album",
+        type = data.kind ?: "Album",
         year = data.album.year.toString(),
         otherVersion =
             data.otherVersion.map {
@@ -79,5 +79,6 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                 )
             },
         inLibrary = data.inLibrary,
+        artistThumbnail = data.artistThumbnail,
     )
 }

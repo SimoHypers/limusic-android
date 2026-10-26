@@ -202,12 +202,12 @@ private fun QuickTile(
 }
 
 /**
- * A section title in the desktop app's style: the kind's icon in a softened accent, a bold title,
- * and "See all" at the far end when [onMore] is given (the title then opens it too).
+ * A section title in the desktop app's style: the kind's icon (if any) in a softened accent, a bold
+ * title, and "See all" at the far end when [onMore] is given (the title then opens it too).
  */
 @Composable
 fun LibrarySectionHeader(
-    icon: ImageVector,
+    icon: ImageVector?,
     title: String,
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
@@ -220,13 +220,15 @@ fun LibrarySectionHeader(
                 .padding(start = 16.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-            modifier = Modifier.size(22.dp),
-        )
-        Spacer(Modifier.width(10.dp))
+        if (icon != null) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+        }
         // The box takes the free width so "See all" lands at the far end; the title inside it
         // stays its own width, so only the words themselves are a second way to open it.
         Box(Modifier.weight(1f)) {

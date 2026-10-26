@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState
@@ -82,6 +81,8 @@ class AlbumViewModel(
                                     audioPlaylistId = data.audioPlaylistId,
                                     title = data.title,
                                     thumbnail = data.thumbnails?.lastOrNull()?.url,
+                                    kind = data.type,
+                                    artistThumbnail = data.artistThumbnail,
                                     artist =
                                         data.artists.firstOrNull() ?: Artist(
                                             id = null,
@@ -141,6 +142,7 @@ class AlbumViewModel(
                                         browseId = browseId,
                                         title = albumEntity.title,
                                         thumbnail = albumEntity.thumbnails,
+                                        kind = albumEntity.type,
                                         artist =
                                             Artist(
                                                 id = albumEntity.artistId?.firstOrNull(),
@@ -172,14 +174,6 @@ class AlbumViewModel(
                     }
                 }
             }
-        }
-    }
-
-    fun setBrush(brush: List<Color>) {
-        _uiState.update {
-            it.copy(
-                colors = brush,
-            )
         }
     }
 
@@ -303,7 +297,9 @@ data class AlbumUIState(
     val audioPlaylistId: String = "",
     val title: String = "",
     val thumbnail: String? = null,
-    val colors: List<Color> = listOf(Color.Black, Color.Black),
+    /** "Album", "Single", "EP": the page's kicker. */
+    val kind: String? = null,
+    val artistThumbnail: String? = null,
     val artist: Artist =
         Artist(
             id = null,

@@ -1,11 +1,12 @@
 package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -17,9 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.data.model.download.CollectionDownload
@@ -51,24 +50,21 @@ fun CollectionDownloadButton(
     onDownloadMissing: () -> Unit,
 ) {
     var confirm by remember { mutableStateOf(false) }
+    val ink = MaterialTheme.colorScheme.onSurface
+    // Borderless: it sits in the pill on the cover beside like and ⋮.
     Box(
-        modifier =
-            Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.12f))
-                .clickable { if (download.kept) confirm = true else onDownload() },
+        Modifier.size(40.dp).clip(CircleShape).clickable { if (download.kept) confirm = true else onDownload() },
         contentAlignment = Alignment.Center,
     ) {
         Crossfade(targetState = !download.kept to (download.active > 0)) { (off, active) ->
             when {
-                off -> Icon(SimpIcons.DownloadForOffline, stringResource(Res.string.download), Modifier.size(22.dp), Color.White)
+                off -> Icon(SimpIcons.DownloadForOffline, stringResource(Res.string.download), Modifier.size(22.dp), ink)
                 active ->
                     CircularProgressIndicator(
                         progress = { if (download.total == 0) 0f else download.downloaded.toFloat() / download.total },
-                        modifier = Modifier.size(26.dp),
-                        color = Color.White,
-                        trackColor = Color.White.copy(alpha = 0.24f),
+                        modifier = Modifier.size(24.dp),
+                        color = ink,
+                        trackColor = ink.copy(alpha = 0.24f),
                         strokeWidth = 3.dp,
                     )
                 else -> Icon(painterResource(Res.drawable.baseline_downloaded), null, Modifier.size(22.dp), Color(0xFF00A0CB))

@@ -19,4 +19,5 @@ data class AlbumBrowse(
     val otherVersion: List<ResultAlbum> = emptyList(),
     /** Saved to the YouTube account's library; null when the page did not say. */
     val inLibrary: Boolean? = null,
+    val artistThumbnail: String? = null,
 )

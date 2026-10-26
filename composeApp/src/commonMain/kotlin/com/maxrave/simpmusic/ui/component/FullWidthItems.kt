@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -128,6 +129,7 @@ fun SongFullWidthItems(
     modifier: Modifier,
     rightView: @Composable (() -> Unit)? = null,
     forceDark: Boolean = LocalForceDarkText.current,
+    padding: PaddingValues = PaddingValues(start = 23.dp, end = 15.dp, top = 6.dp, bottom = 6.dp),
 ) {
     val contentColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val subtitleColor = if (forceDark) Color(0xC4FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant
@@ -224,11 +226,10 @@ fun SongFullWidthItems(
         ) {
             Row(
                 Modifier
-                    .padding(vertical = 6.dp, horizontal = 15.dp)
+                    .padding(padding)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Spacer(modifier = Modifier.width(8.dp))
                 AnimatedVisibility(
                     visible = selectionMode,
                     enter = fadeIn() + expandHorizontally(),
@@ -260,8 +261,9 @@ fun SongFullWidthItems(
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                 }
+                // A track number needs less room than a cover.
                 Box(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(if (index == null) 48.dp else 32.dp, 48.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (index == null) {
