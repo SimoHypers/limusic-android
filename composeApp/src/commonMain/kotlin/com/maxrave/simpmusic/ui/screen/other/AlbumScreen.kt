@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.screen.other
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.pluralStringResource
+import com.maxrave.simpmusic.ui.component.CollectionAuthorLine
 import com.maxrave.simpmusic.ui.component.CollectionHero
 import com.maxrave.simpmusic.ui.component.CollectionTitle
 import com.maxrave.simpmusic.ui.component.LibrarySectionHeader
@@ -210,46 +211,19 @@ fun AlbumScreen(
                                     },
                                     onShuffle = viewModel::shuffle,
                                 )
-                                // Desktop's artist line: the artist, then the count and the length.
-                                Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier =
-                                            Modifier
-                                                .clip(RoundedCornerShape(50))
-                                                .clickable {
-                                                    uiState.artist.id?.let { channelId ->
-                                                        navController.navigate(ArtistDestination(channelId = channelId))
-                                                    }
-                                                }.padding(end = 6.dp),
-                                    ) {
-                                        if (uiState.artistThumbnail != null) {
-                                            AsyncImage(
-                                                model = uiState.artistThumbnail,
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier.size(32.dp).clip(CircleShape),
-                                            )
-                                            Spacer(Modifier.width(8.dp))
-                                        }
-                                        Text(
-                                            text = uiState.artist.name,
-                                            style = typo().titleSmall.copy(fontSize = 14.sp),
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                    Text(
-                                        text =
-                                            listOf(
-                                                pluralStringResource(Res.plurals.liked_songs_count, uiState.trackCount, uiState.trackCount),
-                                                uiState.length,
-                                            ).filter { part -> part.isNotBlank() }.joinToString(" • ", prefix = "• "),
-                                        style = typo().bodyMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
+                                CollectionAuthorLine(
+                                    name = uiState.artist.name,
+                                    thumbnail = uiState.artistThumbnail,
+                                    meta =
+                                        listOf(
+                                            pluralStringResource(Res.plurals.liked_songs_count, uiState.trackCount, uiState.trackCount),
+                                            uiState.length,
+                                        ),
+                                    onClick =
+                                        uiState.artist.id?.let { channelId ->
+                                            { navController.navigate(ArtistDestination(channelId = channelId)) }
+                                        },
+                                )
                             }
                             uiState.description?.takeIf { text -> text.isNotBlank() }?.let { text ->
                                 DescriptionView(

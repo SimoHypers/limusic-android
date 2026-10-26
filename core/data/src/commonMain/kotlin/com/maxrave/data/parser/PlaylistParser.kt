@@ -28,6 +28,7 @@ internal fun parsePlaylistData(
         var title = ""
         val listAuthor: ArrayList<Author> = arrayListOf()
         var duration = ""
+        var authorThumbnail: String? = null
         var description = ""
         val listThumbnails: ArrayList<Thumbnail> = arrayListOf()
         var year = now().year.toString()
@@ -224,6 +225,17 @@ internal fun parsePlaylistData(
                                 ?: "YouTube Music",
                     )
                 listAuthor.add(author)
+                authorThumbnail =
+                    header.straplineThumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+                        ?: header.facepile
+                            ?.avatarStackViewModel
+                            ?.avatars
+                            ?.firstOrNull()
+                            ?.avatarViewModel
+                            ?.image
+                            ?.sources
+                            ?.lastOrNull()
+                            ?.url
                 Logger.d("PlaylistParser", "author: $author")
                 Logger.d("PlaylistParser", "secondSubtitle: $secondSubtitle")
                 if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
@@ -351,6 +363,7 @@ internal fun parsePlaylistData(
             trackCount = if (trackCount == 0) listContent.size else trackCount,
             tracks = listTrack,
             year = year,
+            authorThumbnail = authorThumbnail,
         )
     } else {
         return null

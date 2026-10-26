@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.viewModel
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
@@ -74,8 +73,6 @@ class PlaylistViewModel(
     private var _uiState = MutableStateFlow<PlaylistUIState>(Loading)
     val uiState: StateFlow<PlaylistUIState> = _uiState
 
-    private var _listColors = MutableStateFlow<List<Color>>(emptyList())
-    val listColors: StateFlow<List<Color>> = _listColors
 
     private var _continuation = MutableStateFlow<String?>(null)
     val continuation: StateFlow<String?> = _continuation
@@ -104,7 +101,6 @@ class PlaylistViewModel(
     private fun resetData() {
         _uiState.value = Loading
         _playlistEntity.value = null
-        _listColors.value = emptyList()
     }
 
     fun getData(id: String) {
@@ -185,6 +181,8 @@ class PlaylistViewModel(
                                                 radioEndpoint = data.first.radioEndpoint,
                                                 privacy = data.first.privacy,
                                                 owned = data.first.owned,
+                                                authorThumbnail = data.first.authorThumbnail,
+                                                duration = data.first.duration,
                                             ),
                                     )
                                 getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
@@ -327,10 +325,6 @@ class PlaylistViewModel(
                     _uiState.value = Error("Empty response")
                 }
             }
-    }
-
-    fun setBrush(listColors: List<Color>) {
-        _listColors.value = listColors
     }
 
     fun updatePlaylistLiked(

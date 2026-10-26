@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -123,14 +122,6 @@ class LocalPlaylistViewModel(
         _uiState.update {
             it.copy(
                 filterState = filterState,
-            )
-        }
-    }
-
-    fun setBrush(brush: List<Color>) {
-        _uiState.update {
-            it.copy(
-                colors = brush,
             )
         }
     }
@@ -883,11 +874,6 @@ data class LocalPlaylistState(
     val id: Long,
     val title: String,
     val thumbnail: String? = null,
-    val colors: List<Color> =
-        listOf(
-            Color.Black,
-            Color.Black,
-        ),
     val inLibrary: LocalDateTime? = null,
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     val syncState: Int = LocalPlaylistEntity.YouTubeSyncState.NotSynced,

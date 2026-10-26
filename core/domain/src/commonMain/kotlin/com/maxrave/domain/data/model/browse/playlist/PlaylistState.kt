@@ -16,4 +16,7 @@ data class PlaylistState(
     /** `PUBLIC`, `UNLISTED` or `PRIVATE`; only read for playlists you own. */
     val privacy: String? = null,
     val owned: Boolean = false,
+    val authorThumbnail: String? = null,
+    /** YouTube's own wording, e.g. "3+ hours"; empty when the header had none. */
+    val duration: String = "",
 )

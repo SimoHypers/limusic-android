@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +60,7 @@ fun CollectionHero(
     thumbnail: String?,
     onBack: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {},
+    placeholder: Painter = rememberHolderPainter(),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val screen = getScreenSizeInfo()
@@ -64,8 +68,9 @@ fun CollectionHero(
     Box(Modifier.fillMaxWidth().height(max((screen.hDP / 2).dp, 320.dp))) {
         AsyncImage(
             model = thumbnail,
-            placeholder = rememberHolderPainter(),
-            error = rememberHolderPainter(),
+            placeholder = placeholder,
+            error = placeholder,
+            fallback = placeholder,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
@@ -156,5 +161,50 @@ fun CollectionTitle(
                 MaterialTheme.colorScheme.onPrimary,
             )
         }
+    }
+}
+
+/**
+ * Desktop's artist line under the title: the round picture and the name (tappable when [onClick]
+ * is given), then the [meta] parts ("20 songs", "1 hour, 4 minutes"), blanks left out.
+ */
+@Composable
+fun CollectionAuthorLine(
+    name: String,
+    thumbnail: String?,
+    meta: List<String>,
+    onClick: (() -> Unit)?,
+) {
+    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(50))
+                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                    .padding(end = 6.dp),
+        ) {
+            if (thumbnail != null) {
+                AsyncImage(
+                    model = thumbnail,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(32.dp).clip(CircleShape),
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(
+                text = name,
+                style = typo().titleSmall.copy(fontSize = 14.sp),
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+            )
+        }
+        Text(
+            text = meta.filter { it.isNotBlank() }.joinToString(" • ", prefix = "• "),
+            style = typo().bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

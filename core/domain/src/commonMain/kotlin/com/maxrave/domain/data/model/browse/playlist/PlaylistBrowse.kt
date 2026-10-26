@@ -22,4 +22,6 @@ data class PlaylistBrowse(
     val owned: Boolean = false,
     /** Saved to the YouTube account's library; null when the page did not say (your own playlist). */
     val saved: Boolean? = null,
+    /** The author's round picture: the header's strapline thumbnail or its facepile. */
+    val authorThumbnail: String? = null,
 )
