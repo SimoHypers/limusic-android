@@ -59,6 +59,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -67,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.PlaylistSort
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.barBlurStyle
@@ -79,6 +81,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistMenu
+import com.maxrave.simpmusic.ui.component.PlaylistSortSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.SearchBarExit
@@ -93,6 +96,7 @@ import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Sort
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListState
@@ -117,6 +121,7 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.search
+import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.unlimited
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
@@ -139,7 +144,9 @@ fun PlaylistScreen(
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
     val download by viewModel.download.collectAsStateWithLifecycle()
     val liked by viewModel.liked.collectAsStateWithLifecycle()
-    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
+    val tracks by viewModel.sortedTracks.collectAsStateWithLifecycle()
+    val sortState by viewModel.sortState.collectAsStateWithLifecycle()
+    var showSortSheet by remember { mutableStateOf(false) }
     val tracksListState by viewModel.tracksListState.collectAsStateWithLifecycle()
 
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
@@ -305,6 +312,15 @@ fun PlaylistScreen(
                                                 Icon(SimpIcons.Search, stringResource(Res.string.search), tint = MaterialTheme.colorScheme.onSurface)
                                             }
                                             if (!data.isRadio) {
+                                                IconButton(onClick = { showSortSheet = true }, modifier = Modifier.size(40.dp)) {
+                                                    // Accent while the list is in anything but its own order.
+                                                    val sorted = sortState.sort != PlaylistSort.DEFAULT || sortState.desc
+                                                    Icon(
+                                                        SimpIcons.Sort,
+                                                        stringResource(Res.string.sort_by),
+                                                        tint = if (sorted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                                    )
+                                                }
                                                 CollectionDownloadButton(
                                                     download = download,
                                                     onDownload = { viewModel.onUIEvent(PlaylistUIEvent.Download) },
@@ -394,8 +410,9 @@ fun PlaylistScreen(
                     }) { index ->
                         val item = filteredTrack.getOrNull(index)
                         if (item != null) {
-                            // Wrapped: SongFullWidthItems puts its modifier on two nodes.
-                            Column(Modifier.animateItem()) {
+                            // Wrapped: SongFullWidthItems puts its modifier on two nodes. Dimmed while
+                            // YouTube re-sorts, or picking a sort looks like it did nothing.
+                            Column(Modifier.animateItem().alpha(if (sortState.resorting) 0.5f else 1f)) {
                                 SongFullWidthItems(
                                     isPlaying = playingTrack?.videoId == item.videoId && isPlaying,
                                     track = item,
@@ -601,6 +618,18 @@ fun PlaylistScreen(
                         },
                         navController = navController,
                         song = track,
+                    )
+                }
+                if (showSortSheet) {
+                    PlaylistSortSheet(
+                        sort = sortState.sort,
+                        desc = sortState.desc,
+                        onSort = {
+                            viewModel.setSort(it, sortState.desc)
+                            showSortSheet = false
+                        },
+                        onReverse = { viewModel.setSort(sortState.sort, it) },
+                        onDismiss = { showSortSheet = false },
                     )
                 }
                 if (playlistBottomSheetShow) {

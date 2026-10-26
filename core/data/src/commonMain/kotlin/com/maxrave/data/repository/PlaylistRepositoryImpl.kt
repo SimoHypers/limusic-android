@@ -22,6 +22,7 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.utils.PlaylistSort
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioMix
 import com.maxrave.domain.utils.toTrack
@@ -34,6 +35,8 @@ import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
+import com.maxrave.kotlinytmusicscraper.parser.params
+import com.maxrave.kotlinytmusicscraper.parser.playlistSortMenu
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -458,6 +461,8 @@ internal class PlaylistRepositoryImpl(
     override fun getPlaylistData(
         playlistId: String,
         viewString: String,
+        sort: PlaylistSort?,
+        desc: Boolean,
     ): Flow<Resource<Pair<PlaylistBrowse, String?>>> =
         flow {
             runCatching {
@@ -470,10 +475,10 @@ internal class PlaylistRepositoryImpl(
                     }
                 Logger.d("getPlaylistData", "playlist id: $id")
                 youTube
-                    .customQuery(browseId = id, setLogin = true)
+                    .customQuery(browseId = id, params = sort?.params(desc), setLogin = true)
                     .onSuccess { result ->
                         val listContent: ArrayList<Track> = arrayListOf()
-                        val data: List<MusicShelfRenderer.Content>? =
+                        val shelf =
                             result.contents
                                 ?.singleColumnBrowseResultsRenderer
                                 ?.tabs
@@ -486,7 +491,7 @@ internal class PlaylistRepositoryImpl(
                                 ?.get(
                                     0,
                                 )?.musicPlaylistShelfRenderer
-                                ?.contents
+                                ?.takeIf { it.contents != null }
                                 ?: result.contents
                                     ?.twoColumnBrowseResultsRenderer
                                     ?.secondaryContents
@@ -494,7 +499,7 @@ internal class PlaylistRepositoryImpl(
                                     ?.contents
                                     ?.get(0)
                                     ?.musicPlaylistShelfRenderer
-                                    ?.contents
+                        val data: List<MusicShelfRenderer.Content>? = shelf?.contents
                         if (data != null) {
                             Logger.d("getPlaylistData", "data: $data")
                             Logger.d("getPlaylistData", "data size: ${data.size}")
@@ -576,6 +581,7 @@ internal class PlaylistRepositoryImpl(
                                                 privacy = privacy ?: playlist.privacy,
                                                 owned = editableHeader != null,
                                                 saved = saved,
+                                                sortMenu = shelf?.header?.playlistSortMenu(),
                                             ),
                                             continueParam,
                                         ),
@@ -826,6 +832,18 @@ internal class PlaylistRepositoryImpl(
                 .onSuccess { emit(Resource.Success("")) }
                 .onFailure { emit(Resource.Error<String>(it.message ?: "Unknown error")) }
         }.flowOn(Dispatchers.IO)
+
+    override suspend fun setPlaylistSort(
+        playlistId: String,
+        sort: PlaylistSort,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            youTube
+                .setPlaylistSort(playlistId, sort)
+                .mapCatching { status -> check(status in 200..299) { "HTTP $status" } }
+                .onFailure { Logger.w("PlaylistRepositoryImpl", "Playlist sort on YouTube failed: ${it.message}") }
+                .isSuccess
+        }
 
     override fun deleteYourYouTubePlaylist(playlistId: String): Flow<Resource<String>> =
         flow {

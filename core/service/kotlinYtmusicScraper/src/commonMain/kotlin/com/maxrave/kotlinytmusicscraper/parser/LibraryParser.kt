@@ -39,10 +39,10 @@ fun parseLibraryPage(
     return LibraryPage(cards, rows, token)
 }
 
-private fun JsonElement.stringAt(key: String) = ((this as? JsonObject)?.get(key) as? JsonPrimitive)?.contentOrNull
+internal fun JsonElement.stringAt(key: String) = ((this as? JsonObject)?.get(key) as? JsonPrimitive)?.contentOrNull
 
 /** Every value under [key], at any depth; a match is not searched further. */
-private fun JsonElement.findAll(
+internal fun JsonElement.findAll(
     key: String,
     out: MutableList<JsonElement> = mutableListOf(),
 ): List<JsonElement> {

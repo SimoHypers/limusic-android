@@ -14,6 +14,7 @@ import com.maxrave.domain.data.model.browse.playlist.Author
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
 import com.maxrave.domain.extension.now
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
@@ -21,6 +22,8 @@ import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.collectionDownload
+import com.maxrave.domain.utils.PlaylistSort
+import com.maxrave.domain.utils.PlaylistSortMenu
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.domain.utils.toListVideoId
@@ -36,6 +39,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -45,6 +49,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -61,6 +66,8 @@ import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.removed_download
 import simpmusic.composeapp.generated.resources.shuffle
+import simpmusic.composeapp.generated.resources.sort_failed
+import simpmusic.composeapp.generated.resources.sort_not_saved
 import simpmusic.composeapp.generated.resources.view_count
 import simpmusic.composeapp.generated.resources.youtube_write_failed
 
@@ -97,6 +104,116 @@ class PlaylistViewModel(
     val tracksListState: StateFlow<ListState> = _tracksListState
 
     private var playlistEntityJob: Job? = null
+    private var continuationJob: Job? = null
+    private var sortJob: Job? = null
+
+    // --- sorting (PlaylistSorting.kt, desktop's playlist page) ---
+    private val dataStoreManager: DataStoreManager by inject<DataStoreManager>()
+    private var playlistId = ""
+
+    private val _sortState = MutableStateFlow(PlaylistSortState())
+    val sortState: StateFlow<PlaylistSortState> = _sortState
+
+    /** The rows in the order on screen. Search filters these. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val sortedTracks: StateFlow<List<Track>> =
+        combine(_tracks, _sortState.map { it.copy(resorting = false) }.distinctUntilChanged()) { t, s -> t to s }
+            .mapLatest { (t, s) -> ordered(t, s) }
+            .stateIn(viewModelScope, Eagerly, emptyList())
+
+    private suspend fun ordered(
+        items: List<Track>,
+        s: PlaylistSortState = _sortState.value,
+    ): List<Track> {
+        // The rows came back from YouTube in order. The one order it has no params for is a
+        // reversed manual one, so that reverse stays here.
+        if (s.serverSorted) return if (s.sort == PlaylistSort.DEFAULT && s.desc) items.reversed() else items
+        val plays =
+            if (s.sort == PlaylistSort.PLAYS) {
+                // Chunked under SQLite's 999-variable limit on older Androids.
+                items.map { it.videoId }.chunked(900).flatMap { songRepository.getSongsByListVideoId(it).first() }
+                    .associate { it.videoId to it.totalPlayTime }
+            } else {
+                emptyMap()
+            }
+        // Liked Music is the one playlist YouTube hands back newest addition first.
+        return sortTracks(items, s.sort, playlistId == "LM", s.desc, plays)
+    }
+
+    // Only what YouTube will not keep goes here: Most played, a reversed Title/Artist/Album, and any
+    // sort on a list it stores none for (someone else's playlist). The rest is read back off the page.
+    private fun sortKey(id: String) = "playlist_sort_$id"
+
+    private suspend fun readSort(id: String): PlaylistSortState? {
+        val (name, dir) = dataStoreManager.getString(sortKey(id)).first()?.split(":")?.let { it[0] to it.getOrNull(1) } ?: return null
+        return PlaylistSort.entries.firstOrNull { it.name == name }?.let { PlaylistSortState(sort = it, desc = dir == "desc") }
+    }
+
+    private suspend fun rememberSort(
+        id: String,
+        s: PlaylistSortState,
+    ) {
+        val keptByYouTube = s.menu != null && (s.menu.editable || id == "LM") && storedExactly(s.sort, s.desc)
+        dataStoreManager.putString(sortKey(id), if (keptByYouTube) "" else s.sort.name + if (s.desc) ":desc" else "")
+    }
+
+    /**
+     * A sort change is a new request: YouTube owns the order, so the rows come back from it. On a
+     * playlist you own the choice is stored first, so it outlives the visit and shows up in YouTube
+     * Music. Most played and a reversed manual order are still sorted here, over every page.
+     */
+    fun setSort(
+        sort: PlaylistSort,
+        desc: Boolean,
+    ) {
+        val id = playlistId
+        val s = _sortState.value.copy(sort = sort, desc = desc)
+        if (s == _sortState.value || id.isEmpty()) return
+        _sortState.value = s
+        sortJob?.cancel()
+        sortJob =
+            viewModelScope.launch {
+                rememberSort(id, s)
+                val menu = s.menu
+                if (menu != null) {
+                    persistedSort(sort, desc)?.takeIf { menu.editable }?.let { store ->
+                        // The order still applies here; only the carry-over to other clients is lost.
+                        if (!playlistRepository.setPlaylistSort(id, store)) makeToast(getString(Res.string.sort_not_saved))
+                    }
+                    fetchSorted(id, s)
+                }
+                // Inside this job, so the next pick stops a walk this order no longer needs.
+                if (s.localSorting) walkAll()
+            }
+    }
+
+    /** Page one of the list in the new order. Its token pages on in that same order. */
+    private suspend fun fetchSorted(
+        id: String,
+        s: PlaylistSortState,
+    ) {
+        continuationJob?.cancel()
+        _sortState.update { it.copy(resorting = true) }
+        val res = playlistRepository.getPlaylistData(id, getString(Res.string.view_count), fetchSort(s.sort), s.desc).firstOrNull()
+        val data = res?.data
+        if (res is Resource.Success && data != null) {
+            data.first.tracks.forEach {
+                songRepository.insertSong(it.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME)).firstOrNull()
+            }
+            _tracks.value = data.first.tracks
+            _continuation.value = data.second
+            _tracksListState.value = if (data.second.isNullOrEmpty()) ListState.PAGINATION_EXHAUST else ListState.IDLE
+        } else {
+            makeToast(getString(Res.string.sort_failed))
+        }
+        _sortState.update { it.copy(resorting = false) }
+    }
+
+    /** Hands [play] the rows in the order on screen, with the token for the pages behind them. */
+    private fun withQueueTracks(play: (List<Track>, String?) -> Unit) {
+        // Ordered here, so the queue needs every page first, and it is a snapshot with no token.
+        if (_sortState.value.localSorting) getFullTracks { play(it, null) } else play(tracks.value, continuation.value)
+    }
 
     private fun resetData() {
         _uiState.value = Loading
@@ -105,6 +222,9 @@ class PlaylistViewModel(
 
     fun getData(id: String) {
         resetData()
+        playlistId = id
+        sortJob?.cancel()
+        _sortState.value = PlaylistSortState()
         viewModelScope.launch {
             // Check radio
             if (id.isRadioPlaylistId()) {
@@ -149,15 +269,20 @@ class PlaylistViewModel(
                         }
                     }
             } else {
-                // This is an online playlist
+                // This is an online playlist. Nothing saved means asking for no order at all: what
+                // comes back is the order the account has it in, the one YouTube Music would show.
+                val saved = readSort(id)
+                _sortState.value = saved ?: PlaylistSortState()
                 playlistRepository
-                    .getPlaylistData(id, getString(Res.string.view_count))
+                    .getPlaylistData(id, getString(Res.string.view_count), saved?.let { fetchSort(it.sort) }, saved?.desc == true)
                     .collect { res ->
                         val data = res.data
                         when (res) {
                             is Resource.Success if (data != null) -> {
                                 Logger.d(tag, "Playlist data: $data")
                                 log("Playlist endpoint: ${data.first.shuffleEndpoint}")
+                                val menu = data.first.sortMenu
+                                _sortState.update { it.copy(menu = menu, sort = if (saved == null) menu?.selected ?: PlaylistSort.DEFAULT else it.sort) }
                                 // Tracks first: a menu waiting on Success reads them straight away.
                                 _tracks.value = data.first.tracks
                                 _continuation.value = data.second
@@ -186,6 +311,7 @@ class PlaylistViewModel(
                                             ),
                                     )
                                 getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
+                                if (_sortState.value.localSorting) sortJob = viewModelScope.launch { walkAll() }
                             }
 
                             else -> {
@@ -201,7 +327,8 @@ class PlaylistViewModel(
         playlistId: String,
         continuation: String?,
     ) {
-        viewModelScope.launch {
+        // Kept so a re-sort can drop a page of the old order that is still on its way.
+        continuationJob = viewModelScope.launch {
             if (continuation.isNullOrEmpty()) {
                 _tracksListState.value = ListState.PAGINATION_EXHAUST
                 return@launch
@@ -345,10 +472,9 @@ class PlaylistViewModel(
     fun onUIEvent(event: PlaylistUIEvent) {
         val data = uiState.value.data ?: return
         when (event) {
-            is PlaylistUIEvent.ItemClick -> {
+            is PlaylistUIEvent.ItemClick -> withQueueTracks { loadedList, token ->
                 val videoId = event.videoId
-                val loadedList = tracks.value
-                val clickedSong = loadedList.first { it.videoId == videoId }
+                val clickedSong = loadedList.firstOrNull { it.videoId == videoId } ?: return@withQueueTracks
                 val index = loadedList.indexOf(clickedSong)
                 setQueueData(
                     QueueData.Data(
@@ -357,7 +483,7 @@ class PlaylistViewModel(
                         playlistId = data.id,
                         playlistName = data.title,
                         playlistType = PlaylistType.PLAYLIST,
-                        continuation = continuation.value,
+                        continuation = token,
                     ),
                 )
                 loadMediaItem(
@@ -368,29 +494,30 @@ class PlaylistViewModel(
             }
 
             PlaylistUIEvent.PlayAll -> {
-                val loadedList = tracks.value
-                if (loadedList.isEmpty()) {
+                if (tracks.value.isEmpty()) {
                     makeToast(
                         getString(Res.string.playlist_is_empty),
                     )
                     return
                 }
-                val clickedSong = loadedList.first()
-                setQueueData(
-                    QueueData.Data(
-                        listTracks = loadedList.toCollection(arrayListOf<Track>()),
-                        firstPlayedTrack = clickedSong,
-                        playlistId = data.id,
-                        playlistName = data.title,
-                        playlistType = PlaylistType.PLAYLIST,
-                        continuation = continuation.value,
-                    ),
-                )
-                loadMediaItem(
-                    clickedSong,
-                    Config.PLAYLIST_CLICK,
-                    0,
-                )
+                withQueueTracks { loadedList, token ->
+                    val clickedSong = loadedList.firstOrNull() ?: return@withQueueTracks
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = loadedList.toCollection(arrayListOf<Track>()),
+                            firstPlayedTrack = clickedSong,
+                            playlistId = data.id,
+                            playlistName = data.title,
+                            playlistType = PlaylistType.PLAYLIST,
+                            continuation = token,
+                        ),
+                    )
+                    loadMediaItem(
+                        clickedSong,
+                        Config.PLAYLIST_CLICK,
+                        0,
+                    )
+                }
             }
 
             PlaylistUIEvent.Shuffle -> {
@@ -463,38 +590,34 @@ class PlaylistViewModel(
         }
     }
 
+    /** Walks in every page, then calls [callback] once with the whole list, in the order on screen. */
     fun getFullTracks(callback: (List<Track>) -> Unit) {
         viewModelScope.launch {
-            // A Home shortcut opens the menu before the playlist has loaded: wait for its first page.
-            combine(uiState, tracksListState) { ui, list -> ui !is Loading && list != ListState.LOADING }.first { it }
-            if (uiState.value.data == null) return@launch
-            if (tracksListState.value == ListState.PAGINATION_EXHAUST) {
-                _playlistEntity.value
-                    ?.copy(
-                        tracks = tracks.value.toListVideoId(),
-                        trackCount = tracks.value.size,
-                    )?.let {
-                        playlistRepository.insertAndReplacePlaylist(it)
-                    }
-                callback(tracks.value)
-            } else {
-                val id = uiState.value.data?.id ?: return@launch
-                tracksListState.collectLatest { state ->
-                    if (state == ListState.PAGINATION_EXHAUST) {
-                        _playlistEntity.value
-                            ?.copy(
-                                tracks = tracks.value.toListVideoId(),
-                                trackCount = tracks.value.size,
-                            )?.let {
-                                playlistRepository.insertAndReplacePlaylist(it)
-                            }
-                        callback(tracks.value)
-                    } else if (state != ListState.PAGINATING) {
-                        getContinuationTrack(id, continuation.value)
-                    }
-                }
-            }
+            if (walkAll()) callback(ordered(tracks.value))
         }
+    }
+
+    /** Pulls in every page of the list; false if it never loaded. */
+    private suspend fun walkAll(): Boolean {
+        // A Home shortcut opens the menu before the playlist has loaded: wait for its first page.
+        combine(uiState, tracksListState) { ui, list -> ui !is Loading && list != ListState.LOADING }.first { it }
+        val id = uiState.value.data?.id ?: return false
+        // Ends at the last page: a callback that queues must not fire again when a re-sort walks
+        // the list a second time.
+        tracksListState.first { state ->
+            if (state != ListState.PAGINATION_EXHAUST && state != ListState.PAGINATING) {
+                getContinuationTrack(id, continuation.value)
+            }
+            state == ListState.PAGINATION_EXHAUST
+        }
+        _playlistEntity.value
+            ?.copy(
+                tracks = tracks.value.toListVideoId(),
+                trackCount = tracks.value.size,
+            )?.let {
+                playlistRepository.insertAndReplacePlaylist(it)
+            }
+        return true
     }
 
     /** Runs [action] once the playlist has loaded; never, if it failed. */
@@ -586,6 +709,21 @@ class PlaylistViewModel(
         super.onCleared()
         playlistEntityJob?.cancel()
     }
+}
+
+data class PlaylistSortState(
+    val sort: PlaylistSort = PlaylistSort.DEFAULT,
+    val desc: Boolean = false,
+    /** YouTube's sort menu for this list; null on lists it will not reorder, or offline. */
+    val menu: PlaylistSortMenu? = null,
+    /** A YouTube sort is a round trip: the rows on screen are the old order until it lands. */
+    val resorting: Boolean = false,
+) {
+    /** YouTube does the ordering: all of it but Most played, which is this phone's own counts. */
+    val serverSorted get() = menu != null && sort != PlaylistSort.PLAYS
+
+    /** Rows are ordered here, which is only honest once every page is in (desktop's `sorting`). */
+    val localSorting get() = if (serverSorted) sort == PlaylistSort.DEFAULT && desc else sort != PlaylistSort.DEFAULT || desc
 }
 
 sealed class PlaylistUIState(

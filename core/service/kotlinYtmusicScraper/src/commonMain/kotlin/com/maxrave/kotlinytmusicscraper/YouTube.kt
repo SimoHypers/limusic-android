@@ -2,6 +2,7 @@ package com.maxrave.kotlinytmusicscraper
 
 import com.eygraber.uri.toKmpUri
 import com.maxrave.common.ITAG
+import com.maxrave.domain.utils.PlaylistSort
 import com.maxrave.kotlinytmusicscraper.YouTube.Companion.DEFAULT_VISITOR_DATA
 import com.maxrave.kotlinytmusicscraper.extractor.ExtractSource
 import com.maxrave.kotlinytmusicscraper.cipher.FaradayCipherEngine
@@ -77,6 +78,7 @@ import com.maxrave.kotlinytmusicscraper.parser.fromPlaylistToTrack
 import com.maxrave.kotlinytmusicscraper.parser.fromPlaylistToTrackWithSetVideoId
 import com.maxrave.kotlinytmusicscraper.parser.getContinuePlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
+import com.maxrave.kotlinytmusicscraper.parser.editAction
 import com.maxrave.kotlinytmusicscraper.parser.getReloadParams
 import com.maxrave.kotlinytmusicscraper.parser.getSuggestionSongItems
 import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
@@ -2051,6 +2053,14 @@ class YouTube {
         privacy: String? = null,
     ) = runCatching {
         ytMusic.editYouTubePlaylist(playlistId, title, description, privacy).status.value
+    }
+
+    /** Every client on the account then shows the playlist in [sort]. Your own playlists only. */
+    suspend fun setPlaylistSort(
+        playlistId: String,
+        sort: PlaylistSort,
+    ) = runCatching {
+        ytMusic.setPlaylistSort(playlistId, requireNotNull(sort.editAction()) { "$sort is not stored by YouTube" }).status.value
     }
 
     suspend fun deletePlaylist(playlistId: String) =

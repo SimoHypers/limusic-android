@@ -447,6 +447,21 @@ class Ytmusic {
         )
     }
 
+    /** Stores a sort on a playlist you own; [action] comes from parser/PlaylistSort.kt. */
+    suspend fun setPlaylistSort(
+        playlistId: String,
+        action: EditPlaylistBody.Action,
+    ) = httpClient.post("browse/edit_playlist") {
+        ytClient(WEB_REMIX, setLogin = true)
+        setBody(
+            EditPlaylistBody(
+                context = WEB_REMIX.toContext(locale, visitorData),
+                playlistId = playlistId.removePrefix("VL"),
+                actions = listOf(action),
+            ),
+        )
+    }
+
     suspend fun deleteYouTubePlaylist(playlistId: String) =
         httpClient.post("playlist/delete") {
             ytClient(WEB_REMIX, setLogin = true)

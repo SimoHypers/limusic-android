@@ -791,4 +791,13 @@
     <string name="no_subscriptions">No subscriptions yet. Follow an artist from their page to subscribe.</string>
     <string name="no_library_songs">No songs in your library yet. Like a song and it lands here.</string>
     <string name="library_load_failed">Couldn’t reach YouTube Music. Pull down to try again.</string>
+    <string name="sort_default">Default</string>
+    <string name="sort_newest">Newest first</string>
+    <string name="sort_oldest">Oldest first</string>
+    <string name="sort_artist">Artist</string>
+    <string name="sort_plays">Most played</string>
+    <string name="sort_top">Top voted</string>
+    <string name="sort_reverse">Reverse order</string>
+    <string name="sort_failed">Couldn’t sort this playlist</string>
+    <string name="sort_not_saved">Sorted, but couldn’t save it to YouTube</string>
 </resources>

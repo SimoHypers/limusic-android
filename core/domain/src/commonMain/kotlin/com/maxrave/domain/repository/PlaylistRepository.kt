@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.YourYouTubePlaylistList
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.PlaylistType
+import com.maxrave.domain.utils.PlaylistSort
 import com.maxrave.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
@@ -67,10 +68,19 @@ interface PlaylistRepository {
         viewString: String,
     ): Flow<Resource<PlaylistBrowse>>
 
+    /** [sort] asks YouTube for that order; null gets the order the account already has it in. */
     fun getPlaylistData(
         playlistId: String,
         viewString: String,
+        sort: PlaylistSort? = null,
+        desc: Boolean = false,
     ): Flow<Resource<Pair<PlaylistBrowse, String?>>>
+
+    /** Stores [sort] on a playlist you own, for every client on the account. False if it failed. */
+    suspend fun setPlaylistSort(
+        playlistId: String,
+        sort: PlaylistSort,
+    ): Boolean
 
     fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?>
 

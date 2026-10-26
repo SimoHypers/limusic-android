@@ -3,6 +3,7 @@ package com.maxrave.domain.data.model.browse.playlist
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.utils.PlaylistSortMenu
 
 data class PlaylistBrowse(
     val author: Author,
@@ -24,4 +25,5 @@ data class PlaylistBrowse(
     val saved: Boolean? = null,
     /** The author's round picture: the header's strapline thumbnail or its facepile. */
     val authorThumbnail: String? = null,
+    val sortMenu: PlaylistSortMenu? = null,
 )

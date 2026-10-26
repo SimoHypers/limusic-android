@@ -19,6 +19,9 @@ data class EditPlaylistBody(
         val removedVideoId: String? = null,
         val setVideoId: String? = null,
         val movedSetVideoIdSuccessor: String? = null,
+        // The two sort actions (parser/PlaylistSort.kt).
+        val playlistVideoOrder: Int? = null,
+        val playlistDynamicSortPreference: Int? = null,
         // Set only by ACTION_SET_CUSTOM_THUMBNAIL; the blob comes from the two-step upload in
         // Ytmusic.uploadPlaylistCustomThumbnail.
         val addedCustomThumbnail: AddedCustomThumbnail? = null,

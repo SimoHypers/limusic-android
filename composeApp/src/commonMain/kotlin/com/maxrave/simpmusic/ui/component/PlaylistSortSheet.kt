@@ -1,0 +1,86 @@
+package com.maxrave.simpmusic.ui.component
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.maxrave.domain.utils.PlaylistSort
+import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.PLAYLIST_SORTS
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.sort_artist
+import simpmusic.composeapp.generated.resources.sort_by
+import simpmusic.composeapp.generated.resources.sort_default
+import simpmusic.composeapp.generated.resources.sort_newest
+import simpmusic.composeapp.generated.resources.sort_oldest
+import simpmusic.composeapp.generated.resources.sort_plays
+import simpmusic.composeapp.generated.resources.sort_reverse
+import simpmusic.composeapp.generated.resources.sort_top
+import simpmusic.composeapp.generated.resources.title
+
+/**
+ * Desktop's playlist Sort menu and direction toggle as one sheet. A pick applies and closes it;
+ * Reverse applies and leaves it open, since it is usually flipped right after a pick.
+ */
+@Composable
+fun PlaylistSortSheet(
+    sort: PlaylistSort,
+    desc: Boolean,
+    onSort: (PlaylistSort) -> Unit,
+    onReverse: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    SettingSheet(title = stringResource(Res.string.sort_by), onDismiss = onDismiss) { colors ->
+        Column {
+            PLAYLIST_SORTS.forEach { option ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .selectable(selected = option == sort, role = Role.RadioButton) { onSort(option) },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(selected = option == sort, onClick = null, modifier = Modifier.padding(12.dp))
+                    Text(stringResource(option.label()), style = typo().bodyMedium, color = colors.content)
+                }
+            }
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .toggleable(value = desc, role = Role.Switch, onValueChange = onReverse)
+                .padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(stringResource(Res.string.sort_reverse), style = typo().bodyMedium, color = colors.content, modifier = Modifier.weight(1f))
+            Switch(checked = desc, onCheckedChange = null)
+        }
+    }
+}
+
+private fun PlaylistSort.label() =
+    when (this) {
+        PlaylistSort.DEFAULT -> Res.string.sort_default
+        PlaylistSort.NEWEST -> Res.string.sort_newest
+        PlaylistSort.OLDEST -> Res.string.sort_oldest
+        PlaylistSort.TITLE -> Res.string.title
+        PlaylistSort.ARTIST -> Res.string.sort_artist
+        PlaylistSort.ALBUM -> Res.string.album
+        PlaylistSort.TOP -> Res.string.sort_top
+        PlaylistSort.PLAYS -> Res.string.sort_plays
+    }
