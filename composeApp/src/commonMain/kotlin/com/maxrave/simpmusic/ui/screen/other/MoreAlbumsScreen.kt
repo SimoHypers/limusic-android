@@ -4,7 +4,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -49,7 +48,6 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import org.koin.compose.viewmodel.koinViewModel
-import simpmusic.composeapp.generated.resources.Res
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,17 +83,14 @@ fun MoreAlbumsScreen(
             is MoreAlbumsUIState.Success -> {
                 val data = state.albumItems
                 LazyVerticalGrid(
-                    // As many columns as fit, not a fixed two: HomeItemContentPlaylist is a fixed
-                    // 180dp wide, so two columns on a wide window left each tile alone in a huge cell.
-                    // 170dp rather than 180 keeps two columns on a 360dp phone (2 × 170 + the 10dp
-                    // gap fits), where the cells come out exactly as wide as Fixed(2) made them.
-                    columns = GridCells.Adaptive(minSize = 170.dp),
+                    // The cards fill their cells and bring their own 10dp inset, so 6dp here puts
+                    // the covers 16dp from the edges and 20dp apart, like the pages around it.
+                    columns = GridCells.Adaptive(minSize = 150.dp),
                     modifier =
                         Modifier
                             .fillMaxSize()
                             .hazeSource(state = hazeState),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp),
                 ) {
                     item(
                         span = { GridItemSpan(maxLineSpan) },
@@ -111,6 +106,7 @@ fun MoreAlbumsScreen(
                         val data = album
                         HomeItemContentPlaylist(
                             data = data,
+                            fillMaxWidth = true,
                             onClick = {
                                 navController.navigate(
                                     AlbumDestination(

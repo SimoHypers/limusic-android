@@ -15,4 +15,6 @@ data class ResultSong(
     val isExplicit: Boolean,
     /** YouTube's `MUSIC_VIDEO_TYPE_*`, or null when the response carried none — as on [ResultVideo]. */
     val videoType: String?,
+    /** "53M plays" on an artist's top songs. */
+    val playCount: String? = null,
 )

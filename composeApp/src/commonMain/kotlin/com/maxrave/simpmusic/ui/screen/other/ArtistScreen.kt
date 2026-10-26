@@ -1,8 +1,16 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.PaddingValues
+import com.maxrave.simpmusic.ui.component.CollectionTitleText
+import com.maxrave.simpmusic.ui.component.LibrarySectionHeader
+import com.maxrave.simpmusic.ui.component.RoundAccentButton
+import com.maxrave.simpmusic.ui.component.RoundIconButton
+import com.maxrave.simpmusic.ui.component.TitleRow
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.shuffle
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -14,10 +22,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +35,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -41,14 +46,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -74,7 +75,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,12 +96,8 @@ import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.barBlurStyle
-import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
-import com.maxrave.simpmusic.extension.hexToColorOrNull
-import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -144,8 +140,6 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -160,8 +154,6 @@ import simpmusic.composeapp.generated.resources.featured_inArtist
 import simpmusic.composeapp.generated.resources.liked_songs
 import simpmusic.composeapp.generated.resources.liked_songs_by
 import simpmusic.composeapp.generated.resources.liked_songs_count
-import simpmusic.composeapp.generated.resources.more
-import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.popular
 import simpmusic.composeapp.generated.resources.related_artists
 import simpmusic.composeapp.generated.resources.share
@@ -228,33 +220,9 @@ fun ArtistScreen(
                 }
             }?.takeIf { showHeaderVideo }
 
-    // Palette extraction from the artist artwork (portrait Apple-style only).
-    val paletteState = com.kmpalette.rememberPaletteState()
+    // The decoded artwork's shape sizes the landscape banner frame.
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    var paletteGeneratedFor by remember { mutableStateOf<String?>(null) }
-    val currentImageUrl = (artistScreenState as? ArtistScreenState.Success)?.data?.imageUrl
-
-    LaunchedEffect(bitmap) {
-        val bm = bitmap
-        if (bm != null && currentImageUrl != null && paletteGeneratedFor != currentImageUrl) {
-            paletteState.generate(bm)
-            paletteGeneratedFor = currentImageUrl
-        }
-    }
-
-    // Apple Music-style page background from the artwork's dominant tone, held and faded (see UIExt.rememberPaletteColor).
-    val mutedPaletteBg = rememberPaletteColor(paletteState.palette)
-    // Tint for the description card, matching the non-portrait CollapsingToolbar color.
-    val sectionTint = rememberPaletteColor(paletteState.palette) { it.getColorFromPalette() }
-
-    // Accent color for the action buttons, sourced from the artist name-logo image's dominant
-    // color (hidden catalog). Falls back to white until the logo loads (or if none exists), and
-    // fades to the logo's colour instead of snapping when it does.
-    val artistAccent by animateColorAsState(
-        targetValue = artistLogo?.bgColorHex?.hexToColorOrNull() ?: Color.White,
-        animationSpec = tween(500),
-        label = "artistAccent",
-    )
+    val background = MaterialTheme.colorScheme.background
 
     val hazeState = rememberHazeState()
     val lazyState = rememberLazyListState()
@@ -284,17 +252,12 @@ fun ArtistScreen(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .background(mutedPaletteBg)
+                                .background(background)
                                 .hazeSource(hazeState),
                         state = lazyState,
                     ) {
                         item(contentType = "header") {
-                            Column(
-                                // Negative spacing pulls the action row up into the header AND
-                                // shrinks the layout, so there's no leftover gap before "Popular"
-                                // (unlike Modifier.offset, which only moves pixels, not layout).
-                                verticalArrangement = Arrangement.spacedBy((-36).dp),
-                            ) {
+                            Column {
                                 // Edge-to-edge artwork (the artist's video plays on top of it when available).
                                 // Portrait fills a SQUARE frame, so the URL is clamped to a square
                                 // size there (logic from commit 5e596c5b). Landscape keeps YouTube's
@@ -439,74 +402,87 @@ fun ArtistScreen(
                                                     .fillMaxWidth()
                                                     .fillMaxHeight(0.7f)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(artworkScrimBrush(mutedPaletteBg)),
+                                                    .background(artworkScrimBrush(background)),
                                         )
-                                        // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
+                                        // Desktop's hero: the name left, Radio and Shuffle at its right, the
+                                        // subscribers under it.
                                         Column(
                                             modifier =
                                                 Modifier
-                                                    .align(Alignment.BottomCenter)
-                                                    // Lift the name + subtitle together with the action row.
-                                                    .offset(y = (-36).dp)
+                                                    .align(Alignment.BottomStart)
                                                     .fillMaxWidth()
-                                                    .padding(horizontal = 20.dp)
-                                                    .padding(bottom = 16.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                    .padding(horizontal = 16.dp),
                                         ) {
-                                            val logo = artistLogo
-                                            // The name stays as text until the logo image has actually
-                                            // loaded, then the two cross-fade and the box eases to the
-                                            // logo's height. Swapping on the logo's url alone blanked the
-                                            // line until the image arrived and then popped it in. Saveable,
-                                            // so coming back to the page shows the logo straight away.
-                                            var logoLoaded by rememberSaveable(logo?.logoUrl) { mutableStateOf(false) }
-                                            val logoAlpha by animateFloatAsState(
-                                                targetValue = if (logo != null && logoLoaded) 1f else 0f,
-                                                animationSpec = tween(500),
-                                                label = "artistNameLogo",
-                                            )
-                                            Box(
-                                                modifier = Modifier.fillMaxWidth().animateContentSize(),
-                                                contentAlignment = Alignment.Center,
+                                            TitleRow(
+                                                title = {
+                                                    val logo = artistLogo
+                                                    // The name stays as text until the logo image has actually
+                                                    // loaded, then the two cross-fade and the box eases to the
+                                                    // logo's height. Swapping on the logo's url alone blanked the
+                                                    // line until the image arrived and then popped it in. Saveable,
+                                                    // so coming back to the page shows the logo straight away.
+                                                    var logoLoaded by rememberSaveable(logo?.logoUrl) { mutableStateOf(false) }
+                                                    val logoAlpha by animateFloatAsState(
+                                                        targetValue = if (logo != null && logoLoaded) 1f else 0f,
+                                                        animationSpec = tween(500),
+                                                        label = "artistNameLogo",
+                                                    )
+                                                    Box(
+                                                        modifier = Modifier.fillMaxWidth().animateContentSize(),
+                                                        contentAlignment = Alignment.CenterStart,
+                                                    ) {
+                                                        if (logoAlpha < 1f) {
+                                                            CollectionTitleText(
+                                                                title = state.data.title ?: stringResource(Res.string.unknown),
+                                                                modifier = Modifier.graphicsLayer { alpha = 1f - logoAlpha },
+                                                            )
+                                                        }
+                                                        if (logo != null) {
+                                                            // Artist name rendered as a logo image (hidden catalog),
+                                                            // in place of the plain-text title.
+                                                            AsyncImage(
+                                                                model = logo.logoUrl,
+                                                                contentDescription = state.data.title,
+                                                                contentScale = ContentScale.Fit,
+                                                                alignment = Alignment.CenterStart,
+                                                                onSuccess = { logoLoaded = true },
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxWidth()
+                                                                        .heightIn(max = 84.dp)
+                                                                        .graphicsLayer { alpha = logoAlpha },
+                                                            )
+                                                        }
+                                                    }
+                                                },
                                             ) {
-                                                if (logoAlpha < 1f) {
-                                                    Text(
-                                                        text = state.data.title ?: stringResource(Res.string.unknown),
-                                                        style = typo().titleLarge,
-                                                        color = Color.White,
-                                                        maxLines = 2,
-                                                        textAlign = TextAlign.Center,
-                                                        modifier = Modifier.graphicsLayer { alpha = 1f - logoAlpha },
-                                                    )
+                                                RoundIconButton(SimpIcons.Sensors, stringResource(Res.string.radio)) {
+                                                    val param = state.data.radioParam
+                                                    if (param != null) {
+                                                        viewModel.onRadioClick(param)
+                                                    } else {
+                                                        viewModel.makeToast(getStringBlocking(Res.string.error))
+                                                    }
                                                 }
-                                                if (logo != null) {
-                                                    // Artist name rendered as a logo image (hidden catalog),
-                                                    // in place of the plain-text title.
-                                                    AsyncImage(
-                                                        model = logo.logoUrl,
-                                                        contentDescription = state.data.title,
-                                                        contentScale = ContentScale.Fit,
-                                                        onSuccess = { logoLoaded = true },
-                                                        modifier =
-                                                            Modifier
-                                                                .fillMaxWidth(0.7f)
-                                                                .heightIn(max = 84.dp)
-                                                                .graphicsLayer { alpha = logoAlpha },
-                                                    )
+                                                RoundAccentButton(SimpIcons.Shuffle, stringResource(Res.string.shuffle)) {
+                                                    val param = state.data.shuffleParam
+                                                    if (param != null) {
+                                                        viewModel.onShuffleClick(param)
+                                                    } else {
+                                                        viewModel.makeToast(getStringBlocking(Res.string.error))
+                                                    }
                                                 }
                                             }
                                             val meta =
                                                 listOfNotNull(
                                                     state.data.subscribers?.takeIf { it.isNotBlank() },
                                                     state.data.playCount?.takeIf { it.isNotBlank() },
-                                                ).joinToString(" · ")
+                                                ).joinToString(" • ")
                                             if (meta.isNotBlank()) {
-                                                Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
                                                     text = meta,
                                                     style = typo().bodyMedium,
-                                                    color = Color(0xC4FFFFFF),
-                                                    textAlign = TextAlign.Center,
+                                                    modifier = Modifier.padding(top = 4.dp),
                                                 )
                                             }
                                         }
@@ -515,6 +491,7 @@ fun ArtistScreen(
                                     PillIconButton(
                                         imageVector = SimpIcons.ArrowBackIosNew,
                                         shape = RoundedCornerShape(24.dp),
+                                        tint = MaterialTheme.colorScheme.onSurface,
                                         // Matching the other three headers: the pill-style directional rim, thickened
                                         // from the 0.5.dp default so it stays visible around a 48dp circle.
                                         modifier =
@@ -526,9 +503,8 @@ fun ArtistScreen(
                                     ) {
                                         navController.navigateUp()
                                     }
-                                    // Top-right pill mirroring the back button, shaped like the
-                                    // Playlist header's: [video ⇄ picture] when the artist has an animated
-                                    // artwork, then share.
+                                    // Top-right pill like the album's: [video ⇄ picture] when the artist
+                                    // has an animated artwork, Follow, Share.
                                     Row(
                                         modifier =
                                             Modifier
@@ -536,113 +512,49 @@ fun ArtistScreen(
                                                 .padding(12.dp)
                                                 .windowInsetsPadding(WindowInsets.statusBars)
                                                 .height(48.dp)
-                                                .pillSurface(RoundedCornerShape(24.dp)),
+                                                .pillSurface(RoundedCornerShape(24.dp))
+                                                .padding(horizontal = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         if (artistMotion != null) {
-                                            IconButton(onClick = { showHeaderVideo = !showHeaderVideo }) {
+                                            IconButton(onClick = { showHeaderVideo = !showHeaderVideo }, modifier = Modifier.size(40.dp)) {
                                                 Icon(
                                                     imageVector = if (showHeaderVideo) SimpIcons.MovieOff else SimpIcons.Movie,
                                                     contentDescription = null,
-                                                    tint = Color.White,
+                                                    tint = MaterialTheme.colorScheme.onSurface,
                                                 )
                                             }
                                         }
+                                        // Desktop's Subscribe: a tick in the accent once followed.
+                                        IconButton(
+                                            onClick = {
+                                                state.data.channelId?.let { viewModel.updateFollowed(if (isFollowed) 0 else 1, it) }
+                                            },
+                                            modifier = Modifier.size(40.dp),
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
+                                                contentDescription = if (isFollowed) "Followed" else "Follow",
+                                                tint = if (isFollowed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                            )
+                                        }
                                         IconButton(
                                             onClick = { shareUrl(shareTitle, "https://music.youtube.com/channel/$channelId") },
+                                            modifier = Modifier.size(40.dp),
                                         ) {
-                                            Icon(SimpIcons.IosShare, contentDescription = shareTitle, tint = Color.White)
+                                            Icon(SimpIcons.IosShare, contentDescription = shareTitle, tint = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
                                 }
-
-                                // Apple Music-style action row: [Radio][Shuffle pill][Follow] centered.
-                                // In SimpMusic "play" an artist == shuffle, so the big middle button is Shuffle.
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 32.dp)
-                                            .padding(vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    // Radio — side button: outlined accent (yellow) circle with an
-                                    // accent-tinted icon over a transparent fill, matching the reference.
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .border(1.5.dp, artistAccent, CircleShape)
-                                                .clickable {
-                                                    val param = state.data.radioParam
-                                                    if (param != null) {
-                                                        viewModel.onRadioClick(param)
-                                                    } else {
-                                                        viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                                    }
-                                                },
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = SimpIcons.Sensors,
-                                            contentDescription = "Radio",
-                                            tint = artistAccent,
-                                            modifier = Modifier.size(22.dp),
-                                        )
-                                    }
-                                    // Shuffle — primary "play" for an artist. Circular icon button filled
-                                    // with the artist accent (white fallback); icon uses the dark page
-                                    // background color so it stays legible on a bright accent.
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .size(64.dp)
-                                                .clip(CircleShape)
-                                                .background(artistAccent)
-                                                .clickable {
-                                                    val param = state.data.shuffleParam
-                                                    if (param != null) {
-                                                        viewModel.onShuffleClick(param)
-                                                    } else {
-                                                        viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                                    }
-                                                },
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = SimpIcons.Shuffle,
-                                            contentDescription = "Shuffle",
-                                            tint = mutedPaletteBg,
-                                            modifier = Modifier.size(28.dp),
-                                        )
-                                    }
-                                    // Follow — side button matching Radio: outlined accent (yellow)
-                                    // circle when not following; fills with the accent (icon flips to
-                                    // the dark page bg) once followed, so the state reads at a glance.
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .background(if (isFollowed) artistAccent else Color.Transparent)
-                                                .border(1.5.dp, artistAccent, CircleShape)
-                                                .clickable {
-                                                    viewModel.updateFollowed(
-                                                        if (isFollowed) 0 else 1,
-                                                        state.data.channelId ?: return@clickable,
-                                                    )
-                                                },
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
-                                            contentDescription = if (isFollowed) "Followed" else "Follow",
-                                            tint = if (isFollowed) mutedPaletteBg else artistAccent,
-                                            modifier = Modifier.size(22.dp),
-                                        )
-                                    }
+                                state.data.description?.takeIf { it.isNotBlank() }?.let { text ->
+                                    val urlHandler = LocalUriHandler.current
+                                    DescriptionView(
+                                        text = text,
+                                        limitLine = 2,
+                                        onTimeClicked = {},
+                                        onURLClicked = { url -> urlHandler.openUri(url) },
+                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                                    )
                                 }
                             }
                         }
@@ -652,7 +564,6 @@ fun ArtistScreen(
                                 state = state,
                                 selectionState = selectionState,
                                 playingTrack = playingTrack,
-                                descriptionTint = sectionTint,
                                 navController = navController,
                                 viewModel = viewModel,
                                 sharedViewModel = sharedViewModel,
@@ -692,7 +603,7 @@ fun ArtistScreen(
                                         Icon(
                                             imageVector = SimpIcons.ArrowBackIosNew,
                                             contentDescription = "Back",
-                                            tint = Color.White,
+                                            tint = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.size(20.dp),
                                         )
                                     }
@@ -703,7 +614,7 @@ fun ArtistScreen(
                                     containerColor = Color.Transparent,
                                 ),
                             modifier =
-                                Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(mutedPaletteBg, 0.55f)),
+                                Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
                         )
                     }
                 }
@@ -725,7 +636,7 @@ fun ArtistScreen(
                             )
                         },
                         onOpenActions = { showSelectionSheet = true },
-                        containerColor = Color.Black,
+                        modifier = Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
                     )
                 }
                 if (showSelectionSheet) {
@@ -787,17 +698,22 @@ fun ArtistScreen(
     }
 }
 
-/**
- * Shared artist body (Popular → Description). Used by both the portrait Apple-Music layout
- * and the existing CollapsingToolbar layout, so the sections themselves stay untouched.
- */
+/** A shelf's title in desktop's style: heading font, "See all" at the end when [onMore] is given. */
+@Composable
+private fun ArtistShelfHeader(
+    title: String,
+    onMore: (() -> Unit)? = null,
+) {
+    LibrarySectionHeader(icon = null, title = title, modifier = Modifier.padding(top = 16.dp, bottom = 4.dp), onMore = onMore)
+}
+
+/** The artist body under the header: liked songs, Popular, the shelves. */
 @Composable
 private fun ArtistSections(
     channelId: String,
     state: ArtistScreenState.Success,
     selectionState: SongSelectionState,
     playingTrack: String?,
-    descriptionTint: Color,
     navController: NavController,
     viewModel: ArtistViewModel,
     sharedViewModel: SharedViewModel,
@@ -823,41 +739,20 @@ private fun ArtistSections(
             )
         }
 
-        // Popular Songs
+        // Popular Songs, with their play counts like desktop's top songs.
         AnimatedVisibility(state.data.popularSongs.isNotEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.popular),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        onClick = {
-                            val id = state.data.listSongParam
-                            if (id != null) {
-                                navController.navigate(PlaylistDestination(id))
-                            } else {
-                                viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                            }
-                        },
-                        colors =
-                            ButtonDefaults
-                                .textButtonColors()
-                                .copy(
-                                    contentColor = Color.White,
-                                ),
-                    ) {
-                        Text(stringResource(Res.string.more), style = typo().bodySmall)
+                ArtistShelfHeader(stringResource(Res.string.popular)) {
+                    val id = state.data.listSongParam
+                    if (id != null) {
+                        navController.navigate(PlaylistDestination(id))
+                    } else {
+                        viewModel.makeToast(getStringBlocking(Res.string.error))
                     }
                 }
                 state.data.popularSongs.forEach { song ->
                     SongFullWidthItems(
-                        forceDark = true,                        track = song,
+                        track = song,
                         isPlaying = song.videoId == playingTrack,
                         modifier = Modifier.fillMaxWidth(),
                         onMoreClickListener = {
@@ -889,51 +784,31 @@ private fun ArtistSections(
                         isSelected = selectionState.isSelected(song.videoId),
                         onLongClick = { selectionState.start(it) },
                         onSelectToggle = { selectionState.toggle(it) },
+                        rightView =
+                            song.views?.let { plays ->
+                                @Composable {
+                                    Text(plays, style = typo().bodySmall, maxLines = 1)
+                                }
+                            },
+                        padding = PaddingValues(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                     )
                 }
             }
         }
 
         // Singles
-        AnimatedVisibility(
-            state.data.singles != null &&
-                state.data.singles!!
-                    .results
-                    .isNotEmpty(),
-        ) {
+        AnimatedVisibility(!state.data.singles?.results.isNullOrEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.singles),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        onClick = {
-                            if (state.data.channelId != null) {
-                                val id = "MPAD${state.data.channelId}"
-                                navController.navigate(
-                                    MoreAlbumsDestination(
-                                        id = id,
-                                        type = MoreAlbumsDestination.SINGLE_TYPE,
-                                    ),
-                                )
-                            } else {
-                                viewModel.makeToast(getStringBlocking(Res.string.error))
-                            }
-                        },
-                        colors =
-                            ButtonDefaults
-                                .textButtonColors()
-                                .copy(
-                                    contentColor = Color.White,
-                                ),
-                    ) {
-                        Text(stringResource(Res.string.more), style = typo().bodySmall)
+                ArtistShelfHeader(stringResource(Res.string.singles)) {
+                    if (state.data.channelId != null) {
+                        navController.navigate(
+                            MoreAlbumsDestination(
+                                id = "MPAD${state.data.channelId}",
+                                type = MoreAlbumsDestination.SINGLE_TYPE,
+                            ),
+                        )
+                    } else {
+                        viewModel.makeToast(getStringBlocking(Res.string.error))
                     }
                 }
                 LazyRow(
@@ -944,7 +819,7 @@ private fun ArtistSections(
                     }
                     items(state.data.singles?.results ?: emptyList()) { single ->
                         HomeItemContentPlaylist(
-                            forceDark = true,                            onClick = {
+                            onClick = {
                                 navController.navigate(
                                     AlbumDestination(
                                         single.browseId,
@@ -963,45 +838,18 @@ private fun ArtistSections(
         }
 
         // Albums
-        AnimatedVisibility(
-            state.data.albums != null &&
-                state.data.albums!!
-                    .results
-                    .isNotEmpty(),
-        ) {
+        AnimatedVisibility(!state.data.albums?.results.isNullOrEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.albums),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        onClick = {
-                            if (state.data.channelId != null) {
-                                val id = "MPAD${state.data.channelId}"
-                                navController.navigate(
-                                    MoreAlbumsDestination(
-                                        id = id,
-                                        type = MoreAlbumsDestination.ALBUM_TYPE,
-                                    ),
-                                )
-                            } else {
-                                viewModel.makeToast(getStringBlocking(Res.string.error))
-                            }
-                        },
-                        colors =
-                            ButtonDefaults
-                                .textButtonColors()
-                                .copy(
-                                    contentColor = Color.White,
-                                ),
-                    ) {
-                        Text(stringResource(Res.string.more), style = typo().bodySmall)
+                ArtistShelfHeader(stringResource(Res.string.albums)) {
+                    if (state.data.channelId != null) {
+                        navController.navigate(
+                            MoreAlbumsDestination(
+                                id = "MPAD${state.data.channelId}",
+                                type = MoreAlbumsDestination.ALBUM_TYPE,
+                            ),
+                        )
+                    } else {
+                        viewModel.makeToast(getStringBlocking(Res.string.error))
                     }
                 }
                 LazyRow(
@@ -1012,7 +860,7 @@ private fun ArtistSections(
                     }
                     items(state.data.albums?.results ?: emptyList()) { album ->
                         HomeItemContentPlaylist(
-                            forceDark = true,                            onClick = {
+                            onClick = {
                                 navController.navigate(
                                     AlbumDestination(
                                         browseId = album.browseId,
@@ -1031,44 +879,18 @@ private fun ArtistSections(
         }
 
         // Videos
-        AnimatedVisibility(
-            state.data.video != null &&
-                state.data.video!!
-                    .video
-                    .isNotEmpty(),
-        ) {
+        AnimatedVisibility(!state.data.video?.video.isNullOrEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.videos),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        onClick = {
-                            val videoListParam = state.data.video?.videoListParam
-                            if (videoListParam != null) {
-                                navController.navigate(
-                                    PlaylistDestination(
-                                        videoListParam,
-                                    ),
-                                )
-                            } else {
-                                viewModel.makeToast(getStringBlocking(Res.string.error))
-                            }
-                        },
-                        colors =
-                            ButtonDefaults
-                                .textButtonColors()
-                                .copy(
-                                    contentColor = Color.White,
-                                ),
-                    ) {
-                        Text(stringResource(Res.string.more), style = typo().bodySmall)
+                ArtistShelfHeader(stringResource(Res.string.videos)) {
+                    val videoListParam = state.data.video?.videoListParam
+                    if (videoListParam != null) {
+                        navController.navigate(
+                            PlaylistDestination(
+                                videoListParam,
+                            ),
+                        )
+                    } else {
+                        viewModel.makeToast(getStringBlocking(Res.string.error))
                     }
                 }
                 LazyRow(
@@ -1079,7 +901,7 @@ private fun ArtistSections(
                     }
                     items(state.data.video?.video ?: emptyList()) { video ->
                         HomeItemVideo(
-                            forceDark = true,                            onClick = {
+                            onClick = {
                                 val firstQueue: Track = video
                                 viewModel.setQueueData(
                                     QueueData.Data(
@@ -1121,23 +943,10 @@ private fun ArtistSections(
             }
         }
 
-        // Feature on
+        // Featured on
         AnimatedVisibility(state.data.featuredOn.isNotEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.featured_inArtist),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .padding(vertical = 10.dp),
-                    )
-                }
+                ArtistShelfHeader(stringResource(Res.string.featured_inArtist))
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -1146,7 +955,7 @@ private fun ArtistSections(
                     }
                     items(state.data.featuredOn) { feature ->
                         HomeItemContentPlaylist(
-                            forceDark = true,                            onClick = {
+                            onClick = {
                                 navController.navigate(
                                     PlaylistDestination(
                                         feature.id,
@@ -1165,27 +974,9 @@ private fun ArtistSections(
         }
 
         // Related
-        AnimatedVisibility(
-            state.data.related != null &&
-                state.data.related!!
-                    .results
-                    .isNotEmpty(),
-        ) {
+        AnimatedVisibility(!state.data.related?.results.isNullOrEmpty()) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.related_artists),
-                        style = typo().labelMedium,
-                        color = Color.White,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .padding(vertical = 10.dp),
-                    )
-                }
+                ArtistShelfHeader(stringResource(Res.string.related_artists))
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -1194,7 +985,7 @@ private fun ArtistSections(
                     }
                     items(state.data.related?.results ?: emptyList()) { related ->
                         HomeItemArtist(
-                            forceDark = true,                            onClick = {
+                            onClick = {
                                 navController.navigate(
                                     ArtistDestination(
                                         channelId = related.browseId,
@@ -1230,40 +1021,6 @@ private fun ArtistSections(
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        ) {
-            Text(
-                text = stringResource(Res.string.description),
-                style = typo().labelMedium,
-                color = Color.White,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(vertical = 12.dp),
-            )
-        }
-        val urlHandler = LocalUriHandler.current
-        ElevatedCard(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors =
-                CardDefaults.elevatedCardColors().copy(
-                    containerColor = descriptionTint.rgbFactor(0.5f),
-                ),
-        ) {
-            DescriptionView(
-                modifier = Modifier.padding(16.dp),
-                text = state.data.description ?: stringResource(Res.string.no_description),
-                limitLine = 5,
-                onTimeClicked = {},
-                onURLClicked = { url ->
-                    urlHandler.openUri(url)
-                },
-            )
-        }
         EndOfPage()
     }
 }
@@ -1271,8 +1028,7 @@ private fun ArtistSections(
 /**
  * "Liked songs" as a section of its own: the heading, then the artist's picture wearing the liked
  * heart beside "3 songs" / "By <artist>". The whole block opens
- * [LibraryDynamicPlaylistType.ArtistLiked]. Heading and text colours follow the sections around it,
- * which draw white on the artwork-tinted page.
+ * [LibraryDynamicPlaylistType.ArtistLiked].
  */
 @Composable
 private fun LikedSongsSection(
@@ -1282,21 +1038,14 @@ private fun LikedSongsSection(
     onClick: () -> Unit,
 ) {
     Column {
-        // No "More" button beside it, so the padding stands in for the height the TextButton gives
-        // the Popular and Singles headings.
-        Text(
-            text = stringResource(Res.string.liked_songs),
-            style = typo().labelMedium,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-        )
+        ArtistShelfHeader(stringResource(Res.string.liked_songs))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onClick)
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Box(modifier = Modifier.size(48.dp)) {
                 AsyncImage(
@@ -1313,7 +1062,7 @@ private fun LikedSongsSection(
                             .align(Alignment.BottomEnd)
                             .size(20.dp)
                             .clip(CircleShape)
-                            .background(Color.Black)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(3.dp),
                 )
             }
@@ -1321,13 +1070,11 @@ private fun LikedSongsSection(
                 Text(
                     text = pluralStringResource(Res.plurals.liked_songs_count, count, count),
                     style = typo().titleSmall,
-                    color = Color.White,
                     maxLines = 1,
                 )
                 Text(
                     text = stringResource(Res.string.liked_songs_by, artistName),
                     style = typo().bodySmall,
-                    color = Color(0xC4FFFFFF),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -122,45 +123,83 @@ fun CollectionTitle(
         style = typo().bodySmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    TitleRow(
+        title = { CollectionTitleText(title) },
+    ) {
+        if (onShuffle != null) RoundIconButton(SimpIcons.Shuffle, stringResource(Res.string.shuffle), onShuffle)
+        RoundAccentButton(
+            if (playing) SimpIcons.Pause else SimpIcons.PlayArrow,
+            stringResource(if (playing) Res.string.pause else Res.string.play),
+            onPlay,
+        )
+    }
+}
+
+/** The big title with its round buttons at its right, centred on it. */
+@Composable
+fun TitleRow(
+    title: @Composable () -> Unit,
+    buttons: @Composable RowScope.() -> Unit,
+) {
     Row(
         Modifier.padding(top = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = title,
-            style = typo().headlineLarge.copy(fontSize = 28.sp, lineHeight = 32.sp),
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f).padding(end = 4.dp),
-        )
-        if (onShuffle != null) {
-            Box(
-                Modifier
-                    .size(52.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onShuffle),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(SimpIcons.Shuffle, stringResource(Res.string.shuffle), Modifier.size(26.dp), MaterialTheme.colorScheme.onSurface)
-            }
-        }
-        Box(
-            Modifier
-                .size(52.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable(onClick = onPlay),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                if (playing) SimpIcons.Pause else SimpIcons.PlayArrow,
-                stringResource(if (playing) Res.string.pause else Res.string.play),
-                Modifier.size(28.dp),
-                MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+        Box(Modifier.weight(1f).padding(end = 4.dp)) { title() }
+        buttons()
+    }
+}
+
+@Composable
+fun CollectionTitleText(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = title,
+        style = typo().headlineLarge.copy(fontSize = 28.sp, lineHeight = 32.sp),
+        color = MaterialTheme.colorScheme.onBackground,
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+/** 52dp, borderless: Shuffle beside an album's Play, Radio beside an artist's Shuffle. */
+@Composable
+fun RoundIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(52.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription, Modifier.size(26.dp), MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+/** 52dp, filled with the accent: the page's main action (Play, an artist's Shuffle). */
+@Composable
+fun RoundAccentButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(52.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription, Modifier.size(28.dp), MaterialTheme.colorScheme.onPrimary)
     }
 }
 

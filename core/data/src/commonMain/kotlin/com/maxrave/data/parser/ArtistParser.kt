@@ -92,6 +92,7 @@ internal fun parseArtistData(data: ArtistPage): ArtistBrowse {
                 isExplicit = false,
                 videoType = song.musicVideoType,
                 durationSeconds = song.duration ?: 0,
+                playCount = song.playCount,
             ),
         )
     }

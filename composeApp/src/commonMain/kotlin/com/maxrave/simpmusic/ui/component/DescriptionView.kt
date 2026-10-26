@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -51,17 +51,10 @@ fun DescriptionView(
     var expanded by rememberSaveable {
         mutableStateOf(false)
     }
-    var shouldHideExpandButton by rememberSaveable {
-        mutableStateOf(false)
-    }
+    // More shows when the full text is taller than [limitLine] lines; measured below at the real
+    // width, so text that arrives late (cached page first, then the fresh one) gets it too.
+    var hasMore by remember { mutableStateOf(false) }
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-    LaunchedEffect(layoutResult) {
-        val lineCount = layoutResult?.lineCount ?: 0
-        if (lineCount < limitLine) {
-            shouldHideExpandButton = true
-        }
-    }
 
     val timeRegex = Regex("""(\d+):(\d+)(?::(\d+))?""")
     // Parentheses count only as a pair: descriptions wrap links in them — "From Wikipedia
@@ -133,6 +126,7 @@ fun DescriptionView(
                         }
                     layout.size.height to collapsed
                 }
+            SideEffect { hasMore = fullHeightPx > collapsedHeightPx }
             val heightPx by animateIntAsState(
                 targetValue = if (expanded) fullHeightPx else collapsedHeightPx,
                 animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
@@ -178,7 +172,7 @@ fun DescriptionView(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton, Modifier.align(Alignment.End)) {
+        androidx.compose.animation.AnimatedVisibility(hasMore, Modifier.align(Alignment.End)) {
             Text(
                 text = if (expanded) stringResource(Res.string.less) else stringResource(Res.string.more),
                 color = Color.LightGray,

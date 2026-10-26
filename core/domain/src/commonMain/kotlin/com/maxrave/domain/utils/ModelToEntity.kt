@@ -50,6 +50,7 @@ fun ResultSong.toTrack(): Track =
         feedbackTokens = null,
         resultType = null,
         year = "",
+        views = playCount,
     )
 
 fun ResultVideo.toTrack(): Track =

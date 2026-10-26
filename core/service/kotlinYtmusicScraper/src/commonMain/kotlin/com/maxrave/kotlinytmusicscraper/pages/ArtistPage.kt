@@ -138,6 +138,7 @@ data class ArtistPage(
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null,
                     musicVideoType = renderer.musicVideoType,
+                    playCount = renderer.playCount(),
                 )
             }
         }
@@ -352,3 +353,18 @@ data class ArtistPage(
         }
     }
 }
+
+/**
+ * Desktop's rule (metadata.rs `play_count`): the third column is the play count ("53M plays") when
+ * it links nowhere, starts with a digit and isn't a duration; otherwise it is the album.
+ */
+internal fun MusicResponsiveListItemRenderer.playCount(): String? =
+    flexColumns
+        .getOrNull(2)
+        ?.musicResponsiveListItemFlexColumnRenderer
+        ?.text
+        ?.runs
+        ?.takeIf { runs -> runs.none { it.navigationEndpoint != null } }
+        ?.joinToString("") { it.text }
+        ?.trim()
+        ?.takeIf { it.firstOrNull()?.isDigit() == true && ':' !in it }
