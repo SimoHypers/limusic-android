@@ -216,11 +216,12 @@ class NowPlayingBottomSheetViewModel(
                             youtubePlaylistId = ev.browseId,
                             videoId = songUIState.videoId,
                         ).collectLatestResource(
+                            // Both carry YouTube's raw status ("STATUS_SUCCEEDED" / "FAILED"), not words.
                             onSuccess = {
-                                makeToast(it)
+                                makeToast(getString(Res.string.added_to_playlist))
                             },
                             onError = {
-                                makeToast(it)
+                                makeToast(getString(Res.string.error))
                             },
                         )
                 }
@@ -246,9 +247,9 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.AddToPlaylist -> {
-                    val targetPlaylist = uiState.value.listLocalPlaylist.find { it.id == ev.playlistId } ?: return@launch
-                    val newList = (targetPlaylist.tracks ?: emptyList<String>()).toMutableList()
-                    if (newList.contains(songUIState.videoId)) {
+                    // One New playlist just made may not have reached this list yet; it holds nothing then.
+                    val tracks = uiState.value.listLocalPlaylist.find { it.id == ev.playlistId }?.tracks.orEmpty()
+                    if (tracks.contains(songUIState.videoId)) {
                         return@launch
                     } else {
                         val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch

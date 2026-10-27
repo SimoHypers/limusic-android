@@ -675,7 +675,6 @@ fun ArtistScreen(
                             selectionViewModel.addToPlaylist(playlist.id, selectedIds)
                             selectionState.exit()
                         },
-                        onYTPlaylistClick = {},
                     )
                 }
                 if (showBottomSheet && choosingTrack != null) {

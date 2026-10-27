@@ -338,7 +338,6 @@
     <string name="keep_backups_format">Conserver les %1$s dernières sauvegardes</string>
     <string name="last_backup">Dernière sauvegarde</string>
     <string name="never">Jamais</string>
-    <string name="no_playlist_found">Aucune playlist locale n'a été trouvée. Veuillez d'abord en créer une.</string>
     <string name="list_all_cookies_of_this_page">Afficher la liste de tous les cookies de cette page</string>
     <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
     <string name="play_explicit_content">Lire le contenu explicite</string>

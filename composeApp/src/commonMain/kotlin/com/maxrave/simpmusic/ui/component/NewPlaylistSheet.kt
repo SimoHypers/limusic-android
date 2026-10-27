@@ -47,13 +47,15 @@ import simpmusic.composeapp.generated.resources.playlist_name
 
 /**
  * Desktop's New playlist: a name, and where it lives. Signed in that is the YouTube Music account
- * or this phone, starting from [onYouTube] (the last pick); signed out it can only be this phone.
+ * or this phone, starting from [onYouTube] (the last pick); signed out it can only be this phone,
+ * and so it is wherever [canPickYouTube] is false (a picker that only adds to phone playlists).
  * [onCreate] calls back with whether it worked, so the button comes back after a failure.
  */
 @Composable
 fun NewPlaylistSheet(
     signedIn: Boolean,
     onYouTube: Boolean,
+    canPickYouTube: Boolean = signedIn,
     onDismiss: () -> Unit,
     onCreate: (title: String, onYouTube: Boolean, onResult: (Boolean) -> Unit) -> Unit,
 ) {
@@ -70,7 +72,7 @@ fun NewPlaylistSheet(
             modifier = Modifier.fillMaxWidth().focusRequester(focus),
         )
         LaunchedEffect(Unit) { focus.requestFocus() }
-        if (signedIn) {
+        if (canPickYouTube) {
             WhereOption(
                 icon = SimpIcons.Cloud,
                 title = stringResource(Res.string.new_playlist_where_youtube),
@@ -88,14 +90,18 @@ fun NewPlaylistSheet(
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(SimpIcons.Smartphone, null, tint = colors.subtitle, modifier = Modifier.size(16.dp))
-                Text(stringResource(Res.string.new_playlist_device_only), style = typo().bodySmall, color = colors.subtitle)
+                Text(
+                    stringResource(if (signedIn) Res.string.new_playlist_where_device_desc else Res.string.new_playlist_device_only),
+                    style = typo().bodySmall,
+                    color = colors.subtitle,
+                )
             }
         }
         Button(
             enabled = !creating && title.isNotBlank(),
             onClick = {
                 creating = true
-                onCreate(title.trim(), signedIn && youTube) { ok -> if (!ok) creating = false }
+                onCreate(title.trim(), canPickYouTube && youTube) { ok -> if (!ok) creating = false }
             },
             modifier = Modifier.fillMaxWidth(),
         ) {

@@ -282,7 +282,6 @@
     <string name="keep_backups_format">保留最后 %1$s 个备份</string>
     <string name="last_backup">上次备份</string>
     <string name="never">从不</string>
-    <string name="no_playlist_found">未找到本地播放列表, 请先创建一个</string>
     <string name="list_all_cookies_of_this_page">列出此页面的所有 cookie</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="play_explicit_content">播放限制级内容</string>

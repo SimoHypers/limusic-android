@@ -19,7 +19,7 @@ internal fun parseLibraryPlaylist(input: List<GridRenderer.Item>): List<Playlist
                                     ?.text ?: "",
                             browseId = it.navigationEndpoint?.browseEndpoint?.browseId ?: "",
                             category = "",
-                            itemCount = "",
+                            itemCount = it.songCount(),
                             resultType = "",
                             thumbnails =
                                 it.thumbnailRenderer
@@ -51,7 +51,7 @@ internal fun parseNextLibraryPlaylist(input: List<MusicTwoRowItemRenderer>): Lis
                     ?.text ?: "",
             browseId = it.navigationEndpoint?.browseEndpoint?.browseId ?: "",
             category = "",
-            itemCount = "",
+            itemCount = it.songCount(),
             resultType = "",
             thumbnails =
                 it.thumbnailRenderer
@@ -66,3 +66,11 @@ internal fun parseNextLibraryPlaylist(input: List<MusicTwoRowItemRenderer>): Lis
                     ?.text ?: "",
         )
     }
+// The card's subtitle is "Author • 12 tracks"; a list YouTube fills itself has no count.
+private fun MusicTwoRowItemRenderer.songCount(): String =
+    subtitle
+        ?.runs
+        ?.lastOrNull()
+        ?.text
+        ?.takeIf { text -> text.any(Char::isDigit) }
+        .orEmpty()

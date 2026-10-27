@@ -366,7 +366,6 @@ fun SearchScreen(
                 selectionViewModel.addToPlaylist(playlist.id, selectedIds)
                 selectionState.exit()
             },
-            onYTPlaylistClick = {},
         )
     }
     if (showBottomSheet) {

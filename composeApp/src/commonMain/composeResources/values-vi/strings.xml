@@ -337,7 +337,6 @@
     <string name="keep_backups_format">Giữ %1$s bản sao lưu cuối cùng</string>
     <string name="last_backup">Sao lưu lần cuối</string>
     <string name="never">Không bao giờ</string>
-    <string name="no_playlist_found">Không tìm thấy bất kỳ danh sách phát nội bộ nào, hãy tạo một danh sách phát trước</string>
     <string name="list_all_cookies_of_this_page">Danh sách cookie của trang này</string>
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
     <string name="play_explicit_content">Phát bài hát chứa nội dung nhạy cảm</string>

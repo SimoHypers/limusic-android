@@ -339,7 +339,6 @@
     <string name="keep_backups_format">Зберегти останні резервні копії %1$s</string>
     <string name="last_backup">Остання резервна копія</string>
     <string name="never">Ніколи</string>
-    <string name="no_playlist_found">Локальних плейлистів не знайдено. Для початку створіть їх</string>
     <string name="list_all_cookies_of_this_page">Список усіх cookies цієї сторінки</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="play_explicit_content">Відтворювати відвертий контент</string>

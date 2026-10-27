@@ -423,7 +423,6 @@
     <string name="keep_backups_format">Keep last %1$s backups</string>
     <string name="last_backup">Last backup</string>
     <string name="never">Never</string>
-    <string name="no_playlist_found">No local playlists found, please create one first</string>
     <string name="list_all_cookies_of_this_page">List all cookies of this page</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="play_explicit_content">Play explicit content</string>

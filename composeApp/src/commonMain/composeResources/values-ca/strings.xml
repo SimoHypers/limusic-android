@@ -273,7 +273,6 @@
     <string name="keep_backups_format">Conservar les últimes %1$s còpies de seguretat</string>
     <string name="last_backup">Última còpia de seguretat</string>
     <string name="never">Mai</string>
-    <string name="no_playlist_found">No s'han trobat llistes de reproducció locals, per favor, creï'n una primer.</string>
     <string name="list_all_cookies_of_this_page">Fes un llistat de totes les cookies d'aquesta web</string>
     <string name="copied_to_clipboard">S'ha copiat al porta-retalls</string>
     <string name="play_explicit_content">Reprodueix el contingut explícit</string>

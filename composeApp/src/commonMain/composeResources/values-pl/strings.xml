@@ -274,7 +274,6 @@
     <string name="keep_backups_format">Zachowaj ostatnie %1$s kopie zapasowe</string>
     <string name="last_backup">Ostatnia kopia</string>
     <string name="never">Nigdy</string>
-    <string name="no_playlist_found">Nie znaleziono lokalnych playlist, proszę utworzyć przynajmniej jedną</string>
     <string name="list_all_cookies_of_this_page">Lista wszystkich plików cookie na tej stronie</string>
     <string name="copied_to_clipboard">Skopiowane do schowka</string>
     <string name="play_explicit_content">Odtwarzaj obraźliwe treści</string>

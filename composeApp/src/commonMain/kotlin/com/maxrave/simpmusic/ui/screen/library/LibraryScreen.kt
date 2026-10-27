@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
@@ -419,21 +420,19 @@ fun LibraryScreen(
         }
     }
     if (showAddSheet) {
-        val onYouTube by viewModel.newPlaylistOnYouTube.collectAsStateWithLifecycle()
+        val onYouTube by sharedViewModel.newPlaylistOnYouTube.collectAsStateWithLifecycle()
         NewPlaylistSheet(
             signedIn = loggedIn,
             onYouTube = onYouTube,
             onDismiss = { showAddSheet = false },
             onCreate = { title, toYouTube, onResult ->
-                viewModel.createPlaylist(
-                    title,
-                    toYouTube,
-                    onResult = { ok ->
-                        onResult(ok)
-                        if (ok) showAddSheet = false
-                    },
-                    onCreated = { id -> id?.let { sharedViewModel.playlistCreatedOnYouTube(title, it) } },
-                )
+                sharedViewModel.createPlaylist(title, toYouTube) { created ->
+                    onResult(created != null)
+                    if (created != null) {
+                        viewModel.playlistCreated(title, onPhone = created is LocalPlaylistEntity)
+                        showAddSheet = false
+                    }
+                }
             },
         )
     }
@@ -554,7 +553,6 @@ fun LibraryScreen(
                     selectionViewModel.addToPlaylist(playlist.id, selectedIds)
                     selectionState.exit()
                 },
-                onYTPlaylistClick = {},
             )
         }
     }

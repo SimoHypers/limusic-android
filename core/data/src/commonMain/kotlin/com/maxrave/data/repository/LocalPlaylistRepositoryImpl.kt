@@ -186,6 +186,9 @@ internal class LocalPlaylistRepositoryImpl(
             localDataSource.insertLocalPlaylist(localPlaylist)
         }
 
+    override suspend fun createLocalPlaylist(title: String): Long =
+        withContext(Dispatchers.IO) { localDataSource.insertLocalPlaylist(LocalPlaylistEntity(title = title)) }
+
     override fun deleteLocalPlaylist(
         id: Long,
         successMessage: String,

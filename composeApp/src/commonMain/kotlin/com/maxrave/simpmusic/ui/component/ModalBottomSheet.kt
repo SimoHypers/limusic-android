@@ -98,6 +98,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -172,10 +173,12 @@ import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
@@ -214,7 +217,7 @@ import simpmusic.composeapp.generated.resources.move_to_play_next
 import simpmusic.composeapp.generated.resources.move_up
 import simpmusic.composeapp.generated.resources.no_album
 import simpmusic.composeapp.generated.resources.no_description
-import simpmusic.composeapp.generated.resources.no_playlist_found
+import simpmusic.composeapp.generated.resources.new_playlist
 import simpmusic.composeapp.generated.resources.no_results_found
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
@@ -2034,7 +2037,8 @@ fun AddToPlaylistModalBottomSheet(
     listYouTubePlaylist: List<PlaylistsResult>,
     videoId: String? = null,
     onClick: (LocalPlaylistEntity) -> Unit,
-    onYTPlaylistClick: (PlaylistsResult) -> Unit,
+    // Null where the songs can only go into phone playlists: no YouTube tab, and New playlist makes one on the phone.
+    onYTPlaylistClick: ((PlaylistsResult) -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     AppThemeContent {
@@ -2048,6 +2052,40 @@ fun AddToPlaylistModalBottomSheet(
                     onDismiss()
                 }
             }
+        val sharedViewModel: SharedViewModel = koinInject()
+        val signedIn = sharedViewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE).value == DataStoreManager.TRUE
+        val youTube = signedIn && onYTPlaylistClick != null
+        val createdPlaylists by sharedViewModel.createdPlaylists.collectAsStateWithLifecycle()
+        // One just made on YouTube shows until YouTube's own list catches up, as in Library.
+        val youTubePlaylists =
+            remember(listYouTubePlaylist, createdPlaylists) {
+                val listed = listYouTubePlaylist.mapTo(HashSet()) { it.browseId.removePrefix("VL") }
+                createdPlaylists.filter { it.browseId.removePrefix("VL") !in listed } + listYouTubePlaylist
+            }
+        var newPlaylist by remember { mutableStateOf(false) }
+        if (newPlaylist) {
+            val lastPickYouTube by sharedViewModel.newPlaylistOnYouTube.collectAsStateWithLifecycle()
+            NewPlaylistSheet(
+                signedIn = signedIn,
+                onYouTube = lastPickYouTube,
+                canPickYouTube = youTube,
+                onDismiss = { newPlaylist = false },
+                onCreate = { title, toYouTube, onResult ->
+                    // Like desktop: the songs go straight into the new playlist, then both sheets close.
+                    sharedViewModel.createPlaylist(title, toYouTube) { created ->
+                        onResult(created != null)
+                        when (created) {
+                            is PlaylistsResult -> onYTPlaylistClick?.invoke(created)
+                            is LocalPlaylistEntity -> onClick(created)
+                        }
+                        if (created != null) {
+                            newPlaylist = false
+                            hideModalBottomSheet()
+                        }
+                    }
+                },
+            )
+        }
         if (isBottomSheetVisible) {
             ModalBottomSheet(
                 onDismissRequest = onDismiss,
@@ -2140,139 +2178,99 @@ fun AddToPlaylistModalBottomSheet(
                             },
                         )
 
-                        val chipRowState = rememberScrollState()
-                        var isYouTubePlaylistClicked by remember { mutableStateOf(false) }
-                        if (listYouTubePlaylist.isNotEmpty()) {
+                        // The account's playlists come first and open first; the phone's are the second tab.
+                        var onYouTubeTab by remember(youTube) { mutableStateOf(youTube) }
+                        if (youTube) {
                             Row(
                                 modifier =
                                     Modifier
-                                        .horizontalScroll(chipRowState)
+                                        .horizontalScroll(rememberScrollState())
                                         .padding(horizontal = 12.dp)
-                                        .padding(vertical = 8.dp)
-                                        .background(Color.Transparent),
+                                        .padding(vertical = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
                                 Chip(
                                     isAnimated = false,
-                                    isSelected = !isYouTubePlaylistClicked,
-                                    text = stringResource(Res.string.your_playlists),
-                                    onClick = { isYouTubePlaylistClicked = false },
+                                    isSelected = onYouTubeTab,
+                                    text = stringResource(Res.string.your_youtube_playlists),
+                                    onClick = { onYouTubeTab = true },
                                 )
                                 Chip(
                                     isAnimated = false,
-                                    isSelected = isYouTubePlaylistClicked,
-                                    text = stringResource(Res.string.your_youtube_playlists),
-                                    onClick = { isYouTubePlaylistClicked = true },
+                                    isSelected = !onYouTubeTab,
+                                    text = stringResource(Res.string.your_playlists),
+                                    onClick = { onYouTubeTab = false },
                                 )
+                            }
+                        }
+
+                        PlaylistPickRow(
+                            title = stringResource(Res.string.new_playlist),
+                            subtitle = null,
+                            onClick = { newPlaylist = true },
+                        ) {
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(SimpIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }
 
                         val keyword = query.trim()
                         // A playlist synced before Sync became a move shows once, as the YouTube one.
                         val shownLocalPlaylist =
-                            remember(listLocalPlaylist, listYouTubePlaylist, keyword) {
-                                listLocalPlaylist.withoutYouTubeTwins(listYouTubePlaylist).filter { it.title.contains(keyword, ignoreCase = true) }
+                            remember(listLocalPlaylist, youTubePlaylists, keyword) {
+                                listLocalPlaylist.withoutYouTubeTwins(youTubePlaylists).filter { it.title.contains(keyword, ignoreCase = true) }
                             }
                         val shownYouTubePlaylist =
-                            remember(listYouTubePlaylist, keyword) { listYouTubePlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                            remember(youTubePlaylists, keyword) { youTubePlaylists.filter { it.title.contains(keyword, ignoreCase = true) } }
                         // While searching, the list takes the rest of the sheet. Otherwise the sheet resizes with every
                         // keystroke and drags the field along with it.
                         val listModifier = if (isSearchFocused || query.isNotEmpty()) Modifier.weight(1f) else Modifier
-                        if ((shownLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
-                            (shownYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
-                        ) {
-                            val tabHasPlaylists =
-                                if (isYouTubePlaylistClicked) listYouTubePlaylist.isNotEmpty() else listLocalPlaylist.isNotEmpty()
-                            Text(
-                                text = stringResource(if (tabHasPlaylists) Res.string.no_results_found else Res.string.no_playlist_found),
-                                style = typo().labelSmall,
-                                modifier = listModifier.padding(20.dp),
-                                color = rememberSurfaceDarkColors().disabled,
-                            )
+                        if (if (onYouTubeTab) shownYouTubePlaylist.isEmpty() else shownLocalPlaylist.isEmpty()) {
+                            // With no playlists at all there is nothing to say: New playlist above is the way on.
+                            Box(listModifier) {
+                                if (keyword.isNotEmpty()) {
+                                    Text(
+                                        text = stringResource(Res.string.no_results_found),
+                                        style = typo().labelSmall,
+                                        modifier = Modifier.padding(20.dp),
+                                        color = rememberSurfaceDarkColors().disabled,
+                                    )
+                                }
+                            }
                         } else {
-                            Crossfade(isYouTubePlaylistClicked, modifier = listModifier) { clicked ->
-                                if (clicked) {
+                            Crossfade(onYouTubeTab, modifier = listModifier) { youTubeTab ->
+                                if (youTubeTab) {
                                     LazyColumn {
                                         items(shownYouTubePlaylist) { playlist ->
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 3.dp)
-                                                        .clickable(onClick = {
-                                                            onYTPlaylistClick(playlist)
-                                                            hideModalBottomSheet()
-                                                        }),
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
-                                                ) {
-                                                    Image(
-                                                        imageVector = SimpIcons.PlaylistAdd,
-                                                        contentDescription = "",
-                                                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                    )
-                                                    Spacer(modifier = Modifier.width(10.dp))
-                                                    Text(
-                                                        text = playlist.title,
-                                                        style = typo().labelSmall,
-                                                        color = rememberSurfaceDarkColors().content,
-                                                    )
-                                                }
-                                            }
+                                            PlaylistPickRow(
+                                                title = playlist.title,
+                                                subtitle = listOf(playlist.author, playlist.itemCount).filter { it.isNotBlank() }.joinToString(" • "),
+                                                onClick = {
+                                                    onYTPlaylistClick?.invoke(playlist)
+                                                    hideModalBottomSheet()
+                                                },
+                                            ) { PlaylistPickCover(playlist.thumbnails.lastOrNull()?.url) }
                                         }
                                     }
                                 } else {
                                     LazyColumn {
                                         items(shownLocalPlaylist) { playlist ->
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 3.dp)
-                                                        .clickable(
-                                                            enabled = playlist.tracks?.contains(videoId) != true,
-                                                            onClick = {
-                                                                onClick(playlist)
-                                                                hideModalBottomSheet()
-                                                            },
-                                                        ),
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
-                                                ) {
-                                                    Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
-                                                        if (it) {
-                                                            Image(
-                                                                imageVector = SimpIcons.Done,
-                                                                contentDescription = "",
-                                                                colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                            )
-                                                        } else {
-                                                            Image(
-                                                                imageVector = SimpIcons.PlaylistAdd,
-                                                                contentDescription = "",
-                                                                colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                            )
-                                                        }
-                                                    }
-                                                    Spacer(modifier = Modifier.width(10.dp))
-                                                    Text(
-                                                        text = playlist.title,
-                                                        style = typo().labelSmall,
-                                                        color =
-                                                            if (playlist.tracks?.contains(videoId) ==
-                                                                true
-                                                            ) {
-                                                                rememberSurfaceDarkColors().disabled
-                                                            } else {
-                                                                rememberSurfaceDarkColors().content
-                                                            },
-                                                    )
-                                                }
-                                            }
+                                            val count = playlist.tracks?.size ?: 0
+                                            PlaylistPickRow(
+                                                title = playlist.title,
+                                                subtitle = pluralStringResource(Res.plurals.liked_songs_count, count, count),
+                                                added = playlist.tracks?.contains(videoId) == true,
+                                                onClick = {
+                                                    onClick(playlist)
+                                                    hideModalBottomSheet()
+                                                },
+                                            ) { PlaylistPickCover(playlist.thumbnail) }
                                         }
                                     }
                                 }
@@ -2284,6 +2282,69 @@ fun AddToPlaylistModalBottomSheet(
             }
         }
     }
+}
+
+/** A row of the Add to playlist picker: a 48dp cover, the title, and a line under it. [added] greys it out with a tick. */
+@Composable
+private fun PlaylistPickRow(
+    title: String,
+    subtitle: String?,
+    onClick: () -> Unit,
+    added: Boolean = false,
+    cover: @Composable () -> Unit,
+) {
+    val colors = rememberSurfaceDarkColors()
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(enabled = !added, onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Box(Modifier.size(48.dp).clip(RoundedCornerShape(6.dp))) { cover() }
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = typo().titleSmall,
+                color = if (added) colors.disabled else colors.content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (!subtitle.isNullOrEmpty()) {
+                Text(
+                    text = subtitle,
+                    style = typo().bodySmall,
+                    color = if (added) colors.disabled else colors.subtitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (added) Icon(SimpIcons.Done, contentDescription = null, tint = colors.subtitle)
+    }
+}
+
+@Composable
+private fun PlaylistPickCover(url: String?) {
+    AsyncImage(
+        model =
+            ImageRequest
+                .Builder(LocalPlatformContext.current)
+                .data(url)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .diskCacheKey(url)
+                .crossfade(true)
+                .build(),
+        placeholder = rememberHolderPainter(),
+        error = rememberHolderPainter(),
+        fallback = rememberHolderPainter(),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize(),
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

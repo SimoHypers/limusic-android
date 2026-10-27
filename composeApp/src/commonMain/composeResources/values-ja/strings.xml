@@ -337,7 +337,6 @@
     <string name="keep_backups_format">最後の %1$s バックアップを保持する</string>
     <string name="last_backup">最後のバックアップ</string>
     <string name="never">なし</string>
-    <string name="no_playlist_found">ローカルプレイリストが見つかりませんでした。最初に作成してください</string>
     <string name="list_all_cookies_of_this_page">このページのすべてのクッキーを一覧表示</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="play_explicit_content">明示的なコンテンツを再生</string>

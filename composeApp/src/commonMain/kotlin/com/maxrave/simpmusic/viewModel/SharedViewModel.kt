@@ -9,8 +9,10 @@ import com.maxrave.common.LibraryChipType
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
 import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.LyricsEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.PlaylistType as LibraryPlaylist
 import com.maxrave.domain.data.model.lyrics.LyricsSource
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -94,6 +96,7 @@ import simpmusic.composeapp.generated.resources.lastfm_scrobbling_as
 import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.shared
+import simpmusic.composeapp.generated.resources.youtube_write_failed
 import java.io.FileOutputStream
 import kotlin.reflect.KClass
 
@@ -1074,18 +1077,57 @@ class SharedViewModel(
         title: String,
         playlistId: String,
     ) {
+        viewModelScope.launch { listCreated(title, playlistId) }
+    }
+
+    private suspend fun listCreated(
+        title: String,
+        playlistId: String,
+    ): PlaylistsResult {
+        val created =
+            PlaylistsResult(
+                author = dataStoreManager.getString("AccountName").first().orEmpty(),
+                browseId = "VL" + playlistId.removePrefix("VL"),
+                category = "",
+                itemCount = "",
+                resultType = "",
+                thumbnails = emptyList(),
+                title = title,
+            )
+        _createdPlaylists.update { listOf(created) + it }
+        return created
+    }
+
+    /** Where New playlist puts one, desktop's choice: the account unless the last pick was this phone. */
+    val newPlaylistOnYouTube: StateFlow<Boolean> =
+        dataStoreManager
+            .getString(NEW_PLAYLIST_WHERE)
+            .map { it != "device" }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    /**
+     * New playlist, from Library or from the Add to playlist picker. [onCreated] gets the playlist
+     * (a [PlaylistsResult] on the account, a [LocalPlaylistEntity] on the phone), or null when
+     * YouTube refused, already said in a toast.
+     */
+    fun createPlaylist(
+        title: String,
+        onYouTube: Boolean,
+        onCreated: (LibraryPlaylist?) -> Unit,
+    ) {
         viewModelScope.launch {
-            val created =
-                PlaylistsResult(
-                    author = dataStoreManager.getString("AccountName").first().orEmpty(),
-                    browseId = "VL" + playlistId.removePrefix("VL"),
-                    category = "",
-                    itemCount = "",
-                    resultType = "",
-                    thumbnails = emptyList(),
-                    title = title,
-                )
-            _createdPlaylists.update { listOf(created) + it }
+            // Signed out there was no choice to remember.
+            if (dataStoreManager.loggedIn.first() == DataStoreManager.TRUE) {
+                dataStoreManager.putString(NEW_PLAYLIST_WHERE, if (onYouTube) "youtube" else "device")
+            }
+            val created: LibraryPlaylist? =
+                if (onYouTube) {
+                    playlistRepository.createYouTubePlaylist(title)?.let { listCreated(title, it) }
+                } else {
+                    LocalPlaylistEntity(id = localPlaylistRepository.createLocalPlaylist(title), title = title)
+                }
+            if (created == null) makeToast(getString(Res.string.youtube_write_failed))
+            onCreated(created)
         }
     }
 
@@ -1335,3 +1377,5 @@ data class NowPlayingScreenData(
  * of a track onwards.
  */
 private fun String.isCanvasVideoUrl(): Boolean = contains(".mp4") || contains(".m3u8")
+
+private const val NEW_PLAYLIST_WHERE = "new_playlist_where"

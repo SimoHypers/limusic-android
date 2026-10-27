@@ -256,7 +256,6 @@
     <string name="restore_in_progress">पुनर्स्थापना प्रगति पर है</string>
     <string name="backup_downloaded">डाउनलोड किए गए डेटा का बैकअप लें</string>
     <string name="backup_downloaded_description">सभी डाउनलोड किए गए गानों के डेटा का बैकअप लें</string>
-    <string name="no_playlist_found">कोई लोकल प्लेलिस्ट नहीं मिली, कृपया पहले एक बनाएं</string>
     <string name="list_all_cookies_of_this_page">इस पृष्ठ की सभी कुकीज़ सूचीबद्ध करें</string>
     <string name="copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="play_explicit_content">आपत्तिजनक कंटेंट चलाएं</string>

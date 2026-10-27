@@ -120,6 +120,9 @@ interface LocalPlaylistRepository {
         successMessage: String,
     ): Flow<LocalResource<String>>
 
+    /** A new, empty playlist on the phone; returns its id. */
+    suspend fun createLocalPlaylist(title: String): Long
+
     fun deleteLocalPlaylist(
         id: Long,
         successMessage: String,

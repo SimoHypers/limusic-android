@@ -332,7 +332,6 @@
     <string name="keep_backups_format">Mantener las últimas %1$s copias</string>
     <string name="last_backup">Última copia de seguridad</string>
     <string name="never">Nunca</string>
-    <string name="no_playlist_found">No se encontraron listas de reproducción locales, crea una primero</string>
     <string name="list_all_cookies_of_this_page">Listar todas las cookies de esta página</string>
     <string name="copied_to_clipboard">Copiado al portapapeles</string>
     <string name="play_explicit_content">Reproducir contenido explícito</string>

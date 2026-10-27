@@ -340,7 +340,6 @@
     <string name="keep_backups_format">Хранить последние %1$s копий</string>
     <string name="last_backup">Последняя копия</string>
     <string name="never">Никогда</string>
-    <string name="no_playlist_found">Локальные плейлисты не найдены. Для начала создайте их</string>
     <string name="list_all_cookies_of_this_page">Список всех cookies этой страницы</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="play_explicit_content">Воспроизводить контент с нецензурной лексикой</string>

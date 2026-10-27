@@ -298,7 +298,6 @@
     <string name="keep_backups_format">Son %1$s yedeklerini sakla</string>
     <string name="last_backup">Son yedekleme</string>
     <string name="never">Asla</string>
-    <string name="no_playlist_found">Yerel çalma listesi bulunamadı, lütfen önce bir tane oluşturun</string>
     <string name="list_all_cookies_of_this_page">Bu sayfadaki tüm çerezleri listele</string>
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
     <string name="play_explicit_content">Uygunsuz içeriği oynat</string>

@@ -286,7 +286,6 @@
     <string name="keep_backups_format">Simpan %1$s cadangan terakhir</string>
     <string name="last_backup">Cadangan terakhir</string>
     <string name="never">Tidak pernah</string>
-    <string name="no_playlist_found">Tidak ada daftar putar lokal yang ditemukan, silakan buat terlebih dahulu</string>
     <string name="list_all_cookies_of_this_page">Daftar semua cookie dari halaman ini</string>
     <string name="copied_to_clipboard">Disalin ke papan klip</string>
     <string name="play_explicit_content">Putar konten dewasa</string>

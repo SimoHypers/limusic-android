@@ -336,7 +336,6 @@
     <string name="keep_backups_format">Behåll de senaste %1$s säkerhetskopiorna</string>
     <string name="last_backup">Senaste säkerhetskopian</string>
     <string name="never">Aldrig</string>
-    <string name="no_playlist_found">Inga lokala spellistor hittades. Skapa en först.</string>
     <string name="list_all_cookies_of_this_page">Visa alla kakor på den här sidan</string>
     <string name="copied_to_clipboard">Kopierat till urklipp</string>
     <string name="play_explicit_content">Spela upp explicit innehåll</string>

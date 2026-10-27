@@ -742,7 +742,6 @@ fun LocalPlaylistScreen(
                 selectionViewModel.addToPlaylist(playlist.id, selectedIds)
                 selectionState.exit()
             },
-            onYTPlaylistClick = {},
         )
     }
     if (itemBottomSheetShow && currentItem != null) {
