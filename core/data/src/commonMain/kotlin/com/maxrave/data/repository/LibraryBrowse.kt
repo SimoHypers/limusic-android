@@ -62,9 +62,15 @@ internal fun MusicTwoRowItemRenderer.toLibraryAlbum(): AlbumsResult? {
     )
 }
 
+/**
+ * The channel id an artist entry links. Library artists (not subscriptions) link `MPLA` + it, the
+ * "artist, filtered to your library" page, so the prefix goes, as desktop does.
+ */
+private fun String.artistChannelId() = removePrefix("MPLA").takeIf { it.startsWith("UC") }
+
 /** An artist row, with YouTube's own subtitle ("12 songs", "1.2M subscribers") in [ArtistsResult.category]. */
 internal fun MusicResponsiveListItemRenderer.toLibraryArtist(): ArtistsResult? {
-    val browseId = navigationEndpoint?.browseEndpoint?.browseId?.takeIf { it.startsWith("UC") } ?: return null
+    val browseId = navigationEndpoint?.browseEndpoint?.browseId?.artistChannelId() ?: return null
     fun column(i: Int) =
         flexColumns
             .getOrNull(i)
@@ -85,7 +91,7 @@ internal fun MusicResponsiveListItemRenderer.toLibraryArtist(): ArtistsResult? {
 
 /** The same artist as a grid card, should YouTube send the grid view. */
 internal fun MusicTwoRowItemRenderer.toLibraryArtist(): ArtistsResult? {
-    val browseId = navigationEndpoint.browseEndpoint?.browseId?.takeIf { it.startsWith("UC") } ?: return null
+    val browseId = navigationEndpoint.browseEndpoint?.browseId?.artistChannelId() ?: return null
     return ArtistsResult(
         artist = title.runs?.firstOrNull()?.text ?: return null,
         browseId = browseId,
