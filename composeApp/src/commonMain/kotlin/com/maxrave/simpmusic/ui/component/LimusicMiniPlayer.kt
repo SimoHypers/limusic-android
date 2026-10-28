@@ -70,6 +70,7 @@ fun LimusicMiniPlayer(
     val control by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val song = nowPlaying?.songEntity
+    val remoteDevice = rememberRemoteDevice()
     val progress = if (timeline.total > 0L && timeline.current >= 0L) timeline.current.toFloat() / timeline.total else 0f
     val scope = rememberCoroutineScope()
     val offsetX = remember { Animatable(0f) }
@@ -151,12 +152,16 @@ fun LimusicMiniPlayer(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Text(
-                        text = song?.artistName?.joinToString(", ").orEmpty(),
-                        style = typo().bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (remoteDevice != null) {
+                        PlayingOnLabel(remoteDevice, playing = control.isPlaying, style = typo().bodySmall)
+                    } else {
+                        Text(
+                            text = song?.artistName?.joinToString(", ").orEmpty(),
+                            style = typo().bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             IconButton(onClick = { sharedViewModel.onUIEvent(UIEvent.ToggleLike) }) {

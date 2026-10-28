@@ -57,7 +57,10 @@ import com.maxrave.simpmusic.ui.icon.MusicCast
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Smartphone
 import com.maxrave.simpmusic.ui.icon.Speaker
+import com.maxrave.simpmusic.ui.icon.Computer
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.domain.data.model.listentogether.LinkRemote
+import com.maxrave.domain.repository.DeviceLinkRepository
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -70,6 +73,11 @@ import simpmusic.composeapp.generated.resources.audio_output_playing_here
 import simpmusic.composeapp.generated.resources.audio_output_system_default
 import simpmusic.composeapp.generated.resources.audio_output_usb
 import simpmusic.composeapp.generated.resources.audio_output_wired
+import simpmusic.composeapp.generated.resources.devices
+import simpmusic.composeapp.generated.resources.devices_offline
+import simpmusic.composeapp.generated.resources.devices_online
+import simpmusic.composeapp.generated.resources.devices_paused
+import simpmusic.composeapp.generated.resources.devices_playing
 
 /**
  * [AppleMusicOutputSheet] wired straight to the player, for the Now Playing styles that only need
@@ -123,6 +131,9 @@ internal fun AppleMusicOutputSheet(
     val cast = rememberCastReceivers(discover = true)
     // Devices coming and going update the list on their own; the system's own route changing does not.
     LaunchedEffect(Unit) { onRefresh() }
+    // Linked Limusic devices, Spotify Connect style: while one plays, the phone's outputs aren't.
+    val deviceLink = koinInject<DeviceLinkRepository>()
+    val link by deviceLink.link.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -156,7 +167,7 @@ internal fun AppleMusicOutputSheet(
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 6.dp),
                 )
                 outputs.forEach { output ->
-                    val playingHere = output.isActive && !castState.isRemote
+                    val playingHere = output.isActive && !castState.isRemote && !link.controlling
                     OutputRow(
                         icon = output.icon(),
                         name = output.displayName(),
@@ -167,6 +178,8 @@ internal fun AppleMusicOutputSheet(
                             // Coming back from a receiver: end the Cast session first, or the pick
                             // would route a local player that is not the one playing.
                             if (castState.isRemote) cast.disconnect()
+                            // Picking this phone's sound while the computer plays brings the music here.
+                            if (link.controlling) deviceLink.continueHere()
                             onSelectOutput(output)
                             closeSheet()
                         },
@@ -192,6 +205,45 @@ internal fun AppleMusicOutputSheet(
                             selected = receiver.isConnected,
                             colors = colors,
                             onClick = { if (!receiver.isConnected) cast.connect(receiver.id) },
+                        )
+                    }
+                }
+                if (link.paired && link.devices.isNotEmpty()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                        thickness = 1.dp,
+                        color = Color.White.copy(alpha = 0.10f),
+                    )
+                    Text(
+                        text = stringResource(Res.string.devices),
+                        style = typo().bodySmall,
+                        color = colors.subtitle,
+                        modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 20.dp, top = 4.dp),
+                    )
+                    link.devices.forEach { device ->
+                        val isPlayer = device.id == link.player?.id
+                        val selected = isPlayer && link.controlling
+                        OutputRow(
+                            icon = SimpIcons.Computer,
+                            name = device.name,
+                            status =
+                                stringResource(
+                                    when {
+                                        !device.online -> Res.string.devices_offline
+                                        isPlayer && link.isPlaying -> Res.string.devices_playing
+                                        isPlayer -> Res.string.devices_paused
+                                        else -> Res.string.devices_online
+                                    },
+                                ),
+                            selected = selected,
+                            colors = colors,
+                            onClick = {
+                                // ponytail: only the device that played last can be picked (it resumes); sending this phone's music to it needs a transfer action in the protocol.
+                                if (!selected && isPlayer && device.online) {
+                                    deviceLink.remote(LinkRemote.Play)
+                                    closeSheet()
+                                }
+                            },
                         )
                     }
                 }

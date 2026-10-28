@@ -1,10 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import simpmusic.composeapp.generated.resources.link_play_on
-import com.maxrave.simpmusic.ui.icon.Computer
-import com.maxrave.domain.data.model.listentogether.RoomTrack
-import com.maxrave.domain.data.model.listentogether.LinkRemote
-import com.maxrave.domain.repository.DeviceLinkRepository
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
@@ -1391,32 +1386,6 @@ private fun NowPlayingBottomSheetContent(
                         ActionButton(icon = SimpIcons.Info, text = Res.string.song_info) {
                             hideModalBottomSheet()
                             onShowInfo()
-                        }
-                    }
-                    // Device link: only the device that is playing takes remote controls, so this
-                    // names it and shows while it is online.
-                    val deviceLink = koinInject<DeviceLinkRepository>()
-                    val link by deviceLink.link.collectAsStateWithLifecycle()
-                    val linkPlayer = link.player?.takeIf { link.paired && it.online }
-                    if (linkPlayer != null && song != null) {
-                        ActionButton(
-                            icon = SimpIcons.Computer,
-                            text = null,
-                            textString = stringResource(Res.string.link_play_on, linkPlayer.name),
-                        ) {
-                            deviceLink.remote(
-                                LinkRemote.PlayTrack(
-                                    RoomTrack(
-                                        id = song.videoId,
-                                        title = song.title,
-                                        artist = song.artistName?.joinToString(", ").orEmpty(),
-                                        album = song.albumName.orEmpty(),
-                                        durationMs = song.durationSeconds * 1000L,
-                                        thumbnail = song.thumbnails.orEmpty(),
-                                    ),
-                                ),
-                            )
-                            hideModalBottomSheet()
                         }
                     }
                     EndOfModalBottomSheet()

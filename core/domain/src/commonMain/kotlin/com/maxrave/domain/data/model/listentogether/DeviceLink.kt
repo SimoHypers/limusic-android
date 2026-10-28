@@ -19,6 +19,14 @@ data class DeviceLink(
     val updatedAtMs: Long = 0L,
     /** 0f..1f */
     val volume: Float = 1f,
+    /** What the player plays after [track]. */
+    val queue: List<RoomTrack> = emptyList(),
+    /**
+     * This phone is the remote for [player]: the app's own player shows that device's playback and
+     * its controls go there. True while the player is online, playing or paused only a little
+     * while ago, and this phone isn't playing or taking over itself.
+     */
+    val controlling: Boolean = false,
     val error: String? = null,
 ) {
     /** The position now, extrapolated while playing. */

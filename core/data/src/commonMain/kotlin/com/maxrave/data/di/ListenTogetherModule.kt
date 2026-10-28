@@ -54,7 +54,7 @@ val listenTogetherModule =
             ListenTogetherPlaybackBridge(
                 repository = get(),
                 session = get(),
-                handler = get(),
+                handler = get(LOCAL_PLAYER_HANDLER),
                 scope = get<CoroutineScope>(named(Config.SERVICE_SCOPE)),
             ).also { it.start() }
         }
@@ -66,7 +66,7 @@ val listenTogetherModule =
         single {
             DeviceLinkBridge(
                 session = get(),
-                handler = get(),
+                handler = get(LOCAL_PLAYER_HANDLER),
                 scope = get<CoroutineScope>(named(Config.SERVICE_SCOPE)),
             ).also { it.start() }
         }
@@ -75,7 +75,7 @@ val listenTogetherModule =
                 session = get(),
                 bridge = get(),
                 dataStore = get(),
-                handler = get(),
+                handler = get(LOCAL_PLAYER_HANDLER),
                 scope = get<CoroutineScope>(named(Config.SERVICE_SCOPE)),
             )
         }

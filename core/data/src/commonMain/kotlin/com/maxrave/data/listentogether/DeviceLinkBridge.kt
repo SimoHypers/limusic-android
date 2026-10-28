@@ -13,9 +13,13 @@ import com.maxrave.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +28,7 @@ import org.simpmusic.listentogether.DeviceLinkSession
 import org.simpmusic.listentogether.LinkConnection
 import org.simpmusic.listentogether.LinkEvent
 import org.simpmusic.listentogether.LinkSend
+import org.simpmusic.listentogether.LinkState
 import org.simpmusic.listentogether.PlaybackActionPayload
 import org.simpmusic.listentogether.PlaybackActions
 import org.simpmusic.listentogether.TrackInfo
@@ -52,6 +57,11 @@ class DeviceLinkBridge(
 ) {
     private var started = false
 
+    private val _handingOver = MutableStateFlow(false)
+
+    /** Continue here is under way: from the click until this phone is the player (or it gives up). */
+    val handingOver: StateFlow<Boolean> = _handingOver.asStateFlow()
+
     fun start() {
         if (started) return
         started = true
@@ -65,39 +75,53 @@ class DeviceLinkBridge(
 
     /** Play what the player plays, from where it is now, with its upcoming queue. */
     fun continueHere() {
+        val s = session.state.value
+        val track = s.currentTrack?.takeIf { it.id.isNotBlank() } ?: return
+        if (s.isPlayer) return
+        _handingOver.value = true
         scope.launch {
-            val s = session.state.value
-            val track = s.currentTrack?.takeIf { it.id.isNotBlank() } ?: return@launch
-            if (s.isPlayer) return@launch
-            val tracks = (listOf(track) + s.queue.filter { it.id.isNotBlank() && it.id != track.id }).map { it.toTrack() }
-            val position = session.positionNow()
-            val clicked = TimeSource.Monotonic.markNow()
-            Logger.i(TAG, "Continue here: ${track.id} at $position ms, ${tracks.size - 1} upcoming")
-            withContext(Dispatchers.Main) {
-                // A list click's path (setQueueData + PLAYLIST_CLICK), so the queue screen, autoplay
-                // and what this phone publishes next all see the handed-over queue.
-                handler.clearQueued()
-                handler.setQueueData(
-                    QueueData.Data(
-                        listTracks = ArrayList(tracks),
-                        firstPlayedTrack = tracks.first(),
-                        playlistId = null,
-                        playlistName = null,
-                        playlistType = PlaylistType.PLAYLIST,
-                        continuation = null,
-                    ),
-                )
-                handler.loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, 0)
-                if (position > 0L) handler.player.seekTo(position)
-            }
-            // The other device kept playing while the stream started here: catch up with it once
-            // audio flows, so the handover lands where the music is.
-            val audible = withTimeoutOrNull(HANDOFF_WAIT_MS) { while (!onMain { handler.player.isPlaying }) delay(POLL_MS) } != null
-            if (audible && position > 0L) {
-                val target = position + clicked.elapsedNow().inWholeMilliseconds
-                onMain { if (abs(handler.player.currentPosition - target) > CATCH_UP_MS) handler.player.seekTo(target) }
+            try {
+                handOver(s, track)
+            } finally {
+                _handingOver.value = false
             }
         }
+    }
+
+    private suspend fun handOver(
+        s: LinkState,
+        track: TrackInfo,
+    ) {
+        val tracks = (listOf(track) + s.queue.filter { it.id.isNotBlank() && it.id != track.id }).map { it.toTrack() }
+        val position = session.positionNow()
+        val clicked = TimeSource.Monotonic.markNow()
+        Logger.i(TAG, "Continue here: ${track.id} at $position ms, ${tracks.size - 1} upcoming")
+        withContext(Dispatchers.Main) {
+            // A list click's path (setQueueData + PLAYLIST_CLICK), so the queue screen, autoplay
+            // and what this phone publishes next all see the handed-over queue.
+            handler.clearQueued()
+            handler.setQueueData(
+                QueueData.Data(
+                    listTracks = ArrayList(tracks),
+                    firstPlayedTrack = tracks.first(),
+                    playlistId = null,
+                    playlistName = null,
+                    playlistType = PlaylistType.PLAYLIST,
+                    continuation = null,
+                ),
+            )
+            handler.loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, 0)
+            if (position > 0L) handler.player.seekTo(position)
+        }
+        // The other device kept playing while the stream started here: catch up with it once
+        // audio flows, so the handover lands where the music is.
+        val audible = withTimeoutOrNull(HANDOFF_WAIT_MS) { while (!onMain { handler.player.isPlaying }) delay(POLL_MS) } != null
+        if (audible && position > 0L) {
+            val target = position + clicked.elapsedNow().inWholeMilliseconds
+            onMain { if (abs(handler.player.currentPosition - target) > CATCH_UP_MS) handler.player.seekTo(target) }
+        }
+        // Audible is not yet the player: the takeover goes out with the track change.
+        if (audible) withTimeoutOrNull(AUDIBLE_WAIT_MS) { session.state.first { it.isPlayer } }
     }
 
     /**

@@ -827,13 +827,10 @@
     <string name="devices_online">Online</string>
     <string name="devices_offline">Offline</string>
     <string name="devices_playing">Playing</string>
+    <string name="devices_paused">Paused</string>
     <string name="devices_unlink">Unlink</string>
     <string name="devices_unlink_phone">Unlink this phone</string>
     <string name="devices_unlink_phone_hint">It stops controlling your computer. Link it again with a new code.</string>
     <string name="link_playing_on">Playing on %1$s</string>
     <string name="link_paused_on">Paused on %1$s</string>
-    <string name="link_last_played_on">Last played on %1$s</string>
-    <string name="link_local_file_on">Playing a local file on %1$s</string>
-    <string name="link_continue_here">Continue here</string>
-    <string name="link_play_on">Play on %1$s</string>
 </resources>

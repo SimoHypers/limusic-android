@@ -2,6 +2,7 @@ package com.maxrave.data.repository
 
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.data.db.datasource.LocalDataSource
+import com.maxrave.data.di.LOCAL_PLAYER_HANDLER
 import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.mapping.toListTrack
 import com.maxrave.data.mapping.toSongItemForDownload
@@ -229,7 +230,7 @@ internal class SongRepositoryImpl(
      * Lazy for the same reason as [downloadHandler], and here it also breaks a cycle: the handler
      * already depends on this repository (it calls [recoverQueue] whenever it saves the queue).
      */
-    private val mediaPlayerHandler: MediaPlayerHandler by lazy { getKoin().get() }
+    private val mediaPlayerHandler: MediaPlayerHandler by lazy { getKoin().get(LOCAL_PLAYER_HANDLER) }
 
     /**
      * Bumped by every like or unlike, so a [refreshLikeFromYouTube] already in flight can tell its

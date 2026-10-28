@@ -31,7 +31,9 @@ import org.simpmusic.listentogether.LinkState
 import org.simpmusic.listentogether.RemoteAction
 import org.simpmusic.listentogether.TrackInfo
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 /** The stored link. Never logged. */
 @Serializable
@@ -62,8 +64,14 @@ class DeviceLinkRepositoryImpl(
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     override val link: StateFlow<DeviceLink> =
-        combine(stored, session.state) { s, state -> state.toDomain(paired = s != null) }
-            .stateIn(scope, SharingStarted.Eagerly, DeviceLink())
+        combine(
+            stored,
+            session.state,
+            handler.controlState.map { it.isPlaying }.distinctUntilChanged(),
+            bridge.handingOver,
+        ) { s, state, playingHere, handingOver ->
+            state.toDomain(paired = s != null).let { it.copy(controlling = it.isRemoteFor(playingHere || handingOver)) }
+        }.stateIn(scope, SharingStarted.Eagerly, DeviceLink())
 
     init {
         scope.launch {
@@ -138,6 +146,20 @@ class DeviceLinkRepositoryImpl(
     }
 }
 
+/**
+ * Whether the app's player should be the remote for the device that plays: it is online and
+ * playing, or paused less than [STALE_PAUSE_MS] ago. Paused longer, opening the app on the phone
+ * means this phone again.
+ */
+@OptIn(ExperimentalTime::class)
+private fun DeviceLink.isRemoteFor(busyHere: Boolean): Boolean {
+    if (busyHere || !paired || connection != DomainConnection.Connected) return false
+    if (player?.online != true || track == null) return false
+    return isPlaying || Clock.System.now().toEpochMilliseconds() - updatedAtMs < STALE_PAUSE_MS
+}
+
+private const val STALE_PAUSE_MS = 10 * 60_000L
+
 /** A random version-4 UUID. */
 private fun newDeviceId(): String {
     val b = Random.nextBytes(16)
@@ -163,7 +185,8 @@ private fun LinkState.toDomain(paired: Boolean): DeviceLink {
             },
         devices = devices,
         player = devices.firstOrNull { it.id == hostId },
-        track = currentTrack?.let { RoomTrack(it.id, it.title, it.artist, it.album, it.duration, it.thumbnail) },
+        track = currentTrack?.toRoomTrack(),
+        queue = queue.map { it.toRoomTrack() },
         isPlaying = isPlaying,
         positionMs = position,
         // The server's clock is taken to be this device's wall clock, as ServerClock does.
@@ -172,6 +195,8 @@ private fun LinkState.toDomain(paired: Boolean): DeviceLink {
         error = error,
     )
 }
+
+private fun TrackInfo.toRoomTrack() = RoomTrack(id, title, artist, album, duration, thumbnail)
 
 private fun RoomTrack.toProtocol() =
     TrackInfo(id = id, title = title, artist = artist, album = album, duration = durationMs, thumbnail = thumbnail)

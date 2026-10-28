@@ -94,6 +94,8 @@ import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Fullscreen
+import com.maxrave.simpmusic.ui.component.PlayingOnLabel
+import com.maxrave.simpmusic.ui.component.rememberRemoteDevice
 import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -410,7 +412,12 @@ private fun TopRow(
             Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(stringResource(Res.string.now_playing), style = typo().bodyMedium, color = MaterialTheme.colorScheme.onBackground)
+            val remoteDevice = rememberRemoteDevice()
+            if (remoteDevice != null) {
+                PlayingOnLabel(remoteDevice, playing = state.controllerState.isPlaying, style = typo().bodyMedium)
+            } else {
+                Text(stringResource(Res.string.now_playing), style = typo().bodyMedium, color = MaterialTheme.colorScheme.onBackground)
+            }
             Text(
                 text = state.screenData.playlistName,
                 style = typo().bodyMedium,
@@ -428,7 +435,7 @@ private fun TopRow(
 private fun OutputButton(state: NowPlayingContentState) {
     val outputs by koinInject<MediaPlayerHandler>().player.audioOutputs.collectAsStateWithLifecycle()
     val active = outputs.firstOrNull { it.isActive }
-    val away = state.castState.isRemote || (active != null && active.kind != AudioOutputKind.DEVICE_SPEAKER)
+    val away = state.castState.isRemote || rememberRemoteDevice() != null || (active != null && active.kind != AudioOutputKind.DEVICE_SPEAKER)
     var choosing by remember { mutableStateOf(false) }
     IconButton(onClick = { choosing = true }) {
         Icon(
