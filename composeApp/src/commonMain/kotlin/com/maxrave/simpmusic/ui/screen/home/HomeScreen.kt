@@ -753,8 +753,11 @@ fun HomeTopAppBar(
                 .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Avatar(account?.second, 44.dp, Modifier.clickable(onClick = onAvatarClick))
-        Spacer(Modifier.width(12.dp))
+        // Signed out (or mid sign-in) there is no picture: no avatar, not the app icon in its place.
+        account?.second?.takeIf { it.isNotBlank() }?.let { url ->
+            Avatar(url, 44.dp, Modifier.clickable(onClick = onAvatarClick))
+            Spacer(Modifier.width(12.dp))
+        }
         Text(
             text = if (firstName != null) "$daypart, $firstName" else daypart,
             style = typo().headlineLarge,

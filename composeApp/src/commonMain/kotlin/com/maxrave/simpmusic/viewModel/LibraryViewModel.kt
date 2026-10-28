@@ -123,9 +123,6 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist.asStateFlow()
 
-    private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
-    val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
-
     /** Counts and newest artwork for the four All tab tiles; null until the first read lands. */
     private val _libraryOverview: MutableStateFlow<LibraryOverview?> = MutableStateFlow(null)
     val libraryOverview: StateFlow<LibraryOverview?> get() = _libraryOverview.asStateFlow()
@@ -177,23 +174,12 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch {
-            val currentScreenJob =
-                launch {
-                    dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
-                        LibraryChipType.fromStringValue(chipType)?.let {
-                            // The chip picked meanwhile wins over the one saved last time.
-                            if (!screenChosen) _currentScreen.value = it
-                        }
-                    }
+            dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
+                LibraryChipType.fromStringValue(chipType)?.let {
+                    // The chip picked meanwhile wins over the one saved last time.
+                    if (!screenChosen) _currentScreen.value = it
                 }
-            val cookieJob =
-                launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
-                        _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
-                    }
-                }
-            currentScreenJob.join()
-            cookieJob.join()
+            }
         }
         viewModelScope.launch {
             commonRepository.getLibraryOverview().collect { _libraryOverview.value = it }

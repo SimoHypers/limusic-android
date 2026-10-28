@@ -124,8 +124,18 @@ class HomeViewModel(
             ) { location, lang, cookie, chip -> listOf(location, lang, cookie, chip) }
                 .distinctUntilChanged()
                 .debounce(300)
-                .collectLatest { (_, _, cookie, chip) ->
-                    getHomeItemList(chip)
+                .collectLatest { (_, _, _, chip) -> getHomeItemList(chip) }
+        }
+        // Follows the saved name and picture too: sign-in writes the cookie before YouTube has
+        // answered, and its last cookie write repeats the same value, so the cookie alone misses it.
+        viewModelScope.launch {
+            combine(
+                dataStoreManager.cookie,
+                dataStoreManager.getString("AccountName"),
+                dataStoreManager.getString("AccountThumbUrl"),
+            ) { cookie, name, thumb -> Triple(cookie, name, thumb) }
+                .distinctUntilChanged()
+                .collectLatest { (cookie, name, thumb) ->
                     // The saved account, as Settings shows it. The "AccountName" key is also
                     // written from the feed's first shelf strapline, which YouTube sends in capitals.
                     val used = accountRepository.getUsedGoogleAccount().first()
@@ -134,8 +144,8 @@ class HomeViewModel(
                             null
                         } else {
                             Pair(
-                                used?.name ?: dataStoreManager.getString("AccountName").first(),
-                                used?.thumbnailUrl ?: dataStoreManager.getString("AccountThumbUrl").first(),
+                                used?.name ?: name,
+                                used?.thumbnailUrl ?: thumb,
                             )
                         }
                 }

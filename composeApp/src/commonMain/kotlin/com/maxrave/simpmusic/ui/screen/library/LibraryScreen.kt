@@ -143,7 +143,6 @@ fun LibraryScreen(
     val syncing by viewModel.syncing.collectAsStateWithLifecycle()
 
     val selection = rememberTrackSelection()
-    val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
     val hazeState =
         rememberHazeState()
 
