@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
+import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -20,8 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getPluralString
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.liked_n_songs
 import simpmusic.composeapp.generated.resources.added_to_playlist
 import simpmusic.composeapp.generated.resources.adding_to_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
@@ -103,6 +106,37 @@ class SongSelectionViewModel(
                     .count { !songRepository.updateLikeStatus(it.videoId, 1) }
             if (failed > 0) makeToast(getString(Res.string.youtube_write_failed))
         }
+    }
+
+    /** [download] for rows a page may not have stored yet: they are saved first. */
+    fun downloadTracks(tracks: List<Track>) {
+        viewModelScope.launch {
+            val pending = stored(tracks).filter { it.downloadState == DownloadState.STATE_NOT_DOWNLOADED }
+            if (pending.isEmpty()) return@launch
+            downloadUtils.downloadTracks(pending)
+            makeToast(getString(Res.string.downloading))
+        }
+    }
+
+    /** [addToFavorite] for rows a page may not have stored yet. Toasts once YouTube has them all. */
+    fun likeTracks(tracks: List<Track>) {
+        viewModelScope.launch {
+            val songs = stored(tracks)
+            val failed = songs.filterNot { it.liked }.count { !songRepository.updateLikeStatus(it.videoId, 1) }
+            makeToast(
+                if (failed > 0) {
+                    getString(Res.string.youtube_write_failed)
+                } else {
+                    getPluralString(Res.plurals.liked_n_songs, songs.size, songs.size)
+                },
+            )
+        }
+    }
+
+    private suspend fun stored(tracks: List<Track>): List<SongEntity> {
+        // Ignored where the row exists, so nothing already saved is overwritten.
+        tracks.forEach { songRepository.insertSong(it.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME)).firstOrNull() }
+        return songsOf(tracks.map { it.videoId })
     }
 
     fun addToPlaylist(
@@ -217,10 +251,12 @@ class SongSelectionViewModel(
      * The database returns rows in its own order, so the result is re-sorted back into the order
      * the user picked them in — which is what makes "play next" land in the expected sequence.
      */
-    private suspend fun songsOf(videoIds: List<String>): List<SongEntity> =
-        songRepository
-            .getSongsByListVideoId(videoIds)
-            .firstOrNull()
-            .orEmpty()
-            .sortedBy { videoIds.indexOf(it.videoId) }
+    private suspend fun songsOf(videoIds: List<String>): List<SongEntity> {
+        val order = videoIds.withIndex().associate { (i, id) -> id to i }
+        // Chunked under SQLite's 999-variable limit on older Androids: Select all has no cap.
+        return videoIds
+            .chunked(900)
+            .flatMap { songRepository.getSongsByListVideoId(it).firstOrNull().orEmpty() }
+            .sortedBy { order[it.videoId] }
+    }
 }

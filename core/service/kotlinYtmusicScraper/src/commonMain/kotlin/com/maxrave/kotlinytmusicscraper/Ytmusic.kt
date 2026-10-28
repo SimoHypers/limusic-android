@@ -554,6 +554,13 @@ class Ytmusic {
         playlistId: String,
         videoId: String,
         setVideoId: String,
+    ) = removeItemsYouTubePlaylist(playlistId, listOf(videoId to setVideoId))
+
+    /** Every (videoId, setVideoId) in one request: edit_playlist takes a list of actions. */
+    // ponytail: no chunking, like desktop. Split into batches if a long selection comes back refused.
+    suspend fun removeItemsYouTubePlaylist(
+        playlistId: String,
+        items: List<Pair<String, String>>,
     ) = httpClient.post("browse/edit_playlist") {
         ytClient(WEB_REMIX, setLogin = true)
         setBody(
@@ -561,13 +568,13 @@ class Ytmusic {
                 context = WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
-                    listOf(
+                    items.map { (videoId, setVideoId) ->
                         EditPlaylistBody.Action(
                             action = "ACTION_REMOVE_VIDEO",
                             removedVideoId = videoId,
                             setVideoId = setVideoId,
-                        ),
-                    ),
+                        )
+                    },
             ),
         )
     }

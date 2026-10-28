@@ -845,6 +845,17 @@ internal class PlaylistRepositoryImpl(
                 .isSuccess
         }
 
+    override suspend fun removePlaylistItems(
+        playlistId: String,
+        items: List<Pair<String, String>>,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            youTube
+                .removePlaylistItems(playlistId, items)
+                .onFailure { Logger.w("PlaylistRepositoryImpl", "Playlist removal on YouTube failed: ${it.message}") }
+                .isSuccess
+        }
+
     override fun deleteYourYouTubePlaylist(playlistId: String): Flow<Resource<String>> =
         flow {
             val deleted =

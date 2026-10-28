@@ -38,4 +38,6 @@ data class Track(
     val queuedFrom: String? = null,
     /** Brought in by autoplay: drawn under its divider, and what switching Autoplay off removes. */
     val autoplay: Boolean = false,
+    /** This row's entry in a YouTube playlist: what removes it, and what tells two copies apart. */
+    val setVideoId: String? = null,
 )

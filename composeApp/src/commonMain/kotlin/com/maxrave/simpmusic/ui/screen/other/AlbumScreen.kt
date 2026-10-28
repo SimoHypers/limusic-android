@@ -67,7 +67,6 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.ui.component.CollectionDownloadButton
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.AlbumMenu
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -77,9 +76,9 @@ import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -89,7 +88,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -109,6 +107,7 @@ fun AlbumScreen(
     navController: NavController,
     viewModel: AlbumViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
+    innerPadding: PaddingValues = PaddingValues(),
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -128,10 +127,8 @@ fun AlbumScreen(
     var albumBottomSheetShow by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberTrackSelection()
+    val rows = remember(uiState.listTrack) { keyedRows(uiState.listTrack) }
 
 
     LaunchedEffect(browseId) {
@@ -241,8 +238,9 @@ fun AlbumScreen(
                         val item = uiState.listTrack.getOrNull(index)
                         item?.videoId + "item_$index"
                     }) { index ->
-                        val item = uiState.listTrack.getOrNull(index)
-                        if (item != null) {
+                        val row = rows.getOrNull(index)
+                        if (row != null) {
+                            val (key, item) = row
                             Column(modifier = Modifier.animateItem()) {
                                 SongFullWidthItems(
                                     isPlaying = item.videoId == playingVideoId,
@@ -260,10 +258,10 @@ fun AlbumScreen(
                                             arrayListOf(item),
                                         )
                                     },
-                                    selectionMode = selectionState.isActive,
-                                    isSelected = selectionState.isSelected(item.videoId),
-                                    onLongClick = { selectionState.start(it) },
-                                    onSelectToggle = { selectionState.toggle(it) },
+                                    selectionMode = selection.active,
+                                    isSelected = selection.has(key),
+                                    onLongClick = { selection.start(key, item) },
+                                    onSelectToggle = { selection.toggle(key, item) },
                                     modifier = Modifier,
                                     padding = PaddingValues(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                                 )
@@ -301,7 +299,7 @@ fun AlbumScreen(
                     }
                 }
                 AnimatedVisibility(
-                    visible = shouldHideTopBar && !selectionState.isActive,
+                    visible = shouldHideTopBar,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically(),
                 ) {
@@ -343,59 +341,19 @@ fun AlbumScreen(
                             Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
                     )
                 }
-                AnimatedVisibility(
-                    visible = selectionState.isActive,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut() + slideOutVertically(),
+                Box(
+                    Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
+                    contentAlignment = Alignment.BottomCenter,
                 ) {
-                    SongSelectionTopAppBar(
-                        state = selectionState,
-                        onSelectAll = {
-                            selectionState.toggleSelectAll(uiState.listTrack.map { it.videoId })
-                        },
-                        onOpenActions = { showSelectionSheet = true },
-                        modifier =
-                            Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
-                    )
-                }
-                if (showSelectionSheet) {
-                    val selectedIds = selectionState.selected.toList()
-                    SelectedSongsBottomSheet(
-                        count = selectedIds.size,
-                        onDismiss = { showSelectionSheet = false },
-                        onPlayNext = {
-                            selectionViewModel.playNext(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToQueue = {
-                            selectionViewModel.addToQueue(selectedIds)
-                            selectionState.exit()
-                        },
-                        // Deliberately does not exit yet: the playlist picker opens next and
-                        // still needs the selection alive.
-                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
-                        onDownload = {
-                            selectionViewModel.download(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToFavorite = {
-                            selectionViewModel.addToFavorite(selectedIds)
-                            selectionState.exit()
-                        },
-                    )
-                }
-                if (showSelectionAddToPlaylist) {
-                    val selectedIds = selectionState.selected.toList()
-                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    AddToPlaylistModalBottomSheet(
-                        isBottomSheetVisible = true,
-                        listLocalPlaylist = localPlaylists,
-                        listYouTubePlaylist = emptyList(),
-                        onDismiss = { showSelectionAddToPlaylist = false },
-                        onClick = { playlist ->
-                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                            selectionState.exit()
-                        },
+                    TrackSelectionBar(
+                        selection = selection,
+                        rows = rows,
+                        shown = rows,
+                        complete = true,
+                        total = rows.size,
+                        loadRest = {},
+                        from = uiState.title,
+                        onRemove = null,
                     )
                 }
                 if (showBottomSheet) {
@@ -409,7 +367,7 @@ fun AlbumScreen(
                     )
                 }
                 if (albumBottomSheetShow) {
-                    AlbumMenu(viewModel, uiState, browseId, onClose = { albumBottomSheetShow = false })
+                    AlbumMenu(viewModel, uiState, browseId, onClose = { albumBottomSheetShow = false }, onSelectTracks = selection::enter)
                 }
             }
 

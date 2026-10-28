@@ -35,6 +35,7 @@ fun NavGraphBuilder.listScreenGraph(
             AlbumScreen(
                 browseId = data.browseId,
                 navController = navController,
+                innerPadding = innerPadding,
             )
         }
     }
@@ -82,6 +83,7 @@ fun NavGraphBuilder.listScreenGraph(
                 playlistId = data.playlistId,
                 isYourYouTubePlaylist = data.isYourYouTubePlaylist,
                 navController = navController,
+                innerPadding = innerPadding,
             )
         }
     }

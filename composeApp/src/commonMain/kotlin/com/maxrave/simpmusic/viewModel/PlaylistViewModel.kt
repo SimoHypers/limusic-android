@@ -65,6 +65,8 @@ import simpmusic.composeapp.generated.resources.playlist_saved
 import simpmusic.composeapp.generated.resources.playlist_is_empty
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.removed_download
+import simpmusic.composeapp.generated.resources.removed_from_liked_music
+import simpmusic.composeapp.generated.resources.removed_from_this_playlist
 import simpmusic.composeapp.generated.resources.shuffle
 import simpmusic.composeapp.generated.resources.sort_failed
 import simpmusic.composeapp.generated.resources.sort_not_saved
@@ -218,6 +220,7 @@ class PlaylistViewModel(
     private fun resetData() {
         _uiState.value = Loading
         _playlistEntity.value = null
+        _removed.value = 0
     }
 
     fun getData(id: String) {
@@ -686,6 +689,49 @@ class PlaylistViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private val _removed = MutableStateFlow(0)
+
+    /** Rows taken out with [removeTracks] this visit, off the header's song count. */
+    val removed: StateFlow<Int> = _removed
+
+    /**
+     * The selection bar's Remove, like desktop: one request for a playlist you own. Liked Music has
+     * only per-song unlike, so it goes song by song and a row leaves as YouTube takes it. Rows go
+     * only once YouTube has them, so a page that lands meanwhile is never put back over.
+     */
+    fun removeTracks(
+        tracks: List<Track>,
+        onDone: () -> Unit,
+    ) {
+        val id = playlistId
+        viewModelScope.launch {
+            if (id.removePrefix("VL") == "LM") {
+                var failed = 0
+                tracks.forEach { track ->
+                    if (songRepository.updateLikeStatus(track.videoId, 0)) {
+                        _tracks.update { rows -> rows.filterNot { it.videoId == track.videoId } }
+                        _removed.update { it + 1 }
+                    } else {
+                        failed++
+                    }
+                }
+                makeToast(getString(if (failed > 0) Res.string.youtube_write_failed else Res.string.removed_from_liked_music))
+            } else {
+                val targets = tracks.mapNotNull { track -> track.setVideoId?.let { track.videoId to it } }
+                if (targets.isEmpty()) return@launch
+                if (playlistRepository.removePlaylistItems(id, targets)) {
+                    val gone = targets.mapTo(HashSet()) { it.second }
+                    _tracks.update { rows -> rows.filterNot { it.setVideoId in gone } }
+                    _removed.update { it + targets.size }
+                    makeToast(getString(Res.string.removed_from_this_playlist))
+                } else {
+                    makeToast(getString(Res.string.youtube_write_failed))
+                }
+            }
+            onDone()
         }
     }
 

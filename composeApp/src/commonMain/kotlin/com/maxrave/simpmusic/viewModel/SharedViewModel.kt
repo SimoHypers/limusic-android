@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.AppIdentity
 import com.maxrave.common.Config.DOWNLOAD_CACHE
+import com.maxrave.common.Config.PLAYLIST_CLICK
 import com.maxrave.common.Config.SONG_CLICK
 import com.maxrave.common.LibraryChipType
 import com.maxrave.common.SELECTED_LANGUAGE
@@ -1149,6 +1150,36 @@ class SharedViewModel(
         viewModelScope.launch {
             mediaPlayerHandler.addToQueue(listTrack, from)
             makeToast(getString(Res.string.added_to_queue))
+        }
+    }
+
+    /**
+     * Desktop's "Play only these, on repeat": the queue becomes [tracks] and loops. Repeat goes on
+     * first, or autoplay could add to a short queue before it landed, and the hand-queued tracks are
+     * dropped, or the new list would carry them into the loop.
+     */
+    fun playOnRepeat(
+        tracks: List<Track>,
+        from: String,
+    ) {
+        val first = tracks.firstOrNull() ?: return
+        viewModelScope.launch {
+            // The toggle runs off -> all -> one -> off, so at most two presses reach all.
+            repeat(2) {
+                if (mediaPlayerHandler.controlState.value.repeatState != RepeatState.All) {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat)
+                }
+            }
+            mediaPlayerHandler.clearQueued()
+            setQueueData(
+                QueueData.Data(
+                    listTracks = tracks,
+                    firstPlayedTrack = first,
+                    playlistName = from,
+                    playlistType = PlaylistType.PLAYLIST,
+                ),
+            )
+            loadMediaItem(first, PLAYLIST_CLICK, 0)
         }
     }
 

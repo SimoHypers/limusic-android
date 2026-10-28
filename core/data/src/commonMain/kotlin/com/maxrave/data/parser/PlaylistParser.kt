@@ -343,6 +343,7 @@ internal fun parsePlaylistData(
                     feedbackTokens = null,
                     resultType = null,
                     year = null,
+                    setVideoId = renderer?.playlistItemData?.playlistSetVideoId,
                 )
             if (track.videoId != "") {
                 listTrack.add(track)

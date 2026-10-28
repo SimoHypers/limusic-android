@@ -43,6 +43,7 @@ internal fun SongItem.toTrack(): Track =
         feedbackTokens = null,
         resultType = null,
         year = null,
+        setVideoId = this.setVideoId,
     )
 
 internal fun VideoItem.toTrack(): Track =

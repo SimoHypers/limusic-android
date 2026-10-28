@@ -2,11 +2,16 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -87,7 +92,6 @@ import com.maxrave.simpmusic.ui.icon.PushPin
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
-import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -170,12 +174,18 @@ fun SongFullWidthItems(
             }
         }
         val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
+        val accent = MaterialTheme.colorScheme.primary
+        // Picking fades the row in and pops the tick, rather than switching in one frame.
+        val rowTint by animateColorAsState(if (isSelected) accent.copy(alpha = 0.18f) else Color.Transparent, label = "rowTint")
+        val tickFill by animateColorAsState(if (isSelected) accent else Color.Transparent, label = "tickFill")
+        val tickRing by animateColorAsState(if (isSelected) accent else contentColor.copy(alpha = 0.6f), label = "tickRing")
         Box(
             modifier =
                 modifier
                     .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                     .background(
-                        if (isSelected) seed.copy(alpha = 0.18f) else Color.Transparent,
+                        // The theme's accent: the artwork's while "Adapt colors to artwork" is on.
+                        rowTint,
                     ).combinedClickable(
                         onClick = {
                             if (selectionMode) {
@@ -241,19 +251,23 @@ fun SongFullWidthItems(
                                 Modifier
                                     .size(20.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) seed else Color.Transparent)
+                                    .background(tickFill)
                                     .border(
                                         width = 1.5.dp,
-                                        color = if (isSelected) seed else contentColor.copy(alpha = 0.6f),
+                                        color = tickRing,
                                         shape = CircleShape,
                                     ),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (isSelected) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = isSelected,
+                                enter = scaleIn(spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)) + fadeIn(),
+                                exit = scaleOut() + fadeOut(),
+                            ) {
                                 Icon(
                                     imageVector = SimpIcons.Check,
                                     contentDescription = null,
-                                    tint = Color.Black,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(14.dp),
                                 )
                             }

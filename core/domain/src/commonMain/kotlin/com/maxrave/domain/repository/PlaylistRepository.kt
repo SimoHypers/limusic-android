@@ -82,6 +82,12 @@ interface PlaylistRepository {
         sort: PlaylistSort,
     ): Boolean
 
+    /** Removes (videoId, setVideoId) entries from a playlist you own, in one request. False if it failed. */
+    suspend fun removePlaylistItems(
+        playlistId: String,
+        items: List<Pair<String, String>>,
+    ): Boolean
+
     fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?>
 
     /** A new, empty playlist on the YouTube account. Its id, or null when YouTube refused. */

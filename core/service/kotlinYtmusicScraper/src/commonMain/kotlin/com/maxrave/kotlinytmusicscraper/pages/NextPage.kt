@@ -50,6 +50,8 @@ object NextPage {
                 ?.actions
                 ?.firstOrNull()
                 ?.setVideoId
+                // Someone else's playlist has no remove item, but its rows still carry their entry.
+                ?: renderer.playlistItemData?.playlistSetVideoId
         return SongItem(
             id = videoId,
             setVideoId = setVideoId,

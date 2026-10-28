@@ -152,6 +152,7 @@ import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SelectAll
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.Speed
@@ -236,6 +237,7 @@ import simpmusic.composeapp.generated.resources.save_to_playlist
 import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
+import simpmusic.composeapp.generated.resources.select_tracks
 import simpmusic.composeapp.generated.resources.share
 import simpmusic.composeapp.generated.resources.shuffle_play
 import simpmusic.composeapp.generated.resources.sleep_minutes
@@ -2446,6 +2448,8 @@ fun PlaylistBottomSheet(
     onRemoveShortcut: (() -> Unit)? = null,
     onPlay: () -> Unit,
     onShufflePlay: () -> Unit,
+    // Only from the page itself: a Home shortcut's menu has no rows to pick.
+    onSelectTracks: (() -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2491,6 +2495,9 @@ fun PlaylistBottomSheet(
                         ActionButton(icon = SimpIcons.Sensors, text = Res.string.start_radio) { run(onStartRadio) }
                     }
                     ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    if (onSelectTracks != null) {
+                        ActionButton(icon = SimpIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
+                    }
                     val shareTitle = stringResource(Res.string.share)
                     ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
                         shareUrl(shareTitle, shareLink)

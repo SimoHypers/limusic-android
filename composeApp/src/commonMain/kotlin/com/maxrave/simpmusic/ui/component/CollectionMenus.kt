@@ -76,6 +76,7 @@ fun PlaylistMenu(
     onClose: () -> Unit,
     onDeleted: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onSelectTracks: (() -> Unit)? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,6 +111,7 @@ fun PlaylistMenu(
             onRemoveShortcut = onRemoveShortcut,
             onPlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.PlayAll) } },
             onShufflePlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.Shuffle) } },
+            onSelectTracks = onSelectTracks,
         )
     }
     // Opens once the playlist is in: the sheet starts from its real description and privacy.
@@ -157,6 +159,7 @@ fun AlbumMenu(
     browseId: String,
     onClose: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onSelectTracks: (() -> Unit)? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
     var menu by remember { mutableStateOf(true) }
@@ -183,6 +186,7 @@ fun AlbumMenu(
             onRemoveShortcut = onRemoveShortcut,
             onPlay = { viewModel.afterLoad { album -> album.listTrack.firstOrNull()?.let(viewModel::playTrack) } },
             onShufflePlay = { viewModel.afterLoad { viewModel.shuffle() } },
+            onSelectTracks = onSelectTracks,
         )
     }
     saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }) }

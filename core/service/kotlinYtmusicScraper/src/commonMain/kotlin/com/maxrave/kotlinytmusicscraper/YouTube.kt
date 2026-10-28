@@ -2023,6 +2023,16 @@ class YouTube {
         ytMusic.removeItemYouTubePlaylist(playlistId, videoId, setVideoId).status.value
     }
 
+    /** Fails on an HTTP error or YouTube's STATUS_FAILED answer, which comes with a 200. */
+    suspend fun removePlaylistItems(
+        playlistId: String,
+        items: List<Pair<String, String>>,
+    ) = runCatching {
+        val response = ytMusic.removeItemsYouTubePlaylist(playlistId, items)
+        check(response.status.value in 200..299) { "HTTP ${response.status.value}" }
+        check(!response.bodyAsText().contains("\"STATUS_FAILED\"")) { "YouTube refused the playlist edit" }
+    }
+
     suspend fun addPlaylistItem(
         playlistId: String,
         videoId: String,

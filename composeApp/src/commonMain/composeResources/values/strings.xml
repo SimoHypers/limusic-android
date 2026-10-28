@@ -597,6 +597,26 @@
     <string name="max_selection_reached">You can select up to %1$d songs at a time</string>
     <string name="exit_selection">Exit selection</string>
     <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="select_tracks">Select tracks</string>
+    <string name="selection_hint">Tap tracks to select them</string>
+    <string name="select_all_count">Select all (%1$d)</string>
+    <string name="selection_hidden">%1$d hidden</string>
+    <string name="remove_from_this_playlist">Remove from this playlist</string>
+    <plurals name="remove_n_from_playlist">
+        <item quantity="one">Remove %1$d song from this playlist?</item>
+        <item quantity="other">Remove %1$d songs from this playlist?</item>
+    </plurals>
+    <string name="play_only_these_on_repeat">Play only these, on repeat</string>
+    <plurals name="selection_pending">
+        <item quantity="one">Finding %1$d selected track in the pages still loading</item>
+        <item quantity="other">Finding %1$d selected tracks in the pages still loading</item>
+    </plurals>
+    <string name="removed_from_this_playlist">Removed from the playlist</string>
+    <string name="removed_from_liked_music">Removed from Liked Music</string>
+    <plurals name="liked_n_songs">
+        <item quantity="one">Liked %1$d song</item>
+        <item quantity="other">Liked %1$d songs</item>
+    </plurals>
     <!-- Listen Together -->
     <string name="share_lyrics">Share lyrics</string>
     <string name="share_lyrics_select_title">Select lines</string>

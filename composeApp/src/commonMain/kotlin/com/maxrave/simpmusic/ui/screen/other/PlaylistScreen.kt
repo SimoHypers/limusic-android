@@ -73,7 +73,6 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.ui.component.CollectionDownloadButton
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -87,9 +86,9 @@ import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.SearchBarExit
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.pillSurface
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -104,7 +103,6 @@ import com.maxrave.simpmusic.viewModel.PlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.PlaylistUIState
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -132,6 +130,7 @@ fun PlaylistScreen(
     playlistId: String,
     isYourYouTubePlaylist: Boolean,
     navController: NavController,
+    innerPadding: PaddingValues = PaddingValues(),
 ) {
     // Home shelves navigate with the browseEndpoint id, which is "VL" + the playlist id
     // (HomeParser reads title.runs[0].navigationEndpoint.browseEndpoint.browseId). Every radio
@@ -148,6 +147,7 @@ fun PlaylistScreen(
     val sortState by viewModel.sortState.collectAsStateWithLifecycle()
     var showSortSheet by remember { mutableStateOf(false) }
     val tracksListState by viewModel.tracksListState.collectAsStateWithLifecycle()
+    val removed by viewModel.removed.collectAsStateWithLifecycle()
 
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
     var searchBarHeightPx by remember { mutableStateOf(0) }
@@ -161,23 +161,20 @@ fun PlaylistScreen(
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
-
-    val filteredTrack by remember {
-        derivedStateOf {
+    val selection = rememberTrackSelection()
+    val rows = remember(tracks) { keyedRows(tracks) }
+    // Filtered as keyed rows, so a pick the search hides is still that row.
+    val shownRows =
+        remember(rows, query, showSearchBar) {
             if (query.isEmpty() || !showSearchBar) {
-                tracks
+                rows
             } else {
-                tracks.filter {
+                rows.filter { (_, it) ->
                     it.title.contains(query, ignoreCase = true) ||
                         it.artists?.joinToString(", ")?.contains(query, ignoreCase = true) == true
                 }
             }
         }
-    }
 
     LaunchedEffect(uiState) {
         Logger.d(tag, "uiState hash: ${uiState.hashCode()}")
@@ -371,7 +368,8 @@ fun PlaylistScreen(
                                                 if (data.isRadio) {
                                                     stringResource(Res.string.unlimited)
                                                 } else {
-                                                    pluralStringResource(Res.plurals.liked_songs_count, data.trackCount, data.trackCount)
+                                                    val count = data.trackCount - removed
+                                                    pluralStringResource(Res.plurals.liked_songs_count, count, count)
                                                 },
                                                 data.duration,
                                             ),
@@ -404,12 +402,13 @@ fun PlaylistScreen(
                             )
                         }
                     }
-                    items(count = filteredTrack.size, key = { index ->
-                        val item = filteredTrack.getOrNull(index)
+                    items(count = shownRows.size, key = { index ->
+                        val item = shownRows.getOrNull(index)?.second
                         (item?.videoId ?: "") + "item_$index"
                     }) { index ->
-                        val item = filteredTrack.getOrNull(index)
-                        if (item != null) {
+                        val row = shownRows.getOrNull(index)
+                        if (row != null) {
+                            val (key, item) = row
                             // Wrapped: SongFullWidthItems puts its modifier on two nodes. Dimmed while
                             // YouTube re-sorts, or picking a sort looks like it did nothing.
                             Column(Modifier.animateItem().alpha(if (sortState.resorting) 0.5f else 1f)) {
@@ -423,10 +422,10 @@ fun PlaylistScreen(
                                             arrayListOf(item),
                                         )
                                     },
-                                    selectionMode = selectionState.isActive,
-                                    isSelected = selectionState.isSelected(item.videoId),
-                                    onLongClick = { selectionState.start(it) },
-                                    onSelectToggle = { selectionState.toggle(it) },
+                                    selectionMode = selection.active,
+                                    isSelected = selection.has(key),
+                                    onLongClick = { selection.start(key, item) },
+                                    onSelectToggle = { selection.toggle(key, item) },
                                     modifier = Modifier,
                                     padding = PaddingValues(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                                 )
@@ -555,57 +554,32 @@ fun PlaylistScreen(
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = selectionState.isActive,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut() + slideOutVertically(),
+                Box(
+                    Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
+                    contentAlignment = Alignment.BottomCenter,
                 ) {
-                    SongSelectionTopAppBar(
-                        state = selectionState,
-                        onSelectAll = {
-                            selectionState.toggleSelectAll(filteredTrack.map { it.videoId })
-                        },
-                        onOpenActions = { showSelectionSheet = true },
-                        modifier =
-                            Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
-                    )
-                }
-                if (showSelectionSheet) {
-                    val selectedIds = selectionState.selected.toList()
-                    SelectedSongsBottomSheet(
-                        count = selectedIds.size,
-                        onDismiss = { showSelectionSheet = false },
-                        onPlayNext = {
-                            selectionViewModel.playNext(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToQueue = {
-                            selectionViewModel.addToQueue(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
-                        onDownload = {
-                            selectionViewModel.download(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToFavorite = {
-                            selectionViewModel.addToFavorite(selectedIds)
-                            selectionState.exit()
-                        },
-                    )
-                }
-                if (showSelectionAddToPlaylist) {
-                    val selectedIds = selectionState.selected.toList()
-                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    AddToPlaylistModalBottomSheet(
-                        isBottomSheetVisible = true,
-                        listLocalPlaylist = localPlaylists,
-                        listYouTubePlaylist = emptyList(),
-                        onDismiss = { showSelectionAddToPlaylist = false },
-                        onClick = { playlist ->
-                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                            selectionState.exit()
-                        },
+                    // Liked Music is emptied by unliking; any other playlist only when it is yours.
+                    val canRemove = data.id.removePrefix("VL") == "LM" || ((data.owned || isYourYouTubePlaylist) && !data.isRadio)
+                    TrackSelectionBar(
+                        selection = selection,
+                        rows = rows,
+                        shown = shownRows,
+                        // A radio pages on without end: what has loaded is all there is to pick.
+                        complete = data.isRadio || (tracksListState == ListState.PAGINATION_EXHAUST && !sortState.resorting),
+                        total = data.trackCount - removed,
+                        loadRest = { viewModel.getFullTracks {} },
+                        from = data.title,
+                        onRemove =
+                            if (canRemove) {
+                                { picked, done ->
+                                    viewModel.removeTracks(picked) {
+                                        sharedViewModel.youTubePlaylistsChanged()
+                                        done()
+                                    }
+                                }
+                            } else {
+                                null
+                            },
                     )
                 }
                 if (itemBottomSheetShow && currentItem != null) {
@@ -639,11 +613,12 @@ fun PlaylistScreen(
                             isYourYouTubePlaylist = isYourYouTubePlaylist,
                             onClose = { playlistBottomSheetShow = false },
                             onDeleted = { navController.navigateUp() },
+                            onSelectTracks = selection::enter,
                         )
                     }
                 }
                 AnimatedVisibility(
-                    visible = shouldHideTopBar && !showSearchBar && !selectionState.isActive,
+                    visible = shouldHideTopBar && !showSearchBar,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically(),
                 ) {
