@@ -1,5 +1,24 @@
 package com.maxrave.simpmusic.ui.screen.player.content
 
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.maxrave.simpmusic.expect.ui.PlatformBackHandler
+import com.maxrave.simpmusic.ui.component.QueueActions
+import com.maxrave.simpmusic.ui.component.QueueList
+import com.maxrave.simpmusic.ui.component.QueueTopBar
+import com.maxrave.simpmusic.ui.component.SongHeader
+import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
+import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
+import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import simpmusic.composeapp.generated.resources.share_lyrics
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -35,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +66,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -107,9 +129,11 @@ private const val FROST_DECODE_PX = 256
 
 /**
  * The Classic full player, the default: a large cover with the current lyric line under it, title
- * and artist with share / like / more, the wavy seek bar, a row of rounded transport buttons, and
- * Queue / sleep timer / Lyrics at the bottom, the audio output top right. Colours come from the cover (the M3
- * Expressive style's artwork scheme) over the cover itself, frosted.
+ * and artist with like, the wavy seek bar, a row of rounded transport buttons, and Queue / sleep
+ * timer / Lyrics at the bottom, the audio output top right. Queue and Lyrics are views of the same
+ * page, like the Apple Music style's: they take the cover's place and the controls stay put.
+ * Colours come from the cover (the M3 Expressive style's artwork scheme) over the cover itself,
+ * frosted.
  */
 @Composable
 fun NowPlayingContentLimusic(
@@ -127,12 +151,44 @@ fun NowPlayingContentLimusic(
     }
 }
 
+/** What the middle of the Classic page shows. The controls under it are the same for all three. */
+private enum class ClassicView { PLAYER, QUEUE, LYRICS }
+
 @Composable
 private fun ClassicLayout(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    val isRepeatOne = state.controllerState.repeatState is RepeatState.One
+    val sharedViewModel = koinInject<SharedViewModel>()
+    var view by rememberSaveable { mutableStateOf(ClassicView.PLAYER) }
+    // Back leaves Queue or Lyrics for the cover before it closes the player.
+    PlatformBackHandler(enabled = view != ClassicView.PLAYER) { view = ClassicView.PLAYER }
+    // The mini player's lyrics button opens the player on its lyrics.
+    val lyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(lyricsRequested) {
+        if (lyricsRequested) {
+            view = ClassicView.LYRICS
+            sharedViewModel.consumeFullscreenLyricsRequest()
+        }
+    }
+    // On Queue and Lyrics the pills tuck away after a few seconds without a touch, to give the list
+    // and the lines room; any touch brings them back and starts the wait again.
+    var pillsShown by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+    var hideJob by remember { mutableStateOf<Job?>(null) }
+    val touched = {
+        pillsShown = true
+        hideJob?.cancel()
+        hideJob =
+            scope.launch {
+                delay(4000)
+                if (view != ClassicView.PLAYER) pillsShown = false
+            }
+    }
+    LaunchedEffect(view) { touched() }
+    // Tapping the square of the view on screen goes back to the cover.
+    val toggle: (ClassicView) -> Unit = { to -> view = if (view == to) ClassicView.PLAYER else to }
+
     val background = MaterialTheme.colorScheme.background
     Box(Modifier.fillMaxSize().background(background)) {
         // Modifier.blur does nothing before Android 12; the cover-coloured gradient stands in there.
@@ -144,57 +200,164 @@ private fun ClassicLayout(
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp),
+                // Every touch event on the page counts, a scroll's moves included. Seen before the
+                // children take it: lyric lines seek on a tap and the list scrolls, so a clickable
+                // would miss them.
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Initial)
+                            touched()
+                        }
+                    }
+                }.statusBarsPadding()
+                .navigationBarsPadding(),
         ) {
-            TopRow(state, actions)
-            Spacer(Modifier.weight(1f))
-            HorizontalPager(
-                state = state.artworkPagerState,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f),
-                pageSpacing = 24.dp,
-                userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
-                key = { index -> "artwork_${state.artworkQueue.getOrNull(index)?.videoId.orEmpty()}_$index" },
-            ) { page ->
-                if (page == state.currentOrderIndex) {
-                    CurrentArtwork(state, actions)
-                } else {
-                    val url = state.artworkQueue.getOrNull(page)?.thumbnails?.maxByOrNull { it.width * it.height }?.url
-                    ArtworkImage(url = url, modifier = Modifier.fillMaxSize())
+            Crossfade(targetState = view, animationSpec = tween(300), modifier = Modifier.weight(1f).fillMaxWidth(), label = "classicView") { shown ->
+                when (shown) {
+                    ClassicView.PLAYER -> PlayerView(state, actions)
+                    ClassicView.QUEUE -> QueueView(state, actions)
+                    ClassicView.LYRICS -> LyricsView(sharedViewModel, state, actions)
                 }
             }
-            // Cover, lyric line and title stay one group at fixed gaps; the leftover height goes
-            // above the cover and above the bottom row instead of opening a hole under the line.
-            Spacer(Modifier.height(12.dp))
-            LyricLine(state)
-            Spacer(Modifier.height(14.dp))
-            TitleRow(state, actions)
-            Spacer(Modifier.height(16.dp))
-            WavySeekBar(
-                progressFraction = state.sliderValue / 100f,
-                isPlaying = state.controllerState.isPlaying,
-                activeColor = if (state.timelineState.isCrossfading) state.sliderTrackColor else MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.secondaryContainer,
-                thumbColor = MaterialTheme.colorScheme.primary,
-                onSliderChange = actions.onSliderChange,
-                onSliderChangeFinished = actions.onSliderChangeFinished,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                Text(state.timelineState.elapsedLabel(state.sliderValue / 100f), style = typo().bodySmall, modifier = Modifier.weight(1f))
-                Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
+            Column(Modifier.padding(horizontal = 24.dp)) {
+                WavySeekBar(
+                    progressFraction = state.sliderValue / 100f,
+                    isPlaying = state.controllerState.isPlaying,
+                    activeColor = if (state.timelineState.isCrossfading) state.sliderTrackColor else MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.secondaryContainer,
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    onSliderChange = actions.onSliderChange,
+                    onSliderChangeFinished = actions.onSliderChangeFinished,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    Text(state.timelineState.elapsedLabel(state.sliderValue / 100f), style = typo().bodySmall, modifier = Modifier.weight(1f))
+                    Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
+                }
+                AnimatedVisibility(
+                    visible = view == ClassicView.PLAYER || pillsShown,
+                    enter = expandVertically(tween(300)) + fadeIn(tween(300)),
+                    exit = shrinkVertically(tween(300)) + fadeOut(tween(200)),
+                ) {
+                    Column {
+                        Spacer(Modifier.height(16.dp))
+                        ClassicTransportRow(state, actions)
+                    }
+                }
+                Spacer(Modifier.height(28.dp))
+                BottomRow(state, actions, view, onQueue = { toggle(ClassicView.QUEUE) }, onLyrics = { toggle(ClassicView.LYRICS) })
+                Spacer(Modifier.height(12.dp))
             }
-            Spacer(Modifier.height(16.dp))
-            ClassicTransportRow(state, actions)
-            Spacer(Modifier.weight(1f))
-            BottomRow(state, actions)
-            Spacer(Modifier.height(12.dp))
         }
     }
+}
+
+/** The cover, the current lyric line and the title. */
+@Composable
+private fun PlayerView(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    val isRepeatOne = state.controllerState.repeatState is RepeatState.One
+    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
+        TopRow(state, actions)
+        Spacer(Modifier.weight(1f))
+        HorizontalPager(
+            state = state.artworkPagerState,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+            pageSpacing = 24.dp,
+            userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
+            key = { index -> "artwork_${state.artworkQueue.getOrNull(index)?.videoId.orEmpty()}_$index" },
+        ) { page ->
+            if (page == state.currentOrderIndex) {
+                CurrentArtwork(state, actions)
+            } else {
+                val url = state.artworkQueue.getOrNull(page)?.thumbnails?.maxByOrNull { it.width * it.height }?.url
+                ArtworkImage(url = url, modifier = Modifier.fillMaxSize())
+            }
+        }
+        // Cover, lyric line and title stay one group at fixed gaps; the leftover height goes
+        // above the cover instead of opening a hole under the line.
+        Spacer(Modifier.height(12.dp))
+        LyricLine(state)
+        Spacer(Modifier.height(14.dp))
+        TitleRow(state, actions)
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+/** The queue; the song playing, with add to playlist, like and its menu, shows over it while its row is out of sight. */
+@Composable
+private fun QueueView(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    Column(Modifier.fillMaxSize()) {
+        // Lined up with the player's own top row, so the chevron stays put across views.
+        QueueTopBar(onClose = actions.onDismiss, modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 8.dp))
+        QueueActions()
+        QueueList(onMore = actions.onQueueItemMore, bottomInset = 0.dp, modifier = Modifier.weight(1f)) {
+            NowPlayingSongHeader(state, actions)
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+/** The lyrics under the song playing; share sits top right once there are lyrics to share. */
+@Composable
+private fun LyricsView(
+    sharedViewModel: SharedViewModel,
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    val lyricsData = state.screenData.lyricsData
+    var sharing by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = actions.onDismiss) {
+                Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
+            }
+            Text(stringResource(Res.string.lyrics), style = typo().titleMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+            if (lyricsData != null) {
+                IconButton(onClick = { sharing = true }) {
+                    Icon(SimpIcons.Share, contentDescription = stringResource(Res.string.share_lyrics), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
+                }
+            }
+        }
+        NowPlayingSongHeader(state, actions)
+        ClassicLyricsBody(sharedViewModel, onOpenLyricsSettings = actions.onOpenLyricsSettings, modifier = Modifier.weight(1f))
+    }
+    if (sharing && lyricsData != null) {
+        ShareLyricsSheet(
+            lines = lyricsData.toShareLyricsLines(),
+            songTitle = state.screenData.nowPlayingTitle,
+            artistName = state.screenData.artistName,
+            artwork = state.screenData.bitmap,
+            seedColor = state.startColor.value,
+            initialLineIndex = state.currentLyricLineIndex,
+            onDismiss = { sharing = false },
+        )
+    }
+}
+
+@Composable
+private fun NowPlayingSongHeader(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+) {
+    SongHeader(
+        thumbnail = state.screenData.thumbnailURL,
+        title = state.screenData.nowPlayingTitle,
+        artist = state.screenData.artistName,
+        liked = state.controllerState.isLiked,
+        onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
+        onMore = actions.onShowMoreSheet,
+        onAddToPlaylist = actions.onShowAddToPlaylist,
+    )
 }
 
 /**
@@ -462,11 +625,17 @@ internal fun ClassicTransportRow(
     }
 }
 
-/** Queue, sleep timer, Lyrics, shuffle, repeat as outlined squares; the song menu on the right. */
+/**
+ * Queue, sleep timer, Lyrics, shuffle, repeat as outlined squares; the song menu on the right. Queue
+ * and Lyrics light up while their view is on screen.
+ */
 @Composable
 private fun BottomRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
+    view: ClassicView,
+    onQueue: () -> Unit,
+    onLyrics: () -> Unit,
 ) {
     val handler = koinInject<MediaPlayerHandler>()
     val sleepTimer by handler.sleepTimerState.collectAsStateWithLifecycle()
@@ -476,9 +645,9 @@ private fun BottomRow(
     val control = state.controllerState
 
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(SimpIcons.QueueMusic, onClick = actions.onShowQueue)
+        OutlinedButton(SimpIcons.QueueMusic, active = view == ClassicView.QUEUE, onClick = onQueue)
         OutlinedButton(SimpIcons.AccessAlarm, active = timerOn) { if (timerOn) confirmingOff = true else picking = true }
-        OutlinedButton(SimpIcons.Lyrics, onClick = actions.onShowFullscreenLyrics)
+        OutlinedButton(SimpIcons.Lyrics, active = view == ClassicView.LYRICS, onClick = onLyrics)
         OutlinedButton(SimpIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
         OutlinedButton(
             if (control.repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,

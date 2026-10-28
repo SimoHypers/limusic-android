@@ -88,6 +88,7 @@ import com.maxrave.simpmusic.ui.component.QueuePosition
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
@@ -391,7 +392,8 @@ fun NowPlayingScreenContent(
     }
     val fullscreenLyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
     LaunchedEffect(fullscreenLyricsRequested) {
-        if (fullscreenLyricsRequested) {
+        // Classic's lyrics are a view of its own page, so Classic takes the request itself.
+        if (fullscreenLyricsRequested && nowPlayingStyle != DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY) {
             showFullscreenLyrics = true
             sharedViewModel.consumeFullscreenLyricsRequest()
         }
@@ -702,6 +704,10 @@ fun NowPlayingScreenContent(
                 mediaPlayerHandler.removeMediaItem(index)
             },
             onQueueItemMore = { index, track -> queueMoreFor = index to track },
+            onOpenLyricsSettings = {
+                onDismiss()
+                navController.navigate(LyricsSourcesDestination)
+            },
         )
 
     // Below `state`/`actions`: the landscape lyrics layout renders the current style's own track row

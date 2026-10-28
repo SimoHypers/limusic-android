@@ -103,11 +103,9 @@ import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
-import com.maxrave.simpmusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.screen.player.content.AppleMusicArtworkBackdrop
 import com.maxrave.simpmusic.ui.screen.player.content.AppleMusicMainTitleRow
-import com.maxrave.simpmusic.ui.screen.player.content.ClassicLyricsPage
 import com.maxrave.simpmusic.ui.screen.player.content.ExpressivePlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.ExpressiveTrackInfoRow
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
@@ -278,19 +276,6 @@ fun FullscreenLyricsContent(
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             }
-        } else if (nowPlayingStyle == DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY && !isDesktop) {
-            ClassicLyricsPage(
-                sharedViewModel = sharedViewModel,
-                state = state,
-                actions = actions,
-                onDismiss = onDismiss,
-                onShare = { showShareLyricsSheet = true },
-                onMore = { showNowPlayingSheet = true },
-                onOpenLyricsSettings = {
-                    actions.onDismiss()
-                    navController.navigate(LyricsSourcesDestination)
-                },
-            )
         } else {
             // Crossfade: RGB rainbow color cycling when transitioning between tracks
             val infiniteTransition = rememberInfiniteTransition(label = "crossfadeRainbow")

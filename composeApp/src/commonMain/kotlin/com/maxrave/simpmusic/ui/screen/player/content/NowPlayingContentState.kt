@@ -156,4 +156,6 @@ class NowPlayingContentActions(
     val onRemoveQueueItem: (index: Int) -> Unit,
     /** Opens the full song sheet for one queue entry; `index` is absolute, as above. */
     val onQueueItemMore: (index: Int, track: Track) -> Unit,
+    /** Closes the player and opens Settings › Lyrics sources. */
+    val onOpenLyricsSettings: () -> Unit = {},
 )
