@@ -70,6 +70,7 @@ import simpmusic.composeapp.generated.resources.can_t_add_to_youtube_playlist
 import simpmusic.composeapp.generated.resources.can_t_delete_from_youtube_playlist
 import simpmusic.composeapp.generated.resources.delete
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
+import simpmusic.composeapp.generated.resources.removed_from_this_playlist
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.playlist_is_empty
@@ -782,6 +783,59 @@ class LocalPlaylistViewModel(
         viewModelScope.launch {
             val tracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id).toArrayListTrack()
             if (tracks.isEmpty()) makeToast(getString(Res.string.playlist_is_empty)) else callback(tracks)
+            onDone()
+        }
+    }
+
+    private val _allTracks = MutableStateFlow<List<Track>?>(null)
+
+    /**
+     * Every track in the order on screen, for track selection, whose Select all and action order
+     * need the whole list while the page itself is paged. Null until [loadAllTracks] has run.
+     */
+    val allTracks: StateFlow<List<Track>?> = _allTracks
+
+    fun loadAllTracks() {
+        val id = uiState.value.id
+        val filter = uiState.value.filterState
+        viewModelScope.launch {
+            // Every order but Title is the stored position, newest first just read backwards.
+            val tracks = localPlaylistRepository.getFullPlaylistTracks(id).toArrayListTrack()
+            _allTracks.value =
+                when (filter) {
+                    FilterState.NewerFirst -> tracks.reversed()
+                    FilterState.Title -> tracks.sortedBy { it.title }
+                    else -> tracks
+                }
+        }
+    }
+
+    /** The selection bar's Remove: [deleteItem] for each, with one toast and one refresh. */
+    fun deleteItems(
+        tracks: List<Track>,
+        onDone: () -> Unit,
+    ) {
+        val id = uiState.value.id
+        viewModelScope.launch {
+            var failed = false
+            tracks.forEach { track ->
+                val song = songRepository.getSongById(track.videoId).lastOrNull() ?: track.toSongEntity()
+                val pair = localPlaylistRepository.getPlaylistPairOfSong(id, track.videoId).lastOrNull()
+                localPlaylistRepository
+                    .removeTrackFromLocalPlaylist(
+                        id,
+                        song,
+                        getString(Res.string.delete_song_from_playlist),
+                        getString(Res.string.removed_from_YouTube_playlist),
+                        getString(Res.string.can_t_delete_from_youtube_playlist),
+                    ).collectLatestResource(
+                        onSuccess = { if (pair != null) onApplyActions(PagingActions.Remove(song to pair)) },
+                        // Gone from the phone; only the synced YouTube copy refused it.
+                        onError = { failed = true },
+                    )
+            }
+            makeToast(getString(if (failed) Res.string.can_t_delete_from_youtube_playlist else Res.string.removed_from_this_playlist))
+            updatePlaylistState(id)
             onDone()
         }
     }

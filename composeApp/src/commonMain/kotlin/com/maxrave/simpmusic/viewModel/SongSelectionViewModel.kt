@@ -220,33 +220,6 @@ class SongSelectionViewModel(
         }
     }
 
-    fun removeFromLocalPlaylist(
-        playlistId: Long,
-        videoIds: List<String>,
-    ) {
-        viewModelScope.launch {
-            val songs = songsOf(videoIds)
-            if (songs.isEmpty()) {
-                makeToast(getString(Res.string.error_occurred))
-                return@launch
-            }
-            songs.forEach { song ->
-                localPlaylistRepository
-                    .removeTrackFromLocalPlaylist(
-                        id = playlistId,
-                        song = song,
-                        successMessage = getString(Res.string.delete_song_from_playlist),
-                        updatedYtMessage = getString(Res.string.removed_from_YouTube_playlist),
-                        errorMessage = getString(Res.string.error_occurred),
-                    ).collectResource(
-                        onSuccess = { },
-                        onError = { },
-                    )
-            }
-            makeToast(getString(Res.string.delete_song_from_playlist))
-        }
-    }
-
     /**
      * The database returns rows in its own order, so the result is re-sorted back into the order
      * the user picked them in — which is what makes "play next" land in the expected sequence.

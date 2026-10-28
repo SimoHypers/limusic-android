@@ -100,17 +100,20 @@ import simpmusic.composeapp.generated.resources.selection_pending
 // and a pick is a row of that list rather than a song, so the two copies of a song in a playlist
 // are picked apart, and a pick outlives a sort or a search that hides it.
 
-/** Each row with its key: its playlist entry when it has one, else its videoId and which copy it is. */
+/** A row's key: its playlist entry when it has one, else its videoId and which copy of it this is. */
+fun rowKey(
+    videoId: String,
+    setVideoId: String? = null,
+    copy: Int = 1,
+) = setVideoId ?: "$videoId#$copy"
+
+/** Each row with its [rowKey]. */
 fun keyedRows(tracks: List<Track>): List<Pair<String, Track>> {
     val copies = HashMap<String, Int>()
     return tracks.map { track ->
-        val key =
-            track.setVideoId ?: run {
-                val n = (copies[track.videoId] ?: 0) + 1
-                copies[track.videoId] = n
-                "${track.videoId}#$n"
-            }
-        key to track
+        val copy = (copies[track.videoId] ?: 0) + 1
+        copies[track.videoId] = copy
+        rowKey(track.videoId, track.setVideoId, copy) to track
     }
 }
 
@@ -208,6 +211,8 @@ fun TrackSelectionBar(
     from: String,
     onRemove: ((tracks: List<Track>, onDone: () -> Unit) -> Unit)?,
     modifier: Modifier = Modifier,
+    // A phone playlist is not offered as a place to add its own songs.
+    exceptLocalId: Long? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
@@ -394,7 +399,7 @@ fun TrackSelectionBar(
             }
         }
     }
-    saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }) }
+    saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }, exceptLocalId = exceptLocalId) }
 }
 
 /** The bar's text buttons: smaller than Material's, in the app's own type, on an optional pill. */

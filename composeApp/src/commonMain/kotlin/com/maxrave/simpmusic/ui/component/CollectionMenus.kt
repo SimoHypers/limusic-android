@@ -201,6 +201,7 @@ fun LocalPlaylistMenu(
     onRemoveShortcut: (() -> Unit)? = null,
     // The playlist is on YouTube now and gone from here; by default that is a delete.
     onMoved: (youTubeId: String) -> Unit = { onDeleted() },
+    onSelectTracks: (() -> Unit)? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
     val coroutineScope = rememberCoroutineScope()
@@ -231,6 +232,7 @@ fun LocalPlaylistMenu(
             onRemoveShortcut = onRemoveShortcut,
             onPlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick) },
             onShufflePlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick) },
+            onSelectTracks = onSelectTracks,
         )
     }
     if (editing) {

@@ -107,7 +107,6 @@ import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CollectionDownloadButton
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -123,13 +122,12 @@ import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.pillSurface
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionAction
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
+import com.maxrave.simpmusic.ui.component.selection.rowKey
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
-import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -140,7 +138,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -159,7 +156,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.reload
-import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
@@ -178,6 +174,7 @@ fun LocalPlaylistScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     viewModel: LocalPlaylistViewModel = koinViewModel(),
     navController: NavController,
+    innerPadding: PaddingValues = PaddingValues(),
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -217,10 +214,8 @@ fun LocalPlaylistScreen(
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberTrackSelection()
+    val allTracks by viewModel.allTracks.collectAsStateWithLifecycle()
     var shouldShowSuggestButton by rememberSaveable { mutableStateOf(false) }
 
     val playingTrack by sharedViewModel.nowPlayingState
@@ -261,6 +256,12 @@ fun LocalPlaylistScreen(
     var changingOrder by remember {
         mutableStateOf(false)
     }
+    // The page is paged, so the bar reads the whole list, reloaded whenever it may have changed.
+    LaunchedEffect(selection.active, uiState.trackCount, uiState.filterState, changingOrder) {
+        if (selection.active) viewModel.loadAllTracks()
+    }
+    // Dragging rows and picking them would fight over the same touches.
+    LaunchedEffect(changingOrder) { if (changingOrder) selection.exit() }
 
     val trackPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>> = viewModel.tracksPagingState.collectAsLazyPagingItems()
     LaunchedEffect(Unit) {
@@ -634,11 +635,11 @@ fun LocalPlaylistScreen(
                                 arrayListOf(item.toTrack()),
                             )
                         },
-                        selectionMode = selectionState.isActive,
-                        isSelected = selectionState.isSelected(item.videoId),
+                        selectionMode = selection.active,
+                        isSelected = selection.has(rowKey(item.videoId)),
                         // No long press while reordering: that gesture already belongs to drag.
-                        onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
-                        onSelectToggle = { selectionState.toggle(it) },
+                        onLongClick = if (changingOrder) null else ({ selection.start(rowKey(item.videoId), item.toTrack()) }),
+                        onSelectToggle = { selection.toggle(rowKey(item.videoId), item.toTrack()) },
                         modifier = mod,
                         padding = PaddingValues(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                     )
@@ -673,77 +674,6 @@ fun LocalPlaylistScreen(
             EndOfPage()
         }
     }
-    AnimatedVisibility(
-        visible = selectionState.isActive,
-        enter = fadeIn() + slideInVertically(),
-        exit = fadeOut() + slideOutVertically(),
-    ) {
-        SongSelectionTopAppBar(
-            state = selectionState,
-            onSelectAll = {
-                // peek() rather than get(): reading an item is what asks Paging to load its page,
-                // and select-all must not drag the whole playlist into memory.
-                selectionState.toggleSelectAll(
-                    (0 until trackPagingItems.itemCount).mapNotNull {
-                        trackPagingItems.peek(it)?.first?.videoId
-                    },
-                )
-            },
-            onOpenActions = { showSelectionSheet = true },
-            modifier =
-                Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
-        )
-    }
-    if (showSelectionSheet) {
-        val selectedIds = selectionState.selected.toList()
-        val removeLabel = stringResource(Res.string.remove_from_playlist)
-        SelectedSongsBottomSheet(
-            count = selectedIds.size,
-            onDismiss = { showSelectionSheet = false },
-            onPlayNext = {
-                selectionViewModel.playNext(selectedIds)
-                selectionState.exit()
-            },
-            onAddToQueue = {
-                selectionViewModel.addToQueue(selectedIds)
-                selectionState.exit()
-            },
-            onAddToPlaylist = { showSelectionAddToPlaylist = true },
-            onDownload = {
-                selectionViewModel.download(selectedIds)
-                selectionState.exit()
-            },
-            onAddToFavorite = {
-                selectionViewModel.addToFavorite(selectedIds)
-                selectionState.exit()
-            },
-            extraActions =
-                listOf(
-                    SongSelectionAction(
-                        icon = SimpIcons.Delete,
-                        label = removeLabel,
-                        tint = Color.Red,
-                    ) {
-                        selectionViewModel.removeFromLocalPlaylist(uiState.id, selectedIds)
-                        selectionState.exit()
-                    },
-                ),
-        )
-    }
-    if (showSelectionAddToPlaylist) {
-        val selectedIds = selectionState.selected.toList()
-        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-        AddToPlaylistModalBottomSheet(
-            isBottomSheetVisible = true,
-            listLocalPlaylist = localPlaylists,
-            listYouTubePlaylist = emptyList(),
-            onDismiss = { showSelectionAddToPlaylist = false },
-            onClick = { playlist ->
-                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                selectionState.exit()
-            },
-        )
-    }
     if (itemBottomSheetShow && currentItem != null) {
         val track = currentItem ?: return
         NowPlayingBottomSheet(
@@ -768,6 +698,7 @@ fun LocalPlaylistScreen(
                     navController.navigateUp()
                     navController.navigate(PlaylistDestination("VL$youTubeId", isYourYouTubePlaylist = true))
                 },
+                onSelectTracks = selection::enter,
             )
         }
     }
@@ -863,10 +794,10 @@ fun LocalPlaylistScreen(
                         onMoreClickListener = { onItemMoreClick(it) },
                         onClickListener = { onPlaylistItemClick(it) },
                         onAddToQueue = { sharedViewModel.addListToQueue(arrayListOf(song.toTrack())) },
-                        selectionMode = selectionState.isActive,
-                        isSelected = selectionState.isSelected(song.videoId),
-                        onLongClick = { selectionState.start(it) },
-                        onSelectToggle = { selectionState.toggle(it) },
+                        selectionMode = selection.active,
+                        isSelected = selection.has(rowKey(song.videoId)),
+                        onLongClick = { selection.start(rowKey(song.videoId), song.toTrack()) },
+                        onSelectToggle = { selection.toggle(rowKey(song.videoId), song.toTrack()) },
                         // Required, no default — the paged list passes it down through `mod`.
                         modifier = Modifier,
                         padding = PaddingValues(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
@@ -874,6 +805,25 @@ fun LocalPlaylistScreen(
                 }
             }
         }
+    }
+    // After the search, so it floats over the results too.
+    Box(
+        Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        val rows = remember(allTracks) { keyedRows(allTracks.orEmpty()) }
+        val searchRows = remember(searchResults) { keyedRows(searchResults.map { it.first.toTrack() }) }
+        TrackSelectionBar(
+            selection = selection,
+            rows = rows,
+            shown = if (showSearchBar) searchRows else rows,
+            complete = allTracks != null,
+            total = uiState.trackCount,
+            loadRest = viewModel::loadAllTracks,
+            from = uiState.title,
+            onRemove = { picked, done -> viewModel.deleteItems(picked, done) },
+            exceptLocalId = uiState.id,
+        )
     }
     if (sortBottomSheetShow) {
         SortPlaylistBottomSheet(
@@ -886,7 +836,7 @@ fun LocalPlaylistScreen(
         )
     }
     AnimatedVisibility(
-        visible = shouldHideTopBar && !selectionState.isActive,
+        visible = shouldHideTopBar,
         enter = fadeIn() + slideInVertically(),
         exit = fadeOut() + slideOutVertically(),
     ) {

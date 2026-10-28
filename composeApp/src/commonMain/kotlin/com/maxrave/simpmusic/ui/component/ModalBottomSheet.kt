@@ -2542,6 +2542,7 @@ fun LocalPlaylistBottomSheet(
     onRemoveShortcut: (() -> Unit)? = null,
     onPlay: () -> Unit,
     onShufflePlay: () -> Unit,
+    onSelectTracks: (() -> Unit)? = null,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2579,6 +2580,9 @@ fun LocalPlaylistBottomSheet(
                     ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
                     ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
                     ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    if (onSelectTracks != null) {
+                        ActionButton(icon = SimpIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
+                    }
                     if (onRemoveShortcut != null) {
                         ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
                     }

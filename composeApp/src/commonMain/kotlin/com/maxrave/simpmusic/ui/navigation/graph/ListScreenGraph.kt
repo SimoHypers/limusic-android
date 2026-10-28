@@ -54,6 +54,7 @@ fun NavGraphBuilder.listScreenGraph(
             LocalPlaylistScreen(
                 id = data.id,
                 navController = navController,
+                innerPadding = innerPadding,
             )
         }
     }
