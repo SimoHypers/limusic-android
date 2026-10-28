@@ -133,8 +133,14 @@ private fun ClassicLayout(
     actions: NowPlayingContentActions,
 ) {
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        FrostedCover(state)
+    val background = MaterialTheme.colorScheme.background
+    Box(Modifier.fillMaxSize().background(background)) {
+        // Modifier.blur does nothing before Android 12; the cover-coloured gradient stands in there.
+        if (isLyricsBlurSupported()) {
+            FrostedCover(state.screenData.thumbnailURL, wash = background)
+        } else {
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to state.startColor.value.copy(alpha = 0.55f), 0.75f to background)))
+        }
         Column(
             Modifier
                 .fillMaxSize()
@@ -191,16 +197,18 @@ private fun ClassicLayout(
     }
 }
 
-/** The playing cover blurred over the whole page, under a wash of the theme background so text stays readable. */
+/**
+ * [thumbnail] blurred to fill its box, under a wash of [wash] so text over it stays readable. The
+ * blur needs Android 12 ([isLyricsBlurSupported]); callers check before drawing this.
+ */
 @Composable
-private fun FrostedCover(state: NowPlayingContentState) {
-    val background = MaterialTheme.colorScheme.background
-    // Modifier.blur does nothing before Android 12; the cover-coloured gradient stands in there.
-    if (!isLyricsBlurSupported()) {
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to state.startColor.value.copy(alpha = 0.55f), 0.75f to background)))
-        return
-    }
-    Crossfade(targetState = state.screenData.thumbnailURL, animationSpec = tween(600), label = "classicFrostedCover") { thumbnail ->
+internal fun FrostedCover(
+    thumbnail: String?,
+    wash: Color,
+    washFrom: Float = 0.5f,
+    washTo: Float = 0.75f,
+) {
+    Crossfade(targetState = thumbnail, animationSpec = tween(600), label = "frostedCover") { thumbnail ->
         var url by remember(thumbnail) { mutableStateOf(thumbnail) }
         AsyncImage(
             model =
@@ -220,8 +228,8 @@ private fun FrostedCover(state: NowPlayingContentState) {
             modifier = Modifier.fillMaxSize().blur(FROST_BLUR, BlurredEdgeTreatment.Rectangle),
         )
     }
-    // ponytail: wash strengths picked by eye on a dark theme; tune here if covers show through too much.
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to background.copy(alpha = 0.5f), 1f to background.copy(alpha = 0.75f))))
+    // The wash's alpha top to bottom; picked by eye on the phone.
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to wash.copy(alpha = washFrom), 1f to wash.copy(alpha = washTo))))
 }
 
 @Composable

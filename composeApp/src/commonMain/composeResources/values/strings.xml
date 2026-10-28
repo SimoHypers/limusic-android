@@ -355,7 +355,6 @@
     <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
     <string name="endless_queue">Autoplay</string>
-    <string name="playing_from">Playing from</string>
     <string name="songs_left">%1$d songs left</string>
     <string name="songs_left_one">1 song left</string>
     <string name="duration_hours_short">%1$d hr</string>
