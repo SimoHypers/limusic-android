@@ -326,12 +326,8 @@
     <string name="import_result">%1$d liste oluşturuldu ve %2$d şarkı aktarıldı.</string>
     <string name="import_result_skipped">%1$d şarkının dosyası olmaması nedeniyle atlandı.</string>
     <string name="import_failed">Aktarma tamamlanmadı</string>
-    <string name="select_all">Tümünü seç</string>
     <string name="n_selected">%1$d seçildi</string>
-    <string name="n_songs_selected">%1$d şarkı seçildi</string>
-    <string name="max_selection_reached">Tek seferde %1$d şarkı seçebilirsiniz</string>
     <string name="exit_selection">Seçim iptal</string>
-    <string name="remove_from_playlist">Çalma listesinden sil</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Sözü paylaş</string>
     <string name="share_lyrics_select_title">Sıra seç</string>

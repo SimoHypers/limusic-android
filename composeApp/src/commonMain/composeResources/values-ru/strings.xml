@@ -384,12 +384,8 @@
     <string name="import_result">Создано %1$d плейлистов и импортировано %2$d песен.</string>
     <string name="import_result_skipped">%1$d записей было пропущено, потому что такой песни нет в файле.</string>
     <string name="import_failed">Сбой импорта</string>
-    <string name="select_all">Выделить все</string>
     <string name="n_selected">%1$d выбрано</string>
-    <string name="n_songs_selected">Выбрано %1$d песен</string>
-    <string name="max_selection_reached">Вы можете выбрать до %1$d песен за раз</string>
     <string name="exit_selection">Выйти из выделения</string>
-    <string name="remove_from_playlist">Удалить из плейлиста</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Поделиться текстом</string>
     <string name="share_lyrics_select_title">Выбор строк</string>

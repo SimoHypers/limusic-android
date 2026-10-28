@@ -341,21 +341,12 @@ fun AlbumScreen(
                             Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
                     )
                 }
-                Box(
-                    Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    TrackSelectionBar(
-                        selection = selection,
-                        rows = rows,
-                        shown = rows,
-                        complete = true,
-                        total = rows.size,
-                        loadRest = {},
-                        from = uiState.title,
-                        onRemove = null,
-                    )
-                }
+                TrackSelectionBar(
+                    selection = selection,
+                    bottomPadding = innerPadding.calculateBottomPadding(),
+                    rows = rows,
+                    from = uiState.title,
+                )
                 if (showBottomSheet) {
                     NowPlayingBottomSheet(
                         onDismiss = {

@@ -379,12 +379,8 @@
     <string name="import_result">%1$d Playlisten erstellt und %2$d Songs importiert.</string>
     <string name="import_result_skipped">%1$d Einträge wurden übersprungen, da der entsprechende Titel in der Datei fehlte.</string>
     <string name="import_failed">Import fehlgeschlagen</string>
-    <string name="select_all">Alles auswählen</string>
     <string name="n_selected">%1$d ausgewählt</string>
-    <string name="n_songs_selected">%1$d Songs ausgewählt</string>
-    <string name="max_selection_reached">Du kannst bis zu %1$d Songs gleichzeitig auswählen</string>
     <string name="exit_selection">Auswahl beenden</string>
-    <string name="remove_from_playlist">Von der Playlist entfernen</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Songtext teilen</string>
     <string name="share_lyrics_select_title">Zeilen auswählen</string>

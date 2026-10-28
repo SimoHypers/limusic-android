@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -55,6 +56,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.maxrave.domain.data.model.browse.album.Track
@@ -194,23 +196,25 @@ fun rememberTrackSelection(): TrackSelection = remember { TrackSelection() }
 
 /**
  * Floats above the mini player while [selection] is active, like desktop's bar: what is picked,
- * Select all, Clear and leave on top, the actions under it.
+ * Select all, Clear and leave on top, the actions under it. Fills the screen it is put on to sit
+ * at its bottom, [bottomPadding] up (the tabs and mini player, when the screen is drawn under them).
  *
  * [rows] is the whole list in its order on screen and [shown] what the search leaves of it.
  * [complete] says every page is in; until then [total] is the list's own length and [loadRest]
- * fetches the rest. [onRemove] only where the list is yours to edit.
+ * fetches the rest. [from] names the album or playlist for the queue. [onRemove] only where the
+ * list is yours to edit.
  */
 @Composable
 fun TrackSelectionBar(
     selection: TrackSelection,
     rows: List<Pair<String, Track>>,
-    shown: List<Pair<String, Track>>,
-    complete: Boolean,
-    total: Int,
-    loadRest: () -> Unit,
-    from: String,
-    onRemove: ((tracks: List<Track>, onDone: () -> Unit) -> Unit)?,
-    modifier: Modifier = Modifier,
+    bottomPadding: Dp,
+    shown: List<Pair<String, Track>> = rows,
+    complete: Boolean = true,
+    total: Int = rows.size,
+    loadRest: () -> Unit = {},
+    from: String? = null,
+    onRemove: ((tracks: List<Track>, onDone: () -> Unit) -> Unit)? = null,
     // A phone playlist is not offered as a place to add its own songs.
     exceptLocalId: Long? = null,
 ) {
@@ -237,9 +241,10 @@ fun TrackSelectionBar(
     // A different set of rows drops a half-made confirmation.
     LaunchedEffect(selection.count) { confirmRemove = false }
 
+    // No pointer input of its own, so touches outside the bar reach the screen under it.
+    Box(Modifier.fillMaxSize().padding(bottom = bottomPadding + 8.dp), contentAlignment = Alignment.BottomCenter) {
     AnimatedVisibility(
         visible = selection.active,
-        modifier = modifier,
         enter = fadeIn(tween(180)) + slideInVertically(spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { it / 2 },
         exit = fadeOut(tween(150)) + slideOutVertically(tween(180)) { it / 2 },
     ) {
@@ -398,6 +403,7 @@ fun TrackSelectionBar(
                 }
             }
         }
+    }
     }
     saveTracks?.let { SaveTracksSheet(it, onDismiss = { saveTracks = null }, exceptLocalId = exceptLocalId) }
 }

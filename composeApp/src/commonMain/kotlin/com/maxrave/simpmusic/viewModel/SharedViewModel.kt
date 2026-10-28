@@ -1160,7 +1160,7 @@ class SharedViewModel(
      */
     fun playOnRepeat(
         tracks: List<Track>,
-        from: String,
+        from: String?,
     ) {
         val first = tracks.firstOrNull() ?: return
         viewModelScope.launch {

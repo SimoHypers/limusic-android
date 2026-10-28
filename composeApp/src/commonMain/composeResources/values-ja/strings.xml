@@ -381,12 +381,8 @@
     <string name="import_result">%1$d個のプレイリストを作成し、%2$d曲をインポートしました。</string>
     <string name="import_result_skipped">曲がファイルに存在しなかったため、%1$d件の項目をスキップしました。</string>
     <string name="import_failed">インポートに失敗しました</string>
-    <string name="select_all">すべて選択</string>
     <string name="n_selected">%1$d件選択済み</string>
-    <string name="n_songs_selected">%1$d 曲選択されました</string>
-    <string name="max_selection_reached">一度に %1$d 曲まで選択できます</string>
     <string name="exit_selection">選択解除</string>
-    <string name="remove_from_playlist">プレイリストから削除</string>
     <!-- Listen Together -->
     <string name="share_lyrics">歌詞を共有</string>
     <string name="share_lyrics_select_title">行を選択</string>

@@ -113,7 +113,7 @@ import kotlin.math.roundToInt
  *
  * Multi-selection is opt-in per screen: pass [onLongClick] to let a long press start it, then
  * drive [selectionMode] and [isSelected] from the screen's
- * [com.maxrave.simpmusic.ui.component.selection.SongSelectionState].
+ * [com.maxrave.simpmusic.ui.component.selection.TrackSelection].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

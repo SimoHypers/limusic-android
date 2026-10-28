@@ -383,12 +383,8 @@
     <string name="import_result">Створено %1$d плейлистів і імпортовано %2$d пісні.</string>
     <string name="import_result_skipped">%1$d записів було пропущено, оскільки відповідні пісні були відсутні у файлі.</string>
     <string name="import_failed">Помилка імпорту</string>
-    <string name="select_all">Вибрати все</string>
     <string name="n_selected">%1$d обрано</string>
-    <string name="n_songs_selected">обрано %1$d пісень</string>
-    <string name="max_selection_reached">Одночасно можна вибрати до %1$d композицій</string>
     <string name="exit_selection">Вийти з вибору</string>
-    <string name="remove_from_playlist">Видалити з плейлісту</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Поділитися текстом пісні</string>
     <string name="share_lyrics_select_title">Оберіть рядки</string>

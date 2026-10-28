@@ -49,6 +49,7 @@ import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.withoutYouTubeTwins
@@ -61,7 +62,6 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.viewModel.trackIds
 import simpmusic.composeapp.generated.resources.download_progress_short
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.GridLibraryPlaylist
@@ -73,9 +73,9 @@ import com.maxrave.simpmusic.ui.component.NewPlaylistSheet
 import com.maxrave.simpmusic.ui.component.PlaylistShelf
 import com.maxrave.simpmusic.ui.component.RecentlyAddedList
 import com.maxrave.simpmusic.ui.component.RippleIconButton
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.GridView
@@ -93,7 +93,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -143,10 +142,7 @@ fun LibraryScreen(
     val unsyncedCount by viewModel.unsyncedCount.collectAsStateWithLifecycle()
     val syncing by viewModel.syncing.collectAsStateWithLifecycle()
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberTrackSelection()
     val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
     val hazeState =
         rememberHazeState()
@@ -301,7 +297,7 @@ fun LibraryScreen(
                                 playingVideoId = nowPlaying,
                                 isLoading = recentlyAdded is LocalResource.Loading,
                                 navController = navController,
-                                selectionState = selectionState,
+                                selection = selection,
                             )
                         }
                         item {
@@ -476,27 +472,6 @@ fun LibraryScreen(
             }
             ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
         }
-        AnimatedVisibility(visible = selectionState.isActive) {
-            SongSelectionTopAppBar(
-                state = selectionState,
-                // Stacked BELOW the Library TopAppBar in the same Column, which already consumed
-                // the status-bar inset — leaving the default here reserved it twice and opened a
-                // status-bar-sized band of dead blur between the two bars. Same fix as Search;
-                // the overlay-style call sites (Album, Artist, Recently…) keep the default because
-                // they COVER their normal bar instead of standing under it.
-                windowInsets = WindowInsets(0),
-                onSelectAll = {
-                    selectionState.toggleSelectAll(
-                        (recentlyAdded.data ?: emptyList())
-                            .filterIsInstance<SongEntity>()
-                            .map { it.videoId },
-                    )
-                },
-                onOpenActions = { showSelectionSheet = true },
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-            )
-        }
         Row(
             modifier =
                 Modifier
@@ -517,45 +492,12 @@ fun LibraryScreen(
                 }
             }
         }
-        if (showSelectionSheet) {
-            val selectedIds = selectionState.selected.toList()
-            SelectedSongsBottomSheet(
-                count = selectedIds.size,
-                onDismiss = { showSelectionSheet = false },
-                onPlayNext = {
-                    selectionViewModel.playNext(selectedIds)
-                    selectionState.exit()
-                },
-                onAddToQueue = {
-                    selectionViewModel.addToQueue(selectedIds)
-                    selectionState.exit()
-                },
-                onAddToPlaylist = { showSelectionAddToPlaylist = true },
-                onDownload = {
-                    selectionViewModel.download(selectedIds)
-                    selectionState.exit()
-                },
-                onAddToFavorite = {
-                    selectionViewModel.addToFavorite(selectedIds)
-                    selectionState.exit()
-                },
-            )
-        }
-        if (showSelectionAddToPlaylist) {
-            val selectedIds = selectionState.selected.toList()
-            val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-            AddToPlaylistModalBottomSheet(
-                isBottomSheetVisible = true,
-                listLocalPlaylist = localPlaylists,
-                listYouTubePlaylist = emptyList(),
-                onDismiss = { showSelectionAddToPlaylist = false },
-                onClick = { playlist ->
-                    selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                    selectionState.exit()
-                },
-            )
-        }
     }
+    // Only All's Recently added list picks songs: another tab has nothing to pick, so it leaves.
+    LaunchedEffect(currentFilter) { selection.exit() }
+    val recentSongs = recentlyAdded.data
+    val rows = remember(recentSongs) { keyedRows(recentSongs.orEmpty().filterIsInstance<SongEntity>().map { it.toTrack() }) }
+    TrackSelectionBar(selection = selection, rows = rows, bottomPadding = innerPadding.calculateBottomPadding())
 }
 
 /**

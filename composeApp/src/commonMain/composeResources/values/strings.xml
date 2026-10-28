@@ -591,12 +591,8 @@
     <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid import file.</string>
-    <string name="select_all">Select all</string>
     <string name="n_selected">%1$d selected</string>
-    <string name="n_songs_selected">%1$d songs selected</string>
-    <string name="max_selection_reached">You can select up to %1$d songs at a time</string>
     <string name="exit_selection">Exit selection</string>
-    <string name="remove_from_playlist">Remove from playlist</string>
     <string name="select_tracks">Select tracks</string>
     <string name="selection_hint">Tap tracks to select them</string>
     <string name="select_all_count">Select all (%1$d)</string>

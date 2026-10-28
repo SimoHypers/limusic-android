@@ -324,8 +324,6 @@
     <string name="import_result">%1$d개의 재생 목록을 만들고 %2$d곡을 가져왔습니다.</string>
     <string name="import_result_skipped">파일에 노래가 없어 %1$d개의 항목을 건너뛰었습니다.</string>
     <string name="import_failed">가져오기</string>
-    <string name="select_all">전체선택</string>
     <string name="n_selected">선택됨</string>
-    <string name="n_songs_selected">곡 선택됨</string>
     <!-- Listen Together -->
 </resources>

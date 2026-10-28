@@ -381,12 +381,8 @@
     <string name="import_result">Đã tạo %1$d danh sách phát và nhập %2$d bài hát.</string>
     <string name="import_result_skipped">%1$d mục đã bị bỏ qua do thiếu bài hát tương ứng trong tệp.</string>
     <string name="import_failed">Nhập dữ liệu thất bại</string>
-    <string name="select_all">Chọn tất cả</string>
     <string name="n_selected">Đã chọn %1$d</string>
-    <string name="n_songs_selected">Đã chọn %1$d bài hát</string>
-    <string name="max_selection_reached">Bạn chỉ có thể chọn tối đa %1$d bài hát mỗi lần</string>
     <string name="exit_selection">Thoát chế độ chọn</string>
-    <string name="remove_from_playlist">Xoá khỏi danh sách phát</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Chia sẻ lời bài hát</string>
     <string name="share_lyrics_select_title">Chọn dòng</string>

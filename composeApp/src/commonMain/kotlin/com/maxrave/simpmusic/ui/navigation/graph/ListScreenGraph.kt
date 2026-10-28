@@ -45,6 +45,7 @@ fun NavGraphBuilder.listScreenGraph(
             ArtistScreen(
                 channelId = data.channelId,
                 navController = navController,
+                innerPadding = innerPadding,
             )
         }
     }

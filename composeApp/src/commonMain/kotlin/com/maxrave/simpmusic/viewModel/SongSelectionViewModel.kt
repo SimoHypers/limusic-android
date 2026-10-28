@@ -37,12 +37,9 @@ import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.youtube_write_failed
 
 /**
- * Runs the bulk actions offered by
- * [com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet].
- *
- * Shared by every screen that offers multi-selection: the actions only ever need videoIds, so
- * they do not depend on which screen the selection was made on. The one exception is removing
- * from a local playlist, which takes the playlist id from the screen.
+ * The bulk actions that need the database or YouTube: Download and Like on
+ * [com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar], and the Save to playlist
+ * picker it shares with the playlist and album menus.
  */
 class SongSelectionViewModel(
     private val songRepository: SongRepository,
@@ -56,59 +53,11 @@ class SongSelectionViewModel(
             .getAllLocalPlaylists()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun playNext(videoIds: List<String>) {
-        viewModelScope.launch {
-            val songs = songsOf(videoIds)
-            if (songs.isEmpty()) {
-                makeToast(getString(Res.string.error_occurred))
-                return@launch
-            }
-            mediaPlayerHandler.playNext(songs.map { it.toTrack() })
-            makeToast(getString(Res.string.play_next))
-        }
-    }
-
-    fun addToQueue(videoIds: List<String>) {
-        viewModelScope.launch {
-            val songs = songsOf(videoIds)
-            if (songs.isEmpty()) {
-                makeToast(getString(Res.string.error_occurred))
-                return@launch
-            }
-            mediaPlayerHandler.addToQueue(songs.map { it.toTrack() })
-            makeToast(getString(Res.string.added_to_queue))
-        }
-    }
-
     /**
-     * Only starts songs that are not already downloaded or in flight — unlike the single-song
-     * menu, this is not a toggle: a selection of 25 will usually mix downloaded and not, and
-     * toggling would silently delete the ones already on disk.
+     * Only starts songs that are not downloaded or in flight. Not a toggle like the song menu's: a
+     * selection usually mixes both, and toggling would delete the ones already on disk. Rows a page
+     * has not stored yet are saved first.
      */
-    fun download(videoIds: List<String>) {
-        viewModelScope.launch {
-            val pending =
-                songsOf(videoIds).filter {
-                    it.downloadState == DownloadState.STATE_NOT_DOWNLOADED
-                }
-            if (pending.isEmpty()) return@launch
-            downloadUtils.downloadTracks(pending)
-            makeToast(getString(Res.string.downloading))
-        }
-    }
-
-    fun addToFavorite(videoIds: List<String>) {
-        viewModelScope.launch {
-            // One at a time: signed in each is a write to the YouTube account.
-            val failed =
-                songsOf(videoIds)
-                    .filterNot { it.liked }
-                    .count { !songRepository.updateLikeStatus(it.videoId, 1) }
-            if (failed > 0) makeToast(getString(Res.string.youtube_write_failed))
-        }
-    }
-
-    /** [download] for rows a page may not have stored yet: they are saved first. */
     fun downloadTracks(tracks: List<Track>) {
         viewModelScope.launch {
             val pending = stored(tracks).filter { it.downloadState == DownloadState.STATE_NOT_DOWNLOADED }
@@ -118,7 +67,7 @@ class SongSelectionViewModel(
         }
     }
 
-    /** [addToFavorite] for rows a page may not have stored yet. Toasts once YouTube has them all. */
+    /** One like at a time, as each is a write to the account when signed in. Toasts once all are in. */
     fun likeTracks(tracks: List<Track>) {
         viewModelScope.launch {
             val songs = stored(tracks)
@@ -137,13 +86,6 @@ class SongSelectionViewModel(
         // Ignored where the row exists, so nothing already saved is overwritten.
         tracks.forEach { songRepository.insertSong(it.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME)).firstOrNull() }
         return songsOf(tracks.map { it.videoId })
-    }
-
-    fun addToPlaylist(
-        playlistId: Long,
-        videoIds: List<String>,
-    ) {
-        viewModelScope.launch { addSongsToPlaylist(playlistId, songsOf(videoIds)) }
     }
 
     /** Save to playlist from a playlist or album menu: the tracks need not be in the database yet. */
@@ -176,7 +118,7 @@ class SongSelectionViewModel(
                     onError = { },
                 )
         }
-        // One toast for the batch: 25 songs would otherwise stack 25 toasts.
+        // One toast for the batch, not one per song.
         makeToast(
             if (added > 0) getString(Res.string.added_to_playlist) else getString(Res.string.error),
         )
@@ -220,10 +162,7 @@ class SongSelectionViewModel(
         }
     }
 
-    /**
-     * The database returns rows in its own order, so the result is re-sorted back into the order
-     * the user picked them in — which is what makes "play next" land in the expected sequence.
-     */
+    /** The database returns rows in its own order, so they are put back in the list's. */
     private suspend fun songsOf(videoIds: List<String>): List<SongEntity> {
         val order = videoIds.withIndex().associate { (i, id) -> id to i }
         // Chunked under SQLite's 999-variable limit on older Androids: Select all has no cap.

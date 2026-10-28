@@ -29,7 +29,8 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelection
+import com.maxrave.simpmusic.ui.component.selection.rowKey
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -54,7 +55,7 @@ fun RecentlyAddedList(
     sharedViewModel: SharedViewModel = koinInject(),
     // Null means these rows do not take part in multi-selection; the selection bar lives on the
     // hosting screen, so only a screen that shows one passes a state down.
-    selectionState: SongSelectionState? = null,
+    selection: TrackSelection? = null,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var songEntity by remember { mutableStateOf<SongEntity?>(null) }
@@ -109,12 +110,10 @@ fun RecentlyAddedList(
                                                 index = 0,
                                             )
                                         },
-                                        selectionMode = selectionState?.isActive == true,
-                                        isSelected = selectionState?.isSelected(item.videoId) == true,
-                                        onLongClick =
-                                            selectionState?.let { sel -> { id: String -> sel.start(id) } },
-                                        onSelectToggle =
-                                            selectionState?.let { sel -> { id: String -> sel.toggle(id) } },
+                                        selectionMode = selection?.active == true,
+                                        isSelected = selection?.has(rowKey(item.videoId)) == true,
+                                        onLongClick = selection?.let { sel -> { _: String -> sel.start(rowKey(item.videoId), item.toTrack()) } },
+                                        onSelectToggle = selection?.let { sel -> { _: String -> sel.toggle(rowKey(item.videoId), item.toTrack()) } },
                                         onAddToQueue = { videoId ->
                                             sharedViewModel.addListToQueue(
                                                 arrayListOf(item.toTrack()),

@@ -554,34 +554,30 @@ fun PlaylistScreen(
                     }
                 }
 
-                Box(
-                    Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    // Liked Music is emptied by unliking; any other playlist only when it is yours.
-                    val canRemove = data.id.removePrefix("VL") == "LM" || ((data.owned || isYourYouTubePlaylist) && !data.isRadio)
-                    TrackSelectionBar(
-                        selection = selection,
-                        rows = rows,
-                        shown = shownRows,
-                        // A radio pages on without end: what has loaded is all there is to pick.
-                        complete = data.isRadio || (tracksListState == ListState.PAGINATION_EXHAUST && !sortState.resorting),
-                        total = data.trackCount - removed,
-                        loadRest = { viewModel.getFullTracks {} },
-                        from = data.title,
-                        onRemove =
-                            if (canRemove) {
-                                { picked, done ->
-                                    viewModel.removeTracks(picked) {
-                                        sharedViewModel.youTubePlaylistsChanged()
-                                        done()
-                                    }
+                // Liked Music is emptied by unliking; any other playlist only when it is yours.
+                val canRemove = data.id.removePrefix("VL") == "LM" || ((data.owned || isYourYouTubePlaylist) && !data.isRadio)
+                TrackSelectionBar(
+                    selection = selection,
+                    bottomPadding = innerPadding.calculateBottomPadding(),
+                    rows = rows,
+                    shown = shownRows,
+                    // A radio pages on without end: what has loaded is all there is to pick.
+                    complete = data.isRadio || (tracksListState == ListState.PAGINATION_EXHAUST && !sortState.resorting),
+                    total = data.trackCount - removed,
+                    loadRest = { viewModel.getFullTracks {} },
+                    from = data.title,
+                    onRemove =
+                        if (canRemove) {
+                            { picked, done ->
+                                viewModel.removeTracks(picked) {
+                                    sharedViewModel.youTubePlaylistsChanged()
+                                    done()
                                 }
-                            } else {
-                                null
-                            },
-                    )
-                }
+                            }
+                        } else {
+                            null
+                        },
+                )
                 if (itemBottomSheetShow && currentItem != null) {
                     val track = currentItem?.toSongEntity() ?: return@Crossfade
                     NowPlayingBottomSheet(

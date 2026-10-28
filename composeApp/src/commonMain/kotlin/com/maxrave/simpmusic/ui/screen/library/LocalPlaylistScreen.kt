@@ -807,24 +807,20 @@ fun LocalPlaylistScreen(
         }
     }
     // After the search, so it floats over the results too.
-    Box(
-        Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        val rows = remember(allTracks) { keyedRows(allTracks.orEmpty()) }
-        val searchRows = remember(searchResults) { keyedRows(searchResults.map { it.first.toTrack() }) }
-        TrackSelectionBar(
-            selection = selection,
-            rows = rows,
-            shown = if (showSearchBar) searchRows else rows,
-            complete = allTracks != null,
-            total = uiState.trackCount,
-            loadRest = viewModel::loadAllTracks,
-            from = uiState.title,
-            onRemove = { picked, done -> viewModel.deleteItems(picked, done) },
-            exceptLocalId = uiState.id,
-        )
-    }
+    val rows = remember(allTracks) { keyedRows(allTracks.orEmpty()) }
+    val searchRows = remember(searchResults) { keyedRows(searchResults.map { it.first.toTrack() }) }
+    TrackSelectionBar(
+        selection = selection,
+        bottomPadding = innerPadding.calculateBottomPadding(),
+        rows = rows,
+        shown = if (showSearchBar) searchRows else rows,
+        complete = allTracks != null,
+        total = uiState.trackCount,
+        loadRest = viewModel::loadAllTracks,
+        from = uiState.title,
+        onRemove = { picked, done -> viewModel.deleteItems(picked, done) },
+        exceptLocalId = uiState.id,
+    )
     if (sortBottomSheetShow) {
         SortPlaylistBottomSheet(
             selectedState = uiState.filterState,

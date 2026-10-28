@@ -107,7 +107,6 @@ import com.maxrave.simpmusic.expect.ui.PlatformBackHandler
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.MoodCategoryCard
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -120,9 +119,10 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
+import com.maxrave.simpmusic.ui.component.selection.rowKey
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.ArrowOutward
 import com.maxrave.simpmusic.ui.icon.Close
@@ -140,7 +140,6 @@ import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -267,10 +266,7 @@ fun SearchScreen(
     var sheetSong by remember { mutableStateOf<SongEntity?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberTrackSelection()
     val currentVideoId by searchViewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val chipRowState = rememberScrollState()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -320,7 +316,7 @@ fun SearchScreen(
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
         LaunchedEffect(reloadDestination) {
             if (reloadDestination == SearchDestination::class) {
-                if (!selectionState.isActive && searchUIType == SearchUIType.EMPTY) {
+                if (!selection.active && searchUIType == SearchUIType.EMPTY) {
                     isExpanded = true
                     focusRequester.requestFocus()
                     keyboardController?.show()
@@ -330,44 +326,6 @@ fun SearchScreen(
         }
     }
 
-    if (showSelectionSheet) {
-        val selectedIds = selectionState.selected.toList()
-        SelectedSongsBottomSheet(
-            count = selectedIds.size,
-            onDismiss = { showSelectionSheet = false },
-            onPlayNext = {
-                selectionViewModel.playNext(selectedIds)
-                selectionState.exit()
-            },
-            onAddToQueue = {
-                selectionViewModel.addToQueue(selectedIds)
-                selectionState.exit()
-            },
-            onAddToPlaylist = { showSelectionAddToPlaylist = true },
-            onDownload = {
-                selectionViewModel.download(selectedIds)
-                selectionState.exit()
-            },
-            onAddToFavorite = {
-                selectionViewModel.addToFavorite(selectedIds)
-                selectionState.exit()
-            },
-        )
-    }
-    if (showSelectionAddToPlaylist) {
-        val selectedIds = selectionState.selected.toList()
-        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-        AddToPlaylistModalBottomSheet(
-            isBottomSheetVisible = true,
-            listLocalPlaylist = localPlaylists,
-            listYouTubePlaylist = emptyList(),
-            onDismiss = { showSelectionAddToPlaylist = false },
-            onClick = { playlist ->
-                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                selectionState.exit()
-            },
-        )
-    }
     if (showBottomSheet) {
         NowPlayingBottomSheet(
             onDismiss = {
@@ -806,10 +764,10 @@ fun SearchScreen(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
                                                                         },
-                                                                        selectionMode = selectionState.isActive,
-                                                                        isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { selectionState.start(it) },
-                                                                        onSelectToggle = { selectionState.toggle(it) },
+                                                                        selectionMode = selection.active,
+                                                                        isSelected = selection.has(rowKey(result.videoId)),
+                                                                        onLongClick = { selection.start(rowKey(result.videoId), result.toTrack()) },
+                                                                        onSelectToggle = { selection.toggle(rowKey(result.videoId), result.toTrack()) },
                                                                     )
                                                                 }
 
@@ -845,10 +803,10 @@ fun SearchScreen(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
                                                                         },
-                                                                        selectionMode = selectionState.isActive,
-                                                                        isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { selectionState.start(it) },
-                                                                        onSelectToggle = { selectionState.toggle(it) },
+                                                                        selectionMode = selection.active,
+                                                                        isSelected = selection.has(rowKey(result.videoId)),
+                                                                        onLongClick = { selection.start(rowKey(result.videoId), result.toTrack()) },
+                                                                        onSelectToggle = { selection.toggle(rowKey(result.videoId), result.toTrack()) },
                                                                     )
                                                                 }
 
@@ -995,30 +953,6 @@ fun SearchScreen(
                         .windowInsetsPadding(WindowInsets.statusBars)
                         .padding(vertical = 10.dp),
             ) {
-        AnimatedVisibility(visible = selectionState.isActive) {
-            SongSelectionTopAppBar(
-                state = selectionState,
-                onSelectAll = {
-                    val visible =
-                        when (searchScreenState.searchType) {
-                            SearchType.SONGS -> searchScreenState.searchSongsResult.map { it.videoId }
-                            SearchType.VIDEOS -> searchScreenState.searchVideosResult.map { it.videoId }
-                            SearchType.ALL ->
-                                searchScreenState.searchAllResult.mapNotNull {
-                                    (it as? SongsResult)?.videoId ?: (it as? VideosResult)?.videoId
-                                }
-                            else -> emptyList()
-                        }
-                    selectionState.toggleSelectAll(visible)
-                },
-                onOpenActions = { showSelectionSheet = true },
-                containerColor = Color.Transparent,
-                // Zero here AND on the SearchBar below: the Column that holds them both consumes
-                // the status bar once, for the whole stack. Leaving it on either child reserves it
-                // a second time — which is the slab of padding this screen used to show.
-                windowInsets = WindowInsets(0),
-            )
-        }
         // Search Bar with Animated Placeholder
         SearchBar(
             inputField = {
@@ -1137,7 +1071,7 @@ fun SearchScreen(
             // Limusic's pill, on the card colour like desktop's search field.
             shape = CircleShape,
             colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            // See the note on SongSelectionTopAppBar above — the Column owns the status-bar inset.
+            // The Column above owns the status-bar inset; a second one here reserves it twice.
             windowInsets = WindowInsets(0),
             content = {},
         )
@@ -1169,6 +1103,19 @@ fun SearchScreen(
             }
         }
     }
+    // Picks belong to the results on screen: typing, or leaving the results, ends select mode.
+    LaunchedEffect(searchUIType) { if (searchUIType != SearchUIType.SEARCH_RESULTS) selection.exit() }
+    val results =
+        when (searchScreenState.searchType) {
+            SearchType.SONGS -> searchScreenState.searchSongsResult.map { it.toTrack() }
+            SearchType.VIDEOS -> searchScreenState.searchVideosResult.map { it.toTrack() }
+            SearchType.ALL -> searchScreenState.searchAllResult.mapNotNull { (it as? SongsResult)?.toTrack() ?: (it as? VideosResult)?.toTrack() }
+            else -> emptyList()
+        }
+    // A song can show twice under All (top result and Songs); it is one pick.
+    val rows = remember(results) { keyedRows(results.distinctBy { it.videoId }) }
+    // After the results, so the bar is drawn over them and takes its own taps.
+    TrackSelectionBar(selection = selection, rows = rows, bottomPadding = innerPadding.calculateBottomPadding())
 }
 
 @Composable

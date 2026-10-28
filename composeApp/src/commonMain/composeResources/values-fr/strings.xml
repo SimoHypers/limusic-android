@@ -382,12 +382,8 @@
     <string name="import_result">%1$d playlists ont été créées et %2$d titres ont été importés.</string>
     <string name="import_result_skipped">%1$d entrées ont été ignorées car le titre correspondant était absente du fichier.</string>
     <string name="import_failed">Échec de l'importation</string>
-    <string name="select_all">Tout sélectionner</string>
     <string name="n_selected">%1$d sélectionnés</string>
-    <string name="n_songs_selected">%1$d titres sélectionnés</string>
-    <string name="max_selection_reached">Vous pouvez sélectionner jusqu'à %1$d titres à la fois</string>
     <string name="exit_selection">Quitter la sélection</string>
-    <string name="remove_from_playlist">Supprimer de la playlist</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Partager les paroles</string>
     <string name="share_lyrics_select_title">Sélectionner des lignes</string>

@@ -99,7 +99,6 @@ import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
-import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -111,10 +110,11 @@ import com.maxrave.simpmusic.ui.component.PillIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.pillSurface
-import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
-import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
-import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.TrackSelection
+import com.maxrave.simpmusic.ui.component.selection.TrackSelectionBar
+import com.maxrave.simpmusic.ui.component.selection.keyedRows
+import com.maxrave.simpmusic.ui.component.selection.rememberTrackSelection
+import com.maxrave.simpmusic.ui.component.selection.rowKey
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.IosShare
@@ -134,7 +134,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -168,6 +167,7 @@ fun ArtistScreen(
     viewModel: ArtistViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
+    innerPadding: PaddingValues = PaddingValues(),
 ) {
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
     val isFollowed by viewModel.followed.collectAsStateWithLifecycle()
@@ -191,10 +191,7 @@ fun ArtistScreen(
         mutableStateOf(false)
     }
 
-    val selectionState = rememberSongSelectionState()
-    val selectionViewModel: SongSelectionViewModel = koinViewModel()
-    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
-    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberTrackSelection()
 
     LaunchedEffect(channelId) {
         if (channelId != artistScreenState.data.channelId) {
@@ -562,7 +559,7 @@ fun ArtistScreen(
                             ArtistSections(
                                 channelId = channelId,
                                 state = state,
-                                selectionState = selectionState,
+                                selection = selection,
                                 playingTrack = playingTrack,
                                 navController = navController,
                                 viewModel = viewModel,
@@ -577,7 +574,7 @@ fun ArtistScreen(
 
                     // Haze top bar appears once the header scrolls away.
                     AnimatedVisibility(
-                        visible = shouldHideTopBar && !selectionState.isActive,
+                        visible = shouldHideTopBar,
                         enter = fadeIn() + slideInVertically(),
                         exit = fadeOut() + slideOutVertically(),
                     ) {
@@ -619,64 +616,13 @@ fun ArtistScreen(
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = selectionState.isActive,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut() + slideOutVertically(),
-                ) {
-                    SongSelectionTopAppBar(
-                        state = selectionState,
-                        onSelectAll = {
-                            selectionState.toggleSelectAll(
-                                (artistScreenState as? ArtistScreenState.Success)
-                                    ?.data
-                                    ?.popularSongs
-                                    ?.map { it.videoId }
-                                    ?: emptyList(),
-                            )
-                        },
-                        onOpenActions = { showSelectionSheet = true },
-                        modifier = Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
-                    )
-                }
-                if (showSelectionSheet) {
-                    val selectedIds = selectionState.selected.toList()
-                    SelectedSongsBottomSheet(
-                        count = selectedIds.size,
-                        onDismiss = { showSelectionSheet = false },
-                        onPlayNext = {
-                            selectionViewModel.playNext(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToQueue = {
-                            selectionViewModel.addToQueue(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
-                        onDownload = {
-                            selectionViewModel.download(selectedIds)
-                            selectionState.exit()
-                        },
-                        onAddToFavorite = {
-                            selectionViewModel.addToFavorite(selectedIds)
-                            selectionState.exit()
-                        },
-                    )
-                }
-                if (showSelectionAddToPlaylist) {
-                    val selectedIds = selectionState.selected.toList()
-                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    AddToPlaylistModalBottomSheet(
-                        isBottomSheetVisible = true,
-                        listLocalPlaylist = localPlaylists,
-                        listYouTubePlaylist = emptyList(),
-                        onDismiss = { showSelectionAddToPlaylist = false },
-                        onClick = { playlist ->
-                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
-                            selectionState.exit()
-                        },
-                    )
-                }
+                val rows = remember(state.data.popularSongs) { keyedRows(state.data.popularSongs) }
+                TrackSelectionBar(
+                    selection = selection,
+                    rows = rows,
+                    bottomPadding = innerPadding.calculateBottomPadding(),
+                    from = state.data.title,
+                )
                 if (showBottomSheet && choosingTrack != null) {
                     NowPlayingBottomSheet(
                         onDismiss = {
@@ -711,7 +657,7 @@ private fun ArtistShelfHeader(
 private fun ArtistSections(
     channelId: String,
     state: ArtistScreenState.Success,
-    selectionState: SongSelectionState,
+    selection: TrackSelection,
     playingTrack: String?,
     navController: NavController,
     viewModel: ArtistViewModel,
@@ -779,10 +725,10 @@ private fun ArtistSections(
                                 arrayListOf(song),
                             )
                         },
-                        selectionMode = selectionState.isActive,
-                        isSelected = selectionState.isSelected(song.videoId),
-                        onLongClick = { selectionState.start(it) },
-                        onSelectToggle = { selectionState.toggle(it) },
+                        selectionMode = selection.active,
+                        isSelected = selection.has(rowKey(song.videoId, song.setVideoId)),
+                        onLongClick = { selection.start(rowKey(song.videoId, song.setVideoId), song) },
+                        onSelectToggle = { selection.toggle(rowKey(song.videoId, song.setVideoId), song) },
                         rightView =
                             song.views?.let { plays ->
                                 @Composable {

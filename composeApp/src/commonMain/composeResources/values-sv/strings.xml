@@ -372,12 +372,8 @@
     <string name="import_result">Skapade spellistor: %1$d. Importerade låtar: %2$d.</string>
     <string name="import_result_skipped">Poster som hoppades över eftersom motsvarande låt saknades i filen: %1$d.</string>
     <string name="import_failed">Importen misslyckades</string>
-    <string name="select_all">Markera alla</string>
     <string name="n_selected">Markerade: %1$d</string>
-    <string name="n_songs_selected">Markerade låtar: %1$d</string>
-    <string name="max_selection_reached">Högsta antal låtar som kan markeras samtidigt: %1$d</string>
     <string name="exit_selection">Avsluta markeringsläget</string>
-    <string name="remove_from_playlist">Ta bort från spellistan</string>
     <!-- Listen Together -->
     <string name="share_lyrics">Dela låttext</string>
     <string name="share_lyrics_select_title">Markera rader</string>

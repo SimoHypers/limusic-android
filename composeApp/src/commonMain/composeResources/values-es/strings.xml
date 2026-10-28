@@ -368,11 +368,7 @@
     <string name="import_result">Creadas %1$d listas de reproducción e importadas %2$d canciones.</string>
     <string name="import_result_skipped">Se omitieron %1$d entradas porque su canción no estaba en el archivo.</string>
     <string name="import_failed">Error en la importación</string>
-    <string name="select_all">Seleccionar todo</string>
     <string name="n_selected">%1$d seleccionados</string>
-    <string name="n_songs_selected">%1$d canciones seleccionadas</string>
-    <string name="max_selection_reached">Puedes seleccionar hasta %1$d canciones a la vez</string>
     <string name="exit_selection">Cerrar selección</string>
-    <string name="remove_from_playlist">Eliminar de la lista</string>
     <!-- Listen Together -->
 </resources>

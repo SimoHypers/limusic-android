@@ -322,7 +322,6 @@
     <string name="import_reading_file">กำลังอ่านไฟล์...</string>
     <string name="import_progress_songs">%1$d จาก %2$d เพลง</string>
     <string name="import_failed">นำเข้าไม่สำเร็จ</string>
-    <string name="select_all">เลือกทั้งหมด</string>
     <!-- Listen Together -->
     <string name="share_lyrics">แชร์เนื้อเพลง</string>
     <string name="share_lyrics_select_title">เลือกบรรทัด</string>
