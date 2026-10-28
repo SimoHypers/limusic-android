@@ -66,7 +66,14 @@ internal class MessageCodec {
                 }
                 MessageTypes.PAIR_START -> msg("pair_start")
                 MessageTypes.PAIR_CLAIM -> msg("pair_claim") { put("code", (payload as PairClaimPayload).code) }
-                MessageTypes.REMOTE -> msg("remote") { put("action", (payload as RemotePayload).action.toJson()) }
+                MessageTypes.REMOTE -> {
+                    val p = payload as RemotePayload
+                    msg("remote") {
+                        put("action", p.action.toJson())
+                        p.to?.let { put("to", it) }
+                    }
+                }
+                MessageTypes.LINK_STATUS -> msg("link_status") { put("status", (payload as LinkStatusPayload).status.toJson()) }
                 // buffer_ready, chat and the rest have no counterpart: Limusic rooms do not wait for
                 // everyone to buffer.
                 else -> return null
@@ -143,7 +150,10 @@ internal class MessageCodec {
             "kicked" -> MessageTypes.KICKED to KickedPayload(reason = o.str("reason"))
             "error" -> MessageTypes.ERROR to ErrorPayload(code = o.str("code"), message = o.str("message"))
             "pong" -> MessageTypes.PONG to null
-            "link_joined" -> MessageTypes.LINK_JOINED to LinkJoinedPayload(state = o.obj("state")?.toRoomState() ?: RoomState())
+            "link_joined" ->
+                MessageTypes.LINK_JOINED to
+                    LinkJoinedPayload(state = o.obj("state")?.toRoomState() ?: RoomState(), status = o.obj("status")?.toLinkStatus())
+            "link_status" -> MessageTypes.LINK_STATUS to o.obj("status")?.toLinkStatus()?.let { LinkStatusPayload(it) }
             "pair_code" -> MessageTypes.PAIR_CODE to PairCodePayload(code = o.str("code"), expiresInS = o.long("expires_in_s").toInt())
             "paired" -> MessageTypes.PAIRED to PairedPayload(secret = o.str("secret"))
             "remote" -> {
@@ -213,8 +223,104 @@ internal class MessageCodec {
                     put("kind", "play_track")
                     put("track", a.track.toJson())
                 }
+                is RemoteAction.PlayTracks -> {
+                    put("kind", "play_tracks")
+                    put("tracks", a.tracks.toJson())
+                    a.start?.let { put("start", it) }
+                    a.sourceId?.let { put("source_id", it) }
+                    a.sourceName?.let { put("source_name", it) }
+                    if (a.shuffle) put("shuffle", true)
+                }
+                is RemoteAction.PlayIndex -> {
+                    put("kind", "play_index")
+                    put("index", a.index)
+                    put("id", a.id)
+                }
+                is RemoteAction.Remove -> {
+                    put("kind", "remove")
+                    put("index", a.index)
+                    put("id", a.id)
+                }
+                is RemoteAction.Move -> {
+                    put("kind", "move")
+                    put("from", a.from)
+                    put("to", a.to)
+                }
+                is RemoteAction.PlayNext -> {
+                    put("kind", "play_next")
+                    put("tracks", a.tracks.toJson())
+                    a.from?.let { put("from", it) }
+                }
+                is RemoteAction.AddToQueue -> {
+                    put("kind", "add_to_queue")
+                    put("tracks", a.tracks.toJson())
+                    a.from?.let { put("from", it) }
+                }
+                RemoteAction.ClearQueued -> put("kind", "clear_queued")
+                is RemoteAction.SetShuffle -> {
+                    put("kind", "set_shuffle")
+                    put("on", a.on)
+                }
+                is RemoteAction.SetRepeat -> {
+                    put("kind", "set_repeat")
+                    put("mode", a.mode)
+                }
+                RemoteAction.TakeOver -> put("kind", "take_over")
             }
         }
+
+    private fun List<TrackInfo>.toJson() = buildJsonArray { forEach { add(it.toJson()) } }
+
+    private fun JsonObject.tracks(key: String) = (this[key] as? JsonArray)?.map { it.jsonObject.toTrack() }.orEmpty()
+
+    private fun JsonObject.int(key: String) = long(key).toInt()
+
+    private fun JsonObject.optStr(key: String) = this[key]?.jsonPrimitive?.contentOrNull
+
+    private fun LinkStatus.toJson() =
+        buildJsonObject {
+            put(
+                "items",
+                buildJsonArray {
+                    items.forEach { item ->
+                        add(
+                            buildJsonObject {
+                                item.track.toJson().forEach { (k, v) -> put(k, v) }
+                                if (item.queued) put("queued", true)
+                                if (item.queuedEnd) put("queued_end", true)
+                                item.queuedFrom?.let { put("queued_from", it) }
+                                if (item.autoplay) put("autoplay", true)
+                            },
+                        )
+                    }
+                },
+            )
+            put("offset", offset)
+            put("current", current)
+            put("shuffle", shuffle)
+            put("repeat", repeat)
+            source?.let { put("source", it) }
+        }
+
+    private fun JsonObject.toLinkStatus() =
+        LinkStatus(
+            items =
+                (this["items"] as? JsonArray)?.map {
+                    val o = it.jsonObject
+                    LinkItem(
+                        track = o.toTrack(),
+                        queued = o.bool("queued"),
+                        queuedEnd = o.bool("queued_end"),
+                        queuedFrom = o.optStr("queued_from"),
+                        autoplay = o.bool("autoplay"),
+                    )
+                }.orEmpty(),
+            offset = int("offset"),
+            current = int("current"),
+            shuffle = bool("shuffle"),
+            repeat = str("repeat").ifBlank { "off" },
+            source = optStr("source"),
+        )
 
     private fun JsonObject.toRemoteAction(): RemoteAction? =
         when (str("kind")) {
@@ -225,6 +331,23 @@ internal class MessageCodec {
             "seek" -> RemoteAction.Seek(long("position_ms"))
             "set_volume" -> RemoteAction.SetVolume(this["volume"]?.jsonPrimitive?.let { runCatching { it.double }.getOrNull() } ?: 1.0)
             "play_track" -> obj("track")?.toTrack()?.let { RemoteAction.PlayTrack(it) }
+            "play_tracks" ->
+                RemoteAction.PlayTracks(
+                    tracks = tracks("tracks"),
+                    start = this["start"]?.let { int("start") },
+                    sourceId = optStr("source_id"),
+                    sourceName = optStr("source_name"),
+                    shuffle = bool("shuffle"),
+                )
+            "play_index" -> RemoteAction.PlayIndex(int("index"), str("id"))
+            "remove" -> RemoteAction.Remove(int("index"), str("id"))
+            "move" -> RemoteAction.Move(int("from"), int("to"))
+            "play_next" -> RemoteAction.PlayNext(tracks("tracks"), optStr("from"))
+            "add_to_queue" -> RemoteAction.AddToQueue(tracks("tracks"), optStr("from"))
+            "clear_queued" -> RemoteAction.ClearQueued
+            "set_shuffle" -> RemoteAction.SetShuffle(bool("on"))
+            "set_repeat" -> RemoteAction.SetRepeat(str("mode"))
+            "take_over" -> RemoteAction.TakeOver
             else -> null
         }
 

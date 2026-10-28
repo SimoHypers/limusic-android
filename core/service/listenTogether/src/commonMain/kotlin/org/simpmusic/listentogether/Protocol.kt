@@ -50,8 +50,11 @@ object MessageTypes {
     const val PAIR_START = "pair_start"
     const val PAIR_CLAIM = "pair_claim"
 
-    /** Both directions: a control sent to the player, and the same control forwarded to it. */
+    /** Both directions: a control sent to another device, and the same control forwarded to it. */
     const val REMOTE = "remote"
+
+    /** Both directions: the player's queue, sent by it and passed on to the others. */
+    const val LINK_STATUS = "link_status"
     const val LINK_JOINED = "link_joined"
     const val PAIR_CODE = "pair_code"
     const val PAIRED = "paired"
@@ -318,6 +321,39 @@ data class PairClaimPayload(
 /** The reply to [JoinLinkPayload]. `roomCode` is empty: the server never echoes the secret. */
 data class LinkJoinedPayload(
     val state: RoomState,
+    /** The player's last [LinkStatus]. */
+    val status: LinkStatus? = null,
+)
+
+/**
+ * The player's queue for the other devices' player views. Mirrors `LinkStatus` in
+ * `crates/listen-protocol`: a window of rows around the playing one.
+ */
+data class LinkStatus(
+    val items: List<LinkItem> = emptyList(),
+    /** Where `items[0]` is in the player's whole queue: remote actions name rows by queue index. */
+    val offset: Int = 0,
+    /** The playing row, in [items]. */
+    val current: Int = 0,
+    val shuffle: Boolean = false,
+    /** "off" | "all" | "one" */
+    val repeat: String = "off",
+    val source: String? = null,
+)
+
+/** A queue row with the marks the queue view draws. */
+data class LinkItem(
+    val track: TrackInfo,
+    /** Play next. */
+    val queued: Boolean = false,
+    /** Add to queue. */
+    val queuedEnd: Boolean = false,
+    val queuedFrom: String? = null,
+    val autoplay: Boolean = false,
+)
+
+data class LinkStatusPayload(
+    val status: LinkStatus,
 )
 
 data class PairCodePayload(
@@ -329,10 +365,14 @@ data class PairedPayload(
     val secret: String,
 )
 
-/** A control for the device that is playing. [from] is set on the way in: the sender's device id. */
+/**
+ * A control for another device: the player, unless [to] names one. [from] is set on the way in:
+ * the sender's device id.
+ */
 data class RemotePayload(
     val action: RemoteAction,
     val from: String = "",
+    val to: String? = null,
 )
 
 /** What a remote can ask of the player. Mirrors `RemoteAction` in `crates/listen-protocol`. */
@@ -354,7 +394,58 @@ sealed interface RemoteAction {
         val volume: Double,
     ) : RemoteAction
 
+    /** One song, with its radio behind it. */
     data class PlayTrack(
         val track: TrackInfo,
     ) : RemoteAction
+
+    /** A playlist, album or radio; [start] is the tapped row, null = just play it. */
+    data class PlayTracks(
+        val tracks: List<TrackInfo>,
+        val start: Int? = null,
+        /** Lets autoplay carry on with the list's radio when it runs out. */
+        val sourceId: String? = null,
+        val sourceName: String? = null,
+        val shuffle: Boolean = false,
+    ) : RemoteAction
+
+    /** The queue row at [index] in the player's whole queue; [id] is its track, in case the queue moved. */
+    data class PlayIndex(
+        val index: Int,
+        val id: String,
+    ) : RemoteAction
+
+    data class Remove(
+        val index: Int,
+        val id: String,
+    ) : RemoteAction
+
+    data class Move(
+        val from: Int,
+        val to: Int,
+    ) : RemoteAction
+
+    data class PlayNext(
+        val tracks: List<TrackInfo>,
+        val from: String? = null,
+    ) : RemoteAction
+
+    data class AddToQueue(
+        val tracks: List<TrackInfo>,
+        val from: String? = null,
+    ) : RemoteAction
+
+    data object ClearQueued : RemoteAction
+
+    data class SetShuffle(
+        val on: Boolean,
+    ) : RemoteAction
+
+    /** "off" | "all" | "one" */
+    data class SetRepeat(
+        val mode: String,
+    ) : RemoteAction
+
+    /** To a device that isn't playing: play what the player plays, from where it is now. */
+    data object TakeOver : RemoteAction
 }

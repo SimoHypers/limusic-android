@@ -53,6 +53,8 @@ data class LinkState(
     val lastUpdate: Long = 0L,
     val volume: Float = 1f,
     val queue: List<TrackInfo> = emptyList(),
+    /** The player's queue, shuffle and repeat, when another device plays and has sent them. */
+    val status: LinkStatus? = null,
     val error: String? = null,
 ) {
     val isPlayer: Boolean get() = hostId.isNotEmpty() && hostId == selfId
@@ -186,8 +188,12 @@ class DeviceLinkSession(
         return decision
     }
 
-    fun remote(action: RemoteAction) {
-        scope.launch { client.send(MessageTypes.REMOTE, RemotePayload(action)) }
+    /** A control for the player, or for the device [to] names. */
+    fun remote(
+        action: RemoteAction,
+        to: String? = null,
+    ) {
+        scope.launch { client.send(MessageTypes.REMOTE, RemotePayload(action, to = to)) }
     }
 
     fun unlink(deviceId: String) {
@@ -267,6 +273,7 @@ class DeviceLinkSession(
                         lastUpdate = room.lastUpdate,
                         volume = room.volume,
                         queue = room.queue,
+                        status = (payload as LinkJoinedPayload).status,
                         error = null,
                     )
                 }
@@ -293,9 +300,11 @@ class DeviceLinkSession(
             MessageTypes.USER_RECONNECTED -> setOnline((payload as? UserReconnectedPayload)?.userId, true)
             MessageTypes.HOST_CHANGED -> {
                 val id = (payload as? HostChangedPayload)?.newHostId ?: return
-                _state.update { s -> s.copy(hostId = id, users = s.users.map { it.copy(isHost = it.userId == id) }) }
+                // The new player's queue follows from it.
+                _state.update { s -> s.copy(hostId = id, users = s.users.map { it.copy(isHost = it.userId == id) }, status = null) }
                 _events.emit(LinkEvent.HostChanged(id))
             }
+            MessageTypes.LINK_STATUS -> (payload as? LinkStatusPayload)?.let { p -> _state.update { it.copy(status = p.status) } }
             MessageTypes.SYNC_PLAYBACK -> {
                 val p = payload as? PlaybackActionPayload ?: return
                 _state.update { it.applied(p, client.serverNow() ?: 0L) }

@@ -25,7 +25,11 @@ interface DeviceLinkRepository {
 
     fun unlinkThisPhone()
 
-    fun remote(action: LinkRemote)
+    /** A control for the device that plays, or for [to]. */
+    fun remote(
+        action: LinkRemote,
+        to: String? = null,
+    )
 
     /** Play what the other device plays, from where it is now, with its queue. */
     fun continueHere()

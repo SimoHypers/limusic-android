@@ -238,9 +238,10 @@ internal fun AppleMusicOutputSheet(
                             selected = selected,
                             colors = colors,
                             onClick = {
-                                // ponytail: only the device that played last can be picked (it resumes); sending this phone's music to it needs a transfer action in the protocol.
-                                if (!selected && isPlayer && device.online) {
-                                    deviceLink.remote(LinkRemote.Play)
+                                if (!selected && device.online) {
+                                    // The computer that played last picks up its own song; any
+                                    // other takes over what this phone plays, where it is.
+                                    if (isPlayer) deviceLink.remote(LinkRemote.Play) else deviceLink.remote(LinkRemote.TakeOver, to = device.id)
                                     closeSheet()
                                 }
                             },

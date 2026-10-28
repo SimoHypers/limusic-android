@@ -21,6 +21,8 @@ data class DeviceLink(
     val volume: Float = 1f,
     /** What the player plays after [track]. */
     val queue: List<RoomTrack> = emptyList(),
+    /** The player's queue view, shuffle and repeat, once it has sent them. */
+    val playerQueue: LinkQueue? = null,
     /**
      * This phone is the remote for [player]: the app's own player shows that device's playback and
      * its controls go there. True while the player is online, playing or paused only a little
@@ -36,6 +38,30 @@ data class DeviceLink(
         return if (duration > 0L) p.coerceIn(0L, duration) else p.coerceAtLeast(0L)
     }
 }
+
+/** The player's queue as it sent it: a window of rows around the one playing. */
+data class LinkQueue(
+    val items: List<LinkQueueItem>,
+    /** Where `items[0]` is in the player's whole queue; remote actions name rows by queue index. */
+    val offset: Int,
+    /** The playing row, in [items]. */
+    val current: Int,
+    val shuffle: Boolean,
+    /** "off" | "all" | "one" */
+    val repeat: String,
+    /** The playlist or album it plays from. */
+    val source: String?,
+)
+
+data class LinkQueueItem(
+    val track: RoomTrack,
+    /** Play next. */
+    val queued: Boolean,
+    /** Add to queue. */
+    val queuedEnd: Boolean,
+    val queuedFrom: String?,
+    val autoplay: Boolean,
+)
 
 data class LinkedDevice(
     val id: String,
@@ -65,9 +91,59 @@ sealed interface LinkRemote {
         val volume: Float,
     ) : LinkRemote
 
+    /** One song, with its radio behind it. */
     data class PlayTrack(
         val track: RoomTrack,
     ) : LinkRemote
+
+    /** A playlist, album or radio; [start] is the tapped row, null = just play it. */
+    data class PlayTracks(
+        val tracks: List<RoomTrack>,
+        val start: Int?,
+        val sourceId: String?,
+        val sourceName: String?,
+        val shuffle: Boolean,
+    ) : LinkRemote
+
+    /** Queue rows by their index in the player's whole queue, with the track meant. */
+    data class PlayIndex(
+        val index: Int,
+        val id: String,
+    ) : LinkRemote
+
+    data class Remove(
+        val index: Int,
+        val id: String,
+    ) : LinkRemote
+
+    data class Move(
+        val from: Int,
+        val to: Int,
+    ) : LinkRemote
+
+    data class PlayNext(
+        val tracks: List<RoomTrack>,
+        val from: String?,
+    ) : LinkRemote
+
+    data class AddToQueue(
+        val tracks: List<RoomTrack>,
+        val from: String?,
+    ) : LinkRemote
+
+    data object ClearQueued : LinkRemote
+
+    data class SetShuffle(
+        val on: Boolean,
+    ) : LinkRemote
+
+    /** "off" | "all" | "one" */
+    data class SetRepeat(
+        val mode: String,
+    ) : LinkRemote
+
+    /** Sent to a device that isn't playing: it plays what the player plays (this phone's music, to the computer). */
+    data object TakeOver : LinkRemote
 }
 
 enum class PairResult { Linked, InvalidCode, Unsupported, Unreachable }

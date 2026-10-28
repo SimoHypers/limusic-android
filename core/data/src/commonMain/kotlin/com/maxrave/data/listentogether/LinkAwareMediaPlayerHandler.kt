@@ -1,10 +1,12 @@
 package com.maxrave.data.listentogether
 
 import com.maxrave.common.Config
+import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.listentogether.DeviceLink
+import com.maxrave.domain.data.model.listentogether.LinkQueueItem
 import com.maxrave.domain.data.model.listentogether.LinkRemote
 import com.maxrave.domain.data.model.listentogether.RoomTrack
 import com.maxrave.domain.data.model.searchResult.songs.Artist
@@ -46,10 +48,11 @@ import kotlin.time.ExperimentalTime
 /**
  * The player the app sees. While this phone is the remote for another linked device
  * ([DeviceLink.controlling]), what plays, the timeline and the queue are that device's, and the
- * controls and song taps go to it, Spotify Connect style: the mini player and the full player are
- * the remote, not a second set of controls. Otherwise every call is [local]'s, untouched.
+ * controls, queue edits and song taps go to it, Spotify Connect style: the mini player and the
+ * full player are the remote, not a second set of controls. Otherwise every call is [local]'s,
+ * untouched.
  *
- * The bridges (Listen Together, the device link's own publishing) and the media session work on
+ * The bridges (Listen Together, the device link's own publishing) and the song repository work on
  * [local] directly: they are about what this phone plays.
  */
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
@@ -73,6 +76,10 @@ class LinkAwareMediaPlayerHandler(
     private val sent = MutableStateFlow<Sent?>(null)
     private var sentExpiry: Job? = null
 
+    // Shuffle and repeat sent, shown until the player's queue says so (or the TTL runs out).
+    private val sentShuffle = MutableStateFlow<Boolean?>(null)
+    private val sentRepeat = MutableStateFlow<String?>(null)
+
     /** The device this phone controls, as it last reported, with [sent] laid over it. */
     private val remote: StateFlow<DeviceLink?> =
         combine(deviceLink.link, sent) { link, s ->
@@ -89,22 +96,47 @@ class LinkAwareMediaPlayerHandler(
             .distinctUntilChanged()
             .stateIn(scope, SharingStarted.Eagerly, null)
 
+    /**
+     * The queue view while remote: the player's own, or until it sends one, the room's track and
+     * what follows it. [offset] is where `tracks[0]` is in the player's queue; -1 when unknown,
+     * which leaves the rows read-only.
+     */
+    private data class RemoteQueue(
+        val tracks: List<Track>,
+        val current: Int,
+        val offset: Int,
+        val source: String?,
+    )
+
+    private val remoteQueue: StateFlow<RemoteQueue?> =
+        remote
+            .map { link ->
+                val q = link?.playerQueue
+                when {
+                    link == null -> null
+                    q != null && q.items.isNotEmpty() -> RemoteQueue(q.items.map { it.toTrack() }, q.current.coerceIn(0, q.items.lastIndex), q.offset, q.source)
+                    link.track != null -> RemoteQueue((listOf(link.track!!) + link.queue).map { it.toTrack() }, 0, -1, null)
+                    else -> null
+                }
+            }.distinctUntilChanged()
+            .stateIn(scope, SharingStarted.Eagerly, null)
+
     /** The phone's own row for the remote track (its like lives there), or one built from the track. */
     private val remoteSong: StateFlow<SongEntity?> =
         remoteTrack
             .flatMapLatest { track ->
                 when {
                     track == null -> flowOf(null)
-                    track.isLocalFile() -> flowOf(track.toSongEntity())
+                    track.isLocalFile() -> flowOf(track.toRemoteSong())
                     else ->
                         songRepository.getSongAsFlow(track.videoId).map { row ->
-                            row?.copy(thumbnails = track.thumbnails?.lastOrNull()?.url ?: row.thumbnails) ?: track.toSongEntity()
+                            row?.copy(thumbnails = track.cover() ?: row.thumbnails) ?: track.toRemoteSong()
                         }
                 }
             }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override val nowPlaying: StateFlow<GenericMediaItem?> =
-        combine(remoteTrack, local.nowPlaying) { track, here -> track?.toGenericMediaItem() ?: here }
+        combine(remoteTrack, local.nowPlaying) { track, here -> track?.toRemoteMediaItem() ?: here }
             .stateIn(scope, SharingStarted.Eagerly, local.nowPlaying.value)
 
     override val nowPlayingState: StateFlow<NowPlayingTrackState> =
@@ -113,22 +145,22 @@ class LinkAwareMediaPlayerHandler(
                 here
             } else {
                 NowPlayingTrackState(
-                    mediaItem = track.toGenericMediaItem(),
+                    mediaItem = track.toRemoteMediaItem(),
                     track = track,
-                    songEntity = song?.takeIf { it.videoId == track.videoId } ?: track.toSongEntity(),
+                    songEntity = song?.takeIf { it.videoId == track.videoId } ?: track.toRemoteSong(),
                 )
             }
         }.stateIn(scope, SharingStarted.Eagerly, local.nowPlayingState.value)
 
     override val controlState: StateFlow<ControlState> =
-        combine(remote, remoteSong, local.controlState) { link, song, here ->
+        combine(remote, remoteSong, local.controlState, sentShuffle, sentRepeat) { link, song, here, shuffle, repeat ->
             if (link == null) {
                 here
             } else {
                 here.copy(
                     isPlaying = link.isPlaying,
-                    isShuffle = false,
-                    repeatState = RepeatState.None,
+                    isShuffle = shuffle ?: link.playerQueue?.shuffle ?: false,
+                    repeatState = (repeat ?: link.playerQueue?.repeat).toRepeatState(),
                     isLiked = song?.liked == true && song.videoId == link.track?.id,
                     isNextAvailable = true,
                     isPreviousAvailable = true,
@@ -158,30 +190,34 @@ class LinkAwareMediaPlayerHandler(
             }.stateIn(scope, SharingStarted.Eagerly, local.simpleMediaState.value)
 
     override val queueData: StateFlow<QueueData?> =
-        combine(remote.map { link -> link?.track?.let { it to link.queue } }.distinctUntilChanged(), local.queueData) { remoteQueue, here ->
-            if (remoteQueue == null) {
+        combine(remoteQueue, local.queueData) { q, here ->
+            if (q == null) {
                 here
             } else {
-                val (current, upcoming) = remoteQueue
-                val tracks = (listOf(current) + upcoming).map { it.toTrack() }
                 QueueData(
                     queueState = QueueData.StateSource.STATE_INITIALIZED,
-                    data = QueueData.Data(listTracks = tracks, firstPlayedTrack = tracks.first(), playlistType = PlaylistType.PLAYLIST),
+                    data =
+                        QueueData.Data(
+                            listTracks = q.tracks,
+                            firstPlayedTrack = q.tracks.getOrNull(q.current),
+                            playlistName = q.source,
+                            playlistType = PlaylistType.PLAYLIST,
+                        ),
                 )
             }
         }.stateIn(scope, SharingStarted.Eagerly, local.queueData.value)
 
     override val currentSongIndex: StateFlow<Int> =
-        combine(remote.map { it != null }.distinctUntilChanged(), local.currentSongIndex) { controlling, here -> if (controlling) 0 else here }
+        combine(remoteQueue, local.currentSongIndex) { q, here -> q?.current ?: here }
             .stateIn(scope, SharingStarted.Eagerly, local.currentSongIndex.value)
 
     override val format: StateFlow<NewFormatEntity?> =
         combine(remote.map { it != null }.distinctUntilChanged(), local.format) { controlling, here -> if (controlling) null else here }
             .stateIn(scope, SharingStarted.Eagerly, local.format.value)
 
-    // ponytail: the queue is read-only while remote (the Listen Together guest's gate); editing it on the other device needs protocol actions it doesn't have yet.
+    /** Rows can be edited once the player has said where they are in its queue. */
     override var followingRoom: Boolean
-        get() = remote.value != null || local.followingRoom
+        get() = remote.value?.let { (remoteQueue.value?.offset ?: -1) < 0 } ?: local.followingRoom
         set(value) {
             local.followingRoom = value
         }
@@ -201,7 +237,22 @@ class LinkAwareMediaPlayerHandler(
             is PlayerEvent.UpdateProgress -> seekTo(link, (link.durationMs() * playerEvent.newProgress / 100).toLong())
             PlayerEvent.ToggleLike -> toggleLike()
             is PlayerEvent.UpdateVolume -> deviceLink.remote(LinkRemote.SetVolume(playerEvent.newVolume))
-            PlayerEvent.Shuffle, PlayerEvent.Repeat -> Unit
+            PlayerEvent.Shuffle -> {
+                val on = !controlState.value.isShuffle
+                deviceLink.remote(LinkRemote.SetShuffle(on))
+                expectMode(sentShuffle, on)
+            }
+            PlayerEvent.Repeat -> {
+                // The phone's own order: off, all, one.
+                val mode =
+                    when (controlState.value.repeatState) {
+                        RepeatState.None -> "all"
+                        RepeatState.All -> "one"
+                        RepeatState.One -> "off"
+                    }
+                deviceLink.remote(LinkRemote.SetRepeat(mode))
+                expectMode(sentRepeat, mode)
+            }
         }
     }
 
@@ -224,13 +275,14 @@ class LinkAwareMediaPlayerHandler(
         if (remote.value != null) pendingQueue = queueData else local.setQueueData(queueData)
     }
 
-    /** A song tapped anywhere in the app plays where the music is. */
+    /** Anything started anywhere in the app plays where the music is: one song, or the list it was tapped in. */
     override suspend fun <T> loadMediaItem(
         anyTrack: T,
         type: String,
         index: Int?,
     ) {
         if (remote.value == null) return local.loadMediaItem(anyTrack, type, index)
+        val data = pendingQueue
         pendingQueue = null
         if (type == Config.RECOVER_TRACK_QUEUE) return
         val track =
@@ -239,21 +291,91 @@ class LinkAwareMediaPlayerHandler(
                 is SongEntity -> anyTrack.toTrack()
                 else -> return
             }
-        // ponytail: one song, which the other device plays with its radio behind it; whole lists wait for a play_tracks action in the protocol.
-        deviceLink.remote(LinkRemote.PlayTrack(track.toRoomTrack()))
+        val list = data?.listTracks.orEmpty()
+        if (data == null || type !in LIST_CLICKS || list.size < 2) {
+            deviceLink.remote(LinkRemote.PlayTrack(track.toRoomTrack()))
+            return
+        }
+        // As the local player picks the tapped row: by id, some pages index a different list.
+        val tapped =
+            index?.takeIf { list.getOrNull(it)?.videoId == track.videoId }
+                ?: list.indexOfFirst { it.videoId == track.videoId }.takeIf { it >= 0 }
+                ?: 0
+        // ponytail: a window of the list around the tap, under the server's message cap; the rest of a huge playlist doesn't follow.
+        val from = (tapped - MAX_LIST / 2).coerceIn(0, (list.size - MAX_LIST).coerceAtLeast(0))
+        val window = list.subList(from, (from + MAX_LIST).coerceAtMost(list.size))
+        deviceLink.remote(
+            LinkRemote.PlayTracks(
+                tracks = window.map { it.toRoomTrack() },
+                start = if (data.shuffle) null else tapped - from,
+                sourceId = data.playlistId?.takeIf { data.playlistType != PlaylistType.LOCAL_PLAYLIST }?.toSourceId(),
+                sourceName = data.playlistName,
+                shuffle = data.shuffle,
+            ),
+        )
     }
 
     override fun playMediaItemInMediaSource(index: Int) {
-        if (remote.value == null) local.playMediaItemInMediaSource(index)
+        if (remote.value == null) return local.playMediaItemInMediaSource(index)
+        row(index)?.let { (at, id) -> deviceLink.remote(LinkRemote.PlayIndex(at, id)) }
     }
 
-    override fun currentOrderIndex(): Int = if (remote.value != null) 0 else local.currentOrderIndex()
+    override fun removeMediaItem(position: Int) {
+        if (remote.value == null) return local.removeMediaItem(position)
+        row(position)?.let { (at, id) -> deviceLink.remote(LinkRemote.Remove(at, id)) }
+    }
+
+    override fun moveInQueue(
+        from: Int,
+        to: Int,
+    ) {
+        if (remote.value == null) return local.moveInQueue(from, to)
+        val q = remoteQueue.value?.takeIf { it.offset >= 0 } ?: return
+        deviceLink.remote(LinkRemote.Move(q.offset + from, q.offset + to))
+    }
+
+    override suspend fun moveItemToPlayNext(position: Int) {
+        if (remote.value == null) return local.moveItemToPlayNext(position)
+        val q = remoteQueue.value?.takeIf { it.offset >= 0 } ?: return
+        deviceLink.remote(LinkRemote.Move(q.offset + position, q.offset + q.current + 1))
+    }
+
+    override suspend fun playNext(
+        tracks: List<Track>,
+        from: String?,
+    ) {
+        if (remote.value == null) return local.playNext(tracks, from)
+        deviceLink.remote(LinkRemote.PlayNext(tracks.map { it.toRoomTrack() }, from))
+    }
+
+    override suspend fun addToQueue(
+        tracks: List<Track>,
+        from: String?,
+    ) {
+        if (remote.value == null) return local.addToQueue(tracks, from)
+        deviceLink.remote(LinkRemote.AddToQueue(tracks.map { it.toRoomTrack() }, from))
+    }
+
+    override fun clearQueued() {
+        if (remote.value == null) return local.clearQueued()
+        deviceLink.remote(LinkRemote.ClearQueued)
+    }
+
+    override fun currentOrderIndex(): Int = remoteQueue.value?.current ?: local.currentOrderIndex()
 
     override fun getCurrentMediaItem(): GenericMediaItem? = if (remote.value != null) nowPlaying.value else local.getCurrentMediaItem()
 
     override fun getPlayerDuration(): Long = remote.value?.durationMs() ?: local.getPlayerDuration()
 
     override fun getProgress(): Long = remote.value?.positionNow() ?: local.getProgress()
+
+    /** Queue row [index] of the view, as (index in the player's queue, its track id), when known. */
+    private fun row(index: Int): Pair<Int, String>? {
+        val q = remoteQueue.value?.takeIf { it.offset >= 0 } ?: return null
+        val track = q.tracks.getOrNull(index) ?: return null
+        // A local file on the computer crosses the wire without an id: its place names it.
+        return q.offset + index to if (track.isLocalFile()) "" else track.videoId
+    }
 
     private fun setPlaying(
         link: DeviceLink,
@@ -289,6 +411,17 @@ class LinkAwareMediaPlayerHandler(
             }
     }
 
+    private fun <T> expectMode(
+        flow: MutableStateFlow<T?>,
+        value: T,
+    ) {
+        flow.value = value
+        scope.launch {
+            delay(SENT_TTL_MS)
+            flow.compareAndSet(value, null)
+        }
+    }
+
     private fun DeviceLink.positionNow(): Long = livePositionMs(nowMs())
 
     private fun DeviceLink.durationMs(): Long = track?.durationMs ?: 0L
@@ -304,13 +437,46 @@ class LinkAwareMediaPlayerHandler(
 
         /** How long a sent control is shown without the device confirming it. */
         const val SENT_TTL_MS = 3_000L
+
+        /** Tracks of a tapped list sent along; ~250 B each against the server's 256 KiB message cap. */
+        const val MAX_LIST = 500
+
+        val LIST_CLICKS = setOf(Config.PLAYLIST_CLICK, Config.ALBUM_CLICK, Config.RADIO_CLICK)
     }
 }
+
+/**
+ * The remote track as the player shows it: always as artwork. Its video, if it is one, plays on the
+ * other device; the phone's own video surface would show an idle player or its last frame.
+ */
+private fun Track.toRemoteMediaItem(): GenericMediaItem =
+    toGenericMediaItem().let { it.copy(metadata = it.metadata.copy(artworkUri = cover() ?: it.metadata.artworkUri, description = MERGING_DATA_TYPE.SONG)) }
+
+/** The phone's row for a remote track, keeping its cover: toSongEntity turns sddefault into maxresdefault, which only HD videos have. */
+private fun Track.toRemoteSong(): SongEntity = toSongEntity().copy(thumbnails = cover())
+
+private fun Track.cover(): String? = thumbnails?.lastOrNull()?.url
 
 /** A local file on the desktop: no id crosses the wire, only its name. */
 private fun Track.isLocalFile() = videoId.startsWith(LOCAL_FILE_ID)
 
 private const val LOCAL_FILE_ID = "link-local:"
+
+private fun String?.toRepeatState(): RepeatState =
+    when (this) {
+        "all" -> RepeatState.All
+        "one" -> RepeatState.One
+        else -> RepeatState.None
+    }
+
+/**
+ * A page's playlist id as the desktop's autoplay takes it: YouTube's own playlist ids, without the
+ * browse prefix. An album's browse id means nothing there, so it goes without one.
+ */
+private fun String.toSourceId(): String? = removePrefix("VL").takeIf { !it.startsWith("MPRE") && it.isNotBlank() }
+
+private fun LinkQueueItem.toTrack(): Track =
+    track.toTrack().copy(queued = queued, queuedEnd = queuedEnd, queuedFrom = queuedFrom, autoplay = autoplay)
 
 internal fun RoomTrack.toTrack(): Track =
     Track(
@@ -321,7 +487,7 @@ internal fun RoomTrack.toTrack(): Track =
         isAvailable = true,
         isExplicit = false,
         likeStatus = null,
-        thumbnails = thumbnail.takeIf { it.isNotBlank() }?.let { listOf(Thumbnail(height = 544, url = it.largeCover(), width = 544)) },
+        thumbnails = listOf(Thumbnail(height = 544, url = coverUrl(), width = 544)).takeIf { it[0].url.isNotBlank() },
         title = title,
         videoId = id.ifBlank { LOCAL_FILE_ID + title },
         videoType = null,
@@ -340,5 +506,13 @@ private fun Track.toRoomTrack(): RoomTrack =
         thumbnail = thumbnails?.lastOrNull()?.url.orEmpty(),
     )
 
-/** googleusercontent covers come sized in the URL; the player wants a big one. */
-private fun String.largeCover(): String = replace(Regex("=w\\d+-h\\d+"), "=w544-h544")
+/**
+ * A cover that loads: googleusercontent ones come sized in the URL and the player wants a big one;
+ * with none sent, YouTube's own thumbnail, which every video has (maxresdefault only HD ones do).
+ */
+private fun RoomTrack.coverUrl(): String =
+    when {
+        thumbnail.isNotBlank() -> thumbnail.replace(Regex("=w\\d+-h\\d+"), "=w544-h544")
+        id.isNotBlank() -> "https://i.ytimg.com/vi/$id/hqdefault.jpg"
+        else -> ""
+    }

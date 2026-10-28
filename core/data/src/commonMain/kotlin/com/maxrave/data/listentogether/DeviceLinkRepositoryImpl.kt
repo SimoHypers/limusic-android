@@ -2,6 +2,8 @@ package com.maxrave.data.listentogether
 
 import com.maxrave.domain.data.model.listentogether.DeviceLink
 import com.maxrave.domain.data.model.listentogether.LinkConnection as DomainConnection
+import com.maxrave.domain.data.model.listentogether.LinkQueue
+import com.maxrave.domain.data.model.listentogether.LinkQueueItem
 import com.maxrave.domain.data.model.listentogether.LinkRemote
 import com.maxrave.domain.data.model.listentogether.LinkedDevice
 import com.maxrave.domain.data.model.listentogether.PairResult
@@ -119,18 +121,32 @@ class DeviceLinkRepositoryImpl(
         scope.launch { dataStore.putString(KEY_LINK, "") }
     }
 
-    override fun remote(action: LinkRemote) =
-        session.remote(
-            when (action) {
-                LinkRemote.Play -> RemoteAction.Play
-                LinkRemote.Pause -> RemoteAction.Pause
-                LinkRemote.Next -> RemoteAction.Next
-                LinkRemote.Previous -> RemoteAction.Previous
-                is LinkRemote.Seek -> RemoteAction.Seek(action.positionMs)
-                is LinkRemote.SetVolume -> RemoteAction.SetVolume(action.volume.coerceIn(0f, 1f).toDouble())
-                is LinkRemote.PlayTrack -> RemoteAction.PlayTrack(action.track.toProtocol())
-            },
-        )
+    override fun remote(
+        action: LinkRemote,
+        to: String?,
+    ) = session.remote(
+        when (action) {
+            LinkRemote.Play -> RemoteAction.Play
+            LinkRemote.Pause -> RemoteAction.Pause
+            LinkRemote.Next -> RemoteAction.Next
+            LinkRemote.Previous -> RemoteAction.Previous
+            is LinkRemote.Seek -> RemoteAction.Seek(action.positionMs)
+            is LinkRemote.SetVolume -> RemoteAction.SetVolume(action.volume.coerceIn(0f, 1f).toDouble())
+            is LinkRemote.PlayTrack -> RemoteAction.PlayTrack(action.track.toProtocol())
+            is LinkRemote.PlayTracks ->
+                RemoteAction.PlayTracks(action.tracks.map { it.toProtocol() }, action.start, action.sourceId, action.sourceName, action.shuffle)
+            is LinkRemote.PlayIndex -> RemoteAction.PlayIndex(action.index, action.id)
+            is LinkRemote.Remove -> RemoteAction.Remove(action.index, action.id)
+            is LinkRemote.Move -> RemoteAction.Move(action.from, action.to)
+            is LinkRemote.PlayNext -> RemoteAction.PlayNext(action.tracks.map { it.toProtocol() }, action.from)
+            is LinkRemote.AddToQueue -> RemoteAction.AddToQueue(action.tracks.map { it.toProtocol() }, action.from)
+            LinkRemote.ClearQueued -> RemoteAction.ClearQueued
+            is LinkRemote.SetShuffle -> RemoteAction.SetShuffle(action.on)
+            is LinkRemote.SetRepeat -> RemoteAction.SetRepeat(action.mode)
+            LinkRemote.TakeOver -> RemoteAction.TakeOver
+        },
+        to,
+    )
 
     override fun continueHere() = bridge.continueHere()
 
@@ -187,6 +203,17 @@ private fun LinkState.toDomain(paired: Boolean): DeviceLink {
         player = devices.firstOrNull { it.id == hostId },
         track = currentTrack?.toRoomTrack(),
         queue = queue.map { it.toRoomTrack() },
+        playerQueue =
+            status?.let { st ->
+                LinkQueue(
+                    items = st.items.map { LinkQueueItem(it.track.toRoomTrack(), it.queued, it.queuedEnd, it.queuedFrom, it.autoplay) },
+                    offset = st.offset,
+                    current = st.current,
+                    shuffle = st.shuffle,
+                    repeat = st.repeat,
+                    source = st.source,
+                )
+            },
         isPlaying = isPlaying,
         positionMs = position,
         // The server's clock is taken to be this device's wall clock, as ServerClock does.

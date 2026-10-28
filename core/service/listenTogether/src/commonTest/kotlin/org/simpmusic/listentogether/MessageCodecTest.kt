@@ -105,6 +105,70 @@ class MessageCodecTest {
             """{"type":"remote","action":{"kind":"set_volume","volume":0.5}}""",
             codec.encode(MessageTypes.REMOTE, RemotePayload(RemoteAction.SetVolume(0.5))),
         )
+        assertEquals(
+            """{"type":"remote","action":{"kind":"take_over"},"to":"$device"}""",
+            codec.encode(MessageTypes.REMOTE, RemotePayload(RemoteAction.TakeOver, to = device)),
+        )
+        // The shapes `remote_actions_roundtrip` pins on the Rust side.
+        assertEquals(
+            """{"type":"remote","action":{"kind":"play_index","index":3,"id":"a"}}""",
+            codec.encode(MessageTypes.REMOTE, RemotePayload(RemoteAction.PlayIndex(3, "a"))),
+        )
+        assertEquals(
+            """{"type":"remote","action":{"kind":"set_shuffle","on":false}}""",
+            codec.encode(MessageTypes.REMOTE, RemotePayload(RemoteAction.SetShuffle(false))),
+        )
+    }
+
+    @Test
+    fun linkStatusLines() {
+        val (type, payload) = codec.decode("""{"type":"link_status","status":{"current":0,"items":[],"offset":0}}""")!!
+        assertEquals(MessageTypes.LINK_STATUS to LinkStatusPayload(LinkStatus()), type to payload)
+
+        // As serde writes a `LinkStatus`, field for field.
+        val status =
+            LinkStatus(
+                items =
+                    listOf(
+                        LinkItem(TrackInfo(id = "dQw4w9WgXcQ", title = "x", artist = "y", thumbnail = "t")),
+                        LinkItem(TrackInfo(id = "a-B_c123456", title = "z", artist = "w", thumbnail = "u"), queued = true, queuedFrom = "Album", autoplay = true),
+                    ),
+                offset = 2,
+                current = 1,
+                shuffle = true,
+                repeat = "all",
+                source = "Mix",
+            )
+        val json = codec.encode(MessageTypes.LINK_STATUS, LinkStatusPayload(status))!!
+        assertEquals(
+            """{"type":"link_status","status":{"items":[{"id":"dQw4w9WgXcQ","title":"x","artist":"y","thumbnail":"t","duration_ms":0},""" +
+                """{"id":"a-B_c123456","title":"z","artist":"w","thumbnail":"u","duration_ms":0,"queued":true,"queued_from":"Album","autoplay":true}],""" +
+                """"offset":2,"current":1,"shuffle":true,"repeat":"all","source":"Mix"}}""",
+            json,
+        )
+        assertEquals(MessageTypes.LINK_STATUS to LinkStatusPayload(status), codec.decode(json))
+    }
+
+    @Test
+    fun everyRemoteActionRoundTrips() {
+        val t = TrackInfo(id = "dQw4w9WgXcQ", title = "x", artist = "y", duration = 1000)
+        listOf(
+            RemoteAction.PlayTracks(listOf(t, t), start = 1, sourceId = "PL1", sourceName = "Mix", shuffle = true),
+            RemoteAction.PlayTracks(listOf(t)),
+            RemoteAction.PlayIndex(3, "a"),
+            RemoteAction.Remove(4, ""),
+            RemoteAction.Move(5, 2),
+            RemoteAction.PlayNext(listOf(t), from = "Album"),
+            RemoteAction.AddToQueue(listOf(t)),
+            RemoteAction.ClearQueued,
+            RemoteAction.SetShuffle(true),
+            RemoteAction.SetRepeat("one"),
+            RemoteAction.TakeOver,
+        ).forEach { a ->
+            val json = codec.encode(MessageTypes.REMOTE, RemotePayload(a))!!
+            val (_, payload) = codec.decode(json.replace("\"type\":\"remote\"", "\"type\":\"remote\",\"from\":\"d\""))!!
+            assertEquals(RemotePayload(a, from = "d"), payload, json)
+        }
     }
 
     @Test
@@ -117,6 +181,7 @@ class MessageCodecTest {
             )!!
         assertEquals(MessageTypes.LINK_JOINED, t1)
         val state = (joined as LinkJoinedPayload).state
+        assertNull(joined.status)
         assertEquals("", state.roomCode)
         assertEquals("fedora", state.users.single().username)
         assertEquals(1f, state.volume)
