@@ -70,6 +70,11 @@ sealed interface LinkEvent {
 
     /** Unlinked from another device. */
     data object Kicked : LinkEvent
+
+    /** A control from another device: for this phone as the player, or [RemoteAction.TakeOver] while it isn't. */
+    data class Remote(
+        val action: RemoteAction,
+    ) : LinkEvent
 }
 
 sealed interface ClaimResult {
@@ -106,6 +111,9 @@ class DeviceLinkSession(
     val events: SharedFlow<LinkEvent> = _events.asSharedFlow()
 
     private var join: JoinLinkPayload? = null
+
+    /** The last queue sent as the player; an unchanged one isn't sent again. */
+    private var sentStatus: LinkStatus? = null
     private var claim: Pair<String, CompletableDeferred<ClaimResult>>? = null
     private var joinDeadline: Job? = null
     private var retry: Job? = null
@@ -189,6 +197,14 @@ class DeviceLinkSession(
     }
 
     /** A control for the player, or for the device [to] names. */
+    /** This phone's queue for the other devices' player views. Sent only while it is the player. */
+    fun publishStatus(status: LinkStatus) {
+        val s = _state.value
+        if (s.connection != LinkConnection.CONNECTED || !s.isPlayer || status == sentStatus) return
+        sentStatus = status
+        scope.launch { client.send(MessageTypes.LINK_STATUS, LinkStatusPayload(status)) }
+    }
+
     fun remote(
         action: RemoteAction,
         to: String? = null,
@@ -262,6 +278,8 @@ class DeviceLinkSession(
             MessageTypes.LINK_JOINED -> {
                 val room = (payload as? LinkJoinedPayload)?.state ?: return
                 joinDeadline?.cancel()
+                // A restarted server has none of ours.
+                sentStatus = null
                 _state.update {
                     it.copy(
                         connection = LinkConnection.CONNECTED,
@@ -300,11 +318,17 @@ class DeviceLinkSession(
             MessageTypes.USER_RECONNECTED -> setOnline((payload as? UserReconnectedPayload)?.userId, true)
             MessageTypes.HOST_CHANGED -> {
                 val id = (payload as? HostChangedPayload)?.newHostId ?: return
-                // The new player's queue follows from it.
+                // The new player's queue follows from it; ours goes out again if we play again.
+                sentStatus = null
                 _state.update { s -> s.copy(hostId = id, users = s.users.map { it.copy(isHost = it.userId == id) }, status = null) }
                 _events.emit(LinkEvent.HostChanged(id))
             }
             MessageTypes.LINK_STATUS -> (payload as? LinkStatusPayload)?.let { p -> _state.update { it.copy(status = p.status) } }
+            MessageTypes.REMOTE -> {
+                val action = (payload as? RemotePayload)?.action ?: return
+                // Take over only while not the player; everything else only while it is.
+                if ((action == RemoteAction.TakeOver) != _state.value.isPlayer) _events.emit(LinkEvent.Remote(action))
+            }
             MessageTypes.SYNC_PLAYBACK -> {
                 val p = payload as? PlaybackActionPayload ?: return
                 _state.update { it.applied(p, client.serverNow() ?: 0L) }

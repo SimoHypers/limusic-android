@@ -6,8 +6,10 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.PlayerEvent
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -27,10 +30,13 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.simpmusic.listentogether.DeviceLinkSession
 import org.simpmusic.listentogether.LinkConnection
 import org.simpmusic.listentogether.LinkEvent
+import org.simpmusic.listentogether.LinkItem
 import org.simpmusic.listentogether.LinkSend
 import org.simpmusic.listentogether.LinkState
+import org.simpmusic.listentogether.LinkStatus
 import org.simpmusic.listentogether.PlaybackActionPayload
 import org.simpmusic.listentogether.PlaybackActions
+import org.simpmusic.listentogether.RemoteAction
 import org.simpmusic.listentogether.TrackInfo
 import kotlin.math.abs
 import kotlin.time.TimeSource
@@ -68,6 +74,7 @@ class DeviceLinkBridge(
         scope.launch { publishTrackChanges() }
         scope.launch { publishPlayPause() }
         scope.launch { publishSeeks() }
+        scope.launch { publishQueue() }
         scope.launch { followRoom() }
     }
 
@@ -188,8 +195,114 @@ class DeviceLinkBridge(
                 // Back in the room while playing: say so, or the room keeps what it last heard.
                 LinkEvent.Joined -> onMain { if (handler.player.isPlaying) changeTrack(true) else null }?.let { session.publish(it) }
                 LinkEvent.Kicked -> Unit
+                is LinkEvent.Remote -> withContext(Dispatchers.Main) { apply(event.action) }
             }
         }
+    }
+
+    /**
+     * This phone's queue for the computer's player view, while this phone plays: on any change to
+     * the queue, the playing row, shuffle or repeat, and when it becomes the player. The session
+     * sends it only while this phone is the player and only when it changed.
+     */
+    private suspend fun publishQueue() {
+        combine(
+            handler.queueData,
+            handler.currentSongIndex,
+            handler.controlState.map { it.isShuffle to it.repeatState }.distinctUntilChanged(),
+            session.state.map { it.isPlayer && it.connection == LinkConnection.CONNECTED }.distinctUntilChanged(),
+        ) { _, _, _, player -> player }
+            .collectLatest { player ->
+                if (!player) return@collectLatest
+                // A queue change comes as a burst (reorder, autoplay top-up): send where it lands.
+                delay(STATUS_SETTLE_MS)
+                onMain { queueStatus() }?.let { session.publishStatus(it) }
+            }
+    }
+
+    /** The queue around the playing row, as the computer's queue panel shows it. Call on the main thread. */
+    private fun queueStatus(): LinkStatus? {
+        val data = handler.queueData.value?.data ?: return null
+        val items = data.listTracks
+        val current = handler.currentOrderIndex()
+        if (current !in items.indices) return null
+        val start = (current - STATUS_HISTORY).coerceAtLeast(0)
+        val end = (current + 1 + STATUS_UPCOMING).coerceAtMost(items.size)
+        val control = handler.controlState.value
+        return LinkStatus(
+            items = items.subList(start, end).map { LinkItem(it.toTrackInfo(), it.queued, it.queuedEnd, it.queuedFrom, it.autoplay) },
+            offset = start,
+            current = current - start,
+            shuffle = control.isShuffle,
+            repeat =
+                when (control.repeatState) {
+                    RepeatState.None -> "off"
+                    RepeatState.All -> "all"
+                    RepeatState.One -> "one"
+                },
+            source = data.playlistName,
+        )
+    }
+
+    /**
+     * A control from the computer, through this phone's own paths: what a tap in the app would do.
+     * The results go back to the computer like any other change.
+     */
+    private suspend fun apply(action: RemoteAction) {
+        when (action) {
+            RemoteAction.Play -> if (!handler.player.playWhenReady) handler.onPlayerEvent(PlayerEvent.PlayPause)
+            RemoteAction.Pause -> if (handler.player.playWhenReady) handler.onPlayerEvent(PlayerEvent.PlayPause)
+            RemoteAction.Next -> handler.onPlayerEvent(PlayerEvent.Next)
+            RemoteAction.Previous -> handler.onPlayerEvent(PlayerEvent.Previous)
+            is RemoteAction.Seek -> handler.player.seekTo(action.positionMs.coerceAtLeast(0L))
+            // The phone's volume is the person holding it's: the computer doesn't set it.
+            is RemoteAction.SetVolume -> Unit
+            is RemoteAction.PlayTrack -> handler.loadMediaItem(action.track.toTrack(), Config.SONG_CLICK)
+            is RemoteAction.PlayTracks -> {
+                val tracks = action.tracks.filter { it.id.isNotBlank() }.map { it.toTrack() }
+                val start = action.start?.coerceIn(0, tracks.lastIndex.coerceAtLeast(0)) ?: 0
+                val first = tracks.getOrNull(start) ?: return
+                handler.setQueueData(
+                    QueueData.Data(
+                        listTracks = tracks,
+                        firstPlayedTrack = first,
+                        playlistId = action.sourceId,
+                        playlistName = action.sourceName,
+                        playlistType = PlaylistType.PLAYLIST,
+                        shuffle = action.shuffle,
+                    ),
+                )
+                handler.loadMediaItem(first, Config.PLAYLIST_CLICK, start)
+            }
+            is RemoteAction.PlayIndex -> row(action.index, action.id)?.let { handler.playMediaItemInMediaSource(it) }
+            is RemoteAction.Remove -> row(action.index, action.id)?.let { handler.removeMediaItem(it) }
+            is RemoteAction.Move -> handler.moveInQueue(action.from, action.to)
+            is RemoteAction.PlayNext -> handler.playNext(action.tracks.map { it.toTrack() }, action.from)
+            is RemoteAction.AddToQueue -> handler.addToQueue(action.tracks.map { it.toTrack() }, action.from)
+            RemoteAction.ClearQueued -> handler.clearQueued()
+            is RemoteAction.SetShuffle -> if (handler.controlState.value.isShuffle != action.on) handler.onPlayerEvent(PlayerEvent.Shuffle)
+            is RemoteAction.SetRepeat -> {
+                val wanted =
+                    when (action.mode) {
+                        "all" -> RepeatState.All
+                        "one" -> RepeatState.One
+                        else -> RepeatState.None
+                    }
+                // The toggle runs off, all, one: at most two presses reach any of them.
+                repeat(2) { if (handler.controlState.value.repeatState != wanted) handler.onPlayerEvent(PlayerEvent.Repeat) }
+            }
+            RemoteAction.TakeOver -> continueHere()
+        }
+    }
+
+    /** A queue row the computer named: [index] if it still holds [id], else the row that does. */
+    private fun row(
+        index: Int,
+        id: String,
+    ): Int? {
+        val items = handler.queueData.value?.data?.listTracks.orEmpty()
+        if (items.getOrNull(index)?.videoId == id) return index
+        return items.indexOfFirst { it.videoId == id }.takeIf { it >= 0 }
     }
 
     /** What plays now and up to 50 upcoming tracks. Call on the main thread. */
@@ -251,6 +364,11 @@ class DeviceLinkBridge(
     private companion object {
         val PROCESS_START = TimeSource.Monotonic.markNow()
         const val MAX_UPCOMING = 50
+
+        /** The queue window the computer gets: 20 back, 100 ahead, as the computer sends its own. */
+        const val STATUS_HISTORY = 20
+        const val STATUS_UPCOMING = 100
+        const val STATUS_SETTLE_MS = 300L
         const val POLL_MS = 100L
         const val AUDIBLE_WAIT_MS = 10_000L
         const val HANDOFF_WAIT_MS = 15_000L
