@@ -38,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -55,9 +57,11 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.data.player.AudioOutputKind
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.lengthLabel
@@ -68,6 +72,7 @@ import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Fullscreen
+import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
@@ -79,6 +84,7 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.SkipPrevious
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
 import com.maxrave.simpmusic.ui.theme.LocalArtworkColors
 import com.maxrave.simpmusic.ui.theme.typo
@@ -96,12 +102,14 @@ import simpmusic.composeapp.generated.resources.yes
 private val ArtworkShape = RoundedCornerShape(16.dp)
 private val TonalShape = RoundedCornerShape(16.dp)
 private val SmallShape = RoundedCornerShape(12.dp)
+private val FROST_BLUR = 80.dp
+private const val FROST_DECODE_PX = 256
 
 /**
  * The Classic full player, the default: a large cover with the current lyric line under it, title
  * and artist with share / like / more, the wavy seek bar, a row of rounded transport buttons, and
- * Queue / sleep timer / Lyrics at the bottom. Colours come from the cover (the M3 Expressive
- * style's artwork scheme) over the artwork-tinted ground.
+ * Queue / sleep timer / Lyrics at the bottom, the audio output top right. Colours come from the cover (the M3
+ * Expressive style's artwork scheme) over the cover itself, frosted.
  */
 @Composable
 fun NowPlayingContentLimusic(
@@ -124,19 +132,9 @@ private fun ClassicLayout(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    val background = MaterialTheme.colorScheme.background
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(background)
-            .background(
-                Brush.verticalGradient(
-                    0f to state.startColor.value.copy(alpha = 0.55f),
-                    0.75f to background,
-                ),
-            ),
-    ) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        FrostedCover(state)
         Column(
             Modifier
                 .fillMaxSize()
@@ -193,6 +191,39 @@ private fun ClassicLayout(
     }
 }
 
+/** The playing cover blurred over the whole page, under a wash of the theme background so text stays readable. */
+@Composable
+private fun FrostedCover(state: NowPlayingContentState) {
+    val background = MaterialTheme.colorScheme.background
+    // Modifier.blur does nothing before Android 12; the cover-coloured gradient stands in there.
+    if (!isLyricsBlurSupported()) {
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to state.startColor.value.copy(alpha = 0.55f), 0.75f to background)))
+        return
+    }
+    Crossfade(targetState = state.screenData.thumbnailURL, animationSpec = tween(600), label = "classicFrostedCover") { thumbnail ->
+        var url by remember(thumbnail) { mutableStateOf(thumbnail) }
+        AsyncImage(
+            model =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(url)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    // Blurred this hard, a small decode looks the same and spares a full-screen bitmap.
+                    .size(FROST_DECODE_PX)
+                    .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            onError = {
+                val fallback = url?.replace("maxresdefault", "hqdefault")
+                if (fallback != null && fallback != url) url = fallback
+            },
+            modifier = Modifier.fillMaxSize().blur(FROST_BLUR, BlurredEdgeTreatment.Rectangle),
+        )
+    }
+    // ponytail: wash strengths picked by eye on a dark theme; tune here if covers show through too much.
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to background.copy(alpha = 0.5f), 1f to background.copy(alpha = 0.75f))))
+}
+
 @Composable
 private fun TopRow(
     state: NowPlayingContentState,
@@ -217,8 +248,26 @@ private fun TopRow(
                 modifier = Modifier.basicMarquee(),
             )
         }
-        // Balances the chevron so the title sits in the true centre.
-        Spacer(Modifier.width(48.dp))
+        OutputButton(state)
+    }
+}
+
+/** Where the sound goes, lit while it isn't the phone's own speaker. */
+@Composable
+private fun OutputButton(state: NowPlayingContentState) {
+    val outputs by koinInject<MediaPlayerHandler>().player.audioOutputs.collectAsStateWithLifecycle()
+    val active = outputs.firstOrNull { it.isActive }
+    val away = state.castState.isRemote || (active != null && active.kind != AudioOutputKind.DEVICE_SPEAKER)
+    var choosing by remember { mutableStateOf(false) }
+    IconButton(onClick = { choosing = true }) {
+        Icon(
+            SimpIcons.Headphones,
+            contentDescription = null,
+            tint = if (away) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+        )
+    }
+    if (choosing) {
+        AudioOutputSheetHost(castState = state.castState, onDismiss = { choosing = false })
     }
 }
 

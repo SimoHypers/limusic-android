@@ -48,7 +48,6 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.rememberCastReceivers
-import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.SurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
@@ -74,7 +73,8 @@ import simpmusic.composeapp.generated.resources.audio_output_wired
 
 /**
  * [AppleMusicOutputSheet] wired straight to the player, for the Now Playing styles that only need
- * the output list inside the sheet (Classic and M3 Expressive open it from their headphones button).
+ * the output list inside the sheet (Classic opens it from its headphones button). No volume row:
+ * the owner doesn't want a volume slider in the app.
  */
 @Composable
 internal fun AudioOutputSheetHost(
@@ -86,7 +86,7 @@ internal fun AudioOutputSheetHost(
     AppleMusicOutputSheet(
         outputs = audioOutputs,
         castState = castState,
-        deviceVolumeController = rememberDeviceVolumeController(),
+        deviceVolumeController = null,
         onSelectOutput = { output -> player.selectAudioOutput(output.id) },
         onRefresh = { player.refreshAudioOutputs() },
         onDismiss = onDismiss,
