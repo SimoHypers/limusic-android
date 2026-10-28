@@ -51,6 +51,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.media3.R
 import com.maxrave.media3.extension.toMediaItem
+import com.maxrave.media3.service.LinkSessionPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -115,6 +116,9 @@ internal class SimpleMediaSessionCallback(
         playerCommand: Int,
     ): Int {
         Logger.d(TAG, "Player Command $playerCommand")
+        // The computer's remote takes next and previous itself (LinkSessionPlayer); also sending
+        // them through the handler skipped two songs on the computer.
+        if (session.player is LinkSessionPlayer) return super.onPlayerCommandRequest(session, controller, playerCommand)
         scope.launch {
             when (playerCommand) {
                 COMMAND_SEEK_TO_NEXT -> {

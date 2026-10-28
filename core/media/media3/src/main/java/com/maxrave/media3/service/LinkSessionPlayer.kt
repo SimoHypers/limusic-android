@@ -2,6 +2,7 @@ package com.maxrave.media3.service
 
 import android.net.Uri
 import android.os.Looper
+import android.os.SystemClock
 import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
@@ -15,6 +16,7 @@ import com.maxrave.domain.data.model.listentogether.DeviceLink
 import com.maxrave.domain.data.model.listentogether.LinkRemote
 import com.maxrave.domain.data.model.listentogether.RoomTrack
 import com.maxrave.domain.repository.DeviceLinkRepository
+import com.maxrave.logger.Logger
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -36,20 +38,33 @@ internal class LinkSessionPlayer(
 ) : SimpleBasePlayer(looper) {
     private var link = DeviceLink()
     private var sentPlaying: Boolean? = null
+
+    /**
+     * The volume last sent and when. It stands until the computer reports that very value, or
+     * [VOLUME_SETTLE_MS] passes: a report for an earlier key press must not pull the next press
+     * back to an old level.
+     */
     private var sentVolume: Int? = null
+    private var sentVolumeAt = 0L
     private var volumeBeforeMute = VOLUME_MAX / 2
 
     /** On the main thread, with every link change. */
     fun update(next: DeviceLink) {
         if (next.updatedAtMs != link.updatedAtMs) sentPlaying = null
-        if (next.volume != link.volume) sentVolume = null
+        val reported = next.reportedVolume()
+        if (reported == sentVolume) sentVolume = null
+        if (next.volume != link.volume) Logger.d(TAG, "volume reported $reported, sent $sentVolume")
         link = next
         invalidateState()
     }
 
+    private fun DeviceLink.reportedVolume() = (volume * VOLUME_MAX).roundToInt()
+
+    private fun shownVolume(): Int = sentVolume?.takeIf { SystemClock.elapsedRealtime() - sentVolumeAt < VOLUME_SETTLE_MS } ?: link.reportedVolume()
+
     override fun getState(): State {
         val (rows, current) = rows()
-        val volume = sentVolume ?: (link.volume * VOLUME_MAX).roundToInt()
+        val volume = shownVolume()
         val playing = sentPlaying ?: link.isPlaying
         val position = link.livePositionMs(Clock.System.now().toEpochMilliseconds())
         val device = link.player?.name.orEmpty()
@@ -119,18 +134,20 @@ internal class LinkSessionPlayer(
         val v = deviceVolume.coerceIn(0, VOLUME_MAX)
         deviceLink.remote(LinkRemote.SetVolume(v / VOLUME_MAX.toFloat()))
         sentVolume = v
+        sentVolumeAt = SystemClock.elapsedRealtime()
+        Logger.d(TAG, "volume sent $v")
         return Futures.immediateVoidFuture()
     }
 
-    override fun handleIncreaseDeviceVolume(flags: Int): ListenableFuture<*> = handleSetDeviceVolume(deviceVolume + VOLUME_STEP, flags)
+    override fun handleIncreaseDeviceVolume(flags: Int): ListenableFuture<*> = handleSetDeviceVolume(shownVolume() + VOLUME_STEP, flags)
 
-    override fun handleDecreaseDeviceVolume(flags: Int): ListenableFuture<*> = handleSetDeviceVolume(deviceVolume - VOLUME_STEP, flags)
+    override fun handleDecreaseDeviceVolume(flags: Int): ListenableFuture<*> = handleSetDeviceVolume(shownVolume() - VOLUME_STEP, flags)
 
     override fun handleSetDeviceMuted(
         muted: Boolean,
         flags: Int,
     ): ListenableFuture<*> {
-        if (muted) volumeBeforeMute = deviceVolume.takeIf { it > 0 } ?: volumeBeforeMute
+        if (muted) volumeBeforeMute = shownVolume().takeIf { it > 0 } ?: volumeBeforeMute
         return handleSetDeviceVolume(if (muted) 0 else volumeBeforeMute, flags)
     }
 
@@ -161,7 +178,11 @@ internal class LinkSessionPlayer(
         }
 
     private companion object {
+        const val TAG = "LinkSessionPlayer"
         const val VOLUME_MAX = 100
+
+        /** How long a sent volume waits for the computer to report it. */
+        const val VOLUME_SETTLE_MS = 1_500L
 
         /** A volume key press moves the computer's volume this much, about the phone's own step. */
         const val VOLUME_STEP = 5
