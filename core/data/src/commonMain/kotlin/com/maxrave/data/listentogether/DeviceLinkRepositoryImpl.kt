@@ -77,8 +77,10 @@ class DeviceLinkRepositoryImpl(
 
     init {
         scope.launch {
-            combine(stored, foreground, handler.controlState.map { it.isPlaying }) { s, inFront, playing ->
-                s.takeIf { inFront || playing }
+            // Controlling the computer counts as playing: the notification is its remote, and it
+            // keeps working with the app in the background.
+            combine(stored, foreground, handler.controlState.map { it.isPlaying }, link.map { it.controlling }) { s, inFront, playing, controlling ->
+                s.takeIf { inFront || playing || controlling }
             }.distinctUntilChanged()
                 .collectLatest { wanted ->
                     if (wanted != null) {
