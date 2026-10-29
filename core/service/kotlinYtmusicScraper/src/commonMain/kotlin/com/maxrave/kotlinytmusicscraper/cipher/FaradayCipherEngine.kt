@@ -11,8 +11,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
 
 /**
- * Solves YouTube's signature and `n` challenges locally, using the remote player table published at
- * [PLAYER_CONFIG_URL].
+ * Solves YouTube's signature and `n` challenges locally, using the remote player tables published at
+ * [PLAYER_CONFIG_URLS].
  *
  * The table does NOT contain decoded signatures — it only names the function and class inside
  * YouTube's own player JS that perform the work. The player script is still downloaded and executed
@@ -44,8 +44,8 @@ class FaradayCipherEngine(
         val nParameters: Map<String, String>,
     )
 
-    private val repository = InMemoryPlayerConfigRepository(PLAYER_CONFIG_URL)
-    private val store = RemotePlayerConfigStore(httpClient, repository, logger)
+    private val stores =
+        PLAYER_CONFIG_URLS.map { RemotePlayerConfigStore(httpClient, InMemoryPlayerConfigRepository(it), logger) }
 
     /**
      * Serialises every public entry point.
@@ -79,8 +79,21 @@ class FaradayCipherEngine(
 
     private suspend fun playerInfoLocked(): PlayerInfo? {
         val playerId = currentPlayerId() ?: return null
-        val timestamp = store.getSignatureTimestamp(playerUrlFor(playerId)) ?: return null
+        val timestamp = configFor(playerId)?.signatureTimestamp ?: return null
         return PlayerInfo(playerId, timestamp)
+    }
+
+    /**
+     * [playerId]'s entry from the first table that lists it. When none does, each table is fetched
+     * again before giving up (at most once per five minutes, inside the store): a rotation is listed
+     * within hours, and the six-hour refresh alone would leave every signature unsolved meanwhile.
+     */
+    private suspend fun configFor(playerId: String): RemotePlayerConfigParser.HardcodedPlayerConfig? {
+        val playerUrl = playerUrlFor(playerId)
+        stores.firstNotNullOfOrNull { it.getConfig(playerUrl) }?.let { return it }
+        stores.forEach { it.forceRefresh(missingHash = playerId) }
+        return stores.firstNotNullOfOrNull { it.getConfig(playerUrl) }
+            ?: null.also { logger.w(TAG, "player not in any table", details = mapOf("player" to playerId)) }
     }
 
     /**
@@ -132,7 +145,7 @@ class FaradayCipherEngine(
             cachedSolver?.solver?.dispose()
             cachedSolver = null
         }
-        runCatching { store.refreshAfterStreamRejection() }
+        stores.forEach { runCatching { it.refreshAfterStreamRejection() } }
     }
 
     private suspend fun currentPlayerId(): String? {
@@ -180,18 +193,9 @@ class FaradayCipherEngine(
     private suspend fun solverFor(playerId: String): ZemerCipherSolver? {
         if (!PLAYER_ID_REGEX.matches(playerId)) return null
         val playerUrl = playerUrlFor(playerId)
+        val config = configFor(playerId) ?: return null
 
-        var config = store.getConfig(playerUrl)
-        if (config == null) {
-            store.forceRefresh(missingHash = playerId)
-            config = store.getConfig(playerUrl)
-        }
-        if (config == null) {
-            logger.d(TAG, "player not in remote table", details = mapOf("player" to playerId))
-            return null
-        }
-
-        val epoch = store.configEpoch
+        val epoch = stores.sumOf { it.configEpoch }
         mutex.withLock {
             cachedSolver
                 ?.takeIf { it.playerId == playerId && it.configEpoch == epoch }
@@ -246,14 +250,19 @@ class FaradayCipherEngine(
         private const val TAG = "FaradayCipherEngine"
 
         /**
-         * The published player table.
+         * The published player tables, asked in this order: Metrolist's Faraday, then Zemer's, the
+         * two desktop Limusic merges. SimpMusic's own copy was dropped on 2026-10-30, a day after
+         * YouTube's 89742f12 rotation, which both of these listed and it still did not.
          *
-         * Both gates inside [RemotePlayerConfigStore] have to accept this URL: it must end in
-         * `/player_configs.json`, and its path must sit under the repository the store whitelists.
+         * Both gates inside [RemotePlayerConfigStore] have to accept each URL: it must end in
+         * `/player_configs.json`, and its path must sit under a repository the store whitelists.
          * A URL that fails either gate makes the store return null with no error anywhere.
          */
-        const val PLAYER_CONFIG_URL: String =
-            "https://raw.githubusercontent.com/maxrave-dev/simpmusic-files/main/registry/player_configs.json"
+        val PLAYER_CONFIG_URLS =
+            listOf(
+                "https://raw.githubusercontent.com/MetrolistGroup/faraday/master/registry/player_configs.json",
+                "https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json",
+            )
 
         private const val IFRAME_API_URL = "https://www.youtube.com/iframe_api"
         private const val USER_AGENT = "okhttp/5.4.0"
