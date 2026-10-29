@@ -9,6 +9,8 @@ data class DeviceLink(
     /** This phone's name, as the other devices list it. */
     val selfName: String = "",
     val connection: LinkConnection = LinkConnection.Off,
+    /** Just dropped and coming back: the rest is the last state heard, still good for a few seconds. */
+    val reconnecting: Boolean = false,
     /** The other linked devices. */
     val devices: List<LinkedDevice> = emptyList(),
     /** Another device that is playing or played last, or null when this phone is the player. */
@@ -53,6 +55,8 @@ data class LinkQueue(
     val repeat: String,
     /** The playlist or album it plays from. */
     val source: String?,
+    /** Its Autoplay setting, when it says. */
+    val autoplay: Boolean?,
 )
 
 data class LinkQueueItem(
@@ -142,6 +146,11 @@ sealed interface LinkRemote {
     /** "off" | "all" | "one" */
     data class SetRepeat(
         val mode: String,
+    ) : LinkRemote
+
+    /** The playing device's own Autoplay setting. */
+    data class SetAutoplay(
+        val on: Boolean,
     ) : LinkRemote
 
     /** Sent to a device that isn't playing: it plays what the player plays (this phone's music, to the computer). */

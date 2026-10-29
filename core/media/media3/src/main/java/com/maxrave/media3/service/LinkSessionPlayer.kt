@@ -84,6 +84,13 @@ internal class LinkSessionPlayer(
             .setPlaybackState(if (rows.isEmpty()) Player.STATE_IDLE else Player.STATE_READY)
             .setPlayWhenReady(playing, Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE)
             .setContentPositionMs(if (playing) PositionSupplier.getExtrapolating(position, 1f) else PositionSupplier.getConstant(position))
+            .setRepeatMode(
+                when (link.playerQueue?.repeat) {
+                    "one" -> Player.REPEAT_MODE_ONE
+                    "all" -> Player.REPEAT_MODE_ALL
+                    else -> Player.REPEAT_MODE_OFF
+                },
+            ).setShuffleModeEnabled(link.playerQueue?.shuffle == true)
             .setDeviceInfo(DEVICE)
             .setDeviceVolume(volume)
             .setIsDeviceMuted(volume == 0)
@@ -104,6 +111,22 @@ internal class LinkSessionPlayer(
     }
 
     override fun handleStop(): ListenableFuture<*> = handleSetPlayWhenReady(false)
+
+    override fun handleSetRepeatMode(repeatMode: @Player.RepeatMode Int): ListenableFuture<*> {
+        val mode =
+            when (repeatMode) {
+                Player.REPEAT_MODE_ONE -> "one"
+                Player.REPEAT_MODE_ALL -> "all"
+                else -> "off"
+            }
+        deviceLink.remote(LinkRemote.SetRepeat(mode))
+        return Futures.immediateVoidFuture()
+    }
+
+    override fun handleSetShuffleModeEnabled(shuffleModeEnabled: Boolean): ListenableFuture<*> {
+        deviceLink.remote(LinkRemote.SetShuffle(shuffleModeEnabled))
+        return Futures.immediateVoidFuture()
+    }
 
     override fun handleSeek(
         mediaItemIndex: Int,
@@ -195,6 +218,8 @@ internal class LinkSessionPlayer(
                 .addAll(
                     Player.COMMAND_PLAY_PAUSE,
                     Player.COMMAND_STOP,
+                    Player.COMMAND_SET_REPEAT_MODE,
+                    Player.COMMAND_SET_SHUFFLE_MODE,
                     Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
                     Player.COMMAND_SEEK_TO_NEXT,
                     Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,

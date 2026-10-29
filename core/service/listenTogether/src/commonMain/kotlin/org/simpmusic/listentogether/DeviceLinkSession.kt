@@ -55,6 +55,11 @@ data class LinkState(
     val queue: List<TrackInfo> = emptyList(),
     /** The player's queue, shuffle and repeat, when another device plays and has sent them. */
     val status: LinkStatus? = null,
+    /**
+     * The socket dropped moments ago and is coming back: the room above is the last one heard, still
+     * shown for up to [RECONNECT_GRACE] so a blip on mobile data doesn't flip the player view.
+     */
+    val reconnecting: Boolean = false,
     val error: String? = null,
 ) {
     val isPlayer: Boolean get() = hostId.isNotEmpty() && hostId == selfId
@@ -117,6 +122,7 @@ class DeviceLinkSession(
     private var claim: Pair<String, CompletableDeferred<ClaimResult>>? = null
     private var joinDeadline: Job? = null
     private var retry: Job? = null
+    private var grace: Job? = null
 
     init {
         scope.launch { client.events.collect { onEvent(it) } }
@@ -141,6 +147,7 @@ class DeviceLinkSession(
     /** Close the socket. The room keeps us listed as offline. */
     fun close() {
         join = null
+        grace?.cancel()
         retry?.cancel()
         joinDeadline?.cancel()
         client.disconnect()
@@ -254,7 +261,14 @@ class DeviceLinkSession(
             }
             is ListenTogetherEvent.Disconnected -> {
                 if (join == null) return
-                _state.update { it.copy(connection = LinkConnection.CONNECTING) }
+                _state.update { it.copy(connection = LinkConnection.CONNECTING, reconnecting = it.connection == LinkConnection.CONNECTED || it.reconnecting) }
+                if (grace?.isActive != true) {
+                    grace =
+                        scope.launch {
+                            delay(RECONNECT_GRACE)
+                            _state.update { it.copy(reconnecting = false) }
+                        }
+                }
                 // The client gives up after a few attempts; the link is the user's devices, so it
                 // tries again later for as long as it is wanted.
                 if (!event.willRetry) {
@@ -292,9 +306,11 @@ class DeviceLinkSession(
                         volume = room.volume,
                         queue = room.queue,
                         status = (payload as LinkJoinedPayload).status,
+                        reconnecting = false,
                         error = null,
                     )
                 }
+                grace?.cancel()
                 _events.emit(LinkEvent.Joined)
             }
             MessageTypes.PAIRED -> (payload as? PairedPayload)?.let { claim?.second?.complete(ClaimResult.Paired(it.secret)) }
@@ -365,6 +381,7 @@ class DeviceLinkSession(
         /** Connecting plus [REPLY_TIMEOUT]. */
         val CLAIM_TIMEOUT = 10.seconds
         val RETRY_AFTER = 30.seconds
+        val RECONNECT_GRACE = 10.seconds
     }
 }
 

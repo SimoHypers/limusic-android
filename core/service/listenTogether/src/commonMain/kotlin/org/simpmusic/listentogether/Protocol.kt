@@ -339,6 +339,8 @@ data class LinkStatus(
     /** "off" | "all" | "one" */
     val repeat: String = "off",
     val source: String? = null,
+    /** The player's Autoplay setting; null from a player that predates it. */
+    val autoplay: Boolean? = null,
 )
 
 /** A queue row with the marks the queue view draws. */
@@ -444,6 +446,11 @@ sealed interface RemoteAction {
     /** "off" | "all" | "one" */
     data class SetRepeat(
         val mode: String,
+    ) : RemoteAction
+
+    /** The player's own Autoplay setting. */
+    data class SetAutoplay(
+        val on: Boolean,
     ) : RemoteAction
 
     /** To a device that isn't playing: play what the player plays, from where it is now. */

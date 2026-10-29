@@ -138,12 +138,13 @@ class MessageCodecTest {
                 shuffle = true,
                 repeat = "all",
                 source = "Mix",
+                autoplay = true,
             )
         val json = codec.encode(MessageTypes.LINK_STATUS, LinkStatusPayload(status))!!
         assertEquals(
             """{"type":"link_status","status":{"items":[{"id":"dQw4w9WgXcQ","title":"x","artist":"y","thumbnail":"t","duration_ms":0},""" +
                 """{"id":"a-B_c123456","title":"z","artist":"w","thumbnail":"u","duration_ms":0,"queued":true,"queued_from":"Album","autoplay":true}],""" +
-                """"offset":2,"current":1,"shuffle":true,"repeat":"all","source":"Mix"}}""",
+                """"offset":2,"current":1,"shuffle":true,"repeat":"all","source":"Mix","autoplay":true}}""",
             json,
         )
         assertEquals(MessageTypes.LINK_STATUS to LinkStatusPayload(status), codec.decode(json))
@@ -163,6 +164,7 @@ class MessageCodecTest {
             RemoteAction.ClearQueued,
             RemoteAction.SetShuffle(true),
             RemoteAction.SetRepeat("one"),
+            RemoteAction.SetAutoplay(false),
             RemoteAction.TakeOver,
         ).forEach { a ->
             val json = codec.encode(MessageTypes.REMOTE, RemotePayload(a))!!

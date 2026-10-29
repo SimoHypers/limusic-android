@@ -148,6 +148,7 @@ class DeviceLinkRepositoryImpl(
             LinkRemote.ClearQueued -> RemoteAction.ClearQueued
             is LinkRemote.SetShuffle -> RemoteAction.SetShuffle(action.on)
             is LinkRemote.SetRepeat -> RemoteAction.SetRepeat(action.mode)
+            is LinkRemote.SetAutoplay -> RemoteAction.SetAutoplay(action.on)
             LinkRemote.TakeOver -> RemoteAction.TakeOver
         },
         to,
@@ -182,7 +183,7 @@ class DeviceLinkRepositoryImpl(
  */
 @OptIn(ExperimentalTime::class)
 private fun DeviceLink.isRemoteFor(busyHere: Boolean): Boolean {
-    if (busyHere || !paired || connection != DomainConnection.Connected) return false
+    if (busyHere || !paired || (connection != DomainConnection.Connected && !reconnecting)) return false
     if (player?.online != true || track == null) return false
     return isPlaying || Clock.System.now().toEpochMilliseconds() - updatedAtMs < STALE_PAUSE_MS
 }
@@ -212,6 +213,7 @@ private fun LinkState.toDomain(paired: Boolean): DeviceLink {
                 LinkConnection.CONNECTED -> DomainConnection.Connected
                 LinkConnection.UNSUPPORTED -> DomainConnection.Unsupported
             },
+        reconnecting = reconnecting,
         devices = devices,
         player = devices.firstOrNull { it.id == hostId },
         track = currentTrack?.toRoomTrack(),
@@ -225,6 +227,7 @@ private fun LinkState.toDomain(paired: Boolean): DeviceLink {
                     shuffle = st.shuffle,
                     repeat = st.repeat,
                     source = st.source,
+                    autoplay = st.autoplay,
                 )
             },
         isPlaying = isPlaying,

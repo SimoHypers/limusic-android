@@ -24,11 +24,13 @@ import com.maxrave.media3.R
 import com.maxrave.media3.extension.toCommandButton
 import com.maxrave.media3.utils.CoilBitmapLoader
 import com.maxrave.media3.utils.sizeLimitedForSession
+import com.maxrave.domain.data.player.GenericCommandButton
 import com.maxrave.domain.repository.DeviceLinkRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
@@ -53,6 +55,11 @@ internal class SimpleMediaService :
 
     private val deviceLink: DeviceLinkRepository by inject<DeviceLinkRepository>()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    // The phone's own player's buttons, kept for when the session is its again.
+    private var localButtons: List<GenericCommandButton> = emptyList()
+    private var shownButtons: List<GenericCommandButton>? = null
+    private var controlling = false
 
     /** The session's player while this phone controls a linked computer (see [LinkSessionPlayer]). */
     private val linkPlayer by lazy { LinkSessionPlayer(mainLooper, deviceLink) { getString(R.string.link_playing_on, it) } }
@@ -109,33 +116,46 @@ internal class SimpleMediaService :
         }
 
         simpleMediaServiceHandler.onUpdateNotification = { list ->
-            val commandButtonList = list.map { it.toCommandButton(this) }
-            mediaSession?.setMediaButtonPreferences(
-                commandButtonList,
-            )
+            localButtons = list
+            if (!controlling) showButtons(list)
         }
 
         // Spotify Connect style: while the computer plays for this phone, the notification, lock
         // screen, headset buttons and volume keys are its remote. Swapping the session's player is
         // all it takes; the local player stays as it was, paused.
         serviceScope.launch {
-            deviceLink.link.collect { link ->
+            // The app's handler is the remote-aware one: while remote, its like, shuffle and
+            // repeat are the computer's.
+            combine(deviceLink.link, simpleMediaServiceHandler.controlState) { link, control -> link to control }.collect { (link, control) ->
                 linkPlayer.update(link)
+                controlling = link.controlling
                 val wanted = if (link.controlling) linkPlayer else player
                 mediaSession?.let { if (it.player !== wanted) it.player = wanted }
+                // No Radio while remote: it would start one on this phone.
+                showButtons(
+                    if (link.controlling) {
+                        listOf(
+                            GenericCommandButton.Like(control.isLiked),
+                            GenericCommandButton.Shuffle(isShuffled = control.isShuffle),
+                            GenericCommandButton.Repeat(repeatState = control.repeatState),
+                        )
+                    } else {
+                        localButtons
+                    },
+                )
             }
         }
 
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
+    }
 
-        simpleMediaServiceHandler.onUpdateNotification = { list ->
-            val commandButtonList = list.map { it.toCommandButton(this) }
-            mediaSession?.setMediaButtonPreferences(
-                commandButtonList,
-            )
-        }
+    /** The notification's own buttons (like, shuffle, repeat, radio), when they changed. */
+    private fun showButtons(list: List<GenericCommandButton>) {
+        if (list == shownButtons) return
+        shownButtons = list
+        mediaSession?.setMediaButtonPreferences(list.map { it.toCommandButton(this) })
     }
 
     @UnstableApi

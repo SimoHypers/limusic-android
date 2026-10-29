@@ -74,7 +74,9 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.data.model.listentogether.LinkRemote
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.repository.DeviceLinkRepository
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.queue.queueView
 import com.maxrave.domain.utils.toSongEntity
@@ -206,7 +208,12 @@ internal fun QueueTopBar(
     val colors = rememberSurfaceDarkColors()
     val queueData by musicServiceHandler.queueData.collectAsStateWithLifecycle()
     val current by musicServiceHandler.currentSongIndex.collectAsStateWithLifecycle()
-    val autoplay by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsStateWithLifecycle(true)
+    val ownAutoplay by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsStateWithLifecycle(true)
+    // The switch is the playing device's: the computer's own while this phone controls it.
+    val deviceLink = koinInject<DeviceLinkRepository>()
+    val link by deviceLink.link.collectAsStateWithLifecycle()
+    val remoteAutoplay = link.playerQueue?.autoplay?.takeIf { link.controlling }
+    val autoplay = remoteAutoplay ?: ownAutoplay
     val items = queueData?.data?.listTracks.orEmpty()
     val view = remember(items, current) { queueView(items, current) }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(start = 4.dp, end = 8.dp)) {
@@ -225,7 +232,9 @@ internal fun QueueTopBar(
             Text(stringResource(Res.string.endless_queue), style = typo().labelSmall, color = colors.subtitle)
             Switch(
                 checked = autoplay,
-                onCheckedChange = { on -> scope.launch { dataStoreManager.setEndlessQueue(on) } },
+                onCheckedChange = { on ->
+                    if (remoteAutoplay != null) deviceLink.remote(LinkRemote.SetAutoplay(on)) else scope.launch { dataStoreManager.setEndlessQueue(on) }
+                },
                 modifier = Modifier.scale(0.75f),
             )
         }

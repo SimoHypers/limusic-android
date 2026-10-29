@@ -67,6 +67,7 @@ val listenTogetherModule =
             DeviceLinkBridge(
                 session = get(),
                 handler = get(LOCAL_PLAYER_HANDLER),
+                dataStore = get(),
                 scope = get<CoroutineScope>(named(Config.SERVICE_SCOPE)),
             ).also { it.start() }
         }

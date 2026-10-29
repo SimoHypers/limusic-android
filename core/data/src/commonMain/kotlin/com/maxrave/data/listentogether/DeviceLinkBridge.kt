@@ -5,6 +5,7 @@ import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.PlayerEvent
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -59,6 +60,7 @@ private const val TAG = "DeviceLinkBridge"
 class DeviceLinkBridge(
     private val session: DeviceLinkSession,
     private val handler: MediaPlayerHandler,
+    private val dataStore: DataStoreManager,
     private val scope: CoroutineScope,
 ) {
     private var started = false
@@ -210,18 +212,20 @@ class DeviceLinkBridge(
             handler.queueData,
             handler.currentSongIndex,
             handler.controlState.map { it.isShuffle to it.repeatState }.distinctUntilChanged(),
+            dataStore.endlessQueue.distinctUntilChanged(),
             session.state.map { it.isPlayer && it.connection == LinkConnection.CONNECTED }.distinctUntilChanged(),
-        ) { _, _, _, player -> player }
+        ) { _, _, _, _, player -> player }
             .collectLatest { player ->
                 if (!player) return@collectLatest
                 // A queue change comes as a burst (reorder, autoplay top-up): send where it lands.
                 delay(STATUS_SETTLE_MS)
-                onMain { queueStatus() }?.let { session.publishStatus(it) }
+                val autoplay = dataStore.endlessQueue.first() == DataStoreManager.TRUE
+                onMain { queueStatus(autoplay) }?.let { session.publishStatus(it) }
             }
     }
 
     /** The queue around the playing row, as the computer's queue panel shows it. Call on the main thread. */
-    private fun queueStatus(): LinkStatus? {
+    private fun queueStatus(autoplay: Boolean): LinkStatus? {
         val data = handler.queueData.value?.data ?: return null
         val items = data.listTracks
         val current = handler.currentOrderIndex()
@@ -241,6 +245,7 @@ class DeviceLinkBridge(
                     RepeatState.One -> "one"
                 },
             source = data.playlistName,
+            autoplay = autoplay,
         )
     }
 
@@ -291,6 +296,8 @@ class DeviceLinkBridge(
                 // The toggle runs off, all, one: at most two presses reach any of them.
                 repeat(2) { if (handler.controlState.value.repeatState != wanted) handler.onPlayerEvent(PlayerEvent.Repeat) }
             }
+            // The handler follows the setting: on tops the queue up, off drops autoplay's rows.
+            is RemoteAction.SetAutoplay -> dataStore.setEndlessQueue(action.on)
             RemoteAction.TakeOver -> continueHere()
         }
     }

@@ -265,6 +265,10 @@ internal class MessageCodec {
                     put("kind", "set_repeat")
                     put("mode", a.mode)
                 }
+                is RemoteAction.SetAutoplay -> {
+                    put("kind", "set_autoplay")
+                    put("on", a.on)
+                }
                 RemoteAction.TakeOver -> put("kind", "take_over")
             }
         }
@@ -300,6 +304,7 @@ internal class MessageCodec {
             put("shuffle", shuffle)
             put("repeat", repeat)
             source?.let { put("source", it) }
+            autoplay?.let { put("autoplay", it) }
         }
 
     private fun JsonObject.toLinkStatus() =
@@ -320,6 +325,7 @@ internal class MessageCodec {
             shuffle = bool("shuffle"),
             repeat = str("repeat").ifBlank { "off" },
             source = optStr("source"),
+            autoplay = this["autoplay"]?.jsonPrimitive?.booleanOrNull,
         )
 
     private fun JsonObject.toRemoteAction(): RemoteAction? =
@@ -347,6 +353,7 @@ internal class MessageCodec {
             "clear_queued" -> RemoteAction.ClearQueued
             "set_shuffle" -> RemoteAction.SetShuffle(bool("on"))
             "set_repeat" -> RemoteAction.SetRepeat(str("mode"))
+            "set_autoplay" -> RemoteAction.SetAutoplay(bool("on"))
             "take_over" -> RemoteAction.TakeOver
             else -> null
         }
