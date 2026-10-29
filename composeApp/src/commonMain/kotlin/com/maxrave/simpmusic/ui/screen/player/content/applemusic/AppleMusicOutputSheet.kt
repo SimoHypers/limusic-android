@@ -59,7 +59,6 @@ import com.maxrave.simpmusic.ui.icon.Smartphone
 import com.maxrave.simpmusic.ui.icon.Speaker
 import com.maxrave.simpmusic.ui.icon.Computer
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.domain.data.model.listentogether.LinkRemote
 import com.maxrave.domain.repository.DeviceLinkRepository
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -179,7 +178,7 @@ internal fun AppleMusicOutputSheet(
                             // would route a local player that is not the one playing.
                             if (castState.isRemote) cast.disconnect()
                             // Picking this phone's sound while the computer plays brings the music here.
-                            if (link.controlling) deviceLink.continueHere()
+                            if (link.controlling) deviceLink.playOn(null)
                             onSelectOutput(output)
                             closeSheet()
                         },
@@ -239,9 +238,7 @@ internal fun AppleMusicOutputSheet(
                             colors = colors,
                             onClick = {
                                 if (!selected && device.online) {
-                                    // The computer that played last picks up its own song; any
-                                    // other takes over what this phone plays, where it is.
-                                    if (isPlayer) deviceLink.remote(LinkRemote.Play) else deviceLink.remote(LinkRemote.TakeOver, to = device.id)
+                                    deviceLink.playOn(device.id)
                                     closeSheet()
                                 }
                             },

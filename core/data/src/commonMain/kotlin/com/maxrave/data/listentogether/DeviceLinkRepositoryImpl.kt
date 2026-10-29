@@ -59,6 +59,9 @@ class DeviceLinkRepositoryImpl(
 ) : DeviceLinkRepository {
     private val foreground = MutableStateFlow(false)
 
+    /** Read before [link] starts: its first emission names this phone. */
+    private val selfName = deviceName()
+
     private val stored: StateFlow<StoredLink?> =
         dataStore
             .getString(KEY_LINK)
@@ -72,7 +75,7 @@ class DeviceLinkRepositoryImpl(
             handler.controlState.map { it.isPlaying }.distinctUntilChanged(),
             bridge.handingOver,
         ) { s, state, playingHere, handingOver ->
-            state.toDomain(paired = s != null).let { it.copy(controlling = it.isRemoteFor(playingHere || handingOver)) }
+            state.toDomain(paired = s != null).let { it.copy(controlling = it.isRemoteFor(playingHere || handingOver), selfName = selfName) }
         }.stateIn(scope, SharingStarted.Eagerly, DeviceLink())
 
     init {
@@ -151,6 +154,14 @@ class DeviceLinkRepositoryImpl(
     )
 
     override fun continueHere() = bridge.continueHere()
+
+    override fun playOn(deviceId: String?) {
+        when (deviceId) {
+            null -> continueHere()
+            link.value.player?.id -> remote(LinkRemote.Play)
+            else -> remote(LinkRemote.TakeOver, to = deviceId)
+        }
+    }
 
     /** Made once per install and kept for good. */
     private suspend fun deviceId(): String =

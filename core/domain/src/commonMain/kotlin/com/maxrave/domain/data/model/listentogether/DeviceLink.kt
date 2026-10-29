@@ -6,6 +6,8 @@ package com.maxrave.domain.data.model.listentogether
  */
 data class DeviceLink(
     val paired: Boolean = false,
+    /** This phone's name, as the other devices list it. */
+    val selfName: String = "",
     val connection: LinkConnection = LinkConnection.Off,
     /** The other linked devices. */
     val devices: List<LinkedDevice> = emptyList(),

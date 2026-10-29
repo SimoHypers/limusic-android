@@ -33,4 +33,10 @@ interface DeviceLinkRepository {
 
     /** Play what the other device plays, from where it is now, with its queue. */
     fun continueHere()
+
+    /**
+     * Where the music plays, as a device picker: on this phone when [deviceId] is null; the device
+     * that played last picks up its own song; any other takes over what this phone plays.
+     */
+    fun playOn(deviceId: String?)
 }

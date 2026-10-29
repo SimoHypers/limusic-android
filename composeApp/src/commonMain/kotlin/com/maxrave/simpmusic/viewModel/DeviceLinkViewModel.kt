@@ -39,4 +39,6 @@ class DeviceLinkViewModel(
     fun unlink(deviceId: String) = repository.unlink(deviceId)
 
     fun unlinkThisPhone() = repository.unlinkThisPhone()
+
+    fun playOn(deviceId: String?) = repository.playOn(deviceId)
 }
