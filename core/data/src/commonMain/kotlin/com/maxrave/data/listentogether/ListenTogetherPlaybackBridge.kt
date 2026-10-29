@@ -10,6 +10,7 @@ import com.maxrave.domain.data.player.PlayerConstants
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
+import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.repository.ListenTogetherRepository
 import com.maxrave.logger.Logger
 import kotlin.math.abs
@@ -111,6 +112,7 @@ class ListenTogetherPlaybackBridge(
         scope.launch { publishTrackChangesAsHost() }
         scope.launch { publishPlayPauseAsHost() }
         scope.launch { publishSeeksAsHost() }
+        scope.launch { addGuestSongsAsHost() }
     }
 
     /**
@@ -543,6 +545,29 @@ class ListenTogetherPlaybackBridge(
         }
     }
 
+    /**
+     * A guest's Play next, Add to queue or tapped song, as desktop takes them: straight into the
+     * queue behind earlier adds, no approval step. Approving tells the guest it went in. A track
+     * that isn't a YouTube video (a file on someone's phone) can't play here and is turned down.
+     */
+    private suspend fun addGuestSongsAsHost() {
+        val handled = mutableSetOf<String>()
+        repository.room.collect { room ->
+            if (!room.inRoom || !room.isHost) return@collect handled.clear()
+            for (s in room.suggestions) {
+                if (!handled.add(s.suggestionId)) continue
+                if (!YOUTUBE_ID.matches(s.track.id)) {
+                    repository.rejectSuggestion(s.suggestionId)
+                    continue
+                }
+                repository.approveSuggestion(s.suggestionId)
+                handler.playNext(listOf(s.track.toRoomTrack()), null)
+                handler.showToast(ToastType.GuestAdded(s.fromUsername, s.track.title))
+                Logger.i(TAG, "Added ${s.track.id} from ${s.fromUsername}")
+            }
+        }
+    }
+
     private fun RoomTrack.toProtocol(): TrackInfo =
         TrackInfo(
             id = id,
@@ -590,5 +615,8 @@ class ListenTogetherPlaybackBridge(
          */
         const val SEEK_DETECT_MS = 2_500L
         const val READY_BUFFER_PERCENT = 5
+
+        /** What desktop's `shareable` lets through: an 11-character YouTube video id. */
+        val YOUTUBE_ID = Regex("[A-Za-z0-9_-]{11}")
     }
 }

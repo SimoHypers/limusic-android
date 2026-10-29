@@ -322,4 +322,10 @@ sealed class ToastType(
     /** A Listen Together guest's tapped song went to the host's queue. */
     data object SentToHost : ToastType()
 
+    /** Hosting, a guest's song went into the queue. */
+    data class GuestAdded(
+        val username: String,
+        val title: String,
+    ) : ToastType(username)
+
 }

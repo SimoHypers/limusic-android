@@ -24,6 +24,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +52,7 @@ fun CodeInput(
 ) {
     val code = codeOf(invite, length)
     val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
     // TextFieldValue, not String: a plain String re-places the caret at index 0 on every
     // externally-driven recomposition, and backspace at index 0 deletes nothing.
     val fieldValue = TextFieldValue(text = code, selection = TextRange(code.length))
@@ -79,7 +81,12 @@ fun CodeInput(
                                 .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
                                 .then(
                                     if (isCaret) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)) else Modifier,
-                                ).clickable { focusRequester.requestFocus() },
+                                ).clickable {
+                                    // The field keeps its focus when the keyboard is closed with
+                                    // back, so focusing again shows nothing: ask for the keyboard.
+                                    focusRequester.requestFocus()
+                                    keyboard?.show()
+                                },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(

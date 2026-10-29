@@ -4,6 +4,7 @@ import org.jetbrains.compose.resources.getString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
+import simpmusic.composeapp.generated.resources.ltd_guest_added
 import simpmusic.composeapp.generated.resources.ltd_host_controls
 import simpmusic.composeapp.generated.resources.new_albums
 import simpmusic.composeapp.generated.resources.new_singles
@@ -54,6 +55,10 @@ object ComposeResUtils {
                 getString(Res.string.added_to_queue)
             }
 
+            StringType.GUEST_ADDED -> {
+                getString(Res.string.ltd_guest_added, *format)
+            }
+
         }
 
     enum class StringType {
@@ -66,5 +71,6 @@ object ComposeResUtils {
         YOUTUBE_WRITE_FAILED,
         HOST_CONTROLS_PLAYBACK,
         ADDED_TO_QUEUE,
+        GUEST_ADDED,
     }
 }

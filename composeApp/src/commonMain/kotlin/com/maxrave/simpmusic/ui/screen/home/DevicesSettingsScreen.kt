@@ -119,9 +119,9 @@ fun DevicesSettingsScreen(
                 Pairing(viewModel)
             } else {
                 Header(stringResource(Res.string.devices_title), stringResource(Res.string.devices_subtitle))
-                Label(stringResource(Res.string.devices_this_phone))
+                SettingLabel(stringResource(Res.string.devices_this_phone))
                 ThisPhoneCard(link, onPlayHere = { viewModel.playOn(null) })
-                Label(stringResource(Res.string.devices_linked))
+                SettingLabel(stringResource(Res.string.devices_linked))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     link.devices.forEach { device ->
                         DeviceCard(link, device, onPlayOn = { viewModel.playOn(device.id) }, onMore = { menuFor = device })
@@ -176,7 +176,7 @@ private fun Pairing(viewModel: DeviceLinkViewModel) {
     val pairError by viewModel.pairError.collectAsStateWithLifecycle()
     var invite by rememberSaveable { mutableStateOf("") }
     Header(stringResource(Res.string.devices_connect_title), subtitle = null, phoneFirst = true)
-    Card {
+    SettingCard {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Step(1, stringResource(Res.string.devices_step_open))
             Step(2, stringResource(Res.string.devices_step_type))
@@ -217,7 +217,7 @@ private fun ThisPhoneCard(
     val nowPlaying by handler.nowPlayingState.collectAsStateWithLifecycle()
     val song = nowPlaying.songEntity.takeIf { !link.controlling && nowPlaying.isNotEmpty() }
     val remoteFor = link.player?.takeIf { link.controlling }
-    Card {
+    SettingCard {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 DeviceIcon(SimpIcons.Smartphone, active = song != null && control.isPlaying)
@@ -263,7 +263,7 @@ private fun DeviceCard(
 ) {
     val isPlayer = link.player?.id == device.id
     val track = link.track?.takeIf { isPlayer }
-    Card {
+    SettingCard {
         Column(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 16.dp, end = 4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 DeviceIcon(SimpIcons.Computer, active = isPlayer && link.isPlaying && device.online)
@@ -317,8 +317,9 @@ private fun DeviceCard(
 }
 
 // A card on the settings page's card colour, 20dp corners: the SettingGroup look, one device each.
+// Listen Together's page is built of the same.
 @Composable
-private fun Card(content: @Composable () -> Unit) {
+internal fun SettingCard(content: @Composable () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -396,7 +397,7 @@ private fun Header(
 }
 
 @Composable
-private fun HeaderIcon(icon: ImageVector) {
+internal fun HeaderIcon(icon: ImageVector) {
     Box(
         Modifier
             .size(52.dp)
@@ -430,7 +431,7 @@ private fun Step(
 
 /** A group's small header, as SettingGroup draws it. */
 @Composable
-private fun Label(text: String) {
+internal fun SettingLabel(text: String) {
     Text(
         text.toUpperCase(Locale.current),
         style = typo().labelMedium.copy(fontWeight = FontWeight.Normal),

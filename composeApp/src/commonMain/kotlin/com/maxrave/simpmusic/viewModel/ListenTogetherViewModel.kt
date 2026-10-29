@@ -57,20 +57,29 @@ class ListenTogetherViewModel(
             .map { it.orEmpty() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
-    /** The name used last time, to seed the field. */
-    val savedName: StateFlow<String> =
+    /** The name used last time; null until read, so the page doesn't flash the first-time field. */
+    val savedName: StateFlow<String?> =
         dataStore
             .getString(KEY_NAME)
             .map { it.orEmpty() }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Between pressing Start or Join and being in the room. */
     val requesting: StateFlow<Boolean> = _requesting.asStateFlow()
 
-    fun host(
-        name: String,
-        server: String,
-    ) = start(name, normalize(server)) { repository.createRoom(name) }
+    /** On the server picked in the ⋮ sheet. */
+    fun host(name: String) = start(name, server = null) { repository.createRoom(name) }
+
+    fun saveName(name: String) = viewModelScope.launch { dataStore.putString(KEY_NAME, name) }
+
+    /** Takes effect from the next room: the connection is dropped only while in none. */
+    fun setServer(url: String) =
+        viewModelScope.launch {
+            val server = normalize(url)
+            if (server == dataStore.getString(ListenTogetherPrefs.SERVER_URL).first().orEmpty()) return@launch
+            dataStore.putString(ListenTogetherPrefs.SERVER_URL, server)
+            if (!repository.room.value.inRoom) repository.disconnect()
+        }
 
     /** False when [invite] holds no room code. */
     fun join(
@@ -84,14 +93,15 @@ class ListenTogetherViewModel(
         return true
     }
 
+    /** [server] null keeps the saved one. */
     private fun start(
         name: String,
-        server: String,
+        server: String?,
         send: () -> Unit,
     ) = viewModelScope.launch {
         _requesting.value = true
         dataStore.putString(KEY_NAME, name)
-        if (server != dataStore.getString(ListenTogetherPrefs.SERVER_URL).first().orEmpty()) {
+        if (server != null && server != dataStore.getString(ListenTogetherPrefs.SERVER_URL).first().orEmpty()) {
             dataStore.putString(ListenTogetherPrefs.SERVER_URL, server)
             repository.disconnect()
         }
@@ -121,10 +131,6 @@ class ListenTogetherViewModel(
     fun approveJoin(userId: String) = repository.approveJoin(userId)
 
     fun rejectJoin(userId: String) = repository.rejectJoin(userId)
-
-    fun approveSuggestion(id: String) = repository.approveSuggestion(id)
-
-    fun rejectSuggestion(id: String) = repository.rejectSuggestion(id)
 
     fun kick(userId: String) = repository.kickUser(userId)
 

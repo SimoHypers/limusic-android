@@ -287,6 +287,10 @@ class MainActivity : AppCompatActivity() {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.ADDED_TO_QUEUE) }
                     }
 
+                    is ToastType.GuestAdded -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.GUEST_ADDED, type.username, type.title) }
+                    }
+
                 },
             )
         }
