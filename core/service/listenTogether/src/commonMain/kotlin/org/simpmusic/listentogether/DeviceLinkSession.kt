@@ -154,6 +154,22 @@ class DeviceLinkSession(
         _state.value = LinkState()
     }
 
+    /**
+     * The room as last heard before the app was closed, shown until the join confirms or corrects
+     * it (at most [RECONNECT_GRACE]): a cold start shows the computer's song at once instead of
+     * this phone's own for a moment. Ignored once joined.
+     */
+    fun restore(last: LinkState) {
+        if (_state.value.connection == LinkConnection.CONNECTED) return
+        _state.update { it.copy(selfId = it.selfId.ifEmpty { last.selfId }, users = last.users, hostId = last.hostId, currentTrack = last.currentTrack, isPlaying = last.isPlaying, position = last.position, lastUpdate = last.lastUpdate, volume = last.volume, queue = last.queue, reconnecting = true) }
+        grace?.cancel()
+        grace =
+            scope.launch {
+                delay(RECONNECT_GRACE)
+                _state.update { it.copy(reconnecting = false) }
+            }
+    }
+
     /** Leave the room for good (Unlink this phone). */
     fun leave() {
         scope.launch {

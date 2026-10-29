@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -32,10 +33,26 @@ import org.simpmusic.listentogether.LinkEvent
 import org.simpmusic.listentogether.LinkState
 import org.simpmusic.listentogether.RemoteAction
 import org.simpmusic.listentogether.TrackInfo
+import org.simpmusic.listentogether.UserInfo
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
+
+/** What the computer played when this phone last controlled it, for a cold start (`DeviceLinkSession.restore`). */
+@Serializable
+private data class LastRoom(
+    val selfId: String,
+    val users: List<UserInfo>,
+    val hostId: String,
+    val track: TrackInfo,
+    val isPlaying: Boolean,
+    val position: Long,
+    val lastUpdate: Long,
+    val volume: Float,
+    /** Wall clock ms. */
+    val savedAt: Long,
+)
 
 /** The stored link. Never logged. */
 @Serializable
@@ -96,8 +113,51 @@ class DeviceLinkRepositoryImpl(
                 }
         }
         scope.launch {
-            session.events.collect { if (it is LinkEvent.Kicked) dataStore.putString(KEY_LINK, "") }
+            session.events.collect {
+                if (it is LinkEvent.Kicked) {
+                    dataStore.putString(KEY_LINK, "")
+                    dataStore.putString(KEY_LAST_ROOM, "")
+                }
+            }
         }
+        scope.launch { restoreLastRoom() }
+        scope.launch { keepLastRoom() }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private suspend fun restoreLastRoom() {
+        if (dataStore.getString(KEY_LINK).first().isNullOrBlank()) return
+        val last =
+            dataStore.getString(KEY_LAST_ROOM).first()?.takeIf { it.isNotBlank() }?.let {
+                runCatching { Json.decodeFromString(LastRoom.serializer(), it) }.getOrNull()
+            } ?: return
+        if (Clock.System.now().toEpochMilliseconds() - last.savedAt > STALE_PAUSE_MS) return
+        session.restore(
+            LinkState(
+                selfId = last.selfId,
+                users = last.users,
+                hostId = last.hostId,
+                currentTrack = last.track,
+                isPlaying = last.isPlaying,
+                position = last.position,
+                lastUpdate = last.lastUpdate,
+                volume = last.volume,
+            ),
+        )
+    }
+
+    /** The room while this phone controls the computer, saved when its track or play state moves. */
+    @OptIn(ExperimentalTime::class)
+    private suspend fun keepLastRoom() {
+        link
+            .filter { it.controlling && it.connection == DomainConnection.Connected }
+            .map { session.state.value }
+            .distinctUntilChanged { a, b -> a.currentTrack == b.currentTrack && a.isPlaying == b.isPlaying && a.position == b.position && a.hostId == b.hostId }
+            .collect { s ->
+                val track = s.currentTrack ?: return@collect
+                val last = LastRoom(s.selfId, s.users, s.hostId, track, s.isPlaying, s.position, s.lastUpdate, s.volume, Clock.System.now().toEpochMilliseconds())
+                dataStore.putString(KEY_LAST_ROOM, Json.encodeToString(LastRoom.serializer(), last))
+            }
     }
 
     override fun setForeground(foreground: Boolean) {
@@ -123,7 +183,10 @@ class DeviceLinkRepositoryImpl(
 
     override fun unlinkThisPhone() {
         session.leave()
-        scope.launch { dataStore.putString(KEY_LINK, "") }
+        scope.launch {
+            dataStore.putString(KEY_LINK, "")
+            dataStore.putString(KEY_LAST_ROOM, "")
+        }
     }
 
     override fun remote(
@@ -172,6 +235,7 @@ class DeviceLinkRepositoryImpl(
     private companion object {
         const val KEY_LINK = "device_link"
         const val KEY_DEVICE_ID = "device_id"
+        const val KEY_LAST_ROOM = "device_link_last_room"
         val CLOSE_AFTER = 30.seconds
     }
 }
