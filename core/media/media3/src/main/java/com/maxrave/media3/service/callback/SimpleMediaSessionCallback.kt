@@ -62,6 +62,21 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "AndroidAuto"
 
+private val HOST_ONLY_COMMANDS =
+    setOf(
+        Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+        Player.COMMAND_SEEK_TO_DEFAULT_POSITION,
+        Player.COMMAND_SEEK_TO_MEDIA_ITEM,
+        Player.COMMAND_SEEK_TO_NEXT,
+        Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+        Player.COMMAND_SEEK_TO_PREVIOUS,
+        Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+        Player.COMMAND_SEEK_BACK,
+        Player.COMMAND_SEEK_FORWARD,
+        Player.COMMAND_SET_SHUFFLE_MODE,
+        Player.COMMAND_SET_REPEAT_MODE,
+    )
+
 @UnstableApi
 internal class SimpleMediaSessionCallback(
     private val context: Context,
@@ -131,6 +146,9 @@ internal class SimpleMediaSessionCallback(
                 }
             }
         }
+        // A Listen Together guest is on the host's timeline. Next and previous went to the
+        // handler above, which says so; seeking and the modes stop here.
+        if (mediaPlayerHandler.followingRoom && playerCommand in HOST_ONLY_COMMANDS) return SessionResult.RESULT_ERROR_PERMISSION_DENIED
         return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
 
@@ -147,6 +165,10 @@ internal class SimpleMediaSessionCallback(
             }
 
             MEDIA_CUSTOM_COMMAND.REPEAT -> {
+                if (session.player !is LinkSessionPlayer && mediaPlayerHandler.followingRoom) {
+                    scope.launch { mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat) }
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_PERMISSION_DENIED))
+                }
                 session.player.repeatMode =
                     when (session.player.repeatMode) {
                         ExoPlayer.REPEAT_MODE_OFF -> ExoPlayer.REPEAT_MODE_ONE

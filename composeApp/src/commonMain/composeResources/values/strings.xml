@@ -670,6 +670,7 @@
     <string name="ltd_err_paste_code">Paste the invite code your friend sent</string>
     <string name="ltd_from_user">from %1$s</string>
     <string name="ltd_host_blurb">You get a short code to share. Everyone who joins hears exactly what you play, in sync.</string>
+    <string name="ltd_host_controls">The host controls playback. Tap a song to add it to the queue.</string>
     <string name="ltd_host_tab">Host</string>
     <string name="ltd_hosting">Hosting</string>
     <string name="ltd_in_room">In the room (%1$d)</string>

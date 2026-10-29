@@ -316,4 +316,10 @@ sealed class ToastType(
     /** A like YouTube Music refused; the heart went back. */
     data object YouTubeWriteFailed : ToastType()
 
+    /** A Listen Together guest tried to steer playback. */
+    data object HostControlsPlayback : ToastType()
+
+    /** A Listen Together guest's tapped song went to the host's queue. */
+    data object SentToHost : ToastType()
+
 }

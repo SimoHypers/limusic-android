@@ -175,8 +175,9 @@ class ListenTogetherSession(
     fun transferHost(userId: String) =
         launch { client.send(MessageTypes.TRANSFER_HOST, TransferHostPayload(newHostId = userId)) }
 
-    fun suggestTrack(track: TrackInfo) =
-        launch { client.send(MessageTypes.SUGGEST_TRACK, SuggestTrackPayload(trackInfo = track)) }
+    /** One coroutine for the lot, so the host gets them in order. */
+    fun suggestTracks(tracks: List<TrackInfo>) =
+        launch { tracks.forEach { client.send(MessageTypes.SUGGEST_TRACK, SuggestTrackPayload(trackInfo = it)) } }
 
     /**
      * Publishes one transport command to the room. Host only — the server ignores it from a guest.
@@ -391,6 +392,10 @@ class ListenTogetherSession(
                         // Only replace the queue when the server actually sent one — sync_state
                         // with an empty queue means "nothing to say", not "the queue is empty".
                         queue = p.queue.ifEmpty { it.queue },
+                        // The server worked the position out at lastUpdate. Left at the last
+                        // command's time, positionAt added the time since then a second time and a
+                        // guest resuming from a pause landed that far ahead of the room.
+                        lastActionServerTime = p.lastUpdate,
                     )
                 }
             }

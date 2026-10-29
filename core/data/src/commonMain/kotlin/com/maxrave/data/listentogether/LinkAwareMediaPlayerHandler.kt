@@ -23,6 +23,7 @@ import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.repository.DeviceLinkRepository
+import com.maxrave.domain.repository.ListenTogetherRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
@@ -54,11 +55,17 @@ import kotlin.time.ExperimentalTime
  *
  * The bridges (Listen Together, the device link's own publishing) and the song repository work on
  * [local] directly: they are about what this phone plays.
+ *
+ * A Listen Together guest owns no queue and no timeline, as on desktop: Play next, Add to queue and
+ * a tapped song go to the room's host as suggestions, which the host adds; pause, volume and the
+ * like button stay the guest's own; skipping, seeking, shuffle, repeat, queue edits and starting a
+ * list say the host controls playback.
  */
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
 class LinkAwareMediaPlayerHandler(
     private val local: MediaPlayerHandler,
     private val deviceLink: DeviceLinkRepository,
+    private val listenTogether: ListenTogetherRepository,
     private val songRepository: SongRepository,
     private val scope: CoroutineScope,
 ) : MediaPlayerHandler by local {
@@ -168,6 +175,8 @@ class LinkAwareMediaPlayerHandler(
                     volume = link.volume,
                 )
             }
+        }.combine(listenTogether.room) { state, room ->
+            if (room.inRoom && !room.isHost && remote.value == null) state.copy(isNextAvailable = false, isPreviousAvailable = false) else state
         }.stateIn(scope, SharingStarted.Eagerly, local.controlState.value)
 
     /** The remote position ticks here, extrapolated from the device's last report. */
@@ -226,6 +235,8 @@ class LinkAwareMediaPlayerHandler(
     private var pendingQueue: QueueData.Data? = null
 
     override suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
+        val own = playerEvent == PlayerEvent.PlayPause || playerEvent == PlayerEvent.Stop || playerEvent == PlayerEvent.ToggleLike || playerEvent is PlayerEvent.UpdateVolume
+        if (!own && hostOnly()) return
         val link = remote.value ?: return local.onPlayerEvent(playerEvent)
         when (playerEvent) {
             PlayerEvent.PlayPause -> setPlaying(link, !link.isPlaying)
@@ -272,7 +283,15 @@ class LinkAwareMediaPlayerHandler(
     }
 
     override fun setQueueData(queueData: QueueData.Data) {
-        if (remote.value != null) pendingQueue = queueData else local.setQueueData(queueData)
+        if (remote.value != null || isGuest()) pendingQueue = queueData else local.setQueueData(queueData)
+    }
+
+    override fun toggleRadio() {
+        if (!hostOnly()) local.toggleRadio()
+    }
+
+    override fun backToPrevious() {
+        if (!hostOnly()) local.backToPrevious()
     }
 
     /** Anything started anywhere in the app plays where the music is: one song, or the list it was tapped in. */
@@ -281,7 +300,7 @@ class LinkAwareMediaPlayerHandler(
         type: String,
         index: Int?,
     ) {
-        if (remote.value == null) return local.loadMediaItem(anyTrack, type, index)
+        if (remote.value == null && !isGuest()) return local.loadMediaItem(anyTrack, type, index)
         val data = pendingQueue
         pendingQueue = null
         if (type == Config.RECOVER_TRACK_QUEUE) return
@@ -292,7 +311,17 @@ class LinkAwareMediaPlayerHandler(
                 else -> return
             }
         val list = data?.listTracks.orEmpty()
-        if (data == null || type !in LIST_CLICKS || list.size < 2) {
+        val single = data == null || type !in LIST_CLICKS || list.size < 2
+        if (remote.value == null) {
+            // A guest, as on desktop: one song joins the host's queue; a list or a radio is the host's to start.
+            if (!single) {
+                hostOnly()
+            } else if (suggestToHost(listOf(track))) {
+                showToast(ToastType.SentToHost)
+            }
+            return
+        }
+        if (single) {
             deviceLink.remote(LinkRemote.PlayTrack(track.toRoomTrack()))
             return
         }
@@ -316,11 +345,13 @@ class LinkAwareMediaPlayerHandler(
     }
 
     override fun playMediaItemInMediaSource(index: Int) {
+        if (hostOnly()) return
         if (remote.value == null) return local.playMediaItemInMediaSource(index)
         row(index)?.let { (at, id) -> deviceLink.remote(LinkRemote.PlayIndex(at, id)) }
     }
 
     override fun removeMediaItem(position: Int) {
+        if (hostOnly()) return
         if (remote.value == null) return local.removeMediaItem(position)
         row(position)?.let { (at, id) -> deviceLink.remote(LinkRemote.Remove(at, id)) }
     }
@@ -329,12 +360,14 @@ class LinkAwareMediaPlayerHandler(
         from: Int,
         to: Int,
     ) {
+        if (hostOnly()) return
         if (remote.value == null) return local.moveInQueue(from, to)
         val q = remoteQueue.value?.takeIf { it.offset >= 0 } ?: return
         deviceLink.remote(LinkRemote.Move(q.offset + from, q.offset + to))
     }
 
     override suspend fun moveItemToPlayNext(position: Int) {
+        if (hostOnly()) return
         if (remote.value == null) return local.moveItemToPlayNext(position)
         val q = remoteQueue.value?.takeIf { it.offset >= 0 } ?: return
         deviceLink.remote(LinkRemote.Move(q.offset + position, q.offset + q.current + 1))
@@ -344,6 +377,7 @@ class LinkAwareMediaPlayerHandler(
         tracks: List<Track>,
         from: String?,
     ) {
+        if (suggestToHost(tracks)) return
         if (remote.value == null) return local.playNext(tracks, from)
         deviceLink.remote(LinkRemote.PlayNext(tracks.map { it.toRoomTrack() }, from))
     }
@@ -352,11 +386,13 @@ class LinkAwareMediaPlayerHandler(
         tracks: List<Track>,
         from: String?,
     ) {
+        if (suggestToHost(tracks)) return
         if (remote.value == null) return local.addToQueue(tracks, from)
         deviceLink.remote(LinkRemote.AddToQueue(tracks.map { it.toRoomTrack() }, from))
     }
 
     override fun clearQueued() {
+        if (hostOnly()) return
         if (remote.value == null) return local.clearQueued()
         deviceLink.remote(LinkRemote.ClearQueued)
     }
@@ -368,6 +404,22 @@ class LinkAwareMediaPlayerHandler(
     override fun getPlayerDuration(): Long = remote.value?.durationMs() ?: local.getPlayerDuration()
 
     override fun getProgress(): Long = remote.value?.positionNow() ?: local.getProgress()
+
+    /** True when this phone is a guest in a room, after handing [tracks] to the host. */
+    private fun suggestToHost(tracks: List<Track>): Boolean {
+        if (!isGuest()) return false
+        listenTogether.suggestTracks(tracks.map { it.toRoomTrack() })
+        return true
+    }
+
+    private fun isGuest(): Boolean = listenTogether.room.value.let { it.inRoom && !it.isHost }
+
+    /** True, after saying so, when this phone plays as a guest: the room's host drives playback. */
+    private fun hostOnly(): Boolean {
+        if (remote.value != null || !isGuest()) return false
+        showToast(ToastType.HostControlsPlayback)
+        return true
+    }
 
     /** Queue row [index] of the view, as (index in the player's queue, its track id), when known. */
     private fun row(index: Int): Pair<Int, String>? {

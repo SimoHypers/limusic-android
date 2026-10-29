@@ -279,6 +279,14 @@ class MainActivity : AppCompatActivity() {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.YOUTUBE_WRITE_FAILED) }
                     }
 
+                    is ToastType.HostControlsPlayback -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.HOST_CONTROLS_PLAYBACK) }
+                    }
+
+                    is ToastType.SentToHost -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.ADDED_TO_QUEUE) }
+                    }
+
                 },
             )
         }

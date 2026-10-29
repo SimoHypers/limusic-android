@@ -6,6 +6,7 @@ import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
 import com.maxrave.domain.data.model.listentogether.RoomTrack
 import com.maxrave.domain.data.player.GenericMediaItem
+import com.maxrave.domain.data.player.PlayerConstants
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
@@ -38,6 +39,8 @@ private data class RoomSnapshot(
     val track: RoomTrack?,
     val isPlaying: Boolean,
     val position: Long,
+    /** A guest's resync can answer exactly what the room already said; this still tells them apart. */
+    val positionAt: Long,
     val queueIds: List<String>,
 )
 
@@ -83,6 +86,17 @@ class ListenTogetherPlaybackBridge(
      */
     private var lastRoomPlaying = false
 
+    /**
+     * The guest paused this phone itself, and that holds until it plays again: room commands still
+     * move it along the song and on to the next, they just don't start it. Read off the player
+     * (see [notePlayerChoice]), the one thing its own button, the notification, a headset and the
+     * sleep timer all go through.
+     */
+    private var guestPaused = false
+
+    /** Whether this bridge last told the player to play; null before it has told it anything. */
+    private var appliedPlaying: Boolean? = null
+
     /** Idempotent: callers cannot know whether something else already started it. */
     fun start() {
         if (started) return
@@ -107,17 +121,20 @@ class ListenTogetherPlaybackBridge(
      */
     private suspend fun suppressCrossfadeWhileInRoom() {
         repository.room
-            .map { it.inRoom }
+            // The role too: a host change in the room turns this phone into a guest, or back.
+            .map { it.inRoom to it.isHost }
             .distinctUntilChanged()
-            .collect { inRoom ->
+            .collect { (inRoom, isHost) ->
+                guestPaused = false
+                appliedPlaying = null
                 withContext(Dispatchers.Main) {
                     handler.player.crossfadeSuppressed = inRoom
                     // A guest follows the host's queue: no autoplay of its own, nothing saved.
-                    handler.followingRoom = inRoom && !repository.room.value.isHost
+                    handler.followingRoom = inRoom && !isHost
                 }
                 if (!inRoom) {
                     lastRoomPlaying = false
-                } else if (!repository.room.value.isHost) {
+                } else if (!isHost) {
                     // Ask for the live position the moment we are in. The state pushed on join
                     // carries the position as of the host's LAST command, which can be minutes old
                     // — obeying it drops a joiner at the start of a song everyone else is halfway
@@ -129,14 +146,15 @@ class ListenTogetherPlaybackBridge(
     }
 
     /**
-     * A guest may pause, and stays paused.
+     * A guest may pause, and stays paused ([guestPaused]).
      *
      * An earlier version forced the guest straight back to the room's state, which made pause
      * impossible — press it and playback resumed instantly. The room is something you listen along
      * with, not something that holds your transport hostage: pausing is local and silent, and
      * pressing play again asks the server where the room actually is now, so resuming lands in the
      * right place instead of wherever this device stopped. This is what Metrolist's manager does
-     * (`requestSync` — "call this when a guest presses play/pause").
+     * (`requestSync` — "call this when a guest presses play/pause"). The answer is what clears
+     * [guestPaused].
      */
     private suspend fun resyncGuestOnResume() {
         handler.controlState
@@ -165,16 +183,18 @@ class ListenTogetherPlaybackBridge(
                     track = it.currentTrack,
                     isPlaying = it.isPlaying,
                     position = it.position,
+                    positionAt = it.positionAt,
                     queueIds = it.queue.map { t -> t.id },
                 ) to (it.inRoom && !it.isHost)
             }
             .distinctUntilChanged()
             .collect { (snapshot, shouldFollow) ->
                 if (!shouldFollow) return@collect
-                val (track, isPlaying, position, queueIds) = snapshot
+                val (track, isPlaying, position, _, queueIds) = snapshot
                 Logger.i(TAG, "Room says: track=${track?.id} playing=$isPlaying pos=$position queue=${queueIds.size}")
                 applyingRemote = true
                 try {
+                    notePlayerChoice()
                     // Rebuild when the track changes OR when the queue behind it does — the queue
                     // can legitimately arrive while the same track keeps playing.
                     val queueChanged = queueIds != lastAppliedQueueIds
@@ -206,7 +226,7 @@ class ListenTogetherPlaybackBridge(
                                 position <= 0L -> 0L
                                 else -> session.positionAt(position, playing)
                             }
-                        playTrack(track, keepPosition = startAt, playWhenReady = playing)
+                        playTrack(track, keepPosition = startAt, playWhenReady = playing && !guestPaused)
                     }
                     applyTransport(playing, position)
                 } catch (e: Exception) {
@@ -217,10 +237,30 @@ class ListenTogetherPlaybackBridge(
             }
     }
 
+    /**
+     * Updates [guestPaused] from the player, before a room command is applied. Paused although this
+     * bridge last said play: someone else paused it. Playing while paused: the guest pressed play.
+     *
+     * Safe to read here because the player's play and pause, and this collector, all run in turn
+     * on the main thread: what the bridge last asked for has landed by the next room command. A
+     * player that failed (idle) ignores pause, so a stream error doesn't count as the guest's pause.
+     */
+    private fun notePlayerChoice() {
+        val wants = handler.player.playWhenReady
+        if (appliedPlaying == true && !wants && handler.player.playbackState != PlayerConstants.STATE_IDLE) {
+            if (!guestPaused) Logger.i(TAG, "Guest paused locally: room commands won't start it until it plays")
+            guestPaused = true
+        } else if (guestPaused && wants) {
+            guestPaused = false
+        }
+    }
+
     private suspend fun applyTransport(
         isPlaying: Boolean,
         position: Long,
     ) = withContext(Dispatchers.Main) {
+        val play = isPlaying && !guestPaused
+        appliedPlaying = play
         // Correct the position for however long the command spent in flight; ServerClock falls back
         // to the raw value whenever it is not calibrated yet.
         val corrected = session.positionAt(position, isPlaying)
@@ -232,9 +272,9 @@ class ListenTogetherPlaybackBridge(
         // playWhenReady, not isPlaying: a track that is still buffering reports isPlaying=false
         // while already committed to playing, so comparing against it re-issues play() every tick
         // and, worse, lets a stale pause land on a track that was about to start.
-        if (isPlaying && !handler.player.playWhenReady) {
+        if (play && !handler.player.playWhenReady) {
             handler.player.play()
-        } else if (!isPlaying && handler.player.playWhenReady) {
+        } else if (!play && handler.player.playWhenReady) {
             handler.player.pause()
         }
     }

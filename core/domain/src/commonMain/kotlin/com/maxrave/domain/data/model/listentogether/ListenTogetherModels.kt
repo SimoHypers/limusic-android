@@ -60,6 +60,8 @@ data class ListenTogetherRoom(
     val queue: List<RoomTrack> = emptyList(),
     val isPlaying: Boolean = false,
     val position: Long = 0L,
+    /** Server time [position] was stated at; 0 when unknown. Changes with every sync, even an unchanged one. */
+    val positionAt: Long = 0L,
     /** The code we asked to join and have not heard back about. */
     val pendingJoinCode: String? = null,
     val error: String? = null,

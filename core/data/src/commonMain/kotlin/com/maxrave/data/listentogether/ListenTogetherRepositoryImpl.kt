@@ -83,8 +83,8 @@ class ListenTogetherRepositoryImpl(
         session.transferHost(userId)
     }
 
-    override fun suggestTrack(track: RoomTrack) {
-        session.suggestTrack(track.toProtocol())
+    override fun suggestTracks(tracks: List<RoomTrack>) {
+        session.suggestTracks(tracks.map { it.toProtocol() })
     }
 
     override fun requestSync() {
@@ -107,6 +107,7 @@ private fun ListenTogetherState.toDomain() =
         queue = queue.map { it.toDomain() },
         isPlaying = isPlaying,
         position = position,
+        positionAt = lastActionServerTime,
         pendingJoinCode = pendingJoinCode,
         error = error,
     )

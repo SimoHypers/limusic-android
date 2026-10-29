@@ -2,7 +2,9 @@ package com.maxrave.simpmusic.utils
 
 import org.jetbrains.compose.resources.getString
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
+import simpmusic.composeapp.generated.resources.ltd_host_controls
 import simpmusic.composeapp.generated.resources.new_albums
 import simpmusic.composeapp.generated.resources.new_singles
 import simpmusic.composeapp.generated.resources.playback_refused
@@ -44,6 +46,14 @@ object ComposeResUtils {
                 getString(Res.string.youtube_write_failed)
             }
 
+            StringType.HOST_CONTROLS_PLAYBACK -> {
+                getString(Res.string.ltd_host_controls)
+            }
+
+            StringType.ADDED_TO_QUEUE -> {
+                getString(Res.string.added_to_queue)
+            }
+
         }
 
     enum class StringType {
@@ -54,5 +64,7 @@ object ComposeResUtils {
         NEW_SINGLES,
         NEW_ALBUMS,
         YOUTUBE_WRITE_FAILED,
+        HOST_CONTROLS_PLAYBACK,
+        ADDED_TO_QUEUE,
     }
 }

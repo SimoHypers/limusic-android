@@ -41,7 +41,8 @@ interface ListenTogetherRepository {
 
     fun transferHost(userId: String)
 
-    fun suggestTrack(track: RoomTrack)
+    /** A guest's adds, each sent to the host as its own suggestion, in order. */
+    fun suggestTracks(tracks: List<RoomTrack>)
 
     /** Re-syncs a guest with the room after it has driven its own transport. */
     fun requestSync()

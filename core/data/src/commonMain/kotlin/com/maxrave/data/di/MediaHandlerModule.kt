@@ -26,6 +26,7 @@ val mediaHandlerModule =
             LinkAwareMediaPlayerHandler(
                 local = get(LOCAL_PLAYER_HANDLER),
                 deviceLink = get(),
+                listenTogether = get(),
                 songRepository = get(),
                 scope = get<CoroutineScope>(named(Config.SERVICE_SCOPE)),
             )
