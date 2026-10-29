@@ -106,21 +106,16 @@ class DeviceLinkBridge(
         val clicked = TimeSource.Monotonic.markNow()
         Logger.i(TAG, "Continue here: ${track.id} at $position ms, ${tracks.size - 1} upcoming")
         withContext(Dispatchers.Main) {
-            // A list click's path (setQueueData + PLAYLIST_CLICK), so the queue screen, autoplay
-            // and what this phone publishes next all see the handed-over queue.
-            handler.clearQueued()
-            handler.setQueueData(
-                QueueData.Data(
-                    listTracks = ArrayList(tracks),
-                    firstPlayedTrack = tracks.first(),
-                    playlistId = null,
-                    playlistName = null,
-                    playlistType = PlaylistType.PLAYLIST,
-                    continuation = null,
-                ),
-            )
-            handler.loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, 0)
-            if (position > 0L) handler.player.seekTo(position)
+            // Loaded at the position, not sought to after: the player loads a new track in the
+            // background from 0, so a seek right after the load went to the old one and the song
+            // started from the top. The same song, still loaded here from before the other device
+            // took it, isn't reloaded: that one is sought and resumed.
+            val sameSong = handler.player.currentMediaItem?.mediaId == tracks.first().videoId
+            handler.playRoomQueue(tracks, playWhenReady = true, positionMs = position)
+            if (sameSong) {
+                handler.player.seekTo(position)
+                handler.player.play()
+            }
         }
         // The other device kept playing while the stream started here: catch up with it once
         // audio flows, so the handover lands where the music is.
@@ -144,9 +139,16 @@ class DeviceLinkBridge(
             .filterNotNull()
             .distinctUntilChanged { old, new -> old.mediaId == new.mediaId }
             // Latest: a skip while the last track is still starting replaces its publish.
-            .collectLatest {
+            .collectLatest { item ->
                 if (!linked) return@collectLatest
-                val audible = withTimeoutOrNull(AUDIBLE_WAIT_MS) { while (!onMain { handler.player.isPlaying }) delay(POLL_MS) } != null
+                // Playing this very track, its length known: right after a crossfade or a quick
+                // advance the player still reports the last one, and the computer then showed 0:00.
+                val audible =
+                    withTimeoutOrNull(AUDIBLE_WAIT_MS) {
+                        while (!onMain { handler.player.isPlaying && handler.player.currentMediaItem?.mediaId == item.mediaId && handler.player.duration > 0 }) {
+                            delay(POLL_MS)
+                        }
+                    } != null
                 val playing = audible || onMain { handler.player.playWhenReady }
                 onMain { changeTrack(playing) }?.let { session.publish(it) }
             }
@@ -330,7 +332,10 @@ class DeviceLinkBridge(
                     title = item.metadata.title.orEmpty(),
                     artist = item.metadata.artist.orEmpty(),
                     album = item.metadata.albumTitle.orEmpty(),
-                    duration = handler.player.duration.coerceAtLeast(0L),
+                    // The song's own length until the player has parsed it.
+                    duration =
+                        handler.player.duration.takeIf { it > 0 }
+                            ?: ((handler.nowPlayingState.value.songEntity?.durationSeconds ?: 0) * 1000L),
                     thumbnail = item.metadata.artworkUri.orEmpty(),
                 ),
             queue = upcoming.map { it.toTrackInfo() },

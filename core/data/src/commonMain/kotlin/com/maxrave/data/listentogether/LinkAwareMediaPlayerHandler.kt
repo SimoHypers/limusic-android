@@ -424,7 +424,11 @@ class LinkAwareMediaPlayerHandler(
 
     private fun DeviceLink.positionNow(): Long = livePositionMs(nowMs())
 
-    private fun DeviceLink.durationMs(): Long = track?.durationMs ?: 0L
+    /** What the device announced, or until it knew it, the length its queue gives the playing row. */
+    private fun DeviceLink.durationMs(): Long =
+        track?.durationMs?.takeIf { it > 0L }
+            ?: playerQueue?.let { q -> q.items.getOrNull(q.current) }?.track?.takeIf { it.id == track?.id }?.durationMs
+            ?: 0L
 
     private fun nowMs(): Long = Clock.System.now().toEpochMilliseconds()
 
