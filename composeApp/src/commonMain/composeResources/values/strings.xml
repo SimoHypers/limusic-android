@@ -38,6 +38,7 @@
     <string name="restore_failed">Restore Failed</string>
     <string name="restore_success">Restore Success</string>
     <string name="search">Search</string>
+    <string name="recent_searches">Recent searches</string>
     <string name="songs">Songs</string>
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>

@@ -44,6 +44,11 @@ internal class SearchRepositoryImpl(
             localDataSource.deleteSearchHistory()
         }
 
+    override suspend fun deleteSearchQuery(query: String) =
+        withContext(Dispatchers.IO) {
+            localDataSource.deleteSearchQuery(query)
+        }
+
     override fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>> =
         flow {
             runCatching {

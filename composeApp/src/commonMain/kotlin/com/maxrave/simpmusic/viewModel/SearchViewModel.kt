@@ -18,7 +18,6 @@ import com.maxrave.domain.utils.toQueryList
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -180,11 +179,14 @@ class SearchViewModel(
     }
 
     fun deleteSearchHistory() {
-        viewModelScope.launch {
-            searchRepository.deleteSearchHistory()
-            delay(1000)
-            getSearchHistory()
-        }
+        _searchHistory.value = emptyList()
+        viewModelScope.launch { searchRepository.deleteSearchHistory() }
+    }
+
+    /** One recent search, gone at once from the row; the database follows. */
+    fun forgetSearch(query: String) {
+        _searchHistory.update { it - query }
+        viewModelScope.launch { searchRepository.deleteSearchQuery(query) }
     }
 
     fun searchSongs(query: String) {

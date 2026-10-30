@@ -211,6 +211,8 @@ fun LibrarySectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
+    // Controls at the far end, before "See all" (desktop's SectionHeading children).
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier =
@@ -241,6 +243,7 @@ fun LibrarySectionHeader(
                 modifier = if (onMore != null) Modifier.clickable(onClick = onMore) else Modifier,
             )
         }
+        trailing?.invoke()
         if (onMore != null) {
             Row(
                 modifier = Modifier.clip(RoundedCornerShape(50)).clickable(onClick = onMore).padding(horizontal = 8.dp, vertical = 6.dp),

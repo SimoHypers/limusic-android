@@ -173,11 +173,15 @@ interface DatabaseDao {
     }
 
     // Get search history
-    @Query("SELECT * FROM search_history")
+    // Oldest first: a repeat search is REPLACEd, so it gets a new rowid and moves to the end.
+    @Query("SELECT * FROM search_history ORDER BY rowid")
     suspend fun getSearchHistory(): List<SearchHistory>
 
     @Query("DELETE FROM search_history")
     suspend fun deleteSearchHistory()
+
+    @Query("DELETE FROM search_history WHERE `query` = :query")
+    suspend fun deleteSearchQuery(query: String)
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertSearchHistory(searchHistory: SearchHistory): Long
