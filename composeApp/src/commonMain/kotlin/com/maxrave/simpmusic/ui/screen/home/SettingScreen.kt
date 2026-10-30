@@ -179,6 +179,8 @@ import simpmusic.composeapp.generated.resources.audio
 import simpmusic.composeapp.generated.resources.author
 import simpmusic.composeapp.generated.resources.auto_backup
 import simpmusic.composeapp.generated.resources.auto_backup_description
+import simpmusic.composeapp.generated.resources.download_liked
+import simpmusic.composeapp.generated.resources.download_liked_description
 import simpmusic.composeapp.generated.resources.download_wifi_only
 import simpmusic.composeapp.generated.resources.download_wifi_only_description
 import simpmusic.composeapp.generated.resources.backup
@@ -445,6 +447,7 @@ fun SettingScreen(
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val downloadWifiOnly by viewModel.downloadWifiOnly.collectAsStateWithLifecycle()
+    val downloadLiked by viewModel.downloadLiked.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
@@ -1628,6 +1631,12 @@ fun SettingScreen(
                                 subtitle = stringResource(Res.string.download_wifi_only_description),
                                 smallSubtitle = true,
                                 switch = (downloadWifiOnly to { viewModel.setDownloadWifiOnly(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.download_liked),
+                                subtitle = stringResource(Res.string.download_liked_description),
+                                smallSubtitle = true,
+                                switch = (downloadLiked to { viewModel.setDownloadLiked(it) }),
                             )
                         }
                         if (getPlatform() == Platform.Android) {

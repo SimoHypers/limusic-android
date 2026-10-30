@@ -240,7 +240,8 @@ internal class SongRepositoryImpl(
     private var likeEpoch = 0
 
     /**
-     * Note the side effect: liking a song starts its download while Keep library downloaded is on.
+     * Note the side effect: liking a song starts its download while Keep library downloaded or
+     * Download songs I like is on.
      *
      * Deliberately one-way. It fires only on the way *in*, for a song not liked here before and not
      * already offline, so a re-like (or Sync pushing old likes) does not queue it twice, and
@@ -269,7 +270,8 @@ internal class SongRepositoryImpl(
             } else {
                 librarySync.mark(key, likeStatus == 1)
             }
-            if (likeStatus == 1 && song?.liked != true && dataStoreManager.keepLibraryDownloaded.first() == TRUE) {
+            val downloadLikes = dataStoreManager.keepLibraryDownloaded.first() == TRUE || dataStoreManager.downloadLiked.first() == TRUE
+            if (likeStatus == 1 && song?.liked != true && downloadLikes) {
                 if (song != null && song.downloadState != DownloadState.STATE_DOWNLOADED) {
                     Logger.d(TAG, "Auto-downloading liked song: $videoId")
                     downloadHandler.downloadTracks(listOf(song))

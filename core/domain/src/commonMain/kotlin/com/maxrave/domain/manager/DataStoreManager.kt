@@ -308,6 +308,11 @@ interface DataStoreManager {
 
     suspend fun setDownloadWifiOnly(enabled: Boolean)
 
+    /** Each song liked while on downloads; songs liked before stay as they are. Off by default. */
+    val downloadLiked: Flow<String>
+
+    suspend fun setDownloadLiked(enabled: Boolean)
+
     /**
      * Language code (e.g. "vi") of the audio track to prefer on videos that ship several — dubbed
      * podcasts, mostly. Empty means the original track. Deliberately NOT defaulted to the app

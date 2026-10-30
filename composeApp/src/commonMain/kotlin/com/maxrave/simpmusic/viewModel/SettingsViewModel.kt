@@ -146,6 +146,8 @@ class SettingsViewModel(
     val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
     private val _downloadWifiOnly = MutableStateFlow(false)
     val downloadWifiOnly: StateFlow<Boolean> = _downloadWifiOnly
+    val downloadLiked: StateFlow<Boolean> =
+        dataStoreManager.downloadLiked.map { it == DataStoreManager.TRUE }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
     private val _preferredAudioLanguage = MutableStateFlow("")
@@ -417,6 +419,10 @@ class SettingsViewModel(
 
     fun setDownloadWifiOnly(enabled: Boolean) {
         viewModelScope.launch { dataStoreManager.setDownloadWifiOnly(enabled) }
+    }
+
+    fun setDownloadLiked(enabled: Boolean) {
+        viewModelScope.launch { dataStoreManager.setDownloadLiked(enabled) }
     }
 
     private fun getDiscordLoggedIn() {

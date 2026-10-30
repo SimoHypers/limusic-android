@@ -1056,6 +1056,19 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val downloadLiked: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[DOWNLOAD_LIKED] ?: FALSE
+        }
+
+    override suspend fun setDownloadLiked(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[DOWNLOAD_LIKED] = if (enabled) TRUE else FALSE
+            }
+        }
+    }
+
     override val preferredAudioLanguage =
         settingsDataStore.data.map { preferences ->
             preferences[PREFERRED_AUDIO_LANGUAGE] ?: ""
@@ -1264,6 +1277,7 @@ internal class DataStoreManagerImpl(
         val CROSSFADE_SKIP_ALBUM = stringPreferencesKey("crossfade_skip_album")
         val KEEP_LIBRARY_DOWNLOADED = stringPreferencesKey("keep_library_downloaded")
         val DOWNLOAD_WIFI_ONLY = stringPreferencesKey("download_wifi_only")
+        val DOWNLOAD_LIKED = stringPreferencesKey("download_liked")
         val LYRICS_PROVIDERS = stringPreferencesKey("lyrics_providers")
 
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")

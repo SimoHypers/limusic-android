@@ -70,6 +70,8 @@
     <string name="checking_library">Checking your library…</string>
     <string name="download_wifi_only">Download over Wi-Fi only</string>
     <string name="download_wifi_only_description">Downloads wait for Wi-Fi or another unmetered network.</string>
+    <string name="download_liked">Download songs I like</string>
+    <string name="download_liked_description">Each song you like from now on downloads. Songs liked before stay as they are.</string>
     <plurals name="downloads_missing">
         <item quantity="one">%1$d song couldn't download</item>
         <item quantity="other">%1$d songs couldn't download</item>
