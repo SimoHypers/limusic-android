@@ -27,6 +27,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.verticalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,12 +48,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +70,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -88,9 +91,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.ui.component.LyricText
-import com.maxrave.simpmusic.ui.component.SleepTimerBottomSheet
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Fullscreen
@@ -101,6 +102,7 @@ import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Repeat
 import com.maxrave.simpmusic.ui.icon.RepeatOne
@@ -116,23 +118,25 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.share
-import simpmusic.composeapp.generated.resources.sleep_timer_warning
-import simpmusic.composeapp.generated.resources.yes
 
 private val ArtworkShape = RoundedCornerShape(16.dp)
-private val TonalShape = RoundedCornerShape(16.dp)
 private val SmallShape = RoundedCornerShape(12.dp)
 private val FROST_BLUR = 80.dp
 private const val FROST_DECODE_PX = 256
 
+// How far past the touch slop a drag up the cover goes before it opens the queue.
+private val SWIPE_UP = 40.dp
+
+// How far the cover, title, seek bar and pills sit above where the leftover height would put them.
+private val RAISE = 16.dp
+
 /**
  * The Classic full player, the default: a large cover with the current lyric line under it, title
- * and artist with like, the wavy seek bar, a row of rounded transport buttons, and Queue / sleep
- * timer / Lyrics at the bottom, the audio output top right. Queue and Lyrics are views of the same
+ * and artist with like, the wavy seek bar, a row of rounded transport buttons, and a
+ * row of squares at the bottom (Queue, Lyrics and the rest), the audio output top right. Queue and Lyrics are views of the same
  * page, like the Apple Music style's: they take the cover's place and the controls stay put.
  * Colours come from the cover (the M3 Expressive style's artwork scheme) over the cover itself,
  * frosted.
@@ -217,7 +221,7 @@ private fun ClassicLayout(
         ) {
             Crossfade(targetState = view, animationSpec = tween(300), modifier = Modifier.weight(1f).fillMaxWidth(), label = "classicView") { shown ->
                 when (shown) {
-                    ClassicView.PLAYER -> PlayerView(state, actions)
+                    ClassicView.PLAYER -> PlayerView(state, actions, onSwipeUp = { view = ClassicView.QUEUE })
                     ClassicView.QUEUE -> QueueView(state, actions)
                     ClassicView.LYRICS -> LyricsView(sharedViewModel, state, actions)
                 }
@@ -245,6 +249,8 @@ private fun ClassicLayout(
                     Column {
                         Spacer(Modifier.height(16.dp))
                         ClassicTransportRow(state, actions)
+                        // Takes height from the gap above the cover, lifting everything but the bottom row.
+                        Spacer(Modifier.height(RAISE))
                     }
                 }
                 Spacer(Modifier.height(28.dp))
@@ -255,11 +261,12 @@ private fun ClassicLayout(
     }
 }
 
-/** The cover, the current lyric line and the title. */
+/** The cover, the current lyric line and the title. A swipe up on the cover opens the queue. */
 @Composable
 private fun PlayerView(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
+    onSwipeUp: () -> Unit,
 ) {
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
@@ -270,7 +277,27 @@ private fun PlayerView(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f),
+                    .aspectRatio(1f)
+                    // Only an upward drag is taken: a downward one stays the sheet's, to close the
+                    // player, and a sideways one the pager's, to change track.
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            var dy = 0f
+                            val drag =
+                                awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
+                                    if (over < 0) {
+                                        change.consume()
+                                        dy = over
+                                    }
+                                } ?: return@awaitEachGesture
+                            verticalDrag(drag.id) {
+                                dy += it.positionChange().y
+                                it.consume()
+                            }
+                            if (dy < -SWIPE_UP.toPx()) onSwipeUp()
+                        }
+                    },
             pageSpacing = 24.dp,
             userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
             key = { index -> "artwork_${state.artworkQueue.getOrNull(index)?.videoId.orEmpty()}_$index" },
@@ -579,29 +606,34 @@ private fun TitleRow(
     actions: NowPlayingContentActions,
 ) {
     val liked = state.controllerState.isLiked
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Column(Modifier.weight(1f)) {
+    Column {
+        // Like sits on the title's line, not between title and artist.
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = state.screenData.nowPlayingTitle,
                 style = typo().titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee(),
+                modifier = Modifier.weight(1f).basicMarquee(),
             )
-            Text(
-                text = state.screenData.artistName,
-                style = typo().bodyLarge,
-                maxLines = 1,
-                modifier =
-                    Modifier
-                        .padding(top = 2.dp)
-                        .basicMarquee()
-                        .clickable(onClick = actions.onNavigateToArtist),
-            )
+            IconButton(onClick = { actions.onUIEvent(UIEvent.ToggleLike) }, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
+                    contentDescription = null,
+                    tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
         }
-        FilledButton(if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder, Modifier.size(52.dp), TonalShape) {
-            actions.onUIEvent(UIEvent.ToggleLike)
-        }
+        Text(
+            text = state.screenData.artistName,
+            style = typo().bodyLarge,
+            maxLines = 1,
+            modifier =
+                Modifier
+                    .basicMarquee()
+                    .clickable(onClick = actions.onNavigateToArtist),
+        )
     }
 }
 
@@ -614,27 +646,27 @@ internal fun ClassicTransportRow(
     val control = state.controllerState
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FilledButton(SimpIcons.SkipPrevious, Modifier.width(76.dp).height(58.dp), CircleShape, iconSize = 30.dp, enabled = control.isPreviousAvailable) {
+        FilledButton(SimpIcons.SkipPrevious, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isPreviousAvailable) {
             actions.onUIEvent(UIEvent.Previous)
         }
         FilledButton(
             if (control.isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
-            Modifier.width(116.dp).height(72.dp),
+            Modifier.width(120.dp).height(80.dp),
             CircleShape,
-            iconSize = 38.dp,
+            iconSize = 42.dp,
         ) { actions.onUIEvent(UIEvent.PlayPause) }
-        FilledButton(SimpIcons.SkipNext, Modifier.width(76.dp).height(58.dp), CircleShape, iconSize = 30.dp, enabled = control.isNextAvailable) {
+        FilledButton(SimpIcons.SkipNext, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isNextAvailable) {
             actions.onUIEvent(UIEvent.Next)
         }
     }
 }
 
 /**
- * Queue, sleep timer, Lyrics, shuffle, repeat as outlined squares; the song menu on the right. Queue
- * and Lyrics light up while their view is on screen.
+ * Add to playlist, repeat, Lyrics, shuffle, Queue as outlined squares; the song menu on the right.
+ * Queue and Lyrics light up while their view is on screen. The sleep timer is in the menu.
  */
 @Composable
 private fun BottomRow(
@@ -644,48 +676,22 @@ private fun BottomRow(
     onQueue: () -> Unit,
     onLyrics: () -> Unit,
 ) {
-    val handler = koinInject<MediaPlayerHandler>()
-    val sleepTimer by handler.sleepTimerState.collectAsStateWithLifecycle()
-    val timerOn = sleepTimer.timeRemaining > 0 || sleepTimer.timeRemaining == -1
-    var picking by remember { mutableStateOf(false) }
-    var confirmingOff by remember { mutableStateOf(false) }
     val control = state.controllerState
-
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(SimpIcons.QueueMusic, active = view == ClassicView.QUEUE, onClick = onQueue)
-        OutlinedButton(SimpIcons.AccessAlarm, active = timerOn) { if (timerOn) confirmingOff = true else picking = true }
-        OutlinedButton(SimpIcons.Lyrics, active = view == ClassicView.LYRICS, onClick = onLyrics)
-        OutlinedButton(SimpIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
+        OutlinedButton(SimpIcons.PlaylistAdd, onClick = actions.onShowAddToPlaylist)
         OutlinedButton(
             if (control.repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
             active = control.repeatState !is RepeatState.None,
         ) { actions.onUIEvent(UIEvent.Repeat) }
+        OutlinedButton(SimpIcons.Lyrics, active = view == ClassicView.LYRICS, onClick = onLyrics)
+        OutlinedButton(SimpIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
+        OutlinedButton(SimpIcons.QueueMusic, active = view == ClassicView.QUEUE, onClick = onQueue)
         Spacer(Modifier.weight(1f))
         FilledButton(SimpIcons.MoreVert, Modifier.size(46.dp), CircleShape, onClick = actions.onShowMoreSheet)
     }
-
-    if (picking) {
-        SleepTimerBottomSheet(
-            onDismiss = { picking = false },
-            accent = MaterialTheme.colorScheme.primary,
-        ) { minutes -> handler.sleepStart(minutes) }
-    }
-    if (confirmingOff) {
-        AlertDialog(
-            onDismissRequest = { confirmingOff = false },
-            text = { Text(stringResource(Res.string.sleep_timer_warning)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    handler.sleepStop()
-                    confirmingOff = false
-                }) { Text(stringResource(Res.string.yes)) }
-            },
-            dismissButton = { TextButton(onClick = { confirmingOff = false }) { Text(stringResource(Res.string.cancel)) } },
-        )
-    }
 }
 
-/** Filled with the cover's colour: like, the transport pills, the song menu. */
+/** Filled with the cover's colour: the transport pills, the song menu. */
 @Composable
 private fun FilledButton(
     icon: ImageVector,
