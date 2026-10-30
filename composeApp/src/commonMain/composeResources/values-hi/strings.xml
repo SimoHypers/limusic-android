@@ -25,8 +25,6 @@
     <string name="your_playlists">आपकी लोकल प्लेलिस्ट्स</string>
     <string name="no_playlists_added">कोई प्लेलिस्ट्स नहीं जोड़ी गईं</string>
     <string name="recently_added">हाल ही में जोड़ा गया</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">गाने, कलाकार, एल्बम, प्लेलिस्ट और बहुत कुछ खोजें</string>
-    <string name="everything_you_need">आपको जो चाहिए वो सब</string>
     <string name="restore_failed">पुनर्स्थापना असफल</string>
     <string name="restore_success">पुनर्स्थापना सफल</string>
     <string name="search">खोजें</string>
@@ -164,7 +162,6 @@
     <string name="sort_by">क्रमबद्ध करें</string>
     <string name="older_first">पुराने पहले</string>
     <string name="newer_first">नए पहले</string>
-    <string name="featured_playlists">विशेष प्लेलिस्ट</string>
     <string name="featured_inArtist">पर प्रदर्शित</string>
     <string name="play_video_for_video_track_instead_of_audio_only">केवल ऑडियो के बजाय वीडियो ट्रैक के लिए वीडियो चलाएं</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">जैसे म्यूजिक वीडियो, लिरिक्स वीडियो, पॉडकास्ट और बहुत कुछ</string>

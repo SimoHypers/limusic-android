@@ -19,8 +19,6 @@
     <string name="your_playlists">قوائمك للتشغيل المحلية</string>
     <string name="no_playlists_added">لم يتم إضافة قوائم تشغيل</string>
     <string name="recently_added">المضافة حديثًا</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">البحث عن أغاني وفنانين وألبومات وقوائم تشغيل والمزيد</string>
-    <string name="everything_you_need">كلّما تحتاج</string>
     <string name="restore_failed">فشلت الاستعادة</string>
     <string name="restore_success">تمت الاستعادة بنجاح</string>
     <string name="search">بحث</string>
@@ -156,7 +154,6 @@
     <string name="sort_by">فرز حسب</string>
     <string name="older_first">إظهار الأقدم أولاً</string>
     <string name="newer_first">إظهار الأحدث أولاً</string>
-    <string name="featured_playlists">قوائم التشغيل المميزة</string>
     <string name="featured_inArtist">مميز في</string>
     <string name="play_video_for_video_track_instead_of_audio_only">تشغيل الفيديو لمقطع الفيديو بدلًا من الصوت فقط</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">مثل الموسيقي والفيديو وكلمات الأغاني و Podcasts والمزيد</string>

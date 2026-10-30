@@ -28,8 +28,6 @@
     <string name="your_playlists">Ваши локальные плейлисты</string>
     <string name="no_playlists_added">Плейлисты не добавлены</string>
     <string name="recently_added">Недавно добавленные</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Искать песни, исполнителей, альбомы, плейлисты, и многое другое</string>
-    <string name="everything_you_need">Все что вам нужно</string>
     <string name="restore_failed">Ошибка восстановления</string>
     <string name="restore_success">Восстановление прошло успешно</string>
     <string name="search">Поиск</string>
@@ -175,7 +173,6 @@
     <string name="sort_by">Сортировать по</string>
     <string name="older_first">Сначала старые</string>
     <string name="newer_first">Сначала новые</string>
-    <string name="featured_playlists">Избранные плейлисты</string>
     <string name="featured_inArtist">Где встречается</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Воспроизводить видео для треков, а не только аудио</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Такие, как музыкальное видео, видео с текстами, подкасты и многое другое</string>

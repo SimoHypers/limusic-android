@@ -19,8 +19,6 @@
     <string name="your_playlists">Paikalliset soittolistat</string>
     <string name="no_playlists_added">Ei lisättyjä soittolistoja</string>
     <string name="recently_added">Äskettäin lisätyt</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Etsi kappaleita, artisteja, albumeita, soittolistoja ja muuta</string>
-    <string name="everything_you_need">Kaikki mitä tarvitset</string>
     <string name="restore_failed">Palautus epäonnistui</string>
     <string name="restore_success">Palautus onnistui</string>
     <string name="search">Etsi</string>
@@ -151,7 +149,6 @@
     <string name="suggest">Ehdotus</string>
     <string name="reload">Lataa uudelleen</string>
     <string name="newer_first">Uusimmat ensin</string>
-    <string name="featured_playlists">Suositellut soittolistat</string>
     <string name="featured_inArtist">Mukana näissä</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Toista video videoraidalla pelkän äänen sijaan</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Kuten musiikkivideo, sanoitusvideo, podcastit ja paljon muuta</string>

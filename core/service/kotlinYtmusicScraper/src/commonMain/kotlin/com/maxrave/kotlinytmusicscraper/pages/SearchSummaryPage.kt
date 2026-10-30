@@ -10,6 +10,7 @@ import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.kotlinytmusicscraper.models.oddElements
+import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.utils.parseTime
 
@@ -302,4 +303,49 @@ data class SearchSummaryPage(
             }
         }
     }
+}
+/**
+ * An unfiltered search, read like desktop's parse_search_all. WEB_REMIX answers with one
+ * musicCardShelfRenderer (the top result and a few items YouTube pairs with it), then a flat run
+ * of itemSectionRenderers, one row each and every kind mixed; there are no titled shelves.
+ */
+data class SearchAllPage(
+    val top: YTItem?,
+    /** The card's own line as YouTube wrote it, e.g. "Artist • 130M monthly audience". */
+    val topSubtitle: String?,
+    /** Up to three songs from the card. */
+    val topSongs: List<SongItem>,
+    /** Every row after the card that parses: songs, videos, albums, artists, playlists. */
+    val items: List<YTItem>,
+)
+
+fun SearchResponse.toSearchAllPage(): SearchAllPage {
+    val sections =
+        contents
+            ?.tabbedSearchResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
+            .orEmpty()
+    val card = sections.firstNotNullOfOrNull { it.musicCardShelfRenderer }
+    val top = card?.let(SearchSummaryPage::fromMusicCardShelfRenderer)
+    val topArtists = (top as? ArtistItem)?.let { listOf(Artist(it.title, it.id)) }.orEmpty()
+    val topSongs =
+        card
+            ?.contents
+            .orEmpty()
+            .mapNotNull { row -> row.musicResponsiveListItemRenderer?.let(SearchSummaryPage::fromMusicResponsiveListItemRenderer) as? SongItem }
+            .filter { it.musicVideoType != "MUSIC_VIDEO_TYPE_PODCAST_EPISODE" }
+            // Under an artist the rows read "Song • 4:01", so the parser took the length for an
+            // artist; only linked runs are artists, and the card's artist stands in for none.
+            .map { song -> song.copy(artists = song.artists.filter { it.id != null }.ifEmpty { topArtists }) }
+            .take(3)
+    val items =
+        sections
+            .flatMap { it.itemSectionRenderer?.contents.orEmpty() + it.musicShelfRenderer?.contents.orEmpty() }
+            .mapNotNull { row -> row.musicResponsiveListItemRenderer?.let(SearchSummaryPage::fromMusicResponsiveListItemRenderer) }
+    return SearchAllPage(top, card?.subtitle?.runs?.joinToString("") { it.text }, topSongs, items)
 }

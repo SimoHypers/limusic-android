@@ -19,8 +19,6 @@
     <string name="your_playlists">เพลย์ลิสต์ในอุปกรณ์</string>
     <string name="no_playlists_added">ยังไม่มีการเพิ่มเพลย์ลิสต์</string>
     <string name="recently_added">เพิ่มล่าสุด</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">ค้นหา เพลง ศิลปิน อัลบั้ม เพลย์ลิสต์ และอื่นๆ</string>
-    <string name="everything_you_need">อะไรก็ตามที่คุณต้องการ</string>
     <string name="restore_failed">การกู้คืนล้มเหลว</string>
     <string name="restore_success">การกู้คืนสำเร็จ</string>
     <string name="search">ค้นหา</string>
@@ -160,7 +158,6 @@
     <string name="sort_by">เรียงตาม</string>
     <string name="older_first">เรียงจากเก่าไปใหม่</string>
     <string name="newer_first">เรียงจากใหม่ไปเก่า</string>
-    <string name="featured_playlists">เพลย์ลิสต์ที่โดดเด่น</string>
     <string name="featured_inArtist">โดดเด่นบน</string>
     <string name="play_video_for_video_track_instead_of_audio_only">เล่นวิดีโอสำหรับแทร็กวิดีโอแทนเสียงเท่านั้น</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">เช่น มิวสิควิดีโอ, เนื้อเพลง, พอดแคสต์ และอื่นๆ</string>

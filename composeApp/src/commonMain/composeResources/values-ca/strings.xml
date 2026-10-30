@@ -19,8 +19,6 @@
     <string name="your_playlists">Les vostres llistes de reproducció locals</string>
     <string name="no_playlists_added">No s'han afegit llistes de reproducció</string>
     <string name="recently_added">Afegit recentment</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Cerca cançons, artistes, àlbums, llistes de reproducció i molt més</string>
-    <string name="everything_you_need">Tot el que necessiteu</string>
     <string name="restore_failed">La restauració ha fallat</string>
     <string name="restore_success">S'ha restaurat amb èxit</string>
     <string name="search">Cercar</string>
@@ -160,7 +158,6 @@
     <string name="sort_by">Ordena per</string>
     <string name="older_first">Més antics primer</string>
     <string name="newer_first">Més nous primer</string>
-    <string name="featured_playlists">Llistes de reproducció destacades</string>
     <string name="featured_inArtist">Destacat a</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Reprodueix el vídeo per a la pista de vídeo en lloc de només l'àudio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Com ara vídeo musical, vídeo de lletres, podcasts i molt més</string>

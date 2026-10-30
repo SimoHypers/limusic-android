@@ -61,6 +61,8 @@ import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistSection
+import com.maxrave.kotlinytmusicscraper.pages.SearchAllPage
+import com.maxrave.kotlinytmusicscraper.pages.toSearchAllPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.ExplorePage
 import com.maxrave.kotlinytmusicscraper.pages.MoodAndGenres
@@ -287,6 +289,12 @@ class YouTube {
                         ?.continuations
                         ?.getContinuation(),
             )
+        }
+
+    /** The unfiltered search: its top result and every row, see [SearchAllPage]. */
+    suspend fun searchAll(query: String): Result<SearchAllPage> =
+        runCatching {
+            ytMusic.search(WEB_REMIX, query).body<SearchResponse>().toSearchAllPage()
         }
 
     /**

@@ -19,8 +19,6 @@
     <string name="your_playlists">Vaši lokalni popisi za reprodukciju</string>
     <string name="no_playlists_added">Nema dodanih popisa za reprodukciju</string>
     <string name="recently_added">Nedavno dodano</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Pretraži songs, artists, albums, playlists, and more</string>
-    <string name="everything_you_need">Sve što Vam treba</string>
     <string name="restore_failed">Restore Failed</string>
     <string name="restore_success">Restore Success</string>
     <string name="search">Pretraži</string>
@@ -165,7 +163,6 @@
     <string name="sort_by">Sort by</string>
     <string name="older_first">Older First</string>
     <string name="newer_first">Nevoer First</string>
-    <string name="featured_playlists">Featured Popisi za reprodukciju</string>
     <string name="featured_inArtist">Featured on</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Such as Music Video, Tekst pjesme Video, Podcasts, and more</string>

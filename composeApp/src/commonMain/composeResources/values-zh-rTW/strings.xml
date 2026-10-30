@@ -25,8 +25,6 @@
     <string name="your_playlists">裝置播放清單</string>
     <string name="no_playlists_added">沒有裝置中的播放清單</string>
     <string name="recently_added">最近添加</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">搜尋歌曲、歌手、專輯、播放清單和更多</string>
-    <string name="everything_you_need">想找的歌曲都在這裡</string>
     <string name="restore_failed">還原失敗</string>
     <string name="restore_success">還原成功</string>
     <string name="search">搜尋</string>
@@ -171,7 +169,6 @@
     <string name="sort_by">排序方式</string>
     <string name="older_first">由舊至新</string>
     <string name="newer_first">最新作品</string>
-    <string name="featured_playlists">精選播放清單</string>
     <string name="featured_inArtist">已發布</string>
     <string name="play_video_for_video_track_instead_of_audio_only">播放影片而不是僅播放音訊</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">例如音樂影片、歌詞影片、Podcast等等</string>

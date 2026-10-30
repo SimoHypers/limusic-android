@@ -25,8 +25,6 @@
     <string name="your_playlists">Dina lokala spellistor</string>
     <string name="no_playlists_added">Inga spellistor har lagts till</string>
     <string name="recently_added">Nyligen tillagda</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Sök efter låtar, artister, album, spellistor med mera</string>
-    <string name="everything_you_need">Allt du behöver</string>
     <string name="restore_failed">Återställning misslyckades</string>
     <string name="restore_success">Återställning lyckades</string>
     <string name="search">Sök</string>
@@ -171,7 +169,6 @@
     <string name="sort_by">Sortera efter</string>
     <string name="older_first">Äldre först</string>
     <string name="newer_first">Nyare först</string>
-    <string name="featured_playlists">Utvalda spellistor</string>
     <string name="featured_inArtist">Medverkar på</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Spela upp video för videospår i stället för endast ljud</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Till exempel musikvideor, videor med låttexter, poddar med mera</string>

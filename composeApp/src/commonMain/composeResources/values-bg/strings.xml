@@ -19,8 +19,6 @@
     <string name="your_playlists">Локални плейлисти</string>
     <string name="no_playlists_added">Няма добавени плейлисти</string>
     <string name="recently_added">Наскоро добавени</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Търсене на песни, изпълнители, плейлисти и др.</string>
-    <string name="everything_you_need">Всичко, от което имаш нужда</string>
     <string name="restore_failed">Неуспешно възстановяване</string>
     <string name="restore_success">Успешно възстановяване</string>
     <string name="search">Търсене</string>
@@ -159,7 +157,6 @@
     <string name="sort_by">Сортирай по</string>
     <string name="older_first">Най-стари</string>
     <string name="newer_first">Най-нови</string>
-    <string name="featured_playlists">Избрани плейлисти</string>
     <string name="featured_inArtist">Участва в</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Възпроизвеждай видео вместо аудио</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Като музикално видео, видео с текст, подкасти и още</string>

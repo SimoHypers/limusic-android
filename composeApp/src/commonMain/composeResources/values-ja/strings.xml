@@ -25,8 +25,6 @@
     <string name="your_playlists">端末内の再生リスト</string>
     <string name="no_playlists_added">再生リストなし</string>
     <string name="recently_added">最近聴いた順</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">曲、アーティスト、アルバム、再生リストなどを検索</string>
-    <string name="everything_you_need">望むすべてがあります</string>
     <string name="restore_failed">復元に失敗しました</string>
     <string name="restore_success">復元完了</string>
     <string name="search">検索</string>
@@ -172,7 +170,6 @@
     <string name="sort_by">並び替え</string>
     <string name="older_first">古い順</string>
     <string name="newer_first">新しい順</string>
-    <string name="featured_playlists">注目の再生リスト</string>
     <string name="featured_inArtist">おすすめ</string>
     <string name="play_video_for_video_track_instead_of_audio_only">音声のみではなく動画トラック用の動画を再生</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">ミュージックビデオ、歌詞の動画、ポッドキャストなど</string>

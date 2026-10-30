@@ -19,8 +19,6 @@
     <string name="your_playlists">Twoje lokalne playlisty</string>
     <string name="no_playlists_added">Nie dodano playlist</string>
     <string name="recently_added">Ostatnio dodane</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Szukaj utworów, artystów, albumów, playlist i więcej</string>
-    <string name="everything_you_need">Wszystko, czego potrzebujesz</string>
     <string name="restore_failed">Przywracanie nie powiodło się</string>
     <string name="restore_success">Przywrócono pomyślnie</string>
     <string name="search">Szukaj</string>
@@ -159,7 +157,6 @@
     <string name="sort_by">Sortuj wg</string>
     <string name="older_first">Najpierw starsze</string>
     <string name="newer_first">Najpierw nowsze</string>
-    <string name="featured_playlists">Polecane playlisty</string>
     <string name="featured_inArtist">Polecane</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Odtwarzaj wideo dla ścieżki wideo zamiast tylko audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Takie jak muzyka wideo, film tekstowy, Podcasty i wiele innych</string>

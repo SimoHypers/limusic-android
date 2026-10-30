@@ -19,8 +19,6 @@
     <string name="your_playlists">Suas Playlists Locais</string>
     <string name="no_playlists_added">Nenhuma playlist adicionada</string>
     <string name="recently_added">Recentemente adicionado</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Pesquise por músicas, artistas, álbuns, playlists e muito mais</string>
-    <string name="everything_you_need">Tudo que você precisa</string>
     <string name="restore_failed">Falha ao restaurar!</string>
     <string name="restore_success">Restauração bem-sucedida</string>
     <string name="search">Procurar</string>
@@ -160,7 +158,6 @@
     <string name="sort_by"></string>
     <string name="older_first">Mais Antigas Primeiro</string>
     <string name="newer_first">Mais Recentes Primeiro</string>
-    <string name="featured_playlists">Listas de reprodução em destaque</string>
     <string name="featured_inArtist">Destacado</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Reproduzir vídeo para faixa de vídeo em vez de apenas áudio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Como Vídeo de Música, Vídeo de Letras, Podcasts e muito mais</string>

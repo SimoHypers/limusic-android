@@ -1,6 +1,7 @@
 package com.maxrave.domain.repository
 
 import com.maxrave.domain.data.entities.SearchHistory
+import com.maxrave.domain.data.model.searchResult.SearchAllResult
 import com.maxrave.domain.data.model.searchResult.SearchSuggestions
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
@@ -19,13 +20,14 @@ interface SearchRepository {
 
     suspend fun deleteSearchQuery(query: String)
 
+    fun getSearchDataAll(query: String): Flow<Resource<SearchAllResult>>
+
     fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>>
 
     fun getSearchDataVideo(query: String): Flow<Resource<ArrayList<VideosResult>>>
 
     fun getSearchDataPodcast(query: String): Flow<Resource<ArrayList<PlaylistsResult>>>
 
-    fun getSearchDataFeaturedPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>>
 
     fun getSearchDataArtist(query: String): Flow<Resource<ArrayList<ArtistsResult>>>
 

@@ -19,8 +19,6 @@
     <string name="your_playlists">Yerel Oynatma Listeleriniz</string>
     <string name="no_playlists_added">Oynatma listesi eklenmedi</string>
     <string name="recently_added">Son Eklenenler</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Şarkıları, sanatçıları, albümleri, çalma listelerini ve daha fazlasını arayın</string>
-    <string name="everything_you_need">İhtiyacın olan her şey</string>
     <string name="restore_failed">Geri Yükleme Başarısız Oldu</string>
     <string name="restore_success">Geri Yükleme Başarılı</string>
     <string name="search">Arama</string>
@@ -162,7 +160,6 @@
     <string name="sort_by">Şuna göre sırala</string>
     <string name="older_first">Eskiden Yeniye</string>
     <string name="newer_first">Yeniden Eskiye</string>
-    <string name="featured_playlists">Öne Çıkan Oynatma Listeleri</string>
     <string name="featured_inArtist">Bulunduğu listeler</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Sadece ses yerine video parçası için video oynatın</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Müzik Videosu, Şarkı Sözü Videosu, Podcast'ler ve daha fazlası gibi</string>

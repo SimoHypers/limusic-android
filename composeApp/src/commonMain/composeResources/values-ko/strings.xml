@@ -19,8 +19,6 @@
     <string name="your_playlists">내 로컬 재생 목록</string>
     <string name="no_playlists_added">추가된 재생 목록 없음</string>
     <string name="recently_added">최근 추가한</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">음악, 아티스트, 앨범, 재생 목록 등 검색</string>
-    <string name="everything_you_need">당신이 원하는 모든 것</string>
     <string name="restore_failed">복원 실패</string>
     <string name="restore_success">복원 성공</string>
     <string name="search">검색</string>
@@ -160,7 +158,6 @@
     <string name="sort_by">정렬 기준</string>
     <string name="older_first">날짜순</string>
     <string name="newer_first">최신순</string>
-    <string name="featured_playlists">추천 재생목록</string>
     <string name="featured_inArtist">추천</string>
     <string name="play_video_for_video_track_instead_of_audio_only">오디오만 재생하는 대신 동영상도 재생</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">뮤직 비디오, 가사 동영상, 팟캐스트 등</string>

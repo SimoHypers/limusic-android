@@ -19,8 +19,6 @@
     <string name="your_playlists">Daftar Putar Lokal Anda</string>
     <string name="no_playlists_added">Tidak ada daftar putar yang ditambahkan</string>
     <string name="recently_added">Baru saja ditambahkan</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Cari lagu, artis, album, daftar putar, dan lainnya</string>
-    <string name="everything_you_need">Semua yang Anda butuhkan</string>
     <string name="restore_failed">Pemulihan Gagal</string>
     <string name="restore_success">Pemulihan Sukses</string>
     <string name="search">Cari</string>
@@ -162,7 +160,6 @@
     <string name="sort_by">Urutkan berdasarkan</string>
     <string name="older_first">Terlama dulu</string>
     <string name="newer_first">Terbaru dulu</string>
-    <string name="featured_playlists">Daftar Putar Unggulan</string>
     <string name="featured_inArtist">Termasuk di</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Putar video untuk trek video, bukan hanya audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Seperti Video Musik, Video Lirik, Podcast, dan lainnya</string>

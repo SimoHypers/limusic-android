@@ -28,8 +28,6 @@
     <string name="your_playlists">Ваші локальні списки</string>
     <string name="no_playlists_added">Списки не додані</string>
     <string name="recently_added">Нещодавно додані</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Шукайте пісні, виконавців, альбоми, списки та інше</string>
-    <string name="everything_you_need">Все, що вам потрібно</string>
     <string name="restore_failed">Відновлення не вдалося</string>
     <string name="restore_success">Відновлено успішно</string>
     <string name="search">Пошук</string>
@@ -174,7 +172,6 @@
     <string name="sort_by">Упорядкувати за</string>
     <string name="older_first">Спочатку старіші</string>
     <string name="newer_first">Спочатку новіші</string>
-    <string name="featured_playlists">Рекомендовані плейлисти</string>
     <string name="featured_inArtist">Рекомендовано</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Відтворювати відео для відеодоріжки, а не лише аудіо</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Такі як музичні відео, відео з текстами пісень, подкасти та багато іншого</string>

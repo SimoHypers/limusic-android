@@ -33,8 +33,6 @@
     <string name="your_playlists">Your Local Playlists</string>
     <string name="no_playlists_added">No playlists added</string>
     <string name="recently_added">Recently Added</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Search for songs, artists, albums, playlists, and more</string>
-    <string name="everything_you_need">Everything you need</string>
     <string name="restore_failed">Restore Failed</string>
     <string name="restore_success">Restore Success</string>
     <string name="search">Search</string>
@@ -222,7 +220,6 @@
     <string name="newer_first">Newer First</string>
     <string name="credit_app">Limusic is a YouTube Music client for Android, the companion to the Limusic desktop app.</string>
     <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
-    <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>

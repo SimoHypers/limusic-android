@@ -19,8 +19,6 @@
     <string name="your_playlists">רשימות השמעה המקומיים שלך</string>
     <string name="no_playlists_added">לא נוספו רשימות השמעה</string>
     <string name="recently_added">נוספו לאחרונה</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">חפש שירים, אמנים, אלבומים, רשימות השמעה, ועוד</string>
-    <string name="everything_you_need">כל מה שאתה צריך</string>
     <string name="restore_failed">שחזור נכשל</string>
     <string name="restore_success">שוחזר בהצלחה</string>
     <string name="search">חיפוש</string>
@@ -154,7 +152,6 @@
     <string name="free_space">מקום פנוי</string>
     <string name="suggest">הצעה</string>
     <string name="reload">טען מחדש</string>
-    <string name="featured_playlists">רשימות השמעה נבחרות</string>
     <string name="featured_inArtist">מצורף ב</string>
     <string name="play_video_for_video_track_instead_of_audio_only">הפעל וידאו עבור רצועת וידאו במקום אודיו בלבד</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">כגון קליפ מוזיקה, וידאו מילים, פודקאסטים, ועוד</string>

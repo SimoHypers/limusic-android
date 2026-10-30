@@ -19,8 +19,6 @@
     <string name="your_playlists">Yerli Pleylistləriniz</string>
     <string name="no_playlists_added">Pleylist əlavə edilməyib</string>
     <string name="recently_added">Son Əlavələr</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Mahnılar, sənətkarlar, albomlar, səsləndirmə siyahılarını və s. axtar</string>
-    <string name="everything_you_need">Ehtiyacınız olan hər şey</string>
     <string name="restore_failed">Bərpa etmək olmadı</string>
     <string name="restore_success">Bərpa uğurlu</string>
     <string name="search">Axtarış</string>
@@ -150,7 +148,6 @@
     <string name="free_space">Boş yer</string>
     <string name="suggest">Tövsiyə</string>
     <string name="reload">Təkrar yüklə</string>
-    <string name="featured_playlists">Xüsusi Pleylistlər</string>
     <string name="featured_inArtist">Seçilənlər</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Təkcə səs əvəzinə video axını üçün video oynat</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Belə ki, Musiqi Videosu, Lirika Videosu, Podcast-lar və daha çoxu</string>

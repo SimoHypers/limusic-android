@@ -19,8 +19,6 @@
     <string name="your_playlists">پلی‌لیست های محلی شما</string>
     <string name="no_playlists_added">هیچ پلی‌لیستی اضافه نشده</string>
     <string name="recently_added">به تازگی افزوده شده</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">جستجو برای آهنگ‌ها، هنرمندان، آلبوم‌ها، پلی‌لیست ها و بیشتر</string>
-    <string name="everything_you_need">هر چیزی که نیاز دارید</string>
     <string name="restore_failed">بازیابی ناموفق</string>
     <string name="restore_success">بازیابی موفق</string>
     <string name="search">جستجو</string>
@@ -160,7 +158,6 @@
     <string name="sort_by">مرتب‌سازی براساس</string>
     <string name="older_first">ابتدا قدیمی تر</string>
     <string name="newer_first">ابتدا جدیدتر</string>
-    <string name="featured_playlists">فهرست‌های پخش ویژه</string>
     <string name="featured_inArtist">ویژه در</string>
     <string name="play_video_for_video_track_instead_of_audio_only">پخش ویدیو برای آهنگ ویدیو به جای
     فقط صدا</string>

@@ -47,7 +47,14 @@ data class SectionListRenderer(
         val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?,
         val musicEditablePlaylistDetailHeaderRenderer: BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?,
         val gridRenderer: GridRenderer?,
+        // An unfiltered search's rows, one per section (see SearchAllPage).
+        val itemSectionRenderer: ItemSectionRenderer? = null,
     ) {
+        @Serializable
+        data class ItemSectionRenderer(
+            val contents: List<MusicShelfRenderer.Content>?,
+        )
+
         @Serializable
         data class MusicResponsiveHeaderRenderer(
             val description: Description?,
