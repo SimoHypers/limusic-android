@@ -360,6 +360,7 @@ fun LibraryScreen(
 
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
                 val downloadedIds by viewModel.downloadedIds.collectAsStateWithLifecycle()
+                val refusedIds by viewModel.refusedIds.collectAsStateWithLifecycle()
                 val checkingLibrary by sharedViewModel.checkingLibrary.collectAsStateWithLifecycle()
                 // The library pass adds playlists and albums: show them once it is done.
                 LaunchedEffect(checkingLibrary) { if (!checkingLibrary) viewModel.getDownloadedPlaylist() }
@@ -393,7 +394,9 @@ fun LibraryScreen(
                     subtitleOf = { item ->
                         val ids = item.trackIds()
                         val done = remember(ids, downloadedIds) { ids.count { it in downloadedIds } }
-                        if (done < ids.size) stringResource(Res.string.download_progress_short, done, ids.size) else null
+                        // Songs YouTube refused will never come: out of the count.
+                        val total = remember(ids, refusedIds) { ids.count { it !in refusedIds } }
+                        if (done < total) stringResource(Res.string.download_progress_short, done, total) else null
                     },
                 ) {
                     viewModel.getDownloadedPlaylist()

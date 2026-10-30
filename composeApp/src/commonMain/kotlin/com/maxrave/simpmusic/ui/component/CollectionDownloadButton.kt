@@ -61,7 +61,7 @@ fun CollectionDownloadButton(
                 off -> Icon(SimpIcons.DownloadForOffline, stringResource(Res.string.download), Modifier.size(22.dp), ink)
                 active ->
                     CircularProgressIndicator(
-                        progress = { if (download.total == 0) 0f else download.downloaded.toFloat() / download.total },
+                        progress = { download.downloaded.toFloat() / (download.total - download.refused).coerceAtLeast(1) },
                         modifier = Modifier.size(24.dp),
                         color = ink,
                         trackColor = ink.copy(alpha = 0.24f),

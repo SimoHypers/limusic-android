@@ -154,6 +154,7 @@ private val mediaServiceModule =
                 databaseProvider = get(),
                 streamRepository = get(),
                 songRepository = get(),
+                proxy = provideProxy(get()),
             )
         }
 

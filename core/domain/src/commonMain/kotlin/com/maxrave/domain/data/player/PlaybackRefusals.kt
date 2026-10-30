@@ -1,8 +1,10 @@
 package com.maxrave.domain.data.player
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 
 /**
@@ -17,9 +19,6 @@ import kotlinx.coroutines.flow.update
 object PlaybackRefusals {
     private val reasons = MutableStateFlow<Map<String, String>>(emptyMap())
 
-    /** Video id to reason, for a download page saying why its missing songs are missing. */
-    val all: StateFlow<Map<String, String>> = reasons.asStateFlow()
-
     fun record(
         videoId: String,
         reason: String,
@@ -28,6 +27,28 @@ object PlaybackRefusals {
     fun clear(videoId: String) = reasons.update { it - videoId }
 
     fun reasonFor(videoId: String): String? = reasons.value[videoId]
+
+    private val downloads = MutableStateFlow<Set<String>>(emptySet())
+
+    /**
+     * Songs a download was refused for (Premium only, taken down), which the downloader keeps
+     * across runs: such a refusal rarely lifts, and asking every launch is a request per song from
+     * the listener's IP. Playback still asks each run; only a download retry forgets these.
+     */
+    val refusedDownloads: StateFlow<Set<String>> = downloads.asStateFlow()
+
+    fun rememberDownloadRefusals(videoIds: Collection<String>) = downloads.update { it + videoIds }
+
+    /** Forgets every refused download, this run's refusals of them included, so a retry asks again. Returns them. */
+    fun forgetDownloadRefusals(): Set<String> {
+        val forgotten = downloads.value
+        downloads.update { it - forgotten }
+        reasons.update { it - forgotten }
+        return forgotten
+    }
+
+    /** Songs refused this run or remembered from a download: the ones a download count leaves out. */
+    val refusedIds: Flow<Set<String>> = combine(reasons, downloads) { now, remembered -> now.keys + remembered }
 
     private val _blocked = MutableStateFlow<String?>(null)
 

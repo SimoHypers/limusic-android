@@ -38,14 +38,18 @@ data class CollectionDownload(
 
 /**
  * What the downloader is working through: [done] and [failed] since the queue last ran dry,
- * [remaining] still to go. [waitingForWifi] while Wi-Fi only holds it back on another network;
- * [blocked] is what YouTube said when it pushed back on the IP, which paused everything.
+ * [remaining] still to go, and [progress] (0 to 1) through all of them, counting the bytes of the
+ * songs in flight. [waitingForWifi] while Wi-Fi only holds it back on another network, [offline]
+ * while there is no working network at all; [blocked] is what YouTube said when it pushed back on
+ * the IP, which paused everything.
  */
 data class DownloadQueue(
     val done: Int = 0,
     val failed: Int = 0,
     val remaining: Int = 0,
+    val progress: Float = 0f,
     val paused: Boolean = false,
     val waitingForWifi: Boolean = false,
+    val offline: Boolean = false,
     val blocked: String? = null,
 )

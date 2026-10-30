@@ -80,8 +80,10 @@ import simpmusic.composeapp.generated.resources.checking_library
 import simpmusic.composeapp.generated.resources.downloaded_songs
 import simpmusic.composeapp.generated.resources.downloading_progress
 import simpmusic.composeapp.generated.resources.downloads_blocked_at
+import simpmusic.composeapp.generated.resources.downloads_failed_now
 import simpmusic.composeapp.generated.resources.downloads_missing
 import simpmusic.composeapp.generated.resources.downloads_paused_at
+import simpmusic.composeapp.generated.resources.downloads_waiting_network
 import simpmusic.composeapp.generated.resources.downloads_waiting_wifi
 import simpmusic.composeapp.generated.resources.keep_library_downloaded
 import simpmusic.composeapp.generated.resources.keep_library_downloaded_description
@@ -275,14 +277,16 @@ fun DownloadsHeader(
                     queue.blocked != null -> Res.string.downloads_blocked_at
                     queue.paused -> Res.string.downloads_paused_at
                     queue.waitingForWifi -> Res.string.downloads_waiting_wifi
+                    queue.offline -> Res.string.downloads_waiting_network
                     else -> Res.string.downloading_progress
                 }
+            val failed = queue.failed.takeIf { it > 0 }?.let { pluralStringResource(Res.plurals.downloads_failed_now, it, it) }
             DownloadsRow(
                 icon = SimpIcons.Downloading,
-                title = stringResource(title, queue.done, total),
-                subtitle = queue.blocked,
+                title = stringResource(title, queue.done, total) + " · ${(queue.progress * 100).toInt()}%",
+                subtitle = listOfNotNull(failed, queue.blocked).joinToString(" · ").ifEmpty { null },
                 subtitleLines = 2,
-                progress = queue.done.toFloat() / total,
+                progress = queue.progress,
                 trailing = {
                     TextButton(onClick = { onPause(!queue.paused) }) {
                         Text(stringResource(if (queue.paused) Res.string.resume else Res.string.pause), color = MaterialTheme.colorScheme.primary)

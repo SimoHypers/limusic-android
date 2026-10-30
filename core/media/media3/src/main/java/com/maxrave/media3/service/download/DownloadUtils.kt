@@ -57,6 +57,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.ByteArrayInputStream
+import java.net.Proxy
 import java.util.concurrent.Executor
 
 @UnstableApi
@@ -68,6 +69,7 @@ internal class DownloadUtils(
     private val streamRepository: StreamRepository,
     private val songRepository: SongRepository,
     databaseProvider: DatabaseProvider,
+    proxy: Proxy?,
 ) : DownloadHandler {
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -82,8 +84,11 @@ internal class DownloadUtils(
                 .setUpstreamDataSourceFactory(
                     ChunkedDataSource.Factory(
                         OkHttpDataSource.Factory(
+                            // The user's proxy, like the player: the stream URL is good only from
+                            // the IP that looked it up, and the lookup goes through the proxy.
                             OkHttpClient
                                 .Builder()
+                                .proxy(proxy)
                                 .build(),
                         ),
                     ),
@@ -189,7 +194,14 @@ internal class DownloadUtils(
     // Song states waiting for the next batched write.
     private val pending = HashMap<String, Int>()
     private var flushJob: Job? = null
+    private var ticker: Job? = null
     private var coversChecked = false
+
+    private val refusalsLoaded =
+        coroutineScope.launch {
+            val saved = dataStoreManager.getString(REFUSED_DOWNLOADS).first().orEmpty()
+            PlaybackRefusals.rememberDownloadRefusals(saved.split(',').filter { it.isNotEmpty() })
+        }
 
     private val _queue = MutableStateFlow(DownloadQueue())
     override val queue: StateFlow<DownloadQueue> = _queue.asStateFlow()
@@ -203,10 +215,13 @@ internal class DownloadUtils(
         if (songs.isEmpty()) return
         // A download's state lives on its song row, and a playlist page may not have saved every one.
         songRepository.insertSongs(songs)
+        refusalsLoaded.join()
         val wanted =
             withContext(Dispatchers.Main) {
                 songs.distinctBy { it.videoId }.filter {
-                    songState(it.videoId) == DownloadState.STATE_NOT_DOWNLOADED && PlaybackRefusals.reasonFor(it.videoId) == null
+                    songState(it.videoId) == DownloadState.STATE_NOT_DOWNLOADED &&
+                        PlaybackRefusals.reasonFor(it.videoId) == null &&
+                        it.videoId !in PlaybackRefusals.refusedDownloads.value
                 }
             }
         if (wanted.isEmpty()) return
@@ -269,13 +284,29 @@ internal class DownloadUtils(
     private fun updateQueue() {
         val remaining =
             states.values.count { it != Download.STATE_COMPLETED && it != Download.STATE_FAILED && it != Download.STATE_REMOVING }
+        // How far the songs in flight got; unknown (-1) until a song's length is known.
+        val partial = downloadManager.currentDownloads.sumOf { it.percentDownloaded.coerceAtLeast(0f) / 100.0 }
+        val notMet = downloadManager.notMetRequirements
         _queue.update {
+            val total = it.done + it.failed + remaining
             it.copy(
                 remaining = remaining,
+                progress = if (total == 0) 0f else ((it.done + it.failed + partial) / total).toFloat().coerceIn(0f, 1f),
                 paused = downloadManager.downloadsPaused,
-                waitingForWifi = downloadManager.notMetRequirements != 0,
+                waitingForWifi = notMet and Requirements.NETWORK_UNMETERED != 0,
+                offline = notMet == Requirements.NETWORK,
                 blocked = PlaybackRefusals.blocked.value,
             )
+        }
+        // The manager reports no progress between state changes: read it once a second while anything is queued.
+        if (remaining > 0 && ticker?.isActive != true) {
+            ticker =
+                mainScope.launch {
+                    while (queue.value.remaining > 0) {
+                        delay(1000)
+                        updateQueue()
+                    }
+                }
         }
     }
 
@@ -360,6 +391,10 @@ internal class DownloadUtils(
                 saveMissingCovers()
             }
         }
+        coroutineScope.launch {
+            refusalsLoaded.join()
+            PlaybackRefusals.refusedDownloads.collect { dataStoreManager.putString(REFUSED_DOWNLOADS, it.joinToString(",")) }
+        }
         val bySong = states.keys.groupBy { songState(it) }
         coroutineScope.launch {
             songRepository.reconcileDownloads(
@@ -387,6 +422,10 @@ internal class DownloadUtils(
                         }
                         Download.STATE_FAILED -> {
                             _queue.update { it.copy(failed = it.failed + 1) }
+                            // Refused outright, not pushed back on (a bot check is recorded as a refusal too).
+                            if (PlaybackRefusals.reasonFor(id) != null && PlaybackRefusals.blocked.value == null) {
+                                PlaybackRefusals.rememberDownloadRefusals(listOf(id))
+                            }
                             // googlevideo itself saying too many requests.
                             val rateLimited =
                                 generateSequence(finalException as Throwable?) { it.cause }
@@ -457,5 +496,6 @@ internal class DownloadUtils(
 
     private companion object {
         const val LOOKUP_GAP_MS = 3000L
+        const val REFUSED_DOWNLOADS = "refused_downloads"
     }
 }

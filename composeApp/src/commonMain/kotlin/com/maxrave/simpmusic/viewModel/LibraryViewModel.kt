@@ -155,9 +155,13 @@ class LibraryViewModel(
             .map { cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
-    /** Songs of the downloaded playlists and albums that are not on the phone, minus those YouTube refused this run. */
+    /** Songs YouTube refused, this run or for an earlier download: the Downloads counts leave them out. */
+    val refusedIds: StateFlow<Set<String>> =
+        PlaybackRefusals.refusedIds.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /** Songs of the downloaded playlists and albums that are not on the phone, minus those YouTube refused. */
     val missingDownloads: StateFlow<List<String>> =
-        combine(downloadedPlaylist, downloadedIds, PlaybackRefusals.all) { lists, downloaded, refused ->
+        combine(downloadedPlaylist, downloadedIds, refusedIds) { lists, downloaded, refused ->
             lists.data
                 .orEmpty()
                 .flatMap { it.trackIds() }
@@ -165,8 +169,10 @@ class LibraryViewModel(
                 .filter { it !in downloaded && it !in refused }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Asks again for the refused songs of these playlists and albums too. */
     fun retryMissingDownloads() {
-        val ids = missingDownloads.value
+        val kept = downloadedPlaylist.value.data.orEmpty().flatMapTo(HashSet()) { it.trackIds() }
+        val ids = missingDownloads.value + PlaybackRefusals.forgetDownloadRefusals().filter { it in kept }
         viewModelScope.launch { downloadHandler.downloadTracks(songRepository.getSongsByListVideoId(ids).first()) }
     }
 

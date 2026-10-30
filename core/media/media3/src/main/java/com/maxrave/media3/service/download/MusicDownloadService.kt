@@ -35,13 +35,20 @@ internal class MusicDownloadService :
     ): Notification {
         val queue = (downloadUtil as DownloadUtils).queue.value
         val total = queue.done + queue.failed + queue.remaining
+        val percent = (queue.progress * 100).toInt()
         val current = downloads.firstOrNull { it.state == Download.STATE_DOWNLOADING }?.let { Util.fromUtf8Bytes(it.request.data) }
         return NotificationCompat
             .Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.mono)
-            .setContentTitle(getString(R.string.downloads_progress, queue.done, total))
-            .setContentText(if (notMetRequirements != 0) getString(R.string.downloads_waiting_wifi) else current)
-            .setProgress(total, queue.done, total == 0)
+            .setContentTitle(getString(R.string.downloads_progress, queue.done, total) + " · $percent%")
+            .setContentText(
+                when {
+                    queue.waitingForWifi -> getString(R.string.downloads_waiting_wifi)
+                    queue.offline -> getString(R.string.downloads_waiting_network)
+                    else -> current
+                },
+            ).setSubText(queue.failed.takeIf { it > 0 }?.let { resources.getQuantityString(R.plurals.downloads_failed, it, it) })
+            .setProgress(100, percent, total == 0)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)

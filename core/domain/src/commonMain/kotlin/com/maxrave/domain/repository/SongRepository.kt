@@ -176,7 +176,7 @@ fun SongRepository.collectionDownload(
         flowOf(CollectionDownload(kept, videoIds.size))
     } else {
         // ponytail: a refused song is taken as not downloaded; only getStream records refusals, and a downloaded song never goes through it.
-        combine(downloadCount(videoIds), PlaybackRefusals.all) { count, refusals ->
+        combine(downloadCount(videoIds), PlaybackRefusals.refusedIds) { count, refusals ->
             CollectionDownload(true, videoIds.size, count.downloaded, count.active, videoIds.count { it in refusals })
         }
     }
