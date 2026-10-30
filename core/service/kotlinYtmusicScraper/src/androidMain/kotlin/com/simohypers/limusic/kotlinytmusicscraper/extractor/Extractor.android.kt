@@ -1,0 +1,266 @@
+package com.simohypers.limusic.kotlinytmusicscraper.extractor
+
+import android.content.Context
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
+import com.simohypers.limusic.kotlinytmusicscraper.cipher.FaradayCipherEngine
+import com.simohypers.limusic.kotlinytmusicscraper.models.SongItem
+import com.simohypers.limusic.kotlinytmusicscraper.models.response.DownloadProgress
+import com.simohypers.limusic.logger.Logger
+import dev.maxrave.pipepipe.extractor.NewPipe
+import dev.maxrave.pipepipe.extractor.ServiceList
+import dev.maxrave.pipepipe.extractor.services.youtube.YoutubeApiDecoder
+import dev.maxrave.pipepipe.extractor.stream.StreamInfo
+import okio.FileSystem
+import org.koin.mp.KoinPlatform.getKoin
+import okio.IOException
+import okio.Path.Companion.toPath
+import org.schabi.newpipe.extractor.NewPipe as BraveNewPipe
+import org.schabi.newpipe.extractor.ServiceList as BraveServiceList
+import org.schabi.newpipe.extractor.stream.StreamInfo as BraveStreamInfo
+
+private const val TAG = "Extractor"
+private const val LOCAL_TIER = "local"
+
+actual class Extractor {
+    private var newPipeDownloader = NewPipeDownloaderImpl(proxy = null)
+    private var braveNewPipeDownloader = BraveNewPipeDownloaderImpl(proxy = null)
+    private val faradayDecoder = FaradayJsDecoder()
+
+    actual fun init() {
+        NewPipe.init(newPipeDownloader)
+        // PipePipe asks returnyoutubedislikeapi.com about every extracted video by default.
+        ServiceList.YouTube.setFetchDislike(false)
+        BraveNewPipe.init(braveNewPipeDownloader)
+        YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
+    }
+
+    actual fun logIn(cookie: String?) {
+        ServiceList.YouTube.tokens = cookie ?: ""
+    }
+
+    actual val cipher: FaradayCipherEngine get() = faradayDecoder.engine
+
+    private val poTokenMinter by lazy { WebPoTokenMinter(getKoin().get<Context>()) }
+
+    actual suspend fun webPoTokens(
+        videoId: String,
+        visitorData: String,
+    ): WebPoTokens? = poTokenMinter.tokens(videoId, visitorData)
+
+    actual fun liveHlsUrl(videoId: String): String? {
+        // Ciphers are only ever solved on the device. PipePipe would otherwise send them to
+        // api.pipepipe.dev, which NewPipeDownloaderImpl refuses to reach.
+        // Re-registered every time: PipePipe drops the local decoder for good the first time it
+        // throws, and the getter is package-private so its state cannot be read from here. Setting
+        // it again turns "disabled forever" into "skipped for one track".
+        YoutubeApiDecoder.setLocalDecoder(faradayDecoder)
+        pipePipeLiveHlsUrl(videoId, LOCAL_TIER)?.let { return it }
+        return braveLiveHlsUrl(videoId)
+    }
+
+    private fun pipePipeLiveHlsUrl(
+        videoId: String,
+        tier: String,
+    ): String? =
+        runCatching {
+            StreamInfo.getInfo(ServiceList.YouTube, "https://music.youtube.com/watch?v=$videoId").hlsUrl
+        }.onFailure {
+            Logger.w(TAG, "PipePipe[$tier] live extraction failed for $videoId: ${it.message}")
+        }.getOrNull()
+            ?.takeIf { it.isNotEmpty() }
+            ?.also {
+                ExtractSource.record(videoId, "PipePipe · $tier · live")
+                Logger.d(TAG, "live HLS from PipePipe[$tier] for $videoId")
+            }
+
+    private fun braveLiveHlsUrl(videoId: String): String? =
+        runCatching {
+            BraveStreamInfo.getInfo(BraveServiceList.YouTube, "https://www.youtube.com/watch?v=$videoId").hlsUrl
+        }.onFailure {
+            Logger.w(TAG, "BravePipe live extraction failed for $videoId: ${it.message}")
+        }.getOrNull()
+            ?.takeIf { it.isNotEmpty() }
+            ?.also {
+                ExtractSource.record(videoId, "BravePipe · live")
+                Logger.d(TAG, "live HLS from BravePipe for $videoId")
+            }
+
+    actual fun mergeAudioVideoDownload(filePath: String): DownloadProgress {
+        val command =
+            listOf(
+                "-i",
+                ("$filePath.mp4"),
+                "-i",
+                ("$filePath.webm"),
+                "-c:v",
+                "copy",
+                "-c:a",
+                "aac",
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0",
+                "-shortest",
+                "$filePath-SimpMusic.mp4",
+            ).joinToString(" ")
+
+        if (FileSystem.SYSTEM.exists("$filePath-SimpMusic.mp4".toPath())) {
+            FileSystem.SYSTEM.delete("$filePath-SimpMusic.mp4".toPath())
+        }
+
+        val session =
+            FFmpegKit.execute(
+                command,
+            )
+        if (ReturnCode.isSuccess(session.returnCode)) {
+            // SUCCESS
+            Logger.d(TAG, "Command succeeded ${session.state}, ${session.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.VIDEO_DONE)
+        } else if (ReturnCode.isCancel(session.returnCode)) {
+            // CANCEL
+            Logger.d(TAG, "Command cancelled ${session.state}, ${session.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed(session.failStackTrace ?: "Command cancelled"))
+        } else {
+            // FAILURE
+            Logger.d(TAG, "Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed(session.failStackTrace ?: "FFmpeg command failed"))
+        }
+    }
+
+    actual fun saveAudioWithThumbnail(
+        filePath: String,
+        track: SongItem,
+    ): DownloadProgress {
+        val command =
+            listOf(
+                "-i",
+                ("$filePath.webm"),
+                "-q:a 0",
+                "$filePath.mp3",
+            ).joinToString(" ")
+
+        try {
+            if (FileSystem.SYSTEM.exists("$filePath.mp3".toPath())) {
+                FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+            }
+            if (FileSystem.SYSTEM.exists("$filePath-simpmusic.mp3".toPath())) {
+                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        val session =
+            FFmpegKit.execute(
+                command,
+            )
+        if (ReturnCode.isSuccess(session.returnCode)) {
+            // SUCCESS
+            Logger.d(TAG, "Command succeeded ${session.state}, ${session.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        } else if (ReturnCode.isCancel(session.returnCode)) {
+            // CANCEL
+            Logger.d(TAG, "Command cancelled ${session.state}, ${session.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed("Error"))
+        } else {
+            // FAILURE
+            Logger.d(TAG, "Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed("Error"))
+        }
+
+        val commandInject =
+            listOf(
+                "-i",
+                "$filePath.mp3",
+                "-i $filePath.jpg",
+                "-map 0:a",
+                "-map 1:v",
+                "-c copy",
+                "-id3v2_version 3",
+                "-metadata",
+                "title=\"${track.title}\"",
+                "-metadata",
+                "artist=\"${track.artists.joinToString(", ") { it.name }}\"",
+                "-metadata",
+                "album=\"${track.album?.name ?: track.title}\"",
+                "-disposition:v:0 attached_pic",
+                "$filePath-simpmusic.mp3",
+            ).joinToString(" ")
+        val sessionInject =
+            FFmpegKit.execute(
+                commandInject,
+            )
+        if (ReturnCode.isSuccess(sessionInject.returnCode)) {
+            // SUCCESS
+            Logger.d(TAG, "Command succeeded ${sessionInject.state}, ${sessionInject.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.AUDIO_DONE)
+        } else if (ReturnCode.isCancel(sessionInject.returnCode)) {
+            // CANCEL
+            Logger.d(TAG, "Command cancelled ${sessionInject.state}, ${sessionInject.returnCode}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed("Error"))
+        } else {
+            // FAILURE
+            Logger.d(TAG, "Command failed ${sessionInject.state}, ${sessionInject.returnCode}, ${sessionInject.failStackTrace}")
+            try {
+                FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return (DownloadProgress.failed("Error"))
+        }
+    }
+}

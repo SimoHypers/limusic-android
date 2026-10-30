@@ -37,6 +37,6 @@
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
--keep class org.simpmusic.lyrics.parser.** { *; }
--keep class org.simpmusic.lyrics.models.** { *; }
+-keep class com.simohypers.limusic.lyrics.parser.** { *; }
+-keep class com.simohypers.limusic.lyrics.models.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }

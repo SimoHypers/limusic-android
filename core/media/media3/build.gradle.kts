@@ -12,7 +12,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.maxrave.media3"
+    namespace = "com.simohypers.limusic.media3"
     compileSdk = 37
 
     defaultConfig {

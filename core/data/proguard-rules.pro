@@ -114,7 +114,7 @@
 -keep interface com.liskovsoft.** { *; }
 -keep class com.eclipsesource.v8.** { *; }
 -keep class com.liskovsoft.**
--keep class com.maxrave.kotlinytmusicscraper.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.** { *; }
 
 
 ## Rules for NewPipeExtractor
@@ -122,29 +122,29 @@
 -keep class org.mozilla.classfile.ClassFileWriter
 -dontwarn org.mozilla.javascript.tools.**
 
--keep class com.maxrave.data.di.loader.LoaderKt { *; }
--keep class com.maxrave.data.mapping.MappingKt { *; }
--keep class com.maxrave.data.extension.** { *; }
+-keep class com.simohypers.limusic.data.di.loader.LoaderKt { *; }
+-keep class com.simohypers.limusic.data.mapping.MappingKt { *; }
+-keep class com.simohypers.limusic.data.extension.** { *; }
 
--keep class com.maxrave.kotlinytmusicscraper.extension.** { *; }
--keep class com.maxrave.kotlinytmusicscraper.models.** { *; }
--keep class com.maxrave.kotlinytmusicscraper.parser.** { *; }
--keep class com.maxrave.kotlinytmusicscraper.pages.** { *; }
--keep class com.maxrave.kotlinytmusicscraper.utils.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.extension.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.models.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.parser.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.pages.** { *; }
+-keep class com.simohypers.limusic.kotlinytmusicscraper.utils.** { *; }
 
--keep class org.simpmusic.lyrics.parser.** { *; }
--keep class org.simpmusic.lyrics.models.** { *; }
+-keep class com.simohypers.limusic.lyrics.parser.** { *; }
+-keep class com.simohypers.limusic.lyrics.models.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }
 
--dontwarn com.maxrave.kotlinytmusicscraper.YouTube$SearchFilter$Companion
--dontwarn com.maxrave.kotlinytmusicscraper.YouTube$SearchFilter
--dontwarn com.maxrave.kotlinytmusicscraper.YouTube
--dontwarn com.maxrave.media3.di.Media3ServiceModuleKt
--dontwarn com.maxrave.media3.exoplayer.ExoPlayerAdapter
--dontwarn org.simpmusic.lyrics.SimpMusicLyricsClient
--dontwarn org.simpmusic.lyrics.domain.Lyrics$LyricsX$Line
--dontwarn org.simpmusic.lyrics.domain.Lyrics$LyricsX
--dontwarn org.simpmusic.lyrics.domain.Lyrics
+-dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube$SearchFilter$Companion
+-dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube$SearchFilter
+-dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube
+-dontwarn com.simohypers.limusic.media3.di.Media3ServiceModuleKt
+-dontwarn com.simohypers.limusic.media3.exoplayer.ExoPlayerAdapter
+-dontwarn com.simohypers.limusic.lyrics.SimpMusicLyricsClient
+-dontwarn com.simohypers.limusic.lyrics.domain.Lyrics$LyricsX$Line
+-dontwarn com.simohypers.limusic.lyrics.domain.Lyrics$LyricsX
+-dontwarn com.simohypers.limusic.lyrics.domain.Lyrics
 
 -keep class org.apache.commons.io.** { *; }
 

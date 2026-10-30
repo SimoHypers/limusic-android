@@ -9,7 +9,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "com.maxrave.discord"
+        namespace = "com.simohypers.limusic.discord"
         compileSdk = 37
         minSdk = 26
         withHostTest {}

@@ -1,0 +1,171 @@
+package com.simohypers.limusic.kotlinytmusicscraper.models
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class YouTubeClient(
+    val clientName: String,
+    val clientVersion: String,
+    val api_key: String,
+    val userAgent: String,
+    val osVersion: String? = null,
+    val referer: String? = null,
+    val deviceMake: String? = null,
+    val deviceModel: String? = null,
+    val osName: String? = null,
+    val timeZone: String? = null,
+    val utcOffsetMinutes: Int? = null,
+    val xClientName: Int? = null,
+) {
+    fun toContext(
+        locale: YouTubeLocale,
+        visitorData: String?,
+    ) = Context(
+        client =
+            Context.Client(
+                clientName = clientName,
+                clientVersion = clientVersion,
+                osVersion = osVersion,
+                gl = locale.gl,
+                hl = locale.hl,
+                visitorData = visitorData,
+                userAgent = userAgent,
+                deviceMake = deviceMake,
+                deviceModel = deviceModel,
+                osName = osName,
+                timeZone = timeZone,
+                utcOffsetMinutes = utcOffsetMinutes,
+            ),
+    )
+
+    companion object {
+        private const val REFERER_YOUTUBE_MUSIC = "https://music.youtube.com/"
+
+        const val USER_AGENT_WEB =
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+        private const val USER_AGENT_ANDROID =
+            "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 11) gzip"
+        private const val USER_AGENT_IOS = "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"
+        private const val USER_AGENT_MWEB =
+            "Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)"
+
+        val ANDROID_MUSIC =
+            YouTubeClient(
+                clientName = "ANDROID_MUSIC",
+                clientVersion = "7.27.52",
+                api_key = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
+                userAgent = USER_AGENT_ANDROID,
+                osName = "Android",
+                osVersion = "11",
+                xClientName = 21,
+            )
+
+        /**
+         * The YouTube Android app — used for live broadcasts, see Ytmusic.liveStreamPlayer. Version
+         * and user agent follow yt-dlp's INNERTUBE_CLIENTS (master, 2026-10-01).
+         */
+        val ANDROID =
+            YouTubeClient(
+                clientName = "ANDROID",
+                clientVersion = "21.26.364",
+                api_key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w",
+                userAgent = "com.google.android.youtube/21.26.364 (Linux; U; Android 11) gzip",
+                osName = "Android",
+                osVersion = "11",
+                xClientName = 3,
+            )
+
+        val WEB =
+            YouTubeClient(
+                clientName = "WEB",
+                clientVersion = "2.20250312.04.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
+                userAgent = USER_AGENT_WEB,
+            )
+
+        val WEB_REMIX =
+            YouTubeClient(
+                clientName = "WEB_REMIX",
+                clientVersion = "1.20260304.03.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30",
+                userAgent = USER_AGENT_WEB,
+                referer = REFERER_YOUTUBE_MUSIC,
+            )
+
+        /**
+         * Apple Vision Pro: direct stream URLs, no cipher and no PoToken. Copied from desktop
+         * Limusic's clients.json, where it is the first fallback behind WEB_REMIX. Anonymous: it
+         * takes no cookie.
+         */
+        val VISIONOS =
+            YouTubeClient(
+                clientName = "VISIONOS",
+                clientVersion = "0.1",
+                api_key = "",
+                userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+                osName = "visionOS",
+                osVersion = "1.3.21O771",
+                deviceMake = "Apple",
+                deviceModel = "RealityDevice14,1",
+                xClientName = 101,
+            )
+
+        val WEB_EMBEDDED =
+            YouTubeClient(
+                clientName = "WEB_EMBEDDED_PLAYER",
+                clientVersion = "1.20250310.01.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30",
+                userAgent = USER_AGENT_WEB,
+                referer = REFERER_YOUTUBE_MUSIC,
+            )
+
+        /**
+         * A TV identity on its own numeric id (75), so a network where the bot check refuses the web
+         * identity still has somewhere to go. Ciphered and PoToken-bound like WEB_REMIX: without the
+         * signature timestamp or the token it is UNPLAYABLE for every video. Anonymous. Copied from
+         * desktop Limusic's clients.json, measured there 2026-09-22.
+         */
+        val TVHTML5_SIMPLY =
+            YouTubeClient(
+                clientName = "TVHTML5_SIMPLY",
+                clientVersion = "1.0",
+                api_key = "",
+                userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)",
+                xClientName = 75,
+            )
+
+        val TVHTML5 =
+            YouTubeClient(
+                clientName = "TVHTML5",
+                clientVersion = "7.20250312.16.00",
+                api_key = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
+                userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
+            )
+
+        val IOS =
+            YouTubeClient(
+                clientName = "IOS",
+                clientVersion = "19.45.4",
+                deviceMake = "Apple",
+                deviceModel = "iPhone16,2",
+                userAgent = USER_AGENT_IOS,
+                api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
+                osName = "iPhone",
+                osVersion = "17.5.1.21F90",
+                timeZone = "UTC",
+                utcOffsetMinutes = 0,
+                xClientName = 5,
+            )
+
+        val MWEB =
+            YouTubeClient(
+                clientName = "MWEB",
+                clientVersion = "2.20241202.07.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
+                userAgent = USER_AGENT_MWEB,
+                timeZone = "UTC",
+                utcOffsetMinutes = 0,
+                xClientName = 2,
+            )
+    }
+}

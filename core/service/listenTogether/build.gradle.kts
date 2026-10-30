@@ -9,7 +9,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "org.simpmusic.listentogether"
+        namespace = "com.simohypers.limusic.listentogether"
         compileSdk = 37
         minSdk = 26
         withHostTest {}

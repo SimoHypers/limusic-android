@@ -21,7 +21,7 @@ plugins {
 compose.resources {
     generateResClass = always
     // Fixed so the generated Res package does not follow rootProject.name.
-    packageOfResClass = "simpmusic.composeapp.generated.resources"
+    packageOfResClass = "limusic.composeapp.generated.resources"
 }
 
 kotlin {
@@ -32,7 +32,7 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
     android {
-        namespace = "com.maxrave.simpmusic.composeapp"
+        namespace = "com.simohypers.limusic.composeapp"
         compileSdk = 37
         minSdk = 26
         withJava()
@@ -147,7 +147,7 @@ kotlin {
 }
 
 buildkonfig {
-    packageName = "com.maxrave.simpmusic"
+    packageName = "com.simohypers.limusic"
     exposeObjectWithName = "BuildKonfig"
     defaultConfigs {
         val versionName =

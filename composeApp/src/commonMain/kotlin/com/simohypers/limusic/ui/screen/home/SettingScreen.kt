@@ -1,0 +1,2627 @@
+package com.simohypers.limusic.ui.screen.home
+
+import limusic.composeapp.generated.resources.devices_not_linked
+import limusic.composeapp.generated.resources.devices_linked_to
+import limusic.composeapp.generated.resources.devices
+import com.simohypers.limusic.ui.icon.Computer
+import com.simohypers.limusic.ui.navigation.destination.home.DevicesSettingsDestination
+import com.simohypers.limusic.domain.repository.DeviceLinkRepository
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.crossfade
+import com.eygraber.uri.toKmpUri
+import com.simohypers.limusic.common.LIMIT_CACHE_SIZE
+import com.simohypers.limusic.common.QUALITY
+import com.simohypers.limusic.common.SUPPORTED_LANGUAGE
+import com.simohypers.limusic.common.SUPPORTED_LOCATION
+import com.simohypers.limusic.common.VIDEO_QUALITY
+import com.simohypers.limusic.domain.data.model.lyrics.RomanizationDictionaryState
+import com.simohypers.limusic.domain.data.model.lyrics.RomanizationLanguage
+import com.simohypers.limusic.domain.extension.now
+import com.simohypers.limusic.domain.manager.DataStoreManager
+import com.simohypers.limusic.domain.manager.DataStoreManager.Values.TRUE
+import com.simohypers.limusic.domain.repository.ImportProgress
+import com.simohypers.limusic.Platform
+import com.simohypers.limusic.expect.ui.filePickerResult
+import com.simohypers.limusic.expect.ui.fileSaverResult
+import com.simohypers.limusic.expect.ui.isLyricsBlurSupported
+import com.simohypers.limusic.expect.ui.isWallpaperDynamicColorSupported
+import com.simohypers.limusic.expect.ui.openEqResult
+import com.simohypers.limusic.extension.barBlurStyle
+import com.simohypers.limusic.extension.bytesToMB
+import com.simohypers.limusic.extension.isTwoLetterCode
+import com.simohypers.limusic.extension.isValidProxyHost
+import com.simohypers.limusic.getPlatform
+import com.simohypers.limusic.ui.component.AmbientThemeGlow
+import com.simohypers.limusic.ui.component.EndOfPage
+import com.simohypers.limusic.ui.component.LoadingDialog
+import com.simohypers.limusic.ui.component.RippleIconButton
+import com.simohypers.limusic.ui.component.SettingGroup
+import com.simohypers.limusic.ui.component.SettingItem
+import com.simohypers.limusic.ui.icon.ArrowBackIosNew
+import com.simohypers.limusic.ui.icon.DownloadForOffline
+import com.simohypers.limusic.ui.icon.Error
+import com.simohypers.limusic.ui.icon.Info
+import com.simohypers.limusic.ui.icon.Lyrics
+import com.simohypers.limusic.ui.icon.PeopleAlt
+import com.simohypers.limusic.ui.icon.PlayCircle
+import com.simohypers.limusic.ui.icon.Settings
+import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.Smartphone
+import com.simohypers.limusic.ui.icon.Sync
+import com.simohypers.limusic.ui.navigation.destination.home.AppLogDestination
+import com.simohypers.limusic.ui.navigation.destination.home.CreditDestination
+import com.simohypers.limusic.ui.navigation.destination.home.DiscordSettingsDestination
+import com.simohypers.limusic.ui.navigation.destination.home.LyricsSourcesDestination
+import com.simohypers.limusic.ui.navigation.destination.home.LastfmSettingsDestination
+import limusic.composeapp.generated.resources.lastfm_not_connected
+import limusic.composeapp.generated.resources.lastfm_paused
+import com.simohypers.limusic.ui.navigation.destination.home.SettingsSectionDestination
+import com.simohypers.limusic.ui.icon.Discord
+import com.simohypers.limusic.ui.icon.Lastfm
+import limusic.composeapp.generated.resources.lastfm_approve_in_browser
+import limusic.composeapp.generated.resources.lastfm_scrobbling_as
+import limusic.composeapp.generated.resources.discord_not_signed_in
+import limusic.composeapp.generated.resources.discord_off
+import limusic.composeapp.generated.resources.discord_showing
+import limusic.composeapp.generated.resources.discord_showing_as
+import com.simohypers.limusic.ui.navigation.destination.login.LoginDestination
+import com.simohypers.limusic.ui.theme.md_theme_dark_primary
+import com.simohypers.limusic.ui.theme.parseThemeColorHex
+import com.simohypers.limusic.ui.theme.typo
+import com.simohypers.limusic.utils.VersionManager
+import com.simohypers.limusic.viewModel.ImportViewModel
+import com.simohypers.limusic.viewModel.SettingAlertState
+import com.simohypers.limusic.viewModel.SettingBasicAlertState
+import com.simohypers.limusic.viewModel.SettingsViewModel
+import com.simohypers.limusic.viewModel.SharedViewModel
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import com.simohypers.limusic.domain.mediaservice.queue.PREVENT_DUPLICATES_KEY
+import com.simohypers.limusic.domain.mediaservice.queue.SHUFFLE_WHOLE_QUEUE_KEY
+import com.simohypers.limusic.domain.mediaservice.queue.STICKY_SHUFFLE_KEY
+import org.koin.compose.viewmodel.koinViewModel
+import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.about
+import limusic.composeapp.generated.resources.animated_artwork_info
+import limusic.composeapp.generated.resources.app_log
+import limusic.composeapp.generated.resources.app_log_description
+import limusic.composeapp.generated.resources.app_name
+import limusic.composeapp.generated.resources.audio
+import limusic.composeapp.generated.resources.author
+import limusic.composeapp.generated.resources.auto_backup
+import limusic.composeapp.generated.resources.auto_backup_description
+import limusic.composeapp.generated.resources.download_liked
+import limusic.composeapp.generated.resources.download_liked_description
+import limusic.composeapp.generated.resources.download_wifi_only
+import limusic.composeapp.generated.resources.download_wifi_only_description
+import limusic.composeapp.generated.resources.backup
+import limusic.composeapp.generated.resources.backup_downloaded
+import limusic.composeapp.generated.resources.backup_downloaded_description
+import limusic.composeapp.generated.resources.backup_frequency
+import limusic.composeapp.generated.resources.balance_media_loudness
+import limusic.composeapp.generated.resources.cancel
+import limusic.composeapp.generated.resources.change
+import limusic.composeapp.generated.resources.change_language_warning
+import limusic.composeapp.generated.resources.clear
+import limusic.composeapp.generated.resources.clear_canvas_cache
+import limusic.composeapp.generated.resources.clear_downloaded_cache
+import limusic.composeapp.generated.resources.clear_listening_history
+import limusic.composeapp.generated.resources.clear_listening_history_confirm
+import limusic.composeapp.generated.resources.clear_listening_history_description
+import limusic.composeapp.generated.resources.clear_player_cache
+import limusic.composeapp.generated.resources.clear_thumbnail_cache
+import limusic.composeapp.generated.resources.content
+import limusic.composeapp.generated.resources.content_country
+import limusic.composeapp.generated.resources.crossfade
+import limusic.composeapp.generated.resources.crossfade_auto
+import limusic.composeapp.generated.resources.crossfade_description
+import limusic.composeapp.generated.resources.crossfade_dj_mode
+import limusic.composeapp.generated.resources.crossfade_dj_mode_description
+import limusic.composeapp.generated.resources.crossfade_duration
+import limusic.composeapp.generated.resources.crossfade_skip_album
+import limusic.composeapp.generated.resources.crossfade_skip_album_description
+import limusic.composeapp.generated.resources.custom_color
+import limusic.composeapp.generated.resources.artwork_colors
+import limusic.composeapp.generated.resources.artwork_colors_description
+import limusic.composeapp.generated.resources.daily
+import limusic.composeapp.generated.resources.database
+import limusic.composeapp.generated.resources.developer_option
+import limusic.composeapp.generated.resources.download_quality
+import limusic.composeapp.generated.resources.downloaded_cache
+import limusic.composeapp.generated.resources.enable_animated_artwork
+import limusic.composeapp.generated.resources.equalizer
+import limusic.composeapp.generated.resources.equalizer_description
+import limusic.composeapp.generated.resources.equalizer_type
+import limusic.composeapp.generated.resources.equalizer_type_built_in
+import limusic.composeapp.generated.resources.equalizer_type_system
+import limusic.composeapp.generated.resources.free_space
+import limusic.composeapp.generated.resources.http
+import limusic.composeapp.generated.resources.import_data
+import limusic.composeapp.generated.resources.import_data_intro
+import limusic.composeapp.generated.resources.import_failed
+import limusic.composeapp.generated.resources.import_playlists_from_other_apps
+import limusic.composeapp.generated.resources.import_progress_songs
+import limusic.composeapp.generated.resources.import_reading_file
+import limusic.composeapp.generated.resources.import_result
+import limusic.composeapp.generated.resources.import_result_skipped
+import limusic.composeapp.generated.resources.invalid_host
+import limusic.composeapp.generated.resources.invalid_language_code
+import limusic.composeapp.generated.resources.invalid_port
+import limusic.composeapp.generated.resources.keep_backups
+import limusic.composeapp.generated.resources.keep_backups_format
+import limusic.composeapp.generated.resources.keep_your_youtube_playlist_offline
+import limusic.composeapp.generated.resources.keep_your_youtube_playlist_offline_description
+import limusic.composeapp.generated.resources.kill_service_on_exit
+import limusic.composeapp.generated.resources.kill_service_on_exit_description
+import limusic.composeapp.generated.resources.language
+import limusic.composeapp.generated.resources.last_backup
+import limusic.composeapp.generated.resources.limit_player_cache
+import limusic.composeapp.generated.resources.listening_history
+import limusic.composeapp.generated.resources.lyrics
+import limusic.composeapp.generated.resources.lyrics_offset
+import limusic.composeapp.generated.resources.lyrics_offset_invalid
+import limusic.composeapp.generated.resources.lyrics_offset_message
+import limusic.composeapp.generated.resources.lyrics_offset_value
+import limusic.composeapp.generated.resources.lyrics_romanization
+import limusic.composeapp.generated.resources.lyrics_romanization_description
+import limusic.composeapp.generated.resources.lyrics_sources
+import limusic.composeapp.generated.resources.lyrics_sources_none
+import limusic.composeapp.generated.resources.lyrics_style
+import limusic.composeapp.generated.resources.lyrics_style_apple_music
+import limusic.composeapp.generated.resources.lyrics_style_classic
+import limusic.composeapp.generated.resources.manage_your_youtube_accounts
+import limusic.composeapp.generated.resources.developer_name
+import limusic.composeapp.generated.resources.monthly
+import limusic.composeapp.generated.resources.never
+import limusic.composeapp.generated.resources.normalize_volume
+import limusic.composeapp.generated.resources.not_available_while_casting
+import limusic.composeapp.generated.resources.now_playing_style
+import limusic.composeapp.generated.resources.now_playing_style_apple_music
+import limusic.composeapp.generated.resources.now_playing_style_m3_expressive
+import limusic.composeapp.generated.resources.now_playing_style_spotify
+import limusic.composeapp.generated.resources.ok
+import limusic.composeapp.generated.resources.open_system_equalizer
+import limusic.composeapp.generated.resources.original_audio
+import limusic.composeapp.generated.resources.other_app
+import limusic.composeapp.generated.resources.play_explicit_content
+import limusic.composeapp.generated.resources.play_explicit_content_description
+import limusic.composeapp.generated.resources.play_video_for_video_track_instead_of_audio_only
+import limusic.composeapp.generated.resources.playback
+import limusic.composeapp.generated.resources.player_cache
+import limusic.composeapp.generated.resources.preferred_audio_language
+import limusic.composeapp.generated.resources.preferred_audio_language_message
+import limusic.composeapp.generated.resources.proxy
+import limusic.composeapp.generated.resources.proxy_description
+import limusic.composeapp.generated.resources.proxy_host
+import limusic.composeapp.generated.resources.proxy_host_message
+import limusic.composeapp.generated.resources.proxy_password
+import limusic.composeapp.generated.resources.proxy_password_message
+import limusic.composeapp.generated.resources.proxy_port
+import limusic.composeapp.generated.resources.proxy_port_message
+import limusic.composeapp.generated.resources.proxy_type
+import limusic.composeapp.generated.resources.proxy_username
+import limusic.composeapp.generated.resources.proxy_username_message
+import limusic.composeapp.generated.resources.quality
+import limusic.composeapp.generated.resources.radio_audio_only
+import limusic.composeapp.generated.resources.radio_audio_only_description
+import limusic.composeapp.generated.resources.requires_android_12
+import limusic.composeapp.generated.resources.restore_your_data
+import limusic.composeapp.generated.resources.restore_your_saved_data
+import limusic.composeapp.generated.resources.romanization_belarusian
+import limusic.composeapp.generated.resources.romanization_bulgarian
+import limusic.composeapp.generated.resources.romanization_chinese
+import limusic.composeapp.generated.resources.romanization_hindi
+import limusic.composeapp.generated.resources.romanization_japanese
+import limusic.composeapp.generated.resources.romanization_japanese_dict_downloading
+import limusic.composeapp.generated.resources.romanization_japanese_dict_failed
+import limusic.composeapp.generated.resources.romanization_korean
+import limusic.composeapp.generated.resources.romanization_kyrgyz
+import limusic.composeapp.generated.resources.romanization_macedonian
+import limusic.composeapp.generated.resources.romanization_punjabi
+import limusic.composeapp.generated.resources.romanization_russian
+import limusic.composeapp.generated.resources.romanization_serbian
+import limusic.composeapp.generated.resources.romanization_ukrainian
+import limusic.composeapp.generated.resources.save
+import limusic.composeapp.generated.resources.save_all_your_playlist_data
+import limusic.composeapp.generated.resources.save_playback_state
+import limusic.composeapp.generated.resources.save_shuffle_and_repeat_mode
+import limusic.composeapp.generated.resources.send_back_listening_data_to_google
+import limusic.composeapp.generated.resources.settings
+import limusic.composeapp.generated.resources.settings_about_hint
+import limusic.composeapp.generated.resources.settings_appearance
+import limusic.composeapp.generated.resources.settings_appearance_hint
+import limusic.composeapp.generated.resources.settings_data
+import limusic.composeapp.generated.resources.settings_data_hint
+import limusic.composeapp.generated.resources.settings_downloads
+import limusic.composeapp.generated.resources.settings_general
+import limusic.composeapp.generated.resources.settings_general_hint
+import limusic.composeapp.generated.resources.settings_integrations
+import limusic.composeapp.generated.resources.settings_integrations_hint
+import limusic.composeapp.generated.resources.settings_lyrics_hint
+import limusic.composeapp.generated.resources.settings_playback_hint
+import limusic.composeapp.generated.resources.skip_no_music_part
+import limusic.composeapp.generated.resources.skip_silent
+import limusic.composeapp.generated.resources.socks
+import limusic.composeapp.generated.resources.spotify_canvas_cache
+import limusic.composeapp.generated.resources.storage
+import limusic.composeapp.generated.resources.such_as_music_video_lyrics_video_podcasts_and_more
+import limusic.composeapp.generated.resources.theme
+import limusic.composeapp.generated.resources.theme_color
+import limusic.composeapp.generated.resources.theme_color_custom
+import limusic.composeapp.generated.resources.theme_color_default
+import limusic.composeapp.generated.resources.theme_color_wallpaper
+import limusic.composeapp.generated.resources.theme_mode_dark
+import limusic.composeapp.generated.resources.theme_mode_light
+import limusic.composeapp.generated.resources.theme_mode_system
+import limusic.composeapp.generated.resources.thumbnail_cache
+import limusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
+import limusic.composeapp.generated.resources.use_your_system_equalizer
+import limusic.composeapp.generated.resources.version
+import limusic.composeapp.generated.resources.version_format
+import limusic.composeapp.generated.resources.video_download_quality
+import limusic.composeapp.generated.resources.video_quality
+import limusic.composeapp.generated.resources.videos
+import limusic.composeapp.generated.resources.queue
+import limusic.composeapp.generated.resources.autoplay_similar_songs
+import limusic.composeapp.generated.resources.autoplay_similar_songs_hint
+import limusic.composeapp.generated.resources.prevent_duplicates
+import limusic.composeapp.generated.resources.prevent_duplicates_hint
+import limusic.composeapp.generated.resources.sticky_shuffle
+import limusic.composeapp.generated.resources.sticky_shuffle_hint
+import limusic.composeapp.generated.resources.shuffle_whole_queue
+import limusic.composeapp.generated.resources.shuffle_whole_queue_hint
+import limusic.composeapp.generated.resources.warning
+import limusic.composeapp.generated.resources.weekly
+import limusic.composeapp.generated.resources.youtube_account
+
+/** The pages Settings opens into, grouped the way Limusic desktop groups its settings. */
+enum class SettingsSection(
+    val title: StringResource,
+    val hint: StringResource,
+    val icon: ImageVector,
+) {
+    GENERAL(Res.string.settings_general, Res.string.settings_general_hint, SimpIcons.Settings),
+    APPEARANCE(Res.string.settings_appearance, Res.string.settings_appearance_hint, SimpIcons.Smartphone),
+    PLAYBACK(Res.string.playback, Res.string.settings_playback_hint, SimpIcons.PlayCircle),
+    LYRICS(Res.string.lyrics, Res.string.settings_lyrics_hint, SimpIcons.Lyrics),
+    INTEGRATIONS(Res.string.settings_integrations, Res.string.settings_integrations_hint, SimpIcons.Sync),
+    DATA(Res.string.settings_data, Res.string.settings_data_hint, SimpIcons.DownloadForOffline),
+    ABOUT(Res.string.about, Res.string.settings_about_hint, SimpIcons.Info),
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalCoilApi::class,
+    FormatStringsInDatetimeFormats::class,
+)
+@Composable
+fun SettingScreen(
+    innerPadding: PaddingValues,
+    navController: NavController,
+    // Null is the list of sections; a section shows only its own settings.
+    section: SettingsSection? = null,
+    viewModel: SettingsViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
+) {
+    val platformContext = LocalPlatformContext.current
+    val localDensity = LocalDensity.current
+    val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var width by rememberSaveable { mutableIntStateOf(0) }
+
+    // Backup and restore
+    val formatter =
+        LocalDateTime.Format {
+            byUnicodePattern("yyyyMMddHHmmss")
+        }
+    val appName = stringResource(Res.string.app_name)
+
+    val backupLauncher =
+        fileSaverResult(
+            "${appName}_${
+                now().format(
+                    formatter,
+                )
+            }.backup",
+            "application/octet-stream",
+        ) { uri ->
+            uri?.let {
+                viewModel.backup(it.toKmpUri())
+            }
+        }
+
+    val restoreLauncher =
+        filePickerResult { uri ->
+            uri?.let {
+                viewModel.restore(it.toKmpUri())
+            }
+        }
+
+    // Import playlists converted on the web. filePickerResult offers every file type, because a
+    // converted .json arrives with whatever MIME its source assigned it, and an application/json
+    // filter would hide it on some hosts.
+    val importViewModel: ImportViewModel = koinViewModel()
+    val importState by importViewModel.importState.collectAsStateWithLifecycle()
+    val importLauncher =
+        filePickerResult { uri ->
+            uri?.let {
+                importViewModel.import(it.toKmpUri())
+            }
+        }
+
+    // Open equalizer
+    val resultLauncher = openEqResult(viewModel.getAudioSessionId())
+
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val location by viewModel.location.collectAsStateWithLifecycle()
+    val quality by viewModel.quality.collectAsStateWithLifecycle()
+    val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val downloadWifiOnly by viewModel.downloadWifiOnly.collectAsStateWithLifecycle()
+    val downloadLiked by viewModel.downloadLiked.collectAsStateWithLifecycle()
+    val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
+    val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
+    val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
+    val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val radioAudioOnly by remember { viewModel.radioAudioOnly.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
+    val sendData by remember { viewModel.sendBackToGoogle.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val normalizeVolume by remember { viewModel.normalizeVolume.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val skipSilent by remember { viewModel.skipSilent.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val savePlaybackState by remember { viewModel.savedPlaybackState.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val killServiceOnExit by remember { viewModel.killServiceOnExit.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = true)
+    val autoplay by viewModel.autoplay.collectAsStateWithLifecycle(initialValue = true)
+    val preventDuplicates by remember { viewModel.queueSetting(PREVENT_DUPLICATES_KEY) }.collectAsStateWithLifecycle(initialValue = false)
+    val stickyShuffle by remember { viewModel.queueSetting(STICKY_SHUFFLE_KEY) }.collectAsStateWithLifecycle(initialValue = false)
+    val shuffleWholeQueue by remember { viewModel.queueSetting(SHUFFLE_WHOLE_QUEUE_KEY) }.collectAsStateWithLifecycle(initialValue = false)
+    val lyricsOffsetMs by viewModel.lyricsOffsetMs.collectAsStateWithLifecycle()
+    val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
+    val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
+    val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
+    val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
+    val thumbnailCache by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
+    val canvasCache by viewModel.canvasCacheSize.collectAsStateWithLifecycle()
+    val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
+    val fraction by viewModel.fraction.collectAsStateWithLifecycle()
+    val explicitContentEnabled by viewModel.explicitContentEnabled.collectAsStateWithLifecycle()
+    val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
+    val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
+    val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
+    val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
+    val proxyUsername by viewModel.proxyUsername.collectAsStateWithLifecycle()
+    val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
+    val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
+    val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
+    val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
+    val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
+    val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
+    val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
+    val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
+    val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val artworkColors by sharedViewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
+    val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
+    val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
+    val japaneseDictionaryState by viewModel.japaneseDictionaryState.collectAsStateWithLifecycle()
+    var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
+    val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
+    val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
+    val equalizerType by viewModel.equalizerType.collectAsStateWithLifecycle()
+    val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
+    val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
+    val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
+
+    val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
+    val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
+    val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
+    val crossfadeSkipAlbum by viewModel.crossfadeSkipAlbum.collectAsStateWithLifecycle()
+    val castState by viewModel.castState.collectAsStateWithLifecycle()
+
+    val hazeState =
+        rememberHazeState()
+
+    var showYouTubeAccountDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    // Only the section list shows the account. With no saved account this can ask YouTube.
+    if (section == null) {
+        LaunchedEffect(true) {
+            viewModel.getAllGoogleAccount()
+        }
+    }
+    val pageTitle = section?.let { stringResource(it.title) } ?: stringResource(Res.string.settings)
+
+    LaunchedEffect(true) {
+        viewModel.getData()
+        viewModel.getThumbCacheSize(platformContext)
+    }
+
+    val settingListState = rememberLazyListState()
+    // The toolbar is part of the list and scrolls away with it; a pinned, frosted copy takes over
+    // as soon as the list scrolls.
+    val showPinnedBar by remember {
+        derivedStateOf {
+            settingListState.firstVisibleItemIndex > 0 ||
+                settingListState.firstVisibleItemScrollOffset > 0
+        }
+    }
+    // The list's side margin, which the in-list toolbar stretches back across.
+    val listSidePadding = 16.dp
+    // Home-family ambient ground, and like Home's it SCROLLS AWAY with the content instead of
+    // hanging off the ceiling. Still a sibling (so it sits behind the floating bar), but its draw
+    // rides the list: exact tracking while item 0 is on screen, parked off-screen after. Item 0 is
+    // taller than the glow, so the glow has fully left before the branch ever switches — no jump.
+    // graphicsLayer reads the state in the DRAW phase, so scrolling redraws without recomposing.
+    // Tinted with the app's own primary rather than the song playing: this page is about the app.
+    AmbientThemeGlow(
+        tint = MaterialTheme.colorScheme.primary,
+        modifier =
+            Modifier.graphicsLayer {
+                translationY =
+                    if (settingListState.firstVisibleItemIndex == 0) {
+                        -settingListState.firstVisibleItemScrollOffset.toFloat()
+                    } else {
+                        -size.height
+                    }
+            },
+    )
+    LazyColumn(
+        state = settingListState,
+        contentPadding = innerPadding,
+        modifier =
+            Modifier
+                .padding(horizontal = listSidePadding)
+                .hazeSource(hazeState),
+    ) {
+        item(key = "page") {
+            Column {
+                // The whole page is one item, so item 0 is taller than the glow whenever the page
+                // scrolls at all: the glow tracks item 0's offset and parks once it scrolls past.
+                // The toolbar's in-list copy, stretched across the list's side margin so it sits exactly
+                // where the pinned copy appears; the list's top padding already clears the status bar.
+                SettingTopBar(
+                    title = pageTitle,
+                    onBack = { navController.navigateUp() },
+                    windowInsets = WindowInsets(0),
+                    modifier =
+                        Modifier.layout { measurable, constraints ->
+                            val bleed = listSidePadding.roundToPx()
+                            val width = constraints.maxWidth + 2 * bleed
+                            val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+                            layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+                        },
+                )
+                when (section) {
+                    null -> {
+                        val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle()
+                        val account = googleAccounts.data?.firstOrNull { it.isUsed }
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = account?.name ?: stringResource(Res.string.youtube_account),
+                                subtitle = account?.email ?: stringResource(Res.string.manage_your_youtube_accounts),
+                                smallSubtitle = true,
+                                leading = {
+                                    AsyncImage(
+                                        model = account?.thumbnailUrl,
+                                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        fallback = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp).clip(CircleShape),
+                                    )
+                                },
+                                navigates = true,
+                                onClick = {
+                                    viewModel.getAllGoogleAccount()
+                                    showYouTubeAccountDialog = true
+                                },
+                            )
+                        }
+                        SettingGroup(title = null) {
+                            SettingsSection.entries.forEach { page ->
+                                SettingItem(
+                                    title = stringResource(page.title),
+                                    subtitle = stringResource(page.hint),
+                                    smallSubtitle = true,
+                                    leading = { Icon(page.icon, contentDescription = null) },
+                                    navigates = true,
+                                    onClick = { navController.navigate(SettingsSectionDestination(page.name)) },
+                                )
+                            }
+                        }
+                    }
+                    SettingsSection.GENERAL -> {
+                        SettingGroup(title = stringResource(Res.string.content)) {
+                            SettingItem(
+                                title = stringResource(Res.string.language),
+                                subtitle = SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US"),
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.language) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        SUPPORTED_LANGUAGE.items.map {
+                                                            (it.toString() == SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US")) to it.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val code = SUPPORTED_LANGUAGE.getCodeFromLanguage(state.selectOne?.getSelected() ?: "English")
+                                                    viewModel.setBasicAlertData(
+                                                        SettingBasicAlertState(
+                                                            title = runBlocking { getString(Res.string.warning) },
+                                                            message = runBlocking { getString(Res.string.change_language_warning) },
+                                                            confirm =
+                                                                runBlocking { getString(Res.string.change) } to {
+                                                                    sharedViewModel.activityRecreate()
+                                                                    viewModel.setBasicAlertData(null)
+                                                                    viewModel.changeLanguage(code)
+                                                                },
+                                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                                        ),
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.content_country),
+                                subtitle = location ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.content_country) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        SUPPORTED_LOCATION.items.map { item ->
+                                                            (item.toString() == location) to item.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.changeLocation(
+                                                        state.selectOne?.getSelected() ?: "US",
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.preferred_audio_language),
+                                subtitle = preferredAudioLanguage.ifEmpty { stringResource(Res.string.original_audio) },
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.preferred_audio_language) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.preferred_audio_language) },
+                                                    value = preferredAudioLanguage,
+                                                    // Empty is valid here: it means "original audio".
+                                                    verifyCodeBlock = {
+                                                        (it.isEmpty() || it.isTwoLetterCode()) to
+                                                            runBlocking { getString(Res.string.invalid_language_code) }
+                                                    },
+                                                ),
+                                            message = runBlocking { getString(Res.string.preferred_audio_language_message) },
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setPreferredAudioLanguage(state.textField?.value ?: "")
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.send_back_listening_data_to_google),
+                                subtitle =
+                                    stringResource(
+                                        Res.string
+                                            .upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in,
+                                    ),
+                                smallSubtitle = true,
+                                switch = (sendData to { viewModel.setSendBackToGoogle(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.play_explicit_content),
+                                subtitle = stringResource(Res.string.play_explicit_content_description),
+                                switch = (explicitContentEnabled to { viewModel.setExplicitContentEnabled(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.keep_your_youtube_playlist_offline),
+                                subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
+                                switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
+                            )
+                            /*
+                            SettingItem(
+                                title = stringResource(Res.string.combine_local_and_youtube_liked_songs),
+                                subtitle = stringResource(Res.string.combine_local_and_youtube_liked_songs_description),
+                                switch = (combineLocalAndYouTubeLiked to { viewModel.setCombineLocalAndYouTubeLiked(it) })
+                            )
+                             */
+                        }
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = stringResource(Res.string.proxy),
+                                subtitle = stringResource(Res.string.proxy_description),
+                                switch = (usingProxy to { viewModel.setUsingProxy(it) }),
+                            )
+                            Crossfade(usingProxy) { it ->
+                                if (it) {
+                                    Column {
+                                        SettingItem(
+                                            title = stringResource(Res.string.proxy_type),
+                                            subtitle =
+                                                when (proxyType) {
+                                                    DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(Res.string.http)
+                                                    DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(Res.string.socks)
+                                                },
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.proxy_type) },
+                                                        selectOne =
+                                                            SettingAlertState.SelectData(
+                                                                listSelect =
+                                                                    listOf(
+                                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_HTTP) to
+                                                                            runBlocking {
+                                                                                getString(
+                                                                                    Res.string.http,
+                                                                                )
+                                                                            },
+                                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
+                                                                            runBlocking { getString(Res.string.socks) },
+                                                                    ),
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                viewModel.setProxy(
+                                                                    if (state.selectOne?.getSelected() == runBlocking { getString(Res.string.socks) }) {
+                                                                        DataStoreManager.ProxyType.PROXY_TYPE_SOCKS
+                                                                    } else {
+                                                                        DataStoreManager.ProxyType.PROXY_TYPE_HTTP
+                                                                    },
+                                                                    proxyHost,
+                                                                    proxyPort,
+                                                                )
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.proxy_host),
+                                            subtitle = proxyHost,
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.proxy_host) },
+                                                        message = runBlocking { getString(Res.string.proxy_host_message) },
+                                                        textField =
+                                                            SettingAlertState.TextFieldData(
+                                                                label = runBlocking { getString(Res.string.proxy_host) },
+                                                                value = proxyHost,
+                                                                verifyCodeBlock = {
+                                                                    isValidProxyHost(it) to runBlocking { getString(Res.string.invalid_host) }
+                                                                },
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                viewModel.setProxy(
+                                                                    proxyType,
+                                                                    state.textField?.value ?: "",
+                                                                    proxyPort,
+                                                                )
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.proxy_port),
+                                            subtitle = proxyPort.toString(),
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.proxy_port) },
+                                                        message = runBlocking { getString(Res.string.proxy_port_message) },
+                                                        textField =
+                                                            SettingAlertState.TextFieldData(
+                                                                label = runBlocking { getString(Res.string.proxy_port) },
+                                                                value = proxyPort.toString(),
+                                                                verifyCodeBlock = {
+                                                                    (it.toIntOrNull() != null) to runBlocking { getString(Res.string.invalid_port) }
+                                                                },
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                viewModel.setProxy(
+                                                                    proxyType,
+                                                                    proxyHost,
+                                                                    state.textField?.value?.toIntOrNull() ?: 0,
+                                                                )
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.proxy_username),
+                                            subtitle = proxyUsername,
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.proxy_username) },
+                                                        message = runBlocking { getString(Res.string.proxy_username_message) },
+                                                        textField =
+                                                            SettingAlertState.TextFieldData(
+                                                                label = runBlocking { getString(Res.string.proxy_username) },
+                                                                value = proxyUsername,
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                viewModel.setProxyCredentials(
+                                                                    state.textField?.value ?: "",
+                                                                    proxyPassword,
+                                                                )
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.proxy_password),
+                                            subtitle =
+                                                if (proxyPassword.isEmpty()) {
+                                                    ""
+                                                } else {
+                                                    "\u2022".repeat(proxyPassword.length)
+                                                },
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.proxy_password) },
+                                                        message = runBlocking { getString(Res.string.proxy_password_message) },
+                                                        textField =
+                                                            SettingAlertState.TextFieldData(
+                                                                label = runBlocking { getString(Res.string.proxy_password) },
+                                                                value = proxyPassword,
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                viewModel.setProxyCredentials(
+                                                                    proxyUsername,
+                                                                    state.textField?.value ?: "",
+                                                                )
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    SettingsSection.APPEARANCE -> {
+                        SettingGroup(title = null) {
+                            val themeModeLabels =
+                                listOf(
+                                    DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
+                                    DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
+                                    DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
+                                )
+                            SettingItem(
+                                title = stringResource(Res.string.theme),
+                                subtitle = themeModeLabels.firstOrNull { it.first == themeMode }?.second ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.theme) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect = themeModeLabels.map { (it.first == themeMode) to it.second },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val selected = state.selectOne?.getSelected()
+                                                    themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                        sharedViewModel.setThemeMode(it)
+                                                    }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            val colorSourceLabels =
+                                buildList {
+                                    add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
+                                    if (isWallpaperDynamicColorSupported()) {
+                                        add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
+                                    }
+                                    add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
+                                }
+                            SettingItem(
+                                title = stringResource(Res.string.theme_color),
+                                subtitle = colorSourceLabels.firstOrNull { it.first == themeColorSource }?.second ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.theme_color) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect = colorSourceLabels.map { (it.first == themeColorSource) to it.second },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val selected = state.selectOne?.getSelected()
+                                                    colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                        sharedViewModel.setThemeColorSource(it)
+                                                        if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
+                                                            showColorPickerDialog = true
+                                                        }
+                                                    }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                                SettingItem(
+                                    title = stringResource(Res.string.custom_color),
+                                    subtitle = "#${customThemeColorHex.takeLast(6)}",
+                                    smallSubtitle = true,
+                                    onClick = { showColorPickerDialog = true },
+                                )
+                            }
+                            SettingItem(
+                                title = stringResource(Res.string.artwork_colors),
+                                subtitle = stringResource(Res.string.artwork_colors_description),
+                                smallSubtitle = true,
+                                switch = ((artworkColors == DataStoreManager.TRUE) to { sharedViewModel.setArtworkColors(it) }),
+                            )
+                            // The Apple Music treatments ARE the blur — the frosted page behind the player, and
+                            // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
+                            // Android 12, so on an older device they render as a flat, wrong-looking version of
+                            // themselves. The requirement is spelled out on the option itself rather than left
+                            // for the user to discover after switching.
+                            val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
+                            val nowPlayingStyleLabels =
+                                listOf(
+                                    DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
+                                    DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
+                                    DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
+                                        stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
+                                )
+                            SettingItem(
+                                title = stringResource(Res.string.now_playing_style),
+                                subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.now_playing_style) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val selected = state.selectOne?.getSelected()
+                                                    nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                        sharedViewModel.setNowPlayingStyle(it)
+                                                    }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            // Shown in the Apple Music and Material 3 Expressive styles, and on artist pages.
+                            SettingItem(
+                                title = stringResource(Res.string.enable_animated_artwork),
+                                subtitle = stringResource(Res.string.animated_artwork_info),
+                                switch = (amAnimatedArtwork to { viewModel.setAMAnimatedArtwork(it) }),
+                            )
+                        }
+                    }
+                    SettingsSection.PLAYBACK -> {
+                        SettingGroup(title = stringResource(Res.string.quality)) {
+                            SettingItem(
+                                title = stringResource(Res.string.quality),
+                                subtitle = quality ?: "",
+                                smallSubtitle = true,
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.quality) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        QUALITY.items.map { item ->
+                                                            (item.toString() == quality) to item.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.changeQuality(state.selectOne?.getSelected())
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.download_quality),
+                                subtitle = downloadQuality ?: "",
+                                smallSubtitle = true,
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.download_quality) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        QUALITY.items.map { item ->
+                                                            (item.toString() == downloadQuality) to item.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    state.selectOne?.getSelected()?.let { viewModel.setDownloadQuality(it) }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.video_quality),
+                                subtitle = videoQuality ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.video_quality) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        VIDEO_QUALITY.items.map { item ->
+                                                            (item.toString() == videoQuality) to item.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.changeVideoQuality(state.selectOne?.getSelected() ?: "")
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.video_download_quality),
+                                subtitle = videoDownloadQuality ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.video_download_quality) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        VIDEO_QUALITY.items.map { item ->
+                                                            (item.toString() == videoDownloadQuality) to item.toString()
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setVideoDownloadQuality(state.selectOne?.getSelected() ?: "")
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                        }
+                        // Desktop's queue settings, worded as desktop words them.
+                        SettingGroup(title = stringResource(Res.string.queue)) {
+                            SettingItem(
+                                title = stringResource(Res.string.autoplay_similar_songs),
+                                subtitle = stringResource(Res.string.autoplay_similar_songs_hint),
+                                smallSubtitle = true,
+                                switch = (autoplay to { viewModel.setAutoplay(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.prevent_duplicates),
+                                subtitle = stringResource(Res.string.prevent_duplicates_hint),
+                                smallSubtitle = true,
+                                switch = (preventDuplicates to { viewModel.setQueueSetting(PREVENT_DUPLICATES_KEY, it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.sticky_shuffle),
+                                subtitle = stringResource(Res.string.sticky_shuffle_hint),
+                                smallSubtitle = true,
+                                switch = (stickyShuffle to { viewModel.setQueueSetting(STICKY_SHUFFLE_KEY, it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.shuffle_whole_queue),
+                                subtitle = stringResource(Res.string.shuffle_whole_queue_hint),
+                                smallSubtitle = true,
+                                switch = (shuffleWholeQueue to { viewModel.setQueueSetting(SHUFFLE_WHOLE_QUEUE_KEY, it) }),
+                            )
+                        }
+                        SettingGroup(title = stringResource(Res.string.videos)) {
+                            SettingItem(
+                                title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
+                                subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
+                                smallSubtitle = true,
+                                switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.radio_audio_only),
+                                subtitle = stringResource(Res.string.radio_audio_only_description),
+                                smallSubtitle = true,
+                                switch = (radioAudioOnly to { viewModel.setRadioAudioOnly(it) }),
+                            )
+                        }
+                        if (getPlatform() == Platform.Android) {
+                            SettingGroup(title = stringResource(Res.string.audio)) {
+                                SettingItem(
+                                    title = stringResource(Res.string.normalize_volume),
+                                    subtitle = stringResource(Res.string.balance_media_loudness),
+                                    switch = (normalizeVolume to { viewModel.setNormalizeVolume(it) }),
+                                )
+                                SettingItem(
+                                    title = stringResource(Res.string.skip_silent),
+                                    subtitle = stringResource(Res.string.skip_no_music_part),
+                                    switch = (skipSilent to { viewModel.setSkipSilent(it) }),
+                                )
+                                val equalizerTypeLabels =
+                                    listOf(
+                                        DataStoreManager.EQUALIZER_TYPE_BUILT_IN to stringResource(Res.string.equalizer_type_built_in),
+                                        DataStoreManager.EQUALIZER_TYPE_SYSTEM to stringResource(Res.string.equalizer_type_system),
+                                    )
+                                SettingItem(
+                                    title = stringResource(Res.string.equalizer_type),
+                                    subtitle = equalizerTypeLabels.firstOrNull { it.first == equalizerType }?.second ?: "",
+                                    onClick = {
+                                        viewModel.setAlertData(
+                                            SettingAlertState(
+                                                title = runBlocking { getString(Res.string.equalizer_type) },
+                                                selectOne =
+                                                    SettingAlertState.SelectData(
+                                                        listSelect = equalizerTypeLabels.map { (it.first == equalizerType) to it.second },
+                                                    ),
+                                                confirm =
+                                                    runBlocking { getString(Res.string.change) } to { state ->
+                                                        val selected = state.selectOne?.getSelected()
+                                                        equalizerTypeLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                            viewModel.setEqualizerType(it)
+                                                        }
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                AnimatedVisibility(visible = equalizerType == DataStoreManager.EQUALIZER_TYPE_SYSTEM) {
+                                    SettingItem(
+                                        title = stringResource(Res.string.open_system_equalizer),
+                                        subtitle =
+                                            if (castState.isRemote) {
+                                                stringResource(Res.string.not_available_while_casting)
+                                            } else {
+                                                stringResource(Res.string.use_your_system_equalizer)
+                                            },
+                                        isEnable = !castState.isRemote,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                resultLauncher.launch()
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        SettingGroup(title = null) {
+                            // Under Playback rather than Audio because that whole group sits inside an
+                            // Android-only branch — "Open system equalizer" is an Android feature — and this
+                            // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
+                            // Media3 sink on Android, driven from the same stored curve.
+                            AnimatedVisibility(visible = getPlatform() != Platform.Android || equalizerType != DataStoreManager.EQUALIZER_TYPE_SYSTEM) {
+                                Column {
+                                    SettingItem(
+                                        title = stringResource(Res.string.equalizer),
+                                        subtitle = stringResource(Res.string.equalizer_description),
+                                        smallSubtitle = true,
+                                        switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                                    )
+                                    // Only while on. A curve that visibly does nothing is worse than no curve —
+                                    // and the stored bands survive the switch, so turning it back on returns to
+                                    // the shape the user built rather than to flat.
+                                    AnimatedVisibility(visible = equalizerEnabled) {
+                                        EqualizerSection()
+                                    }
+                                }
+                            }
+                            SettingItem(
+                                title = stringResource(Res.string.save_playback_state),
+                                subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),
+                                switch = (savePlaybackState to { viewModel.setSavedPlaybackState(it) }),
+                            )
+                            if (getPlatform() == Platform.Android) {
+                                SettingItem(
+                                    title = stringResource(Res.string.kill_service_on_exit),
+                                    subtitle = stringResource(Res.string.kill_service_on_exit_description),
+                                    switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
+                                )
+                            }
+                            // Crossfade (all platforms)
+                            SettingItem(
+                                title = stringResource(Res.string.crossfade),
+                                subtitle =
+                                    if (castState.isRemote) {
+                                        stringResource(Res.string.not_available_while_casting)
+                                    } else {
+                                        stringResource(Res.string.crossfade_description)
+                                    },
+                                smallSubtitle = true,
+                                switch = (crossfadeEnabled to { viewModel.setCrossfadeEnabled(it) }),
+                                isEnable = !castState.isRemote,
+                            )
+                            AnimatedVisibility(visible = crossfadeEnabled) {
+                                Column {
+                                    SettingItem(
+                                        title = stringResource(Res.string.crossfade_duration),
+                                        subtitle =
+                                            if (castState.isRemote) {
+                                                stringResource(Res.string.not_available_while_casting)
+                                            } else if (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) {
+                                                stringResource(Res.string.crossfade_auto)
+                                            } else {
+                                                "${crossfadeDuration / 1000}s"
+                                            },
+                                        isEnable = !castState.isRemote,
+                                        onClick = {
+                                            viewModel.setAlertData(
+                                                SettingAlertState(
+                                                    title = runBlocking { getString(Res.string.crossfade_duration) },
+                                                    selectOne =
+                                                        SettingAlertState.SelectData(
+                                                            listSelect =
+                                                                listOf(
+                                                                    (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) to
+                                                                        runBlocking { getString(Res.string.crossfade_auto) },
+                                                                    (crossfadeDuration == 1000) to "1s",
+                                                                    (crossfadeDuration == 2000) to "2s",
+                                                                    (crossfadeDuration == 3000) to "3s",
+                                                                    (crossfadeDuration == 5000) to "5s",
+                                                                    (crossfadeDuration == 8000) to "8s",
+                                                                    (crossfadeDuration == 10000) to "10s",
+                                                                    (crossfadeDuration == 12000) to "12s",
+                                                                    (crossfadeDuration == 15000) to "15s",
+                                                                    (crossfadeDuration == 20000) to "20s",
+                                                                    (crossfadeDuration == 30000) to "30s",
+                                                                ),
+                                                        ),
+                                                    confirm =
+                                                        runBlocking { getString(Res.string.change) } to { state ->
+                                                            val duration =
+                                                                when (state.selectOne?.getSelected()) {
+                                                                    runBlocking {
+                                                                        getString(
+                                                                            Res.string.crossfade_auto,
+                                                                        )
+                                                                    },
+                                                                    -> DataStoreManager.CROSSFADE_DURATION_AUTO
+                                                                    "1s" -> 1000
+                                                                    "2s" -> 2000
+                                                                    "3s" -> 3000
+                                                                    "5s" -> 5000
+                                                                    "8s" -> 8000
+                                                                    "10s" -> 10000
+                                                                    "12s" -> 12000
+                                                                    "15s" -> 15000
+                                                                    "20s" -> 20000
+                                                                    "30s" -> 30000
+                                                                    else -> 5000
+                                                                }
+                                                            viewModel.setCrossfadeDuration(duration)
+                                                        },
+                                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                                ),
+                                            )
+                                        },
+                                    )
+            //                        if (getPlatform() == Platform.Android) {
+                                    SettingItem(
+                                        title = stringResource(Res.string.crossfade_dj_mode),
+                                        subtitle =
+                                            if (castState.isRemote) {
+                                                stringResource(Res.string.not_available_while_casting)
+                                            } else {
+                                                stringResource(Res.string.crossfade_dj_mode_description)
+                                            },
+                                        smallSubtitle = true,
+                                        switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
+                                        isEnable = !castState.isRemote,
+                                    )
+                                    SettingItem(
+                                        title = stringResource(Res.string.crossfade_skip_album),
+                                        subtitle =
+                                            if (castState.isRemote) {
+                                                stringResource(Res.string.not_available_while_casting)
+                                            } else {
+                                                stringResource(Res.string.crossfade_skip_album_description)
+                                            },
+                                        smallSubtitle = true,
+                                        switch = ((crossfadeSkipAlbum) to { viewModel.setCrossfadeSkipAlbum(it) }),
+                                        isEnable = !castState.isRemote,
+                                    )
+            //                        }
+                                }
+                            }
+                        }
+                    }
+                    SettingsSection.LYRICS -> {
+                        val lyricsProviders by viewModel.lyricsProviders.collectAsStateWithLifecycle()
+                        SettingGroup(title = null) {
+                            val onSources = lyricsProviders.filter { it.second }.map { it.first.displayName }
+                            SettingItem(
+                                title = stringResource(Res.string.lyrics_sources),
+                                subtitle =
+                                    if (onSources.isEmpty()) {
+                                        stringResource(Res.string.lyrics_sources_none)
+                                    } else {
+                                        onSources.take(3).joinToString(", ") + if (onSources.size > 3) " +${onSources.size - 3}" else ""
+                                    },
+                                smallSubtitle = true,
+                                navigates = true,
+                                onClick = { navController.navigate(LyricsSourcesDestination) },
+                            )
+                            val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
+                            // Hidden outright below Android 12 rather than offered with one option: the Apple
+                            // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
+                            // the choice would be between Classic and a broken-looking Classic.
+                            if (isLyricsBlurSupported()) {
+                                val lyricsStyleLabels =
+                                    listOf(
+                                        DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
+                                        DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to
+                                            stringResource(Res.string.lyrics_style_apple_music) + requiresAndroid12,
+                                    )
+                                SettingItem(
+                                    title = stringResource(Res.string.lyrics_style),
+                                    subtitle = lyricsStyleLabels.firstOrNull { it.first == lyricsStyle }?.second ?: "",
+                                    onClick = {
+                                        viewModel.setAlertData(
+                                            SettingAlertState(
+                                                title = runBlocking { getString(Res.string.lyrics_style) },
+                                                selectOne =
+                                                    SettingAlertState.SelectData(
+                                                        listSelect = lyricsStyleLabels.map { (it.first == lyricsStyle) to it.second },
+                                                    ),
+                                                confirm =
+                                                    runBlocking { getString(Res.string.change) } to { state ->
+                                                        val selected = state.selectOne?.getSelected()
+                                                        lyricsStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                            sharedViewModel.setLyricsStyle(it)
+                                                        }
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                            }
+
+                            // Independent of BOTH style settings, and not gated on Android 12: this changes
+                            // what the words SAY, not how they are drawn, so it applies to every style on
+                            // every version. Sits next to them because a user looking for "something about
+                            // lyrics" looks in one place.
+                            val romanizationLabels =
+                                listOf(
+                                    RomanizationLanguage.JAPANESE to stringResource(Res.string.romanization_japanese),
+                                    RomanizationLanguage.KOREAN to stringResource(Res.string.romanization_korean),
+                                    RomanizationLanguage.CHINESE to stringResource(Res.string.romanization_chinese),
+                                    RomanizationLanguage.HINDI to stringResource(Res.string.romanization_hindi),
+                                    RomanizationLanguage.PUNJABI to stringResource(Res.string.romanization_punjabi),
+                                    RomanizationLanguage.RUSSIAN to stringResource(Res.string.romanization_russian),
+                                    RomanizationLanguage.UKRAINIAN to stringResource(Res.string.romanization_ukrainian),
+                                    RomanizationLanguage.SERBIAN to stringResource(Res.string.romanization_serbian),
+                                    RomanizationLanguage.BULGARIAN to stringResource(Res.string.romanization_bulgarian),
+                                    RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
+                                    RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
+                                    RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
+                                )
+                            val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
+                            SettingItem(
+                                title = stringResource(Res.string.lyrics_romanization),
+                                // Two different jobs for one line. Off, the row has to explain what the
+                                // feature IS — nobody guesses "romanization" from the title alone. On, the only
+                                // question worth answering at a glance is which of the twelve are picked, and
+                                // the explanation has served its purpose.
+                                subtitle =
+                                    if (romanizationSelected.isEmpty()) {
+                                        stringResource(Res.string.lyrics_romanization_description)
+                                    } else {
+                                        val selectedNames =
+                                            romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                                        // Japanese is the one language with a dictionary pack to fetch; while
+                                        // that is in flight — or has failed — the row says so, instead of
+                                        // listing Japanese as if it were already live.
+                                        when {
+                                            RomanizationLanguage.JAPANESE !in romanizationSelected -> selectedNames
+                                            japaneseDictionaryState == RomanizationDictionaryState.DOWNLOADING ->
+                                                "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_downloading)}"
+                                            japaneseDictionaryState == RomanizationDictionaryState.FAILED ->
+                                                "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_failed)}"
+                                            else -> selectedNames
+                                        }
+                                    },
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.lyrics_romanization) },
+                                            // NO `message` here, deliberately. The dialog picks its body with
+                                            // an if/else-if chain that tests `message` FIRST, and that branch
+                                            // renders only the text and an optional textField — a multipleSelect
+                                            // passed alongside it is never reached, so the dialog came up with
+                                            // the description and no languages at all.
+                                            multipleSelect =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        romanizationLabels.map { (language, label) ->
+                                                            (language in romanizationSelected) to label
+                                                        },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.save) } to { state ->
+                                                    val chosen = state.multipleSelect?.getListSelected().orEmpty()
+                                                    val languages =
+                                                        romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet()
+                                                    sharedViewModel.setRomanizationLanguages(languages)
+                                                    // Japanese needs its dictionary pack on disk. A no-op when
+                                                    // it is already there (or bundled, as on Desktop) — and the
+                                                    // retry after a FAILED attempt is simply confirming again.
+                                                    if (RomanizationLanguage.JAPANESE in languages) {
+                                                        viewModel.downloadJapaneseDictionaryIfNeeded()
+                                                    }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.lyrics_offset),
+                                subtitle =
+                                    stringResource(
+                                        Res.string.lyrics_offset_value,
+                                        if (lyricsOffsetMs > 0) "+$lyricsOffsetMs" else lyricsOffsetMs.toString(),
+                                    ),
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.lyrics_offset) },
+                                            // The dialog renders its text field INSIDE the `message != null`
+                                            // branch, so a state carrying a textField and no message opens an
+                                            // empty box with no error anywhere.
+                                            message = runBlocking { getString(Res.string.lyrics_offset_message) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.lyrics_offset) },
+                                                    value = lyricsOffsetMs.toString(),
+                                                    // Only that it is a whole number — no range. How far a
+                                                    // listener's own audio path lags is theirs to say.
+                                                    verifyCodeBlock = {
+                                                        (it.trim().toIntOrNull() != null) to
+                                                            runBlocking { getString(Res.string.lyrics_offset_invalid) }
+                                                    },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    state.textField
+                                                        ?.value
+                                                        ?.trim()
+                                                        ?.toIntOrNull()
+                                                        ?.let { viewModel.setLyricsOffsetMs(it) }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                        }
+                    }
+                    SettingsSection.INTEGRATIONS -> {
+                        val discordPage by viewModel.discordPage.collectAsStateWithLifecycle()
+                        val discordUser by viewModel.discordUser.collectAsStateWithLifecycle()
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = "Discord",
+                                subtitle =
+                                    when {
+                                        !discordPage.signedIn -> stringResource(Res.string.discord_not_signed_in)
+                                        !discordPage.enabled -> stringResource(Res.string.discord_off)
+                                        discordUser != null -> stringResource(Res.string.discord_showing_as, discordUser!!.name)
+                                        else -> stringResource(Res.string.discord_showing)
+                                    },
+                                smallSubtitle = true,
+                                leading = {
+                                    Box(
+                                        Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF5865F2)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(SimpIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                    }
+                                },
+                                navigates = true,
+                                onClick = { navController.navigate(DiscordSettingsDestination) },
+                            )
+                        }
+                        // Hidden when the build has no Last.fm key in local.properties.
+                        if (viewModel.lastfmAvailable) {
+                            val lastfmConnecting by sharedViewModel.lastfmConnecting.collectAsStateWithLifecycle()
+                            val lastfmConfig by viewModel.lastfmConfig.collectAsStateWithLifecycle()
+                            val lastfmProfile by viewModel.lastfmProfile.collectAsStateWithLifecycle()
+                            SettingGroup(title = null) {
+                                SettingItem(
+                                    title = "Last.fm",
+                                    subtitle =
+                                        when {
+                                            lastfmLoggedIn && !lastfmConfig.enabled -> stringResource(Res.string.lastfm_paused)
+                                            lastfmLoggedIn -> stringResource(Res.string.lastfm_scrobbling_as, lastfmUsername)
+                                            lastfmConnecting -> stringResource(Res.string.lastfm_approve_in_browser)
+                                            else -> stringResource(Res.string.lastfm_not_connected)
+                                        },
+                                    smallSubtitle = true,
+                                    leading = {
+                                        if (lastfmLoggedIn && lastfmProfile?.image != null) {
+                                            AsyncImage(
+                                                model = lastfmProfile?.image,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(40.dp).clip(CircleShape),
+                                            )
+                                        } else {
+                                            Box(
+                                                Modifier.size(40.dp).clip(CircleShape).background(LastfmRed),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(SimpIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                            }
+                                        }
+                                    },
+                                    navigates = true,
+                                    onClick = { navController.navigate(LastfmSettingsDestination) },
+                                )
+                            }
+                        }
+                        val deviceLink by koinInject<DeviceLinkRepository>().link.collectAsStateWithLifecycle()
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = stringResource(Res.string.devices),
+                                subtitle =
+                                    deviceLink.devices.firstOrNull()?.takeIf { deviceLink.paired }?.let {
+                                        stringResource(Res.string.devices_linked_to, it.name)
+                                    } ?: stringResource(Res.string.devices_not_linked),
+                                smallSubtitle = true,
+                                leading = {
+                                    Box(
+                                        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(SimpIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(22.dp))
+                                    }
+                                },
+                                navigates = true,
+                                onClick = { navController.navigate(DevicesSettingsDestination) },
+                            )
+                        }
+                    }
+                    SettingsSection.DATA -> {
+                        SettingGroup(title = stringResource(Res.string.settings_downloads)) {
+                            SettingItem(
+                                title = stringResource(Res.string.download_wifi_only),
+                                subtitle = stringResource(Res.string.download_wifi_only_description),
+                                smallSubtitle = true,
+                                switch = (downloadWifiOnly to { viewModel.setDownloadWifiOnly(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.download_liked),
+                                subtitle = stringResource(Res.string.download_liked_description),
+                                smallSubtitle = true,
+                                switch = (downloadLiked to { viewModel.setDownloadLiked(it) }),
+                            )
+                        }
+                        if (getPlatform() == Platform.Android) {
+                            SettingGroup(title = stringResource(Res.string.storage)) {
+                                SettingItem(
+                                    title = stringResource(Res.string.player_cache),
+                                    subtitle = "${playerCache.bytesToMB()} MB",
+                                    onClick = {
+                                        viewModel.setBasicAlertData(
+                                            SettingBasicAlertState(
+                                                title = runBlocking { getString(Res.string.clear_player_cache) },
+                                                message = null,
+                                                confirm =
+                                                    runBlocking { getString(Res.string.clear) } to {
+                                                        viewModel.clearPlayerCache()
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                SettingItem(
+                                    title = stringResource(Res.string.downloaded_cache),
+                                    subtitle = "${downloadedCache.bytesToMB()} MB",
+                                    onClick = {
+                                        viewModel.setBasicAlertData(
+                                            SettingBasicAlertState(
+                                                title = runBlocking { getString(Res.string.clear_downloaded_cache) },
+                                                message = null,
+                                                confirm =
+                                                    runBlocking { getString(Res.string.clear) } to {
+                                                        viewModel.clearDownloadedCache()
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                SettingItem(
+                                    title = stringResource(Res.string.thumbnail_cache),
+                                    subtitle = "${thumbnailCache.bytesToMB()} MB",
+                                    onClick = {
+                                        viewModel.setBasicAlertData(
+                                            SettingBasicAlertState(
+                                                title = runBlocking { getString(Res.string.clear_thumbnail_cache) },
+                                                message = null,
+                                                confirm =
+                                                    runBlocking { getString(Res.string.clear) } to {
+                                                        viewModel.clearThumbnailCache(platformContext)
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                SettingItem(
+                                    title = stringResource(Res.string.spotify_canvas_cache),
+                                    subtitle = "${canvasCache.bytesToMB()} MB",
+                                    onClick = {
+                                        viewModel.setBasicAlertData(
+                                            SettingBasicAlertState(
+                                                title = runBlocking { getString(Res.string.clear_canvas_cache) },
+                                                message = null,
+                                                confirm =
+                                                    runBlocking { getString(Res.string.clear) } to {
+                                                        viewModel.clearCanvasCache()
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                SettingItem(
+                                    title = stringResource(Res.string.limit_player_cache),
+                                    subtitle = LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache).toString(),
+                                    onClick = {
+                                        viewModel.setAlertData(
+                                            SettingAlertState(
+                                                title = runBlocking { getString(Res.string.limit_player_cache) },
+                                                selectOne =
+                                                    SettingAlertState.SelectData(
+                                                        listSelect =
+                                                            LIMIT_CACHE_SIZE.items.map { item ->
+                                                                (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
+                                                            },
+                                                    ),
+                                                confirm =
+                                                    runBlocking { getString(Res.string.change) } to { state ->
+                                                        viewModel.setPlayerCacheLimit(
+                                                            LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected()),
+                                                        )
+                                                    },
+                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                            ),
+                                        )
+                                    },
+                                )
+                                Box(
+                                    Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 16.dp,
+                                    ),
+                                ) {
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(0.dp),
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(8.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .onGloballyPositioned { layoutCoordinates ->
+                                                    with(localDensity) {
+                                                        width =
+                                                            layoutCoordinates.size.width
+                                                                .toDp()
+                                                                .value
+                                                                .toInt()
+                                                    }
+                                                },
+                                    ) {
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.otherApp * width).dp,
+                                                        ).background(
+                                                            md_theme_dark_primary,
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.downloadCache * width).dp,
+                                                        ).background(
+                                                            Color(0xD540FF17),
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.playerCache * width).dp,
+                                                        ).background(
+                                                            Color(0xD5FFFF00),
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.canvasCache * width).dp,
+                                                        ).background(
+                                                            Color.Cyan,
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.thumbCache * width).dp,
+                                                        ).background(
+                                                            Color.Magenta,
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.appDatabase * width).dp,
+                                                        ).background(
+                                                            Color.White,
+                                                        ),
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .width(
+                                                            (fraction.freeSpace * width).dp,
+                                                        ).background(
+                                                            Color.DarkGray,
+                                                        ).fillMaxHeight(),
+                                            )
+                                        }
+                                    }
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                md_theme_dark_primary,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.other_app), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.Green,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.downloaded_cache), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.Yellow,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.player_cache), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.Cyan,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.spotify_canvas_cache), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.Magenta,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.thumbnail_cache), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.White,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.database), style = typo().bodySmall)
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Color.LightGray,
+                                            ),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(text = stringResource(Res.string.free_space), style = typo().bodySmall)
+                                }
+                                Spacer(Modifier.height(12.dp))
+                            }
+                        }
+                        SettingGroup(title = stringResource(Res.string.listening_history)) {
+                            SettingItem(
+                                title = stringResource(Res.string.clear_listening_history),
+                                subtitle = stringResource(Res.string.clear_listening_history_description),
+                                onClick = {
+                                    viewModel.setBasicAlertData(
+                                        SettingBasicAlertState(
+                                            title = runBlocking { getString(Res.string.clear_listening_history) },
+                                            message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                            confirm =
+                                                runBlocking { getString(Res.string.clear) } to {
+                                                    viewModel.clearListeningHistory()
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                        }
+                        SettingGroup(
+                            title = stringResource(Res.string.backup),
+                            footer = {
+                                Text(stringResource(Res.string.import_data_intro), style = typo().bodySmall)
+                            },
+                        ) {
+                            SettingItem(
+                                title = stringResource(Res.string.backup_downloaded),
+                                subtitle = stringResource(Res.string.backup_downloaded_description),
+                                switch = (backupDownloaded to { viewModel.setBackupDownloaded(it) }),
+                            )
+                            // Auto Backup (Android only)
+                            if (getPlatform() == Platform.Android) {
+                                SettingItem(
+                                    title = stringResource(Res.string.auto_backup),
+                                    subtitle = stringResource(Res.string.auto_backup_description),
+                                    switch = (autoBackupEnabled to { viewModel.setAutoBackupEnabled(it) }),
+                                )
+                                AnimatedVisibility(visible = autoBackupEnabled) {
+                                    Column {
+                                        SettingItem(
+                                            title = stringResource(Res.string.backup_frequency),
+                                            subtitle =
+                                                when (autoBackupFrequency) {
+                                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY -> stringResource(Res.string.daily)
+                                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY -> stringResource(Res.string.weekly)
+                                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY -> stringResource(Res.string.monthly)
+                                                    else -> stringResource(Res.string.daily)
+                                                },
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.backup_frequency) },
+                                                        selectOne =
+                                                            SettingAlertState.SelectData(
+                                                                listSelect =
+                                                                    listOf(
+                                                                        (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY) to
+                                                                            runBlocking { getString(Res.string.daily) },
+                                                                        (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY) to
+                                                                            runBlocking { getString(Res.string.weekly) },
+                                                                        (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY) to
+                                                                            runBlocking { getString(Res.string.monthly) },
+                                                                    ),
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                val frequency =
+                                                                    when (state.selectOne?.getSelected()) {
+                                                                        runBlocking {
+                                                                            getString(
+                                                                                Res.string.daily,
+                                                                            )
+                                                                        },
+                                                                        -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                                        runBlocking {
+                                                                            getString(
+                                                                                Res.string.weekly,
+                                                                            )
+                                                                        },
+                                                                        -> DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY
+                                                                        runBlocking {
+                                                                            getString(
+                                                                                Res.string.monthly,
+                                                                            )
+                                                                        },
+                                                                        -> DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY
+                                                                        else -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                                    }
+                                                                viewModel.setAutoBackupFrequency(frequency)
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.keep_backups),
+                                            subtitle = stringResource(Res.string.keep_backups_format, "$autoBackupMaxFiles"),
+                                            onClick = {
+                                                viewModel.setAlertData(
+                                                    SettingAlertState(
+                                                        title = runBlocking { getString(Res.string.keep_backups) },
+                                                        selectOne =
+                                                            SettingAlertState.SelectData(
+                                                                listSelect =
+                                                                    listOf(
+                                                                        (autoBackupMaxFiles == 3) to "3",
+                                                                        (autoBackupMaxFiles == 5) to "5",
+                                                                        (autoBackupMaxFiles == 10) to "10",
+                                                                        (autoBackupMaxFiles == 15) to "15",
+                                                                    ),
+                                                            ),
+                                                        confirm =
+                                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                                val maxFiles = state.selectOne?.getSelected()?.toIntOrNull() ?: 5
+                                                                viewModel.setAutoBackupMaxFiles(maxFiles)
+                                                            },
+                                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                        SettingItem(
+                                            title = stringResource(Res.string.last_backup),
+                                            subtitle =
+                                                if (autoBackupLastTime == 0L) {
+                                                    stringResource(Res.string.never)
+                                                } else {
+                                                    DateTimeFormatter
+                                                        .ofPattern("yyyy-MM-dd HH:mm:ss")
+                                                        .withZone(ZoneId.systemDefault())
+                                                        .format(Instant.ofEpochMilli(autoBackupLastTime))
+                                                },
+                                        )
+                                    }
+                                }
+                            }
+                            SettingItem(
+                                title = stringResource(Res.string.backup),
+                                subtitle = stringResource(Res.string.save_all_your_playlist_data),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        backupLauncher.launch()
+                                    }
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.restore_your_data),
+                                subtitle = stringResource(Res.string.restore_your_saved_data),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        restoreLauncher.launch()
+                                    }
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.import_data),
+                                subtitle = stringResource(Res.string.import_playlists_from_other_apps),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        importLauncher.launch()
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    SettingsSection.ABOUT -> {
+                        SettingGroup(title = null) {
+                            SettingItem(
+                                title = stringResource(Res.string.version),
+                                subtitle = stringResource(Res.string.version_format, VersionManager.getVersionName()),
+                                onClick = {
+                                    navController.navigate(CreditDestination)
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.author),
+                                subtitle = stringResource(Res.string.developer_name),
+                                onClick = {
+                                    uriHandler.openUri("https://github.com/SimoHypers")
+                                },
+                            )
+                        }
+                        SettingGroup(title = stringResource(Res.string.developer_option)) {
+                            SettingItem(
+                                title = stringResource(Res.string.app_log),
+                                subtitle = stringResource(Res.string.app_log_description),
+                                onClick = {
+                                    navController.navigate(AppLogDestination)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (section == null) {
+            item(key = "end") {
+                EndOfPage()
+            }
+        }
+    }
+    importState?.let { progress ->
+        ImportProgressDialog(
+            progress = progress,
+            onDismiss = importViewModel::dismiss,
+        )
+    }
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
+    if (showLoadingDialog.first) {
+        LoadingDialog(
+            true,
+            showLoadingDialog.second,
+        )
+    }
+    SettingAlertDialog(viewModel)
+    if (showColorPickerDialog) {
+        val presetColors =
+            listOf(
+                "FF8ECAE6",
+                "FF4C82EF",
+                "FF9B72CF",
+                "FFEF6C9B",
+                "FFEF5350",
+                "FFF4A340",
+                "FFFFCA28",
+                "FF66BB6A",
+                "FF26A69A",
+                "FFBDBDBD",
+            )
+        var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
+        val parsedColor = parseThemeColorHex(pendingHex)
+        AlertDialog(
+            onDismissRequest = { showColorPickerDialog = false },
+            title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
+            text = {
+                Column {
+                    presetColors.chunked(5).forEach { rowColors ->
+                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                            rowColors.forEach { hex ->
+                                val color = parseThemeColorHex(hex) ?: Color.Gray
+                                val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .padding(4.dp)
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(color)
+                                            .border(
+                                                width = if (isSelected) 3.dp else 0.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                                shape = CircleShape,
+                                            ).clickable { pendingHex = hex.takeLast(6) },
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextField(
+                        value = pendingHex,
+                        onValueChange = { pendingHex = it.removePrefix("#").take(8).uppercase() },
+                        label = { Text("HEX") },
+                        prefix = { Text("#") },
+                        singleLine = true,
+                        isError = parsedColor == null,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = parsedColor != null,
+                    onClick = {
+                        parsedColor?.let {
+                            val argb = "FF${pendingHex.takeLast(6).uppercase()}"
+                            sharedViewModel.setCustomThemeColor(argb)
+                            sharedViewModel.setThemeColorSource(DataStoreManager.THEME_COLOR_CUSTOM)
+                        }
+                        showColorPickerDialog = false
+                    },
+                ) { Text(text = stringResource(Res.string.change)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showColorPickerDialog = false }) {
+                    Text(text = stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
+    if (showYouTubeAccountDialog) {
+        YouTubeAccountDialog(
+            viewModel = viewModel,
+            onAddAccount = { navController.navigate(LoginDestination) },
+            onDismiss = { showYouTubeAccountDialog = false },
+        )
+    }
+    val alertData by viewModel.alertData.collectAsStateWithLifecycle()
+    if (alertData != null) {
+        val alertState = alertData ?: return
+        // AlertDialog
+        AlertDialog(
+            onDismissRequest = { viewModel.setAlertData(null) },
+            title = {
+                Text(
+                    text = alertState.title,
+                    style = typo().titleSmall,
+                )
+            },
+            text = {
+                if (alertState.message != null) {
+                    Column {
+                        Text(text = alertState.message)
+                        if (alertState.textField != null) {
+                            val verify =
+                                alertState.textField.verifyCodeBlock?.invoke(
+                                    alertState.textField.value,
+                                ) ?: (true to null)
+                            TextField(
+                                value = alertState.textField.value,
+                                onValueChange = {
+                                    viewModel.setAlertData(
+                                        alertState.copy(
+                                            textField =
+                                                alertState.textField.copy(
+                                                    value = it,
+                                                ),
+                                        ),
+                                    )
+                                },
+                                isError = !verify.first,
+                                label = { Text(text = alertState.textField.label) },
+                                supportingText = {
+                                    if (!verify.first) {
+                                        Text(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            text = verify.second ?: "",
+                                            color = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
+                                },
+                                trailingIcon = {
+                                    if (!verify.first) {
+                                        SimpIcons.Error
+                                    }
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(
+                                            vertical = 6.dp,
+                                        ),
+                            )
+                        }
+                    }
+                } else if (alertState.selectOne != null) {
+                    LazyColumn(
+                        Modifier
+                            .padding(vertical = 6.dp)
+                            .heightIn(0.dp, 500.dp),
+                    ) {
+                        items(alertState.selectOne.listSelect) { item ->
+                            val onSelect = {
+                                viewModel.setAlertData(
+                                    alertState.copy(
+                                        selectOne =
+                                            alertState.selectOne.copy(
+                                                listSelect =
+                                                    alertState.selectOne.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            true to it.second
+                                                        } else {
+                                                            false to it.second
+                                                        }
+                                                    },
+                                            ),
+                                    ),
+                                )
+                            }
+                            Row(
+                                Modifier
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        onSelect.invoke()
+                                    }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = item.first,
+                                    onClick = {
+                                        onSelect.invoke()
+                                    },
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = item.second,
+                                    style = typo().bodyMedium,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
+                            }
+                        }
+                    }
+                } else if (alertState.multipleSelect != null) {
+                    LazyColumn(
+                        Modifier.padding(vertical = 6.dp),
+                    ) {
+                        items(alertState.multipleSelect.listSelect) { item ->
+                            val onCheck = {
+                                viewModel.setAlertData(
+                                    alertState.copy(
+                                        multipleSelect =
+                                            alertState.multipleSelect.copy(
+                                                listSelect =
+                                                    alertState.multipleSelect.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            !it.first to it.second
+                                                        } else {
+                                                            it
+                                                        }
+                                                    },
+                                            ),
+                                    ),
+                                )
+                            }
+                            Row(
+                                Modifier
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        onCheck.invoke()
+                                    }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = item.first,
+                                    onCheckedChange = {
+                                        onCheck.invoke()
+                                    },
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = item.second, style = typo().bodyMedium, maxLines = 1)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        alertState.confirm.second.invoke(alertState)
+                        viewModel.setAlertData(null)
+                    },
+                    enabled =
+                        if (alertState.textField?.verifyCodeBlock != null) {
+                            alertState.textField.verifyCodeBlock
+                                .invoke(
+                                    alertState.textField.value,
+                                ).first
+                        } else {
+                            true
+                        },
+                ) {
+                    Text(text = alertState.confirm.first)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.setAlertData(null)
+                    },
+                ) {
+                    Text(text = alertState.dismiss)
+                }
+            },
+        )
+    }
+
+    // The pinned copy of the toolbar, frosted: the frost waits for the Devices group to go under it,
+    // because an always-on frost dimmed the glow behind the bar into a black band, which is exactly
+    // where the glow carries its colour.
+    // Captured outside the haze scope — HazeEffectScope is not composable (same move as
+    // AlbumScreen's mutedPaletteBg capture).
+    val settingBarTint = MaterialTheme.colorScheme.background
+    AnimatedVisibility(
+        visible = showPinnedBar,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically(),
+    ) {
+        SettingTopBar(
+            title = pageTitle,
+            onBack = { navController.navigateUp() },
+            // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in tint stacked
+            // on this page's dark ground read as a solid lid. 0.3 keeps the blur doing the work and
+            // the tint only settling legibility.
+            modifier = Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(settingBarTint, 0.3f)),
+        )
+    }
+}
+
+/**
+ * The page's toolbar. Drawn twice, the way Playlist and Artist draw theirs: once inside the list,
+ * where it scrolls away with the content, and once pinned above it.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SettingTopBar(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = typo().titleMedium,
+            )
+        },
+        navigationIcon = {
+            Box(Modifier.padding(horizontal = 5.dp)) {
+                RippleIconButton(
+                    SimpIcons.ArrowBackIosNew,
+                    Modifier.size(32.dp),
+                    true,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    onBack()
+                }
+            }
+        },
+        actions = actions,
+        windowInsets = windowInsets,
+        modifier = modifier,
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
+    )
+}
+
+/**
+ * Progress and outcome of a playlist import.
+ *
+ * Only dismissible once the import has finished — cancelling mid-write would leave the database
+ * half-populated with no way to tell the user which half.
+ */
+@Composable
+private fun ImportProgressDialog(
+    progress: ImportProgress,
+    onDismiss: () -> Unit,
+) {
+    val finished = progress is ImportProgress.Success || progress is ImportProgress.Error
+    AlertDialog(
+        onDismissRequest = { if (finished) onDismiss() },
+        properties =
+            DialogProperties(
+                dismissOnBackPress = finished,
+                dismissOnClickOutside = finished,
+            ),
+        title = {
+            Text(
+                text =
+                    stringResource(
+                        if (progress is ImportProgress.Error) Res.string.import_failed else Res.string.import_data,
+                    ),
+                style = typo().titleSmall,
+            )
+        },
+        text = {
+            Column {
+                when (progress) {
+                    is ImportProgress.Preparing -> {
+                        Text(
+                            text = stringResource(Res.string.import_reading_file),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    is ImportProgress.Importing -> {
+                        Text(
+                            text = stringResource(Res.string.import_progress_songs, progress.processed, progress.total),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(
+                            progress = {
+                                if (progress.total > 0) progress.processed.toFloat() / progress.total else 0f
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is ImportProgress.Success -> {
+                        Text(
+                            text =
+                                stringResource(
+                                    Res.string.import_result,
+                                    progress.result.playlistsCreated,
+                                    progress.result.songsImported,
+                                ),
+                            style = typo().bodyMedium,
+                        )
+                        if (progress.result.skippedEntries > 0) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.import_result_skipped, progress.result.skippedEntries),
+                                style = typo().bodySmall,
+                            )
+                        }
+                    }
+
+                    is ImportProgress.Error -> {
+                        Text(
+                            text = progress.message,
+                            style = typo().bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (finished) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.ok))
+                }
+            }
+        },
+    )
+}
+
+/** The confirm dialog SettingsViewModel asks for (sign-outs and the like), on whichever page asked. */
+@Composable
+internal fun SettingAlertDialog(viewModel: SettingsViewModel) {
+    val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
+    if (basisAlertData != null) {
+        val alertBasicState = basisAlertData ?: return
+        AlertDialog(
+            onDismissRequest = { viewModel.setBasicAlertData(null) },
+            title = {
+                Text(
+                    text = alertBasicState.title,
+                    style = typo().titleSmall,
+                )
+            },
+            text = {
+                if (alertBasicState.message != null) {
+                    Text(text = alertBasicState.message)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        alertBasicState.confirm.second.invoke()
+                        viewModel.setBasicAlertData(null)
+                    },
+                ) {
+                    Text(text = alertBasicState.confirm.first)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.setBasicAlertData(null)
+                    },
+                ) {
+                    Text(text = alertBasicState.dismiss)
+                }
+            },
+        )
+    }
+}

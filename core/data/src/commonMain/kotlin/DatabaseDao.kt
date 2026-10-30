@@ -7,49 +7,49 @@ import androidx.room.RawQuery
 import androidx.room.RoomRawQuery
 import androidx.room.Transaction
 import androidx.room.Update
-import com.maxrave.domain.data.entities.AlbumEntity
-import com.maxrave.domain.data.entities.ArtistEntity
-import com.maxrave.domain.data.entities.ArtistMotionEntity
-import com.maxrave.domain.data.entities.AutoEqCurveEntity
-import com.maxrave.domain.data.entities.AutoEqEntryEntity
-import com.maxrave.domain.data.entities.AutoEqIndexMetaEntity
-import com.maxrave.domain.data.entities.EpisodeEntity
-import com.maxrave.domain.data.entities.FollowedArtistSingleAndAlbum
-import com.maxrave.domain.data.entities.GoogleAccountEntity
-import com.maxrave.domain.data.entities.LocalPlaylistEntity
-import com.maxrave.domain.data.entities.LyricsEntity
-import com.maxrave.domain.data.entities.NewFormatEntity
-import com.maxrave.domain.data.entities.NotificationEntity
-import com.maxrave.domain.data.entities.PairSongLocalPlaylist
-import com.maxrave.domain.data.entities.PlaylistEntity
-import com.maxrave.domain.data.entities.PodcastWithEpisodes
-import com.maxrave.domain.data.entities.PodcastsEntity
-import com.maxrave.domain.data.entities.QueueEntity
-import com.maxrave.domain.data.entities.SearchHistory
-import com.maxrave.domain.data.entities.SetVideoIdEntity
-import com.maxrave.domain.data.entities.SongEntity
-import com.maxrave.domain.data.entities.SongInfoEntity
-import com.maxrave.domain.data.entities.TranslatedLyricsEntity
-import com.maxrave.domain.data.entities.YourYouTubePlaylistList
-import com.maxrave.domain.data.entities.analytics.EventArtistEntity
-import com.maxrave.domain.data.entities.analytics.PlaybackEventEntity
-import com.maxrave.domain.data.entities.analytics.query.DecadeCount
-import com.maxrave.domain.data.entities.analytics.query.PlaybackSample
-import com.maxrave.domain.data.entities.analytics.query.TopPlayedAlbum
-import com.maxrave.domain.data.entities.analytics.query.TopPlayedArtist
-import com.maxrave.domain.data.entities.analytics.query.TopPlayedArtistTime
-import com.maxrave.domain.data.entities.analytics.query.TopPlayedTracks
-import com.maxrave.domain.data.model.download.DownloadCount
-import com.maxrave.domain.data.type.PlaylistType
-import com.maxrave.domain.data.type.RecentlyType
-import com.maxrave.domain.extension.now
+import com.simohypers.limusic.domain.data.entities.AlbumEntity
+import com.simohypers.limusic.domain.data.entities.ArtistEntity
+import com.simohypers.limusic.domain.data.entities.ArtistMotionEntity
+import com.simohypers.limusic.domain.data.entities.AutoEqCurveEntity
+import com.simohypers.limusic.domain.data.entities.AutoEqEntryEntity
+import com.simohypers.limusic.domain.data.entities.AutoEqIndexMetaEntity
+import com.simohypers.limusic.domain.data.entities.EpisodeEntity
+import com.simohypers.limusic.domain.data.entities.FollowedArtistSingleAndAlbum
+import com.simohypers.limusic.domain.data.entities.GoogleAccountEntity
+import com.simohypers.limusic.domain.data.entities.LocalPlaylistEntity
+import com.simohypers.limusic.domain.data.entities.LyricsEntity
+import com.simohypers.limusic.domain.data.entities.NewFormatEntity
+import com.simohypers.limusic.domain.data.entities.NotificationEntity
+import com.simohypers.limusic.domain.data.entities.PairSongLocalPlaylist
+import com.simohypers.limusic.domain.data.entities.PlaylistEntity
+import com.simohypers.limusic.domain.data.entities.PodcastWithEpisodes
+import com.simohypers.limusic.domain.data.entities.PodcastsEntity
+import com.simohypers.limusic.domain.data.entities.QueueEntity
+import com.simohypers.limusic.domain.data.entities.SearchHistory
+import com.simohypers.limusic.domain.data.entities.SetVideoIdEntity
+import com.simohypers.limusic.domain.data.entities.SongEntity
+import com.simohypers.limusic.domain.data.entities.SongInfoEntity
+import com.simohypers.limusic.domain.data.entities.TranslatedLyricsEntity
+import com.simohypers.limusic.domain.data.entities.YourYouTubePlaylistList
+import com.simohypers.limusic.domain.data.entities.analytics.EventArtistEntity
+import com.simohypers.limusic.domain.data.entities.analytics.PlaybackEventEntity
+import com.simohypers.limusic.domain.data.entities.analytics.query.DecadeCount
+import com.simohypers.limusic.domain.data.entities.analytics.query.PlaybackSample
+import com.simohypers.limusic.domain.data.entities.analytics.query.TopPlayedAlbum
+import com.simohypers.limusic.domain.data.entities.analytics.query.TopPlayedArtist
+import com.simohypers.limusic.domain.data.entities.analytics.query.TopPlayedArtistTime
+import com.simohypers.limusic.domain.data.entities.analytics.query.TopPlayedTracks
+import com.simohypers.limusic.domain.data.model.download.DownloadCount
+import com.simohypers.limusic.domain.data.type.PlaylistType
+import com.simohypers.limusic.domain.data.type.RecentlyType
+import com.simohypers.limusic.domain.extension.now
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
 
 /**
  * The album name older builds stored when they could not find a real one.
  *
- * Kept in step with the copy in [com.maxrave.data.db.datasource.LocalDataSource] and with the
+ * Kept in step with the copy in [com.simohypers.limusic.data.db.datasource.LocalDataSource] and with the
  * literal baked into [DatabaseDao.refreshAlbumIfPlaceholder]'s WHERE clause.
  */
 private const val PLACEHOLDER_ALBUM_NAME = "Album"
@@ -250,7 +250,7 @@ interface DatabaseDao {
      * Stores a batch of tracks in one transaction.
      *
      * Every other path inserts one song at a time through
-     * [com.maxrave.data.db.datasource.LocalDataSource.insertSong], which is right when a track
+     * [com.simohypers.limusic.data.db.datasource.LocalDataSource.insertSong], which is right when a track
      * arrives on its own but costs a commit each time. An import writes thousands in a row, so the
      * batch collapses them into a handful of commits instead.
      *

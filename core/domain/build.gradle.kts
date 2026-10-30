@@ -12,7 +12,7 @@ plugins {
 kotlin {
     jvmToolchain(21)
     android {
-        namespace = "com.maxrave.domain"
+        namespace = "com.simohypers.limusic.domain"
         compileSdk = 37
         minSdk = 26
         withHostTest {}

@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "org.simpmusic.autoeq"
+        namespace = "com.simohypers.limusic.autoeq"
         compileSdk = 37
         minSdk = 26
     }
