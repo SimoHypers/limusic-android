@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 /** Material's all_inclusive: the queue sheet's Autoplay divider, like desktop's infinity icon. */
-val SimpIcons.AllInclusive: ImageVector get() = allInclusive
+val LimusicIcons.AllInclusive: ImageVector get() = allInclusive
 
 private val allInclusive: ImageVector by lazy {
     ImageVector

@@ -35,7 +35,7 @@ import com.simohypers.limusic.ui.icon.PlayArrow
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
 import com.simohypers.limusic.viewModel.UIEvent
@@ -122,7 +122,7 @@ fun ExpressiveTransportRow(
     ) {
         if (showShuffleAndRepeat) {
             ExpressiveToggleButton(
-                icon = SimpIcons.Shuffle,
+                icon = LimusicIcons.Shuffle,
                 active = controllerState.isShuffle,
                 onClick = { onUIEvent(UIEvent.Shuffle) },
             )
@@ -145,7 +145,7 @@ fun ExpressiveTransportRow(
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Icon(
-                    imageVector = SimpIcons.SkipPrevious,
+                    imageVector = LimusicIcons.SkipPrevious,
                     contentDescription = "",
                     tint =
                         colorScheme.onSecondaryContainer.copy(
@@ -197,7 +197,7 @@ fun ExpressiveTransportRow(
                         ) { isPlaying ->
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                 Icon(
-                                    imageVector = if (isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+                                    imageVector = if (isPlaying) LimusicIcons.Pause else LimusicIcons.PlayArrow,
                                     contentDescription = "",
                                     tint = colorScheme.onPrimary,
                                     modifier = Modifier.size(36.dp),
@@ -225,7 +225,7 @@ fun ExpressiveTransportRow(
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Icon(
-                    imageVector = SimpIcons.SkipNext,
+                    imageVector = LimusicIcons.SkipNext,
                     contentDescription = "",
                     tint =
                         colorScheme.onSecondaryContainer.copy(
@@ -239,7 +239,7 @@ fun ExpressiveTransportRow(
             Spacer(modifier = Modifier.width(TOGGLE_SEPARATION))
             val repeatState = controllerState.repeatState
             ExpressiveToggleButton(
-                icon = if (repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
+                icon = if (repeatState is RepeatState.One) LimusicIcons.RepeatOne else LimusicIcons.Repeat,
                 active = repeatState !is RepeatState.None,
                 onClick = { onUIEvent(UIEvent.Repeat) },
             )

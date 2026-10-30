@@ -29,7 +29,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.simohypers.limusic.domain.data.model.podcast.PodcastBrowse
 import com.simohypers.limusic.ui.icon.MoreVert
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
 import limusic.composeapp.generated.resources.Res
@@ -126,7 +126,7 @@ fun PodcastEpisodeFullWidthItem(
             }
 
             if (onMoreClickListener != null) {
-                RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false) {
+                RippleIconButton(imageVector = LimusicIcons.MoreVert, fillMaxSize = false) {
                     onMoreClickListener.invoke()
                 }
             }

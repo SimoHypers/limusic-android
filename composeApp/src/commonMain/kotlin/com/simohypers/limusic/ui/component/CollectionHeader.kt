@@ -43,7 +43,7 @@ import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.Pause
 import com.simohypers.limusic.ui.icon.PlayArrow
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
 import limusic.composeapp.generated.resources.Res
@@ -98,7 +98,7 @@ fun CollectionHero(
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            PillIconButton(SimpIcons.ArrowBackIosNew, tint = MaterialTheme.colorScheme.onSurface, onClick = onBack)
+            PillIconButton(LimusicIcons.ArrowBackIosNew, tint = MaterialTheme.colorScheme.onSurface, onClick = onBack)
             Spacer(Modifier.weight(1f))
             actions()
         }
@@ -126,9 +126,9 @@ fun CollectionTitle(
     TitleRow(
         title = { CollectionTitleText(title) },
     ) {
-        if (onShuffle != null) RoundIconButton(SimpIcons.Shuffle, stringResource(Res.string.shuffle), onShuffle)
+        if (onShuffle != null) RoundIconButton(LimusicIcons.Shuffle, stringResource(Res.string.shuffle), onShuffle)
         RoundAccentButton(
-            if (playing) SimpIcons.Pause else SimpIcons.PlayArrow,
+            if (playing) LimusicIcons.Pause else LimusicIcons.PlayArrow,
             stringResource(if (playing) Res.string.pause else Res.string.play),
             onPlay,
         )

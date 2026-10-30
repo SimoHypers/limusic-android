@@ -212,7 +212,6 @@
 
 -keep class com.simohypers.limusic.lyrics.parser.** { *; }
 -keep class com.simohypers.limusic.lyrics.models.** { *; }
--keep class com.simpmusic.lyrics.parser.** { *; }
 
 -keep class com.google.re2j.** { *; }
 -dontwarn com.google.re2j.Matcher

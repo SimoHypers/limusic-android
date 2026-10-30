@@ -5,7 +5,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Update
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
@@ -75,7 +75,7 @@ fun RecentlyAddedList(
         }
         Column {
             LibrarySectionHeader(
-                icon = SimpIcons.Update,
+                icon = LimusicIcons.Update,
                 title = stringResource(Res.string.recently_added),
                 modifier = Modifier.padding(top = 20.dp, bottom = 4.dp),
             )

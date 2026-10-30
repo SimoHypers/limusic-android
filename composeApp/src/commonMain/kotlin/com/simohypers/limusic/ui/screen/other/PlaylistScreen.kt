@@ -94,7 +94,7 @@ import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Sort
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.typo
@@ -306,14 +306,14 @@ fun PlaylistScreen(
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
                                             IconButton(onClick = { showSearchBar = true }, modifier = Modifier.size(40.dp)) {
-                                                Icon(SimpIcons.Search, stringResource(Res.string.search), tint = MaterialTheme.colorScheme.onSurface)
+                                                Icon(LimusicIcons.Search, stringResource(Res.string.search), tint = MaterialTheme.colorScheme.onSurface)
                                             }
                                             if (!data.isRadio) {
                                                 IconButton(onClick = { showSortSheet = true }, modifier = Modifier.size(40.dp)) {
                                                     // Accent while the list is in anything but its own order.
                                                     val sorted = sortState.sort != PlaylistSort.DEFAULT || sortState.desc
                                                     Icon(
-                                                        SimpIcons.Sort,
+                                                        LimusicIcons.Sort,
                                                         stringResource(Res.string.sort_by),
                                                         tint = if (sorted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                                     )
@@ -337,7 +337,7 @@ fun PlaylistScreen(
                                                 }
                                             }
                                             IconButton(onClick = onPlaylistMoreClick, modifier = Modifier.size(40.dp)) {
-                                                Icon(SimpIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
+                                                Icon(LimusicIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
                                             }
                                         }
                                     },
@@ -506,7 +506,7 @@ fun PlaylistScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RippleIconButton(
-                                imageVector = SimpIcons.ArrowBackIosNew,
+                                imageVector = LimusicIcons.ArrowBackIosNew,
                                 tint = MaterialTheme.colorScheme.onSurface,
                             ) {
                                 navController.navigateUp()
@@ -548,7 +548,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(LimusicIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -642,7 +642,7 @@ fun PlaylistScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    SimpIcons.ArrowBackIosNew,
+                                    LimusicIcons.ArrowBackIosNew,
                                     Modifier
                                         .size(32.dp),
                                     true,
@@ -658,7 +658,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(SimpIcons.Search, null, tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(LimusicIcons.Search, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                         },
                         colors =

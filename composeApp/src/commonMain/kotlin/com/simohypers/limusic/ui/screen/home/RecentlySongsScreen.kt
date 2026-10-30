@@ -48,7 +48,7 @@ import com.simohypers.limusic.ui.component.selection.keyedRows
 import com.simohypers.limusic.ui.component.selection.rememberTrackSelection
 import com.simohypers.limusic.ui.component.selection.rowKey
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
@@ -241,7 +241,7 @@ fun RecentlySongsScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        SimpIcons.ArrowBackIosNew,
+                        LimusicIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
                         tint = MaterialTheme.colorScheme.onSurface,

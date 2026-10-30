@@ -76,7 +76,7 @@ import com.simohypers.limusic.ui.icon.PlayArrow
 import com.simohypers.limusic.ui.icon.RestartAlt
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.UnfoldLess
 import com.simohypers.limusic.ui.icon.UnfoldMore
 import com.simohypers.limusic.ui.theme.LocalIsDarkTheme
@@ -236,7 +236,7 @@ fun AppLogScreen(
                 navigationIcon = {
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            SimpIcons.ArrowBackIosNew,
+                            LimusicIcons.ArrowBackIosNew,
                             Modifier.size(32.dp),
                             true,
                             tint = onSurface,
@@ -247,13 +247,13 @@ fun AppLogScreen(
                 },
                 actions = {
                     // Android Studio's Logcat toolbar, in its order: clear, pause, restart, stick.
-                    RippleIconButton(SimpIcons.Delete, tint = onSurface) {
+                    RippleIconButton(LimusicIcons.Delete, tint = onSurface) {
                         clearedAt = nowEpochMillis()
                     }
-                    RippleIconButton(if (paused) SimpIcons.PlayArrow else SimpIcons.Pause, tint = onSurface) {
+                    RippleIconButton(if (paused) LimusicIcons.PlayArrow else LimusicIcons.Pause, tint = onSurface) {
                         paused = !paused
                     }
-                    RippleIconButton(SimpIcons.RestartAlt, tint = onSurface) {
+                    RippleIconButton(LimusicIcons.RestartAlt, tint = onSurface) {
                         clearedAt = 0L
                         paused = false
                         stickToBottom = true
@@ -267,13 +267,13 @@ fun AppLogScreen(
                             ),
                     ) {
                         RippleIconButton(
-                            SimpIcons.KeyboardDoubleArrowDown,
+                            LimusicIcons.KeyboardDoubleArrowDown,
                             tint = if (stickToBottom) MaterialTheme.colorScheme.primary else onSurface,
                         ) {
                             stickToBottom = !stickToBottom
                         }
                     }
-                    RippleIconButton(if (isDesktop) SimpIcons.Download else SimpIcons.Share, tint = onSurface) {
+                    RippleIconButton(if (isDesktop) LimusicIcons.Download else LimusicIcons.Share, tint = onSurface) {
                         scope.launch {
                             if (!exportLog(shareTitle)) showToast(exportFailed, ToastGravity.Bottom)
                         }
@@ -436,12 +436,12 @@ private fun LogSearchField(
         shape = RoundedCornerShape(8.dp),
         textStyle = typo().labelMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         placeholder = { Text(stringResource(Res.string.log_search_hint), style = typo().labelMedium) },
-        leadingIcon = { Icon(SimpIcons.Search, contentDescription = null) },
+        leadingIcon = { Icon(LimusicIcons.Search, contentDescription = null) },
         trailingIcon =
             if (query.isNotEmpty()) {
                 {
                     IconButton(onClick = { onQueryChange("") }) {
-                        Icon(SimpIcons.Close, contentDescription = null)
+                        Icon(LimusicIcons.Close, contentDescription = null)
                     }
                 }
             } else {
@@ -616,7 +616,7 @@ private fun ErrorCard(
             .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(SimpIcons.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+            Icon(LimusicIcons.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
                 line.tag,
@@ -627,7 +627,7 @@ private fun ErrorCard(
                 modifier = Modifier.weight(1f),
             )
             Text(clockTime(line.epochMillis), fontFamily = mono, fontSize = 11.sp, color = onSurfaceVariant)
-            RippleIconButton(SimpIcons.ContentCopy, tint = onSurfaceVariant, onClick = onCopy)
+            RippleIconButton(LimusicIcons.ContentCopy, tint = onSurfaceVariant, onClick = onCopy)
         }
         Text(
             line.message,
@@ -668,7 +668,7 @@ private fun ErrorCard(
             }
             Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    if (expanded) SimpIcons.UnfoldLess else SimpIcons.UnfoldMore,
+                    if (expanded) LimusicIcons.UnfoldLess else LimusicIcons.UnfoldMore,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),

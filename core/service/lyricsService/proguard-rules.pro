@@ -39,4 +39,3 @@
 
 -keep class com.simohypers.limusic.lyrics.parser.** { *; }
 -keep class com.simohypers.limusic.lyrics.models.** { *; }
--keep class com.simpmusic.lyrics.parser.** { *; }

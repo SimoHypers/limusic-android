@@ -145,7 +145,7 @@ import com.simohypers.limusic.ui.icon.PlaylistAdd
 import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Replay5
 import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Subtitles
 import com.simohypers.limusic.ui.icon.SubtitlesOff
 import com.simohypers.limusic.ui.icon.ThumbsUpDown
@@ -662,7 +662,7 @@ fun NowPlayingContentSpotify(
                                                                 Modifier.align(Alignment.TopEnd),
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = SimpIcons.Fullscreen,
+                                                                    imageVector = LimusicIcons.Fullscreen,
                                                                     contentDescription = "",
                                                                     tint = Color.White,
                                                                 )
@@ -688,7 +688,7 @@ fun NowPlayingContentSpotify(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = SimpIcons.Replay5,
+                                                                        imageVector = LimusicIcons.Replay5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -712,7 +712,7 @@ fun NowPlayingContentSpotify(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = SimpIcons.Forward5,
+                                                                        imageVector = LimusicIcons.Forward5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -732,9 +732,9 @@ fun NowPlayingContentSpotify(
                                                                     Icon(
                                                                         imageVector =
                                                                             if (internalShowSubtitle) {
-                                                                                SimpIcons.SubtitlesOff
+                                                                                LimusicIcons.SubtitlesOff
                                                                             } else {
-                                                                                SimpIcons.Subtitles
+                                                                                LimusicIcons.Subtitles
                                                                             },
                                                                         contentDescription = "",
                                                                         tint = Color.White,
@@ -885,7 +885,7 @@ fun NowPlayingContentSpotify(
                             actions.onShowMoreSheet()
                         }) {
                             Icon(
-                                imageVector = SimpIcons.MoreVert,
+                                imageVector = LimusicIcons.MoreVert,
                                 contentDescription = "",
                                 tint = Color.White,
                             )
@@ -1048,7 +1048,7 @@ fun NowPlayingContentSpotify(
                                                     actions.onShowInfo()
                                                 },
                                             ) {
-                                                Icon(imageVector = SimpIcons.Info, tint = Color.White, contentDescription = "")
+                                                Icon(imageVector = LimusicIcons.Info, tint = Color.White, contentDescription = "")
                                             }
                                             // Where the sound goes: the phone's own outputs and the Cast
                                             // receivers in one sheet, the same one the Apple Music style opens.
@@ -1064,7 +1064,7 @@ fun NowPlayingContentSpotify(
                                                 onClick = { showOutputSheet = true },
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.Headphones,
+                                                    imageVector = LimusicIcons.Headphones,
                                                     tint = if (state.castState.isRemote) Color.Cyan else Color.White,
                                                     contentDescription = stringResource(Res.string.audio_output),
                                                 )
@@ -1100,7 +1100,7 @@ fun NowPlayingContentSpotify(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.PlaylistAdd,
+                                                    imageVector = LimusicIcons.PlaylistAdd,
                                                     tint = Color.White,
                                                     contentDescription = "Add to Playlist",
                                                 )
@@ -1118,7 +1118,7 @@ fun NowPlayingContentSpotify(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.QueueMusic,
+                                                    imageVector = LimusicIcons.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )
@@ -1282,7 +1282,7 @@ fun NowPlayingContentSpotify(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = SimpIcons.ThumbsUpDown,
+                                                        imageVector = LimusicIcons.ThumbsUpDown,
                                                         contentDescription = stringResource(Res.string.rate_lyrics),
                                                         tint = Color.White,
                                                         modifier = Modifier.size(16.dp),
@@ -1297,7 +1297,7 @@ fun NowPlayingContentSpotify(
                                                     onClick = { showLyricsOffsetBar = !showLyricsOffsetBar },
                                                 ) {
                                                     Icon(
-                                                        imageVector = SimpIcons.AvTimer,
+                                                        imageVector = LimusicIcons.AvTimer,
                                                         contentDescription = stringResource(Res.string.lyrics_offset),
                                                         tint = Color.White,
                                                         modifier = Modifier.size(16.dp),
@@ -1311,7 +1311,7 @@ fun NowPlayingContentSpotify(
                                                 onClick = { showShareLyricsSheet = true },
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.Share,
+                                                    imageVector = LimusicIcons.Share,
                                                     contentDescription = stringResource(Res.string.share_lyrics),
                                                     tint = Color.White,
                                                     modifier = Modifier.size(16.dp),

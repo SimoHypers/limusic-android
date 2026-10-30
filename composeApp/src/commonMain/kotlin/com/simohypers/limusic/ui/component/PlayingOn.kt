@@ -18,7 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.simohypers.limusic.domain.data.model.listentogether.LinkedDevice
 import com.simohypers.limusic.domain.repository.DeviceLinkRepository
 import com.simohypers.limusic.ui.icon.Computer
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import limusic.composeapp.generated.resources.Res
@@ -41,7 +41,7 @@ fun PlayingOnLabel(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Icon(SimpIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+        Icon(LimusicIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
         Spacer(Modifier.width(5.dp))
         Text(
             text = stringResource(if (playing) Res.string.link_playing_on else Res.string.link_paused_on, device.name),

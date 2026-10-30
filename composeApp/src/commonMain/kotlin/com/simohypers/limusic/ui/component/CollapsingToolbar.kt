@@ -73,7 +73,7 @@ import com.simohypers.limusic.extension.rgbFactor
 import com.simohypers.limusic.extension.smoothScrimBrush
 import com.simohypers.limusic.extension.toSquareThumbnailUrl
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.painterResource
@@ -214,7 +214,7 @@ fun CollapsingToolbarParallaxEffect(
                                 ),
                         ),
                 ) {
-                    Icon(SimpIcons.ArrowBackIosNew, "Back")
+                    Icon(LimusicIcons.ArrowBackIosNew, "Back")
                 }
             }
         }
@@ -361,7 +361,7 @@ private fun Toolbar(
                             .size(24.dp),
                 ) {
                     Icon(
-                        imageVector = SimpIcons.ArrowBackIosNew,
+                        imageVector = LimusicIcons.ArrowBackIosNew,
                         contentDescription = null,
                         tint = Color.White,
                     )

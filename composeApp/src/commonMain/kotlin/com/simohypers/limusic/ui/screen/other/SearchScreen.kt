@@ -129,7 +129,7 @@ import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.ArrowOutward
 import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.Search
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.MoodDestination
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
@@ -441,7 +441,7 @@ fun SearchScreen(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = SimpIcons.ArrowOutward,
+                                        imageVector = LimusicIcons.ArrowOutward,
                                         contentDescription = "Search suggestion",
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -747,13 +747,13 @@ fun SearchScreen(
                                         enabled = isSearchPanelVisible,
                                     ) {
                                         Icon(
-                                            imageVector = SimpIcons.ArrowBackIosNew,
+                                            imageVector = LimusicIcons.ArrowBackIosNew,
                                             contentDescription = "Back",
                                         )
                                     }
                                 } else {
                                     Icon(
-                                        imageVector = SimpIcons.Search,
+                                        imageVector = LimusicIcons.Search,
                                         contentDescription = "Search",
                                     )
                                 }
@@ -771,7 +771,7 @@ fun SearchScreen(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Close,
+                                    imageVector = LimusicIcons.Close,
                                     contentDescription = "Clear search",
                                 )
                             }
@@ -1005,7 +1005,7 @@ private fun RecentSearches(
                         modifier = Modifier.fillMaxHeight().clickable { onSearch(query) }.padding(start = 14.dp, end = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(SimpIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
+                        Icon(LimusicIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = query,
@@ -1020,7 +1020,7 @@ private fun RecentSearches(
                         modifier = Modifier.padding(end = 4.dp).size(28.dp).clip(CircleShape).clickable { onForget(query) },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(SimpIcons.Close, contentDescription = stringResource(Res.string.clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                        Icon(LimusicIcons.Close, contentDescription = stringResource(Res.string.clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                     }
                 }
             }

@@ -68,7 +68,7 @@ internal class LiveStreamAwareLoadErrorHandlingPolicy : DefaultLoadErrorHandling
  * [liveStreamDataSourceFactory] swaps in a freshly resolved URL every time the playlist is loaded.
  */
 internal object LiveStreamPlaylistUri {
-    private const val SCHEME = "simpmusic-live"
+    private const val SCHEME = "limusic-live"
 
     // The id rides in the path, not the host: hosts may be case-folded, and video ids are case-sensitive.
     fun forVideo(videoId: String): Uri = "$SCHEME://playlist/$videoId".toUri()

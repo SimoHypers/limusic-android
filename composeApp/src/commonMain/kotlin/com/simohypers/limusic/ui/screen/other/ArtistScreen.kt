@@ -123,7 +123,7 @@ import com.simohypers.limusic.ui.icon.MovieOff
 import com.simohypers.limusic.ui.icon.PersonAdd
 import com.simohypers.limusic.ui.icon.Sensors
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
@@ -453,7 +453,7 @@ fun ArtistScreen(
                                                     }
                                                 },
                                             ) {
-                                                RoundIconButton(SimpIcons.Sensors, stringResource(Res.string.radio)) {
+                                                RoundIconButton(LimusicIcons.Sensors, stringResource(Res.string.radio)) {
                                                     val param = state.data.radioParam
                                                     if (param != null) {
                                                         viewModel.onRadioClick(param)
@@ -461,7 +461,7 @@ fun ArtistScreen(
                                                         viewModel.makeToast(getStringBlocking(Res.string.error))
                                                     }
                                                 }
-                                                RoundAccentButton(SimpIcons.Shuffle, stringResource(Res.string.shuffle)) {
+                                                RoundAccentButton(LimusicIcons.Shuffle, stringResource(Res.string.shuffle)) {
                                                     val param = state.data.shuffleParam
                                                     if (param != null) {
                                                         viewModel.onShuffleClick(param)
@@ -486,7 +486,7 @@ fun ArtistScreen(
                                     }
                                     // Back button.
                                     PillIconButton(
-                                        imageVector = SimpIcons.ArrowBackIosNew,
+                                        imageVector = LimusicIcons.ArrowBackIosNew,
                                         shape = RoundedCornerShape(24.dp),
                                         tint = MaterialTheme.colorScheme.onSurface,
                                         // Matching the other three headers: the pill-style directional rim, thickened
@@ -516,7 +516,7 @@ fun ArtistScreen(
                                         if (artistMotion != null) {
                                             IconButton(onClick = { showHeaderVideo = !showHeaderVideo }, modifier = Modifier.size(40.dp)) {
                                                 Icon(
-                                                    imageVector = if (showHeaderVideo) SimpIcons.MovieOff else SimpIcons.Movie,
+                                                    imageVector = if (showHeaderVideo) LimusicIcons.MovieOff else LimusicIcons.Movie,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.onSurface,
                                                 )
@@ -530,7 +530,7 @@ fun ArtistScreen(
                                             modifier = Modifier.size(40.dp),
                                         ) {
                                             Icon(
-                                                imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
+                                                imageVector = if (isFollowed) LimusicIcons.Check else LimusicIcons.PersonAdd,
                                                 contentDescription = if (isFollowed) "Followed" else "Follow",
                                                 tint = if (isFollowed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                             )
@@ -539,7 +539,7 @@ fun ArtistScreen(
                                             onClick = { shareUrl(shareTitle, "https://music.youtube.com/channel/$channelId") },
                                             modifier = Modifier.size(40.dp),
                                         ) {
-                                            Icon(SimpIcons.IosShare, contentDescription = shareTitle, tint = MaterialTheme.colorScheme.onSurface)
+                                            Icon(LimusicIcons.IosShare, contentDescription = shareTitle, tint = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
                                 }
@@ -598,7 +598,7 @@ fun ArtistScreen(
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     IconButton(onClick = { navController.navigateUp() }) {
                                         Icon(
-                                            imageVector = SimpIcons.ArrowBackIosNew,
+                                            imageVector = LimusicIcons.ArrowBackIosNew,
                                             contentDescription = "Back",
                                             tint = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.size(20.dp),

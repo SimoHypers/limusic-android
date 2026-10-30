@@ -107,7 +107,7 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
 import com.simohypers.limusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
@@ -353,7 +353,7 @@ private fun LyricsView(
             Text(stringResource(Res.string.lyrics), style = typo().titleMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
             if (lyricsData != null) {
                 IconButton(onClick = { sharing = true }) {
-                    Icon(SimpIcons.Share, contentDescription = stringResource(Res.string.share_lyrics), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
+                    Icon(LimusicIcons.Share, contentDescription = stringResource(Res.string.share_lyrics), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
                 }
             }
         }
@@ -466,7 +466,7 @@ private fun OutputButton(state: NowPlayingContentState) {
     var choosing by remember { mutableStateOf(false) }
     IconButton(onClick = { choosing = true }) {
         Icon(
-            SimpIcons.Headphones,
+            LimusicIcons.Headphones,
             contentDescription = null,
             tint = if (away) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
         )
@@ -537,7 +537,7 @@ private fun CurrentArtwork(
                     translatedTextStyle = typo().bodyMedium,
                 )
                 IconButton(onClick = actions.onEnterFullscreenVideo, modifier = Modifier.align(Alignment.TopEnd)) {
-                    Icon(SimpIcons.Fullscreen, contentDescription = null, tint = Color.White)
+                    Icon(LimusicIcons.Fullscreen, contentDescription = null, tint = Color.White)
                 }
             }
         }
@@ -618,7 +618,7 @@ private fun TitleRow(
             )
             IconButton(onClick = { actions.onUIEvent(UIEvent.ToggleLike) }, modifier = Modifier.size(40.dp)) {
                 Icon(
-                    if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
+                    if (liked) LimusicIcons.Favorite else LimusicIcons.FavoriteBorder,
                     contentDescription = null,
                     tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(28.dp),
@@ -649,16 +649,16 @@ internal fun ClassicTransportRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FilledButton(SimpIcons.SkipPrevious, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isPreviousAvailable) {
+        FilledButton(LimusicIcons.SkipPrevious, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isPreviousAvailable) {
             actions.onUIEvent(UIEvent.Previous)
         }
         FilledButton(
-            if (control.isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+            if (control.isPlaying) LimusicIcons.Pause else LimusicIcons.PlayArrow,
             Modifier.width(120.dp).height(80.dp),
             CircleShape,
             iconSize = 42.dp,
         ) { actions.onUIEvent(UIEvent.PlayPause) }
-        FilledButton(SimpIcons.SkipNext, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isNextAvailable) {
+        FilledButton(LimusicIcons.SkipNext, Modifier.width(80.dp).height(64.dp), CircleShape, iconSize = 32.dp, enabled = control.isNextAvailable) {
             actions.onUIEvent(UIEvent.Next)
         }
     }
@@ -678,16 +678,16 @@ private fun BottomRow(
 ) {
     val control = state.controllerState
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(SimpIcons.PlaylistAdd, onClick = actions.onShowAddToPlaylist)
+        OutlinedButton(LimusicIcons.PlaylistAdd, onClick = actions.onShowAddToPlaylist)
         OutlinedButton(
-            if (control.repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
+            if (control.repeatState is RepeatState.One) LimusicIcons.RepeatOne else LimusicIcons.Repeat,
             active = control.repeatState !is RepeatState.None,
         ) { actions.onUIEvent(UIEvent.Repeat) }
-        OutlinedButton(SimpIcons.Lyrics, active = view == ClassicView.LYRICS, onClick = onLyrics)
-        OutlinedButton(SimpIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
-        OutlinedButton(SimpIcons.QueueMusic, active = view == ClassicView.QUEUE, onClick = onQueue)
+        OutlinedButton(LimusicIcons.Lyrics, active = view == ClassicView.LYRICS, onClick = onLyrics)
+        OutlinedButton(LimusicIcons.Shuffle, active = control.isShuffle) { actions.onUIEvent(UIEvent.Shuffle) }
+        OutlinedButton(LimusicIcons.QueueMusic, active = view == ClassicView.QUEUE, onClick = onQueue)
         Spacer(Modifier.weight(1f))
-        FilledButton(SimpIcons.MoreVert, Modifier.size(46.dp), CircleShape, onClick = actions.onShowMoreSheet)
+        FilledButton(LimusicIcons.MoreVert, Modifier.size(46.dp), CircleShape, onClick = actions.onShowMoreSheet)
     }
 }
 

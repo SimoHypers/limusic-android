@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 /** Material's "computer": a screen on a stand. The desktop in the Devices list and remote card. */
-val SimpIcons.Computer: ImageVector
+val LimusicIcons.Computer: ImageVector
     get() {
         _Computer?.let { return it }
         return ImageVector

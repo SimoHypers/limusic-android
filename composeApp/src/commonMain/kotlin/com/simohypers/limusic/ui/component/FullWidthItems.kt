@@ -90,7 +90,7 @@ import com.simohypers.limusic.ui.icon.DragHandle
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.PushPin
 import com.simohypers.limusic.ui.icon.QueueMusic
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.LocalForceDarkText
 import com.simohypers.limusic.ui.theme.typo
 import kotlinx.coroutines.flow.mapNotNull
@@ -167,7 +167,7 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = contentColor,
-                        imageVector = SimpIcons.QueueMusic,
+                        imageVector = LimusicIcons.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }
@@ -265,7 +265,7 @@ fun SongFullWidthItems(
                                 exit = scaleOut() + fadeOut(),
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Check,
+                                    imageVector = LimusicIcons.Check,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(14.dp),
@@ -363,7 +363,7 @@ fun SongFullWidthItems(
                         ) {
                             Row {
                                 Icon(
-                                    imageVector = SimpIcons.DownloadForOffline,
+                                    imageVector = LimusicIcons.DownloadForOffline,
                                     tint = contentColor,
                                     contentDescription = "",
                                     modifier = Modifier.size(16.dp).padding(2.dp),
@@ -409,7 +409,7 @@ fun SongFullWidthItems(
                 // Hidden while selecting: the per-item menu moves up to the selection app bar,
                 // so one tap cannot mean both "act on this song" and "pick this song".
                 if (onMoreClickListener != null && !selectionMode) {
-                    RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
+                    RippleIconButton(imageVector = LimusicIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
                         if (itemVideoId.isNotBlank()) onMoreClickListener.invoke(itemVideoId)
                     }
                 }
@@ -419,7 +419,7 @@ fun SongFullWidthItems(
                     exit = fadeOut() + shrinkHorizontally(),
                 ) {
                     Icon(
-                        SimpIcons.DragHandle,
+                        LimusicIcons.DragHandle,
                         contentDescription = null,
                         tint = contentColor,
                         modifier = Modifier.padding(horizontal = 8.dp),
@@ -524,7 +524,7 @@ fun SuggestItems(
                 )
             }
             RippleIconButton(
-                imageVector = SimpIcons.Add,
+                imageVector = LimusicIcons.Add,
                 fillMaxSize = false,
                 onClick =
                     onAddClickListener ?: {
@@ -661,7 +661,7 @@ fun PlaylistFullWidthItems(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (shouldPin) {
                         Image(
-                            imageVector = SimpIcons.PushPin,
+                            imageVector = LimusicIcons.PushPin,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(if (forceDark) Color.Cyan else MaterialTheme.colorScheme.primary),
                             modifier =

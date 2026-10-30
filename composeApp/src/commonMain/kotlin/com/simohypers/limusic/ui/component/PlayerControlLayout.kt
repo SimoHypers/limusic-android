@@ -29,7 +29,7 @@ import com.simohypers.limusic.ui.icon.PlayCircle
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
 import com.simohypers.limusic.ui.theme.seed
@@ -83,14 +83,14 @@ fun PlayerControlLayout(
                 Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
                     if (!isShuffle) {
                         Icon(
-                            imageVector = SimpIcons.Shuffle,
+                            imageVector = LimusicIcons.Shuffle,
                             tint = contentColor,
                             contentDescription = "",
                             modifier = Modifier.size(smallIcon.first),
                         )
                     } else {
                         Icon(
-                            imageVector = SimpIcons.Shuffle,
+                            imageVector = LimusicIcons.Shuffle,
                             tint = activeColor,
                             contentDescription = "",
                             modifier = Modifier.size(smallIcon.first),
@@ -117,7 +117,7 @@ fun PlayerControlLayout(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = SimpIcons.SkipPrevious,
+                    imageVector = LimusicIcons.SkipPrevious,
                     tint = if (controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
@@ -142,14 +142,14 @@ fun PlayerControlLayout(
                 Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
                     if (!isPlaying) {
                         Icon(
-                            imageVector = if (plainPlayPause) SimpIcons.PlayArrow else SimpIcons.PlayCircle,
+                            imageVector = if (plainPlayPause) LimusicIcons.PlayArrow else LimusicIcons.PlayCircle,
                             tint = contentColor,
                             contentDescription = "",
                             modifier = Modifier.size(bigIcon.first),
                         )
                     } else {
                         Icon(
-                            imageVector = if (plainPlayPause) SimpIcons.Pause else SimpIcons.PauseCircle,
+                            imageVector = if (plainPlayPause) LimusicIcons.Pause else LimusicIcons.PauseCircle,
                             tint = contentColor,
                             contentDescription = "",
                             modifier = Modifier.size(bigIcon.first),
@@ -176,7 +176,7 @@ fun PlayerControlLayout(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = SimpIcons.SkipNext,
+                    imageVector = LimusicIcons.SkipNext,
                     tint = if (controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
@@ -201,7 +201,7 @@ fun PlayerControlLayout(
                     when (rs) {
                         is RepeatState.None -> {
                             Icon(
-                                imageVector = SimpIcons.Repeat,
+                                imageVector = LimusicIcons.Repeat,
                                 tint = contentColor,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
@@ -210,7 +210,7 @@ fun PlayerControlLayout(
 
                         RepeatState.All -> {
                             Icon(
-                                imageVector = SimpIcons.Repeat,
+                                imageVector = LimusicIcons.Repeat,
                                 tint = activeColor,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
@@ -219,7 +219,7 @@ fun PlayerControlLayout(
 
                         RepeatState.One -> {
                             Icon(
-                                imageVector = SimpIcons.RepeatOne,
+                                imageVector = LimusicIcons.RepeatOne,
                                 tint = activeColor,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),

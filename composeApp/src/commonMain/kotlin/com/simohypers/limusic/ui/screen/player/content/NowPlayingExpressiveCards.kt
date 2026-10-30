@@ -99,7 +99,7 @@ import com.simohypers.limusic.ui.icon.Forward5
 import com.simohypers.limusic.ui.icon.Fullscreen
 import com.simohypers.limusic.ui.icon.Replay5
 import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Subtitles
 import com.simohypers.limusic.ui.icon.SubtitlesOff
 import com.simohypers.limusic.ui.icon.ThumbsUpDown
@@ -414,7 +414,7 @@ internal fun ExpressiveArtworkCardPage(
                                                 modifier = Modifier.align(Alignment.TopEnd),
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.Fullscreen,
+                                                    imageVector = LimusicIcons.Fullscreen,
                                                     contentDescription = "",
                                                     // Over-video control, not a semantic surface
                                                     // foreground — stays white like Classic.
@@ -442,7 +442,7 @@ internal fun ExpressiveArtworkCardPage(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = SimpIcons.Replay5,
+                                                        imageVector = LimusicIcons.Replay5,
                                                         tint = Color.White,
                                                         contentDescription = "",
                                                         modifier =
@@ -466,7 +466,7 @@ internal fun ExpressiveArtworkCardPage(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = SimpIcons.Forward5,
+                                                        imageVector = LimusicIcons.Forward5,
                                                         tint = Color.White,
                                                         contentDescription = "",
                                                         modifier =
@@ -486,9 +486,9 @@ internal fun ExpressiveArtworkCardPage(
                                                     Icon(
                                                         imageVector =
                                                             if (internalShowSubtitle) {
-                                                                SimpIcons.SubtitlesOff
+                                                                LimusicIcons.SubtitlesOff
                                                             } else {
-                                                                SimpIcons.Subtitles
+                                                                LimusicIcons.Subtitles
                                                             },
                                                         contentDescription = "",
                                                         tint = Color.White,
@@ -584,7 +584,7 @@ internal fun ExpressiveBelowTheFold(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = SimpIcons.ThumbsUpDown,
+                                        imageVector = LimusicIcons.ThumbsUpDown,
                                         contentDescription = stringResource(Res.string.rate_lyrics),
                                         tint = colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp),
@@ -599,7 +599,7 @@ internal fun ExpressiveBelowTheFold(
                                     onClick = { showLyricsOffsetBar = !showLyricsOffsetBar },
                                 ) {
                                     Icon(
-                                        imageVector = SimpIcons.AvTimer,
+                                        imageVector = LimusicIcons.AvTimer,
                                         contentDescription = stringResource(Res.string.lyrics_offset),
                                         tint = colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp),
@@ -613,7 +613,7 @@ internal fun ExpressiveBelowTheFold(
                                 onClick = { showShareLyricsSheet = true },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Share,
+                                    imageVector = LimusicIcons.Share,
                                     contentDescription = stringResource(Res.string.share_lyrics),
                                     tint = colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp),

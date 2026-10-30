@@ -48,7 +48,7 @@ import com.simohypers.limusic.ui.icon.ArrowForwardIos
 import com.simohypers.limusic.ui.icon.DownloadForOffline
 import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.PeopleAlt
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.TrendingUp
 import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
@@ -88,7 +88,7 @@ fun LibraryTilingBox(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             QuickTile(
-                icon = SimpIcons.Favorite,
+                icon = LimusicIcons.Favorite,
                 title = stringResource(Res.string.liked_songs),
                 // Signed in this is YouTube's Liked Music, which the phone's count doesn't know.
                 countText = if (signedIn) null else songs(overview?.favorite?.count),
@@ -98,7 +98,7 @@ fun LibraryTilingBox(
                 if (signedIn) navController.navigate(PlaylistDestination("LM")) else open(LibraryDynamicPlaylistType.Favorite)
             }
             QuickTile(
-                icon = SimpIcons.DownloadForOffline,
+                icon = LimusicIcons.DownloadForOffline,
                 title = stringResource(Res.string.library_downloads),
                 countText = songs(overview?.downloaded?.count),
                 cover = overview?.downloaded?.thumbnails?.firstOrNull(),
@@ -107,14 +107,14 @@ fun LibraryTilingBox(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             QuickTile(
-                icon = SimpIcons.TrendingUp,
+                icon = LimusicIcons.TrendingUp,
                 title = stringResource(Res.string.most_played),
                 countText = songs(overview?.mostPlayed?.count),
                 cover = overview?.mostPlayed?.thumbnails?.firstOrNull(),
                 modifier = Modifier.weight(1f),
             ) { open(LibraryDynamicPlaylistType.MostPlayed) }
             QuickTile(
-                icon = SimpIcons.PeopleAlt,
+                icon = LimusicIcons.PeopleAlt,
                 title = stringResource(Res.string.artists),
                 // Signed in the tab lists the account's subscriptions, which the phone's count doesn't know.
                 countText =
@@ -255,7 +255,7 @@ fun LibrarySectionHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Icon(
-                    SimpIcons.ArrowForwardIos,
+                    LimusicIcons.ArrowForwardIos,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp).size(11.dp),
@@ -314,7 +314,7 @@ internal fun NewPlaylistTile(
                 .background(accent.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(SimpIcons.Add, contentDescription = null, tint = accent, modifier = Modifier.size(40.dp))
+            Icon(LimusicIcons.Add, contentDescription = null, tint = accent, modifier = Modifier.size(40.dp))
         }
         Text(
             text = stringResource(Res.string.new_playlist),

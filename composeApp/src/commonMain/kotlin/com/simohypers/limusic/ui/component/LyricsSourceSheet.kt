@@ -58,7 +58,7 @@ import com.simohypers.limusic.ui.icon.Check
 import com.simohypers.limusic.ui.icon.Remove
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Settings
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.TipsAndUpdates
 import com.simohypers.limusic.ui.icon.Undo
 import com.simohypers.limusic.ui.screen.home.LyricsKind
@@ -171,7 +171,7 @@ fun LyricsSourceSheet(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(Res.string.lyrics_source_hint), style = typo().bodySmall, color = colors.subtitle, modifier = Modifier.weight(1f))
                 IconButton(onClick = onOpenSettings) {
-                    Icon(SimpIcons.Settings, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
+                    Icon(LimusicIcons.Settings, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
                 }
             }
 
@@ -186,7 +186,7 @@ fun LyricsSourceSheet(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(SimpIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Icon(LimusicIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
                         stringResource(Res.string.lyrics_search_results, if (q.second.isBlank()) q.first else "${q.first} · ${q.second}"),
@@ -216,7 +216,7 @@ fun LyricsSourceSheet(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                SimpIcons.TipsAndUpdates,
+                                LimusicIcons.TipsAndUpdates,
                                 contentDescription = null,
                                 tint = if (pinned) colors.subtitle else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
@@ -238,7 +238,7 @@ fun LyricsSourceSheet(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    if (!pinned) Icon(SimpIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    if (!pinned) Icon(LimusicIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 }
                 HorizontalDivider(Modifier.padding(vertical = 4.dp), color = colors.disabled.copy(alpha = 0.4f))
             }
@@ -299,7 +299,7 @@ fun LyricsSourceSheet(
             if (lyricsData != null && lyricsData.lyrics.syncType != "UNSYNCED") {
                 HorizontalDivider(Modifier.padding(vertical = 6.dp), color = colors.disabled.copy(alpha = 0.4f))
                 Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(SimpIcons.AvTimer, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
+                    Icon(LimusicIcons.AvTimer, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(Res.string.lyrics_timing), style = typo().labelMedium, color = colors.content)
@@ -316,7 +316,7 @@ fun LyricsSourceSheet(
                     )
                     // Held in place when there's nothing to reset, so the stepper doesn't jump.
                     IconButton(onClick = { sharedViewModel.setSongLyricsOffset(0) }, enabled = offset != 0, modifier = Modifier.alpha(if (offset != 0) 1f else 0f)) {
-                        Icon(SimpIcons.Undo, contentDescription = stringResource(Res.string.lyrics_timing_reset), tint = colors.subtitle, modifier = Modifier.size(18.dp))
+                        Icon(LimusicIcons.Undo, contentDescription = stringResource(Res.string.lyrics_timing_reset), tint = colors.subtitle, modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -331,10 +331,10 @@ fun LyricsSourceSheet(
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(SimpIcons.Search, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(18.dp))
+                    Icon(LimusicIcons.Search, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(stringResource(Res.string.lyrics_search_open), style = typo().bodySmall, color = colors.subtitle, modifier = Modifier.weight(1f))
-                    Icon(SimpIcons.ArrowForwardIos, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(12.dp))
+                    Icon(LimusicIcons.ArrowForwardIos, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(12.dp))
                 }
             }
             AnimatedVisibility(searchOpen) {
@@ -429,7 +429,7 @@ internal fun Stepper(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onDown, enabled = canDown, modifier = Modifier.size(34.dp)) {
-            Icon(SimpIcons.Remove, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(LimusicIcons.Remove, contentDescription = null, modifier = Modifier.size(16.dp))
         }
         Text(
             label,
@@ -439,7 +439,7 @@ internal fun Stepper(
             textAlign = TextAlign.Center,
         )
         IconButton(onClick = onUp, enabled = canUp, modifier = Modifier.size(34.dp)) {
-            Icon(SimpIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(LimusicIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
         }
     }
 }

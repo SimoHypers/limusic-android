@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.IosShare: ImageVector
+val LimusicIcons.IosShare: ImageVector
   get() {
     if (_IosShare != null) {
       return _IosShare!!

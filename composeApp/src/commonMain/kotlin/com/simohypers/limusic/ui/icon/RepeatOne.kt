@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.RepeatOne: ImageVector
+val LimusicIcons.RepeatOne: ImageVector
   get() {
     if (_RepeatOne != null) {
       return _RepeatOne!!

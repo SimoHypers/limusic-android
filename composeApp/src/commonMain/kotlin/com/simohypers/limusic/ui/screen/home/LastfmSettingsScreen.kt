@@ -85,7 +85,7 @@ import com.simohypers.limusic.domain.utils.MusicVideoType
 import com.simohypers.limusic.ui.component.SettingGroup
 import com.simohypers.limusic.ui.component.SettingItem
 import com.simohypers.limusic.ui.icon.Lastfm
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -391,7 +391,7 @@ private fun Rules(
             title = stringResource(Res.string.lastfm_add_rule),
             subtitle = stringResource(Res.string.lastfm_add_rule_hint),
             smallSubtitle = true,
-            leading = { Icon(SimpIcons.Add, contentDescription = null) },
+            leading = { Icon(LimusicIcons.Add, contentDescription = null) },
             onClick = onAdd,
         )
     }
@@ -433,7 +433,7 @@ private fun PresetSheet(
                         color = if (added) colors.disabled else colors.content,
                         modifier = Modifier.weight(1f),
                     )
-                    if (added) Icon(SimpIcons.Check, contentDescription = null, tint = colors.disabled, modifier = Modifier.size(18.dp))
+                    if (added) Icon(LimusicIcons.Check, contentDescription = null, tint = colors.disabled, modifier = Modifier.size(18.dp))
                 }
             }
             Row(
@@ -444,7 +444,7 @@ private fun PresetSheet(
                     .padding(vertical = 12.dp, horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(SimpIcons.Edit, contentDescription = null, tint = colors.content, modifier = Modifier.size(18.dp))
+                Icon(LimusicIcons.Edit, contentDescription = null, tint = colors.content, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(stringResource(Res.string.lastfm_blank_rule), style = typo().bodyMedium, color = colors.content)
             }
@@ -520,7 +520,7 @@ private fun RuleSheet(
 @Composable
 private fun LastfmBadge(size: Int = 40) {
     Box(Modifier.size(size.dp).clip(CircleShape).background(LastfmRed), contentAlignment = Alignment.Center) {
-        Icon(SimpIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size((size * 0.55f).dp))
+        Icon(LimusicIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size((size * 0.55f).dp))
     }
 }
 

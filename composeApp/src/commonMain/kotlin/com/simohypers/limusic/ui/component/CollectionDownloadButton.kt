@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.simohypers.limusic.domain.data.model.download.CollectionDownload
 import com.simohypers.limusic.ui.icon.DownloadForOffline
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -58,7 +58,7 @@ fun CollectionDownloadButton(
     ) {
         Crossfade(targetState = !download.kept to (download.active > 0)) { (off, active) ->
             when {
-                off -> Icon(SimpIcons.DownloadForOffline, stringResource(Res.string.download), Modifier.size(22.dp), ink)
+                off -> Icon(LimusicIcons.DownloadForOffline, stringResource(Res.string.download), Modifier.size(22.dp), ink)
                 active ->
                     CircularProgressIndicator(
                         progress = { download.downloaded.toFloat() / (download.total - download.refused).coerceAtLeast(1) },

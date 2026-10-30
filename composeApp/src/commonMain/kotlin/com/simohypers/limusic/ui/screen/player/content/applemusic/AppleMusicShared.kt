@@ -100,7 +100,7 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Star
 import com.simohypers.limusic.ui.icon.StarBorder
 import com.simohypers.limusic.ui.icon.VolumeDown
@@ -363,14 +363,14 @@ internal fun AppleMusicHeaderActions(
         ) {
             Crossfade(targetState = state.controllerState.isLiked, label = "appleMusicFavorite") { liked ->
                 Icon(
-                    imageVector = if (liked) SimpIcons.Star else SimpIcons.StarBorder,
+                    imageVector = if (liked) LimusicIcons.Star else LimusicIcons.StarBorder,
                     contentDescription = "",
                     tint = Color.White,
                     modifier = Modifier.size(32.dp),
                 )
             }
         }
-        AppleMusicGlyphButton(icon = SimpIcons.MoreVert, onClick = { actions.onShowMoreSheet() })
+        AppleMusicGlyphButton(icon = LimusicIcons.MoreVert, onClick = { actions.onShowMoreSheet() })
     }
 }
 
@@ -616,7 +616,7 @@ internal fun AppleMusicTimesRow(
             ) { label ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = SimpIcons.Headphones,
+                        imageVector = LimusicIcons.Headphones,
                         contentDescription = null,
                         tint = AppleMusicQualityLabel,
                         modifier = Modifier.size(13.dp),
@@ -664,7 +664,7 @@ internal fun AppleMusicTransportRow(
     ) {
         if (showShuffleAndRepeat) {
             AppleMusicGlyphButton(
-                icon = SimpIcons.Shuffle,
+                icon = LimusicIcons.Shuffle,
                 onClick = { onUIEvent(UIEvent.Shuffle) },
                 size = 40.dp,
                 tint = Color.White.copy(alpha = if (controllerState.isShuffle) 1f else 0.4f),
@@ -675,7 +675,7 @@ internal fun AppleMusicTransportRow(
             modifier = Modifier.appleMusicPressInflate().size(56.dp).clip(CircleShape),
         ) {
             Icon(
-                imageVector = SimpIcons.FastRewind,
+                imageVector = LimusicIcons.FastRewind,
                 contentDescription = "",
                 tint = Color.White.copy(alpha = if (controllerState.isPreviousAvailable) 1f else 0.4f),
                 modifier = Modifier.size(46.dp),
@@ -695,7 +695,7 @@ internal fun AppleMusicTransportRow(
         ) {
             Crossfade(targetState = controllerState.isPlaying, label = "appleMusicPlayPauseIcon") { isPlaying ->
                 Icon(
-                    imageVector = if (isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+                    imageVector = if (isPlaying) LimusicIcons.Pause else LimusicIcons.PlayArrow,
                     contentDescription = "",
                     tint = Color.White,
                     modifier = Modifier.size(66.dp),
@@ -707,7 +707,7 @@ internal fun AppleMusicTransportRow(
             modifier = Modifier.appleMusicPressInflate().size(56.dp).clip(CircleShape),
         ) {
             Icon(
-                imageVector = SimpIcons.FastForward,
+                imageVector = LimusicIcons.FastForward,
                 contentDescription = "",
                 tint = Color.White.copy(alpha = if (controllerState.isNextAvailable) 1f else 0.4f),
                 modifier = Modifier.size(46.dp),
@@ -716,7 +716,7 @@ internal fun AppleMusicTransportRow(
         if (showShuffleAndRepeat) {
             val repeatState = controllerState.repeatState
             AppleMusicGlyphButton(
-                icon = if (repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
+                icon = if (repeatState is RepeatState.One) LimusicIcons.RepeatOne else LimusicIcons.Repeat,
                 onClick = { onUIEvent(UIEvent.Repeat) },
                 size = 40.dp,
                 tint = Color.White.copy(alpha = if (repeatState !is RepeatState.None) 1f else 0.4f),
@@ -732,7 +732,7 @@ internal fun AppleMusicVolumeRow(
 ) {
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = SimpIcons.VolumeDown,
+            imageVector = LimusicIcons.VolumeDown,
             contentDescription = "",
             tint = AppleMusicTextSecondary,
             modifier = Modifier.size(18.dp),
@@ -748,7 +748,7 @@ internal fun AppleMusicVolumeRow(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Icon(
-            imageVector = SimpIcons.VolumeUp,
+            imageVector = LimusicIcons.VolumeUp,
             contentDescription = "",
             tint = AppleMusicTextSecondary,
             modifier = Modifier.size(18.dp),
@@ -824,7 +824,7 @@ internal fun AppleMusicActionRow(
         ) {
             // Re-tapping the active tab returns to MAIN — the dock is a toggle, not one-way nav.
             AppleMusicDockButton(
-                icon = SimpIcons.Lyrics,
+                icon = LimusicIcons.Lyrics,
                 active = viewState == AppleMusicView.LYRICS,
                 activeColor = activeColor,
                 activeContentColor = activeContentColor,
@@ -842,7 +842,7 @@ internal fun AppleMusicActionRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AppleMusicCapsuleSegment(
-                    icon = SimpIcons.Headphones,
+                    icon = LimusicIcons.Headphones,
                     // Headphones is a tall, narrow glyph and Groups a wide one; these are the sizes at
                     // which the two read as a matched pair rather than one looking bigger.
                     iconSize = 23.dp,
@@ -857,14 +857,14 @@ internal fun AppleMusicActionRow(
                             .background(Color.White.copy(alpha = 0.20f)),
                 )
                 AppleMusicCapsuleSegment(
-                    icon = SimpIcons.Groups,
+                    icon = LimusicIcons.Groups,
                     iconSize = 24.dp,
                     highlighted = room.inRoom,
                     onClick = onOpenListenTogether,
                 )
             }
             AppleMusicDockButton(
-                icon = SimpIcons.QueueMusic,
+                icon = LimusicIcons.QueueMusic,
                 active = viewState == AppleMusicView.QUEUE,
                 activeColor = activeColor,
                 activeContentColor = activeContentColor,
@@ -966,7 +966,7 @@ internal fun ColumnScope.AppleMusicPlaybackControls(
  * action row renders (no slider/transport/volume), matching the `Platform.Android` gate the other
  * two styles use.
  *
- * [outputName] names the device the sound leaves by ("maxrave's Phone", a Bluetooth headset, a
+ * [outputName] names the device the sound leaves by ("Simo's Phone", a Bluetooth headset, a
  * Cast receiver); the slot keeps its height while it is unknown, so nothing above it moves.
  */
 @Composable

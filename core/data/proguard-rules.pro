@@ -134,14 +134,13 @@
 
 -keep class com.simohypers.limusic.lyrics.parser.** { *; }
 -keep class com.simohypers.limusic.lyrics.models.** { *; }
--keep class com.simpmusic.lyrics.parser.** { *; }
 
 -dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube$SearchFilter$Companion
 -dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube$SearchFilter
 -dontwarn com.simohypers.limusic.kotlinytmusicscraper.YouTube
 -dontwarn com.simohypers.limusic.media3.di.Media3ServiceModuleKt
 -dontwarn com.simohypers.limusic.media3.exoplayer.ExoPlayerAdapter
--dontwarn com.simohypers.limusic.lyrics.SimpMusicLyricsClient
+-dontwarn com.simohypers.limusic.lyrics.AppleMusicClient
 -dontwarn com.simohypers.limusic.lyrics.domain.Lyrics$LyricsX$Line
 -dontwarn com.simohypers.limusic.lyrics.domain.Lyrics$LyricsX
 -dontwarn com.simohypers.limusic.lyrics.domain.Lyrics

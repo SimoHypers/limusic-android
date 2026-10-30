@@ -42,7 +42,7 @@ import com.simohypers.limusic.ui.component.lyrics.shareCardContentColor
 import com.simohypers.limusic.ui.component.lyrics.shareTintOn
 import com.simohypers.limusic.ui.icon.Download
 import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import kotlinx.coroutines.launch
 import multiplatform.network.cmptoast.ToastGravity
 import multiplatform.network.cmptoast.showToast
@@ -151,7 +151,7 @@ internal fun ShareImageSheet(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ShareLyricsPill(
                         text = stringResource(Res.string.share_lyrics_save),
-                        icon = SimpIcons.Download,
+                        icon = LimusicIcons.Download,
                         container = Color.Transparent,
                         label = content,
                         outlined = true,
@@ -166,7 +166,7 @@ internal fun ShareImageSheet(
                     )
                     ShareLyricsPill(
                         text = stringResource(Res.string.share_lyrics_share_action),
-                        icon = SimpIcons.Share,
+                        icon = LimusicIcons.Share,
                         container = content,
                         label = onFilled,
                         onClick = {

@@ -69,7 +69,7 @@ import com.simohypers.limusic.ui.icon.FavoriteBorder
 import com.simohypers.limusic.ui.icon.PlaylistAdd
 import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Repeat
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -264,7 +264,7 @@ fun TrackSelectionBar(
         ) {
             Row(Modifier.height(44.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = selection::exit, modifier = Modifier.size(36.dp)) {
-                    Icon(SimpIcons.Close, stringResource(Res.string.exit_selection), tint = ink, modifier = Modifier.size(20.dp))
+                    Icon(LimusicIcons.Close, stringResource(Res.string.exit_selection), tint = ink, modifier = Modifier.size(20.dp))
                 }
                 Row(Modifier.weight(1f).padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     // The count rolls: up as picks are added, down as they go. Each side keeps its
@@ -378,15 +378,15 @@ fun TrackSelectionBar(
                                 // Done with these rows once one of these runs: the bar closing is what says it
                                 // worked. Add to playlist and Remove keep it, as they ask something first.
                                 val thenExit: ((List<Track>) -> Unit) -> (List<Track>) -> Unit = { run -> { run(it); selection.exit() } }
-                                action(SimpIcons.SkipNext, stringResource(Res.string.play_next), thenExit { sharedViewModel.playListNext(it, from) })
-                                action(SimpIcons.QueueMusic, stringResource(Res.string.add_to_queue), thenExit { sharedViewModel.addListToQueue(it, from) })
-                                action(SimpIcons.PlaylistAdd, stringResource(Res.string.add_to_a_playlist)) { saveTracks = it }
+                                action(LimusicIcons.SkipNext, stringResource(Res.string.play_next), thenExit { sharedViewModel.playListNext(it, from) })
+                                action(LimusicIcons.QueueMusic, stringResource(Res.string.add_to_queue), thenExit { sharedViewModel.addListToQueue(it, from) })
+                                action(LimusicIcons.PlaylistAdd, stringResource(Res.string.add_to_a_playlist)) { saveTracks = it }
                                 if (onRemove != null) {
-                                    action(SimpIcons.Delete, stringResource(Res.string.remove_from_this_playlist)) { confirmRemove = true }
+                                    action(LimusicIcons.Delete, stringResource(Res.string.remove_from_this_playlist)) { confirmRemove = true }
                                 }
-                                action(SimpIcons.Repeat, stringResource(Res.string.play_only_these_on_repeat), thenExit { sharedViewModel.playOnRepeat(it, from) })
-                                action(SimpIcons.Download, stringResource(Res.string.download), thenExit { selectionViewModel.downloadTracks(it) })
-                                action(SimpIcons.FavoriteBorder, stringResource(Res.string.like), thenExit { selectionViewModel.likeTracks(it) })
+                                action(LimusicIcons.Repeat, stringResource(Res.string.play_only_these_on_repeat), thenExit { sharedViewModel.playOnRepeat(it, from) })
+                                action(LimusicIcons.Download, stringResource(Res.string.download), thenExit { selectionViewModel.downloadTracks(it) })
+                                action(LimusicIcons.FavoriteBorder, stringResource(Res.string.like), thenExit { selectionViewModel.likeTracks(it) })
                             }
                         }
                     }

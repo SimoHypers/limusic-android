@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.dsl.module
 import com.simohypers.limusic.lyrics.LyricsProviders
-import com.simohypers.limusic.lyrics.SimpMusicLyricsClient
+import com.simohypers.limusic.lyrics.AppleMusicClient
 import kotlin.time.ExperimentalTime
 import com.simohypers.limusic.autoeq.AutoEq
 
@@ -58,7 +58,7 @@ val databaseModule =
         }
 
         single(createdAtStart = true) {
-            SimpMusicLyricsClient()
+            AppleMusicClient()
         }
 
         single {

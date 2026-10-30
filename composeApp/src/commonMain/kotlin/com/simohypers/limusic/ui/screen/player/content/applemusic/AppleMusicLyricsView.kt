@@ -54,7 +54,7 @@ import com.simohypers.limusic.ui.component.lyrics.toShareLyricsLines
 import com.simohypers.limusic.ui.icon.OpenInFull
 import com.simohypers.limusic.ui.icon.Share
 import com.simohypers.limusic.ui.icon.AvTimer
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.ThumbsUpDown
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentActions
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentState
@@ -249,7 +249,7 @@ internal fun AppleMusicLyricsView(
                                 // Adjusting counts as touching the page, or the cluster hides mid-tap.
                                 onInteraction = { interactionTick++ },
                             ) { onClick ->
-                                AppleMusicFloatingCircleButton(icon = SimpIcons.AvTimer, onClick = onClick)
+                                AppleMusicFloatingCircleButton(icon = LimusicIcons.AvTimer, onClick = onClick)
                             }
                         }
                         // Only when the lyrics (or the translation) actually came from SimpMusic
@@ -257,10 +257,10 @@ internal fun AppleMusicLyricsView(
                         // always gated theirs; this one did not, so it invited a rating on
                         // YouTube/LRCLIB/Spotify lyrics that had nowhere to go.
                         if (lyricsData.canVote()) {
-                            AppleMusicFloatingCircleButton(icon = SimpIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
+                            AppleMusicFloatingCircleButton(icon = LimusicIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
                         }
-                        AppleMusicFloatingCircleButton(icon = SimpIcons.Share, onClick = { showShareSheet = true })
-                        AppleMusicFloatingCircleButton(icon = SimpIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
+                        AppleMusicFloatingCircleButton(icon = LimusicIcons.Share, onClick = { showShareSheet = true })
+                        AppleMusicFloatingCircleButton(icon = LimusicIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }
                 }
             }

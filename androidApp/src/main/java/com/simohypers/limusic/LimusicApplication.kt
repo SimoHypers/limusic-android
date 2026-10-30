@@ -41,7 +41,7 @@ import com.simohypers.limusic.lastfm.configLastfm
 import java.io.File
 import java.lang.reflect.Field
 
-class SimpMusicApplication :
+class LimusicApplication :
     Application(),
     KoinComponent,
     SingletonImageLoader.Factory {
@@ -58,7 +58,7 @@ class SimpMusicApplication :
         configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
         startKoin {
             androidLogger(level = Level.DEBUG)
-            androidContext(this@SimpMusicApplication)
+            androidContext(this@LimusicApplication)
             loadAllModules(
                 AppIdentity(
                     applicationId = BuildConfig.APPLICATION_ID,

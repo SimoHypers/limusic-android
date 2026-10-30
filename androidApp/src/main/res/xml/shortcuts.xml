@@ -19,7 +19,7 @@
             android:targetClass="com.simohypers.limusic.MainActivity"
             android:targetPackage="com.limusic.android"
             android:action="android.intent.action.VIEW"
-            android:data="simpmusic://search" />
+            android:data="limusic://search" />
     </shortcut>
     <shortcut
         android:shortcutId="library"
@@ -30,6 +30,6 @@
             android:targetClass="com.simohypers.limusic.MainActivity"
             android:targetPackage="com.limusic.android"
             android:action="android.intent.action.VIEW"
-            android:data="simpmusic://library" />
+            android:data="limusic://library" />
     </shortcut>
 </shortcuts>

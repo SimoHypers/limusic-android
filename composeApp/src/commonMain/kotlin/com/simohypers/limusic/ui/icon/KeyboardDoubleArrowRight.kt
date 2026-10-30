@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.KeyboardDoubleArrowRight: ImageVector
+val LimusicIcons.KeyboardDoubleArrowRight: ImageVector
   get() {
     if (_KeyboardDoubleArrowRight != null) {
       return _KeyboardDoubleArrowRight!!

@@ -9,8 +9,8 @@ import com.simohypers.limusic.lyrics.am.pickAMRendition
 import com.simohypers.limusic.lyrics.am.AMArtistResource
 import com.simohypers.limusic.lyrics.am.AMSearchResponse
 
-class SimpMusicLyricsClient {
-    private val lyricsService = SimpMusicLyrics()
+class AppleMusicClient {
+    private val lyricsService = AppleMusicApi()
 
     suspend fun searchAMArtist(
         name: String,

@@ -34,7 +34,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import com.simohypers.limusic.lyrics.LyricsProviders
 import com.simohypers.limusic.lyrics.LyricsQuery
-import com.simohypers.limusic.lyrics.SimpMusicLyricsClient
+import com.simohypers.limusic.lyrics.AppleMusicClient
 import com.simohypers.limusic.lyrics.parser.parseUnsyncedLyrics
 import com.simohypers.limusic.lyrics.am.AMAlbumResource
 import com.simohypers.limusic.lyrics.am.AMArtwork
@@ -49,7 +49,7 @@ import kotlin.time.ExperimentalTime
 internal class LyricsCanvasRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
-    private val simpMusicLyrics: SimpMusicLyricsClient,
+    private val appleMusic: AppleMusicClient,
     private val lyricsProviders: LyricsProviders,
 ) : LyricsCanvasRepository {
     /**
@@ -221,7 +221,7 @@ internal class LyricsCanvasRepositoryImpl(
                 // than no answer at all here.
                 val byAlbum =
                     albumName?.let { name ->
-                        simpMusicLyrics
+                        appleMusic
                             .searchAMAlbum("$name $artist".cleanForSearch(), limit = AM_SEARCH_LIMIT)
                             .onFailure { Logger.e(AM_ARTWORK_TAG, "album search failed: ${it.message}") }
                             .getOrNull()
@@ -233,7 +233,7 @@ internal class LyricsCanvasRepositoryImpl(
                 // this goes through songs; the album name, when known, still decides between the
                 // several albums a track can legitimately appear on.
                 val album =
-                    byAlbum ?: simpMusicLyrics
+                    byAlbum ?: appleMusic
                         .searchAMSongsWithAlbums("${song.title} $artist".cleanForSearch(), limit = AM_SEARCH_LIMIT)
                         .onFailure { Logger.e(AM_ARTWORK_TAG, "song search failed: ${it.message}") }
                         .getOrNull()
@@ -262,7 +262,7 @@ internal class LyricsCanvasRepositoryImpl(
                 // platforms different results for the same track. Falls back to the master url,
                 // which still plays — just not as cheaply.
                 val url =
-                    simpMusicLyrics
+                    appleMusic
                         .selectAMRendition(master, AM_MIN_RENDITION_WIDTH)
                         .getOrNull()
                         ?: master
@@ -315,7 +315,7 @@ internal class LyricsCanvasRepositoryImpl(
 
     override fun getArtistEditorial(artistName: String): Flow<Resource<ArtistEditorial>> =
         flow {
-            simpMusicLyrics
+            appleMusic
                 .searchAMArtist(artistName, limit = 1)
                 .onSuccess { artists ->
                     val id = artists.firstOrNull()?.id
@@ -327,7 +327,7 @@ internal class LyricsCanvasRepositoryImpl(
                         emit(Resource.Success(ArtistEditorial(logo = null, motion = null)))
                         return@onSuccess
                     }
-                    simpMusicLyrics
+                    appleMusic
                         .getAMArtist(id)
                         .onSuccess { artist ->
                             val attributes = artist?.attributes
@@ -385,7 +385,7 @@ internal class LyricsCanvasRepositoryImpl(
 
     /** Falls back to the master, which still plays — just not as cheaply. */
     private suspend fun resolveAMRendition(master: String): String =
-        simpMusicLyrics
+        appleMusic
             .selectAMRendition(master, AM_MIN_RENDITION_WIDTH)
             .getOrNull() ?: master
 

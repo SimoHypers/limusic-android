@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.simohypers.limusic.ui.icon.Add
 import com.simohypers.limusic.ui.icon.Remove
 import com.simohypers.limusic.ui.icon.RestartAlt
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.NowPlayingScreenData
 import org.jetbrains.compose.resources.stringResource
@@ -63,7 +63,7 @@ fun LyricsOffsetBar(
             modifier = modifier.clip(CircleShape).background(containerColor),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            RippleIconButton(imageVector = SimpIcons.Remove, tint = contentColor) {
+            RippleIconButton(imageVector = LimusicIcons.Remove, tint = contentColor) {
                 onOffsetChange(offsetMs - LYRICS_OFFSET_STEP_MS)
             }
             Text(
@@ -74,11 +74,11 @@ fun LyricsOffsetBar(
                 maxLines = 1,
                 modifier = Modifier.widthIn(min = 72.dp),
             )
-            RippleIconButton(imageVector = SimpIcons.Add, tint = contentColor) {
+            RippleIconButton(imageVector = LimusicIcons.Add, tint = contentColor) {
                 onOffsetChange(offsetMs + LYRICS_OFFSET_STEP_MS)
             }
             AnimatedVisibility(visible = offsetMs != 0) {
-                RippleIconButton(imageVector = SimpIcons.RestartAlt, tint = contentColor) { onOffsetChange(0) }
+                RippleIconButton(imageVector = LimusicIcons.RestartAlt, tint = contentColor) { onOffsetChange(0) }
             }
         }
     }

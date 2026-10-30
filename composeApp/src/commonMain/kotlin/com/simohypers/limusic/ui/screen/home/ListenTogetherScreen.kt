@@ -72,7 +72,7 @@ import com.simohypers.limusic.ui.icon.Groups
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.PersonAdd
 import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Star
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.ListenTogetherViewModel
@@ -160,7 +160,7 @@ fun ListenTogetherScreen(
             actions = {
                 if (!waiting && !state.isHost) {
                     IconButton(onClick = { menu = true }) {
-                        Icon(SimpIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(LimusicIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             },
@@ -239,7 +239,7 @@ private fun Start(
     }
 
     Column(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        HeaderIcon(SimpIcons.Groups)
+        HeaderIcon(LimusicIcons.Groups)
         Spacer(Modifier.height(14.dp))
         Text(
             stringResource(Res.string.ltd_subtitle),
@@ -273,7 +273,7 @@ private fun Start(
                             Text(name, style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         IconButton(onClick = { editName = true }) {
-                            Icon(SimpIcons.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                            Icon(LimusicIcons.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                         }
                     }
                 }
@@ -284,17 +284,17 @@ private fun Start(
                 Modifier.fillMaxWidth().clickable { go(true) }.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                RoundIcon(SimpIcons.Add)
+                RoundIcon(LimusicIcons.Add)
                 Spacer(Modifier.width(12.dp))
                 TitleAndLine(stringResource(Res.string.ltd_start_room), stringResource(Res.string.ltd_start_room_hint), Modifier.weight(1f))
-                Icon(SimpIcons.ArrowForwardIos, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                Icon(LimusicIcons.ArrowForwardIos, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
             }
         }
 
         SettingCard {
             Column(Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RoundIcon(SimpIcons.PersonAdd)
+                    RoundIcon(LimusicIcons.PersonAdd)
                     Spacer(Modifier.width(12.dp))
                     TitleAndLine(stringResource(Res.string.ltd_join_room), stringResource(Res.string.ltd_join_room_hint), Modifier.weight(1f))
                 }
@@ -519,7 +519,7 @@ private fun CodeCard(
             Spacer(Modifier.height(18.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { shareUrl(shareTitle, shareText) }, modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(SimpIcons.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(LimusicIcons.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(Res.string.ltd_share_invite), color = LocalContentColor.current)
                 }
@@ -534,7 +534,7 @@ private fun CodeCard(
                     },
                     modifier = Modifier.height(48.dp),
                 ) {
-                    Icon(if (copied) SimpIcons.Check else SimpIcons.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(if (copied) LimusicIcons.Check else LimusicIcons.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(if (copied) Res.string.ltd_copied else Res.string.ltd_copy), color = LocalContentColor.current)
                 }
@@ -573,7 +573,7 @@ private fun Person(
         val tags = listOfNotNull(stringResource(Res.string.ltd_host).takeIf { u.isHost }, stringResource(Res.string.ltd_you).takeIf { isSelf })
         if (tags.isNotEmpty()) {
             if (u.isHost) {
-                Icon(SimpIcons.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                Icon(LimusicIcons.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(4.dp))
             }
             Text(
@@ -584,7 +584,7 @@ private fun Person(
         }
         if (onManage != null) {
             IconButton(onClick = onManage) {
-                Icon(SimpIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(LimusicIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

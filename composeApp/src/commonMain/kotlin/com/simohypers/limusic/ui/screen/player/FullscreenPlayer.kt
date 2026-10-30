@@ -79,7 +79,7 @@ import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.Pause
 import com.simohypers.limusic.ui.icon.PlayArrow
 import com.simohypers.limusic.ui.icon.Replay5
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
 import com.simohypers.limusic.ui.icon.Subtitles
@@ -237,7 +237,7 @@ fun FullscreenPlayer(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    SimpIcons.KeyboardDoubleArrowLeft,
+                                    LimusicIcons.KeyboardDoubleArrowLeft,
                                     "",
                                     tint = Color.White,
                                 )
@@ -295,7 +295,7 @@ fun FullscreenPlayer(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Icon(
-                                    SimpIcons.KeyboardDoubleArrowRight,
+                                    LimusicIcons.KeyboardDoubleArrowRight,
                                     "",
                                     tint = Color.White,
                                 )
@@ -353,7 +353,7 @@ fun FullscreenPlayer(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        SimpIcons.ArrowBackIosNew,
+                                        LimusicIcons.ArrowBackIosNew,
                                         Modifier
                                             .size(32.dp),
                                         true,
@@ -364,7 +364,7 @@ fun FullscreenPlayer(
                             },
                             actions = {
                                 RippleIconButton(
-                                    SimpIcons.MoreVert,
+                                    LimusicIcons.MoreVert,
                                 ) {
                                     showBottom = true
                                 }
@@ -395,7 +395,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.SkipPrevious,
+                                    imageVector = LimusicIcons.SkipPrevious,
                                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -420,7 +420,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Replay5,
+                                    imageVector = LimusicIcons.Replay5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -447,7 +447,7 @@ fun FullscreenPlayer(
                                 Crossfade(controllerState.isPlaying) {
                                     if (it) {
                                         Icon(
-                                            imageVector = SimpIcons.Pause,
+                                            imageVector = LimusicIcons.Pause,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -456,7 +456,7 @@ fun FullscreenPlayer(
                                         )
                                     } else {
                                         Icon(
-                                            imageVector = SimpIcons.PlayArrow,
+                                            imageVector = LimusicIcons.PlayArrow,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -483,7 +483,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Forward5,
+                                    imageVector = LimusicIcons.Forward5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -509,7 +509,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.SkipNext,
+                                    imageVector = LimusicIcons.SkipNext,
                                     tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -698,7 +698,7 @@ fun FullscreenPlayer(
                                         Crossfade(shouldShowSubtitle) {
                                             if (it) {
                                                 Icon(
-                                                    imageVector = SimpIcons.SubtitlesOff,
+                                                    imageVector = LimusicIcons.SubtitlesOff,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -707,7 +707,7 @@ fun FullscreenPlayer(
                                                 )
                                             } else {
                                                 Icon(
-                                                    imageVector = SimpIcons.Subtitles,
+                                                    imageVector = LimusicIcons.Subtitles,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -735,7 +735,7 @@ fun FullscreenPlayer(
                                         },
                                     ) {
                                         Icon(
-                                            imageVector = SimpIcons.FullscreenExit,
+                                            imageVector = LimusicIcons.FullscreenExit,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =

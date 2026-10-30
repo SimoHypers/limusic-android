@@ -56,7 +56,7 @@ import com.simohypers.limusic.ui.component.formatSeconds
 import com.simohypers.limusic.ui.icon.KeyboardArrowDown
 import com.simohypers.limusic.ui.icon.PushPin
 import com.simohypers.limusic.ui.icon.Search
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.NowPlayingScreenData
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -183,7 +183,7 @@ private fun Footer(
             if (provider != null || missing) {
                 Chip(onClick = onSource) {
                     if (provider == null) {
-                        Icon(SimpIcons.Search, contentDescription = null, modifier = Modifier.size(14.dp), tint = scheme.onSurface.copy(alpha = 0.8f))
+                        Icon(LimusicIcons.Search, contentDescription = null, modifier = Modifier.size(14.dp), tint = scheme.onSurface.copy(alpha = 0.8f))
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(
@@ -196,7 +196,7 @@ private fun Footer(
                     )
                     if (lyricsData?.pinned == true) {
                         Spacer(Modifier.width(4.dp))
-                        Icon(SimpIcons.PushPin, contentDescription = null, modifier = Modifier.size(12.dp), tint = scheme.primary)
+                        Icon(LimusicIcons.PushPin, contentDescription = null, modifier = Modifier.size(12.dp), tint = scheme.primary)
                     }
                     val offset = lyricsData?.offsetMs ?: 0
                     if (offset != 0) {
@@ -205,7 +205,7 @@ private fun Footer(
                     }
                     Spacer(Modifier.width(4.dp))
                     Icon(
-                        SimpIcons.KeyboardArrowDown,
+                        LimusicIcons.KeyboardArrowDown,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 180f },
                         tint = scheme.onSurface.copy(alpha = 0.6f),
@@ -284,7 +284,7 @@ private fun NothingFound(onFind: () -> Unit) {
             modifier = Modifier.padding(top = 6.dp, start = 24.dp, end = 24.dp),
         )
         OutlinedButton(onClick = onFind, modifier = Modifier.padding(top = 16.dp)) {
-            Icon(SimpIcons.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(LimusicIcons.Search, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text(stringResource(Res.string.lyrics_find))
         }

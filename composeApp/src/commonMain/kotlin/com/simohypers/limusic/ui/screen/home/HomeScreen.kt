@@ -126,7 +126,7 @@ import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.component.homeCardAspectRatio
 import com.simohypers.limusic.ui.component.rememberHolderPainter
 import com.simohypers.limusic.ui.icon.Settings
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Tune
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
 import com.simohypers.limusic.ui.navigation.destination.home.ListenTogetherDestination
@@ -645,14 +645,14 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                SimpIcons.Tune,
+                                LimusicIcons.Tune,
                                 contentDescription = stringResource(Res.string.edit_home),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp),
                             )
                         }
                     } else {
-                        Chip(text = stringResource(Res.string.edit_home), icon = SimpIcons.Tune) { showEditHome = true }
+                        Chip(text = stringResource(Res.string.edit_home), icon = LimusicIcons.Tune) { showEditHome = true }
                     }
                     if (showChips) listOfHomeChip.forEach { id ->
                         val isSelected =
@@ -768,7 +768,7 @@ fun HomeTopAppBar(
         )
         ListenTogetherIconButton(onListenTogether)
         // Out in the bar, not only behind the avatar: nothing says a profile picture opens a menu.
-        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground, onClick = onSettings)
+        RippleIconButton(imageVector = LimusicIcons.Settings, tint = MaterialTheme.colorScheme.onBackground, onClick = onSettings)
     }
 }
 

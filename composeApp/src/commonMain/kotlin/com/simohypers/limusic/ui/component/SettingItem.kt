@@ -36,7 +36,7 @@ import com.simohypers.limusic.Platform
 import com.simohypers.limusic.extension.greyScale
 import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.icon.ArrowForwardIos
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.LocalIsDarkTheme
 import com.simohypers.limusic.ui.theme.typo
 
@@ -158,7 +158,7 @@ fun SettingItem(
             }
             if (navigates) {
                 Spacer(Modifier.width(10.dp))
-                Icon(SimpIcons.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(14.dp))
+                Icon(LimusicIcons.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(14.dp))
             }
         }
     }

@@ -7,14 +7,14 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.unit.dp
 
-// The Library chips' icons, from the same Material Symbols Rounded set as the rest of SimpIcons,
+// The Library chips' icons, from the same Material Symbols Rounded set as the rest of LimusicIcons,
 // kept as the SVG path strings gstatic serves (960 viewport, y from -960) instead of converted
 // builder calls.
 
-val SimpIcons.GridView: ImageVector by lazy { symbol("GridView", GRID_VIEW) }
-val SimpIcons.AutoAwesome: ImageVector by lazy { symbol("AutoAwesome", AUTO_AWESOME) }
-val SimpIcons.Bookmark: ImageVector by lazy { symbol("Bookmark", BOOKMARK) }
-val SimpIcons.Podcasts: ImageVector by lazy { symbol("Podcasts", PODCASTS) }
+val LimusicIcons.GridView: ImageVector by lazy { symbol("GridView", GRID_VIEW) }
+val LimusicIcons.AutoAwesome: ImageVector by lazy { symbol("AutoAwesome", AUTO_AWESOME) }
+val LimusicIcons.Bookmark: ImageVector by lazy { symbol("Bookmark", BOOKMARK) }
+val LimusicIcons.Podcasts: ImageVector by lazy { symbol("Podcasts", PODCASTS) }
 
 private fun symbol(
     name: String,

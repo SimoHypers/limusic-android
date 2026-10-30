@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 /** Material's undo: the queue sheet's "Back to …", like desktop's turn-back arrow. */
-val SimpIcons.Undo: ImageVector get() = undo
+val LimusicIcons.Undo: ImageVector get() = undo
 
 private val undo: ImageVector by lazy {
     ImageVector

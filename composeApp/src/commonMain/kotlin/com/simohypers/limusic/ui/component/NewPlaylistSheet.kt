@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.simohypers.limusic.ui.icon.Cloud
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Smartphone
 import com.simohypers.limusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
@@ -74,14 +74,14 @@ fun NewPlaylistSheet(
         LaunchedEffect(Unit) { focus.requestFocus() }
         if (canPickYouTube) {
             WhereOption(
-                icon = SimpIcons.Cloud,
+                icon = LimusicIcons.Cloud,
                 title = stringResource(Res.string.new_playlist_where_youtube),
                 description = stringResource(Res.string.new_playlist_where_youtube_desc),
                 selected = youTube,
                 colors = colors,
             ) { youTube = true }
             WhereOption(
-                icon = SimpIcons.Smartphone,
+                icon = LimusicIcons.Smartphone,
                 title = stringResource(Res.string.new_playlist_where_device),
                 description = stringResource(Res.string.new_playlist_where_device_desc),
                 selected = !youTube,
@@ -89,7 +89,7 @@ fun NewPlaylistSheet(
             ) { youTube = false }
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(SimpIcons.Smartphone, null, tint = colors.subtitle, modifier = Modifier.size(16.dp))
+                Icon(LimusicIcons.Smartphone, null, tint = colors.subtitle, modifier = Modifier.size(16.dp))
                 Text(
                     stringResource(if (signedIn) Res.string.new_playlist_where_device_desc else Res.string.new_playlist_device_only),
                     style = typo().bodySmall,

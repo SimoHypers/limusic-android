@@ -28,7 +28,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import com.simohypers.limusic.ui.icon.Home
 import com.simohypers.limusic.ui.icon.LibraryMusic
 import com.simohypers.limusic.ui.icon.Search
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDestination
 import com.simohypers.limusic.ui.navigation.destination.search.SearchDestination
@@ -51,9 +51,9 @@ private class LimusicTab(
 // The three tabs: Home, Search, Library.
 private val limusicTabs =
     listOf(
-        LimusicTab(HomeDestination, Res.string.home, SimpIcons.Home),
-        LimusicTab(SearchDestination, Res.string.search, SimpIcons.Search),
-        LimusicTab(LibraryDestination, Res.string.library, SimpIcons.LibraryMusic),
+        LimusicTab(HomeDestination, Res.string.home, LimusicIcons.Home),
+        LimusicTab(SearchDestination, Res.string.search, LimusicIcons.Search),
+        LimusicTab(LibraryDestination, Res.string.library, LimusicIcons.LibraryMusic),
     )
 
 /** Position of [destination] in the tab bar, or -1 when it is not a tab. */

@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.simohypers.limusic.ui.icon.Pause
 import com.simohypers.limusic.ui.icon.PlayArrow
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 
 @Composable
 fun RippleIconButton(
@@ -43,9 +43,9 @@ fun PlayPauseButton(
 ) {
     RippleIconButton(
         if (!isPlaying) {
-            SimpIcons.PlayArrow
+            LimusicIcons.PlayArrow
         } else {
-            SimpIcons.Pause
+            LimusicIcons.Pause
         },
         modifier = modifier,
         tint = tint,

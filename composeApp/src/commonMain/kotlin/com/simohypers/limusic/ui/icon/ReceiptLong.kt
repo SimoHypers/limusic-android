@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.ReceiptLong: ImageVector
+val LimusicIcons.ReceiptLong: ImageVector
   get() {
     if (_ReceiptLong != null) {
       return _ReceiptLong!!

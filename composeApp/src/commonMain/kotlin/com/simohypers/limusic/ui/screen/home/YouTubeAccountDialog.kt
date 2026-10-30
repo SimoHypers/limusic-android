@@ -56,7 +56,7 @@ import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.PeopleAlt
 import com.simohypers.limusic.ui.icon.PlaylistAdd
 import com.simohypers.limusic.ui.icon.Settings
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import kotlinx.coroutines.flow.map
@@ -146,7 +146,7 @@ fun YouTubeAccountDialog(
                                     .align(Alignment.CenterStart)
                                     .fillMaxHeight(),
                         ) {
-                            Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
+                            Icon(LimusicIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                         }
                         Text(
                             stringResource(Res.string.youtube_account),
@@ -192,8 +192,8 @@ fun YouTubeAccountDialog(
                                             .data(it.thumbnailUrl)
                                             .crossfade(550)
                                             .build(),
-                                    placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
-                                    error = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                    placeholder = rememberVectorPainter(LimusicIcons.PeopleAlt),
+                                    error = rememberVectorPainter(LimusicIcons.PeopleAlt),
                                     contentDescription = it.name,
                                     modifier =
                                         Modifier
@@ -231,18 +231,18 @@ fun YouTubeAccountDialog(
                 item {
                     Column {
                         ActionButton(
-                            icon = SimpIcons.PeopleAlt,
+                            icon = LimusicIcons.PeopleAlt,
                             text = Res.string.guest,
                         ) {
                             viewModel.setUsedAccount(null)
                             onDismiss()
                         }
                         ActionButton(
-                            icon = SimpIcons.Close,
+                            icon = LimusicIcons.Close,
                             text = Res.string.log_out,
                         ) { confirmLogOut = true }
                         ActionButton(
-                            icon = SimpIcons.PlaylistAdd,
+                            icon = LimusicIcons.PlaylistAdd,
                             text = Res.string.add_an_account,
                         ) {
                             onDismiss()

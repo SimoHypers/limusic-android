@@ -109,7 +109,7 @@ import com.simohypers.limusic.ui.navigation.destination.list.BrowseDestination
 import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
 import com.simohypers.limusic.ui.navigation.destination.list.PodcastDestination
 import com.simohypers.limusic.ui.icon.PlayArrow
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.LocalForceDarkText
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.HomeViewModel
@@ -433,7 +433,7 @@ internal fun BoxScope.HoverPlayButton(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = SimpIcons.PlayArrow,
+            imageVector = LimusicIcons.PlayArrow,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.size(24.dp),

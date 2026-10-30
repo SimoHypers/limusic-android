@@ -87,7 +87,7 @@ import com.simohypers.limusic.ui.icon.FavoriteBorder
 import com.simohypers.limusic.ui.icon.KeyboardArrowDown
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.PlaylistAdd
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Undo
 import com.simohypers.limusic.ui.screen.player.content.FrostedCover
 import com.simohypers.limusic.ui.screen.player.content.applemusic.appleMusicFadeBetween
@@ -218,7 +218,7 @@ internal fun QueueTopBar(
     val view = remember(items, current) { queueView(items, current) }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(start = 4.dp, end = 8.dp)) {
         IconButton(onClick = onClose) {
-            Icon(SimpIcons.KeyboardArrowDown, contentDescription = null, tint = colors.content)
+            Icon(LimusicIcons.KeyboardArrowDown, contentDescription = null, tint = colors.content)
         }
         Column(Modifier.weight(1f)) {
             Text(stringResource(Res.string.queue), style = typo().titleMedium, color = colors.content)
@@ -421,7 +421,7 @@ internal fun QueueList(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                         ) {
-                            Icon(SimpIcons.AllInclusive, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(16.dp))
+                            Icon(LimusicIcons.AllInclusive, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(Res.string.endless_queue), style = typo().labelMedium, color = colors.subtitle)
                         }
@@ -460,7 +460,7 @@ internal fun QueueList(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                 ) {
                     Icon(
-                        SimpIcons.KeyboardArrowDown,
+                        LimusicIcons.KeyboardArrowDown,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp).rotate(if (awayAbove) 180f else 0f),
                     )
@@ -501,14 +501,14 @@ internal fun SongHeader(
         }
         if (onAddToPlaylist != null) {
             IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(40.dp)) {
-                Icon(SimpIcons.PlaylistAdd, contentDescription = null, tint = colors.content)
+                Icon(LimusicIcons.PlaylistAdd, contentDescription = null, tint = colors.content)
             }
         }
         IconButton(onClick = onLike, modifier = Modifier.size(40.dp)) {
-            Icon(if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder, contentDescription = null, tint = colors.content)
+            Icon(if (liked) LimusicIcons.Favorite else LimusicIcons.FavoriteBorder, contentDescription = null, tint = colors.content)
         }
         IconButton(onClick = onMore, modifier = Modifier.size(40.dp)) {
-            Icon(SimpIcons.MoreVert, contentDescription = null, tint = colors.content)
+            Icon(LimusicIcons.MoreVert, contentDescription = null, tint = colors.content)
         }
     }
 }
@@ -552,7 +552,7 @@ internal fun QueueActions(musicServiceHandler: MediaPlayerHandler = koinInject()
         // Clicking a song throws the queue away; the one just played is in the queue kept.
         if (prevTrack != null) {
             TextButton(onClick = musicServiceHandler::backToPrevious, modifier = Modifier.weight(1f, fill = false)) {
-                Icon(SimpIcons.Undo, contentDescription = null, modifier = Modifier.size(16.dp), tint = colors.subtitle)
+                Icon(LimusicIcons.Undo, contentDescription = null, modifier = Modifier.size(16.dp), tint = colors.subtitle)
                 Spacer(Modifier.width(6.dp))
                 Text(
                     stringResource(Res.string.back_to, prevTrack),

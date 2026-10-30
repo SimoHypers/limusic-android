@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.Explore: ImageVector
+val LimusicIcons.Explore: ImageVector
   get() {
     if (_Explore != null) {
       return _Explore!!

@@ -6,7 +6,7 @@ import com.simohypers.limusic.ui.icon.Home
 import com.simohypers.limusic.ui.icon.LibraryMusic
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Sensors
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDestination
 import com.simohypers.limusic.ui.navigation.destination.library.MixForYouDestination
@@ -30,7 +30,7 @@ sealed class BottomNavScreen(
         title = Res.string.home,
         icon = {
             Icon(
-                SimpIcons.Home,
+                LimusicIcons.Home,
                 contentDescription = null,
             )
         },
@@ -42,7 +42,7 @@ sealed class BottomNavScreen(
         title = Res.string.search,
         icon = {
             Icon(
-                SimpIcons.Search,
+                LimusicIcons.Search,
                 contentDescription = null,
             )
         },
@@ -54,7 +54,7 @@ sealed class BottomNavScreen(
         title = Res.string.library,
         icon = {
             Icon(
-                imageVector = SimpIcons.LibraryMusic,
+                imageVector = LimusicIcons.LibraryMusic,
                 contentDescription = null,
             )
         },
@@ -69,7 +69,7 @@ sealed class BottomNavScreen(
         title = Res.string.mix,
         icon = {
             Icon(
-                imageVector = SimpIcons.Sensors,
+                imageVector = LimusicIcons.Sensors,
                 contentDescription = null,
             )
         },

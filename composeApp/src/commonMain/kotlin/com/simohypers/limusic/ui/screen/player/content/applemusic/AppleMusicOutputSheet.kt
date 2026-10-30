@@ -54,7 +54,7 @@ import com.simohypers.limusic.ui.component.rememberSurfaceDarkColors
 import com.simohypers.limusic.ui.icon.Check
 import com.simohypers.limusic.ui.icon.Headphones
 import com.simohypers.limusic.ui.icon.MusicCast
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Smartphone
 import com.simohypers.limusic.ui.icon.Speaker
 import com.simohypers.limusic.ui.icon.Computer
@@ -198,7 +198,7 @@ internal fun AppleMusicOutputSheet(
                     )
                     cast.receivers.forEach { receiver ->
                         OutputRow(
-                            icon = SimpIcons.MusicCast,
+                            icon = LimusicIcons.MusicCast,
                             name = receiver.name,
                             status = if (receiver.isConnected) stringResource(Res.string.audio_output_playing_here) else null,
                             selected = receiver.isConnected,
@@ -223,7 +223,7 @@ internal fun AppleMusicOutputSheet(
                         val isPlayer = device.id == link.player?.id
                         val selected = isPlayer && link.controlling
                         OutputRow(
-                            icon = SimpIcons.Computer,
+                            icon = LimusicIcons.Computer,
                             name = device.name,
                             status =
                                 stringResource(
@@ -294,7 +294,7 @@ private fun OutputRow(
             }
         }
         AnimatedVisibility(visible = selected, enter = fadeIn() + scaleIn(), exit = fadeOut() + scaleOut()) {
-            Icon(imageVector = SimpIcons.Check, contentDescription = null, tint = colors.content, modifier = Modifier.size(24.dp))
+            Icon(imageVector = LimusicIcons.Check, contentDescription = null, tint = colors.content, modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -330,7 +330,7 @@ private fun AudioOutput.kindLabel(): String? =
 private fun AudioOutput.icon(): ImageVector =
     when (kind) {
         // The phone's own speaker on Android; the system default on desktop, which is a computer.
-        AudioOutputKind.DEVICE_SPEAKER -> if (getPlatform() == Platform.Android) SimpIcons.Smartphone else SimpIcons.Speaker
-        AudioOutputKind.WIRED, AudioOutputKind.BLUETOOTH, AudioOutputKind.USB -> SimpIcons.Headphones
-        AudioOutputKind.HDMI, AudioOutputKind.OTHER -> SimpIcons.Speaker
+        AudioOutputKind.DEVICE_SPEAKER -> if (getPlatform() == Platform.Android) LimusicIcons.Smartphone else LimusicIcons.Speaker
+        AudioOutputKind.WIRED, AudioOutputKind.BLUETOOTH, AudioOutputKind.USB -> LimusicIcons.Headphones
+        AudioOutputKind.HDMI, AudioOutputKind.OTHER -> LimusicIcons.Speaker
     }

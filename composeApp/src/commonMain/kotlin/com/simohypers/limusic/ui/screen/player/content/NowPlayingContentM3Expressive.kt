@@ -111,7 +111,7 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.simohypers.limusic.ui.screen.player.content.expressive.ExpressiveTransportRow
 import com.simohypers.limusic.ui.screen.player.content.expressive.WavySeekBar
@@ -401,7 +401,7 @@ private fun NowPlayingM3ExpressiveLayout(
                         modifier = Modifier.size(44.dp),
                     ) {
                         Icon(
-                            imageVector = SimpIcons.MoreVert,
+                            imageVector = LimusicIcons.MoreVert,
                             contentDescription = "",
                         )
                     }
@@ -785,7 +785,7 @@ internal fun ExpressiveTrackInfoRow(
         ) {
             Crossfade(targetState = state.controllerState.isLiked) { liked ->
                 Icon(
-                    imageVector = if (liked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
+                    imageVector = if (liked) LimusicIcons.Favorite else LimusicIcons.FavoriteBorder,
                     contentDescription = "",
                 )
             }
@@ -948,7 +948,7 @@ private fun ExpressiveConnectedGroup(
             onClick = { actions.onShowInfo() },
         ) {
             Icon(
-                imageVector = SimpIcons.Info,
+                imageVector = LimusicIcons.Info,
                 contentDescription = "",
                 tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),
@@ -962,7 +962,7 @@ private fun ExpressiveConnectedGroup(
             onClick = onOpenOutput,
         ) {
             Icon(
-                imageVector = SimpIcons.Headphones,
+                imageVector = LimusicIcons.Headphones,
                 contentDescription = stringResource(Res.string.audio_output),
                 tint = if (state.castState.isRemote) colorScheme.primary else colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),
@@ -975,7 +975,7 @@ private fun ExpressiveConnectedGroup(
         ) {
             Crossfade(targetState = state.controllerState.isShuffle, label = "expressiveShuffle") { isShuffle ->
                 Icon(
-                    imageVector = SimpIcons.Shuffle,
+                    imageVector = LimusicIcons.Shuffle,
                     contentDescription = "",
                     tint = if (isShuffle) colorScheme.onPrimaryContainer else colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp),
@@ -991,7 +991,7 @@ private fun ExpressiveConnectedGroup(
                 when (rs) {
                     is RepeatState.None -> {
                         Icon(
-                            imageVector = SimpIcons.Repeat,
+                            imageVector = LimusicIcons.Repeat,
                             contentDescription = "",
                             tint = colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(22.dp),
@@ -1000,7 +1000,7 @@ private fun ExpressiveConnectedGroup(
 
                     RepeatState.All -> {
                         Icon(
-                            imageVector = SimpIcons.Repeat,
+                            imageVector = LimusicIcons.Repeat,
                             contentDescription = "",
                             tint = colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(22.dp),
@@ -1009,7 +1009,7 @@ private fun ExpressiveConnectedGroup(
 
                     RepeatState.One -> {
                         Icon(
-                            imageVector = SimpIcons.RepeatOne,
+                            imageVector = LimusicIcons.RepeatOne,
                             contentDescription = "",
                             tint = colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(22.dp),
@@ -1023,7 +1023,7 @@ private fun ExpressiveConnectedGroup(
             onClick = { actions.onShowAddToPlaylist() },
         ) {
             Icon(
-                imageVector = SimpIcons.PlaylistAdd,
+                imageVector = LimusicIcons.PlaylistAdd,
                 contentDescription = "Add to Playlist",
                 tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),
@@ -1034,7 +1034,7 @@ private fun ExpressiveConnectedGroup(
             onClick = { actions.onShowQueue() },
         ) {
             Icon(
-                imageVector = SimpIcons.QueueMusic,
+                imageVector = LimusicIcons.QueueMusic,
                 contentDescription = "",
                 tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),

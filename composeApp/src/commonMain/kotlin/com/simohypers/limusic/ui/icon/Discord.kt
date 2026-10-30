@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 /** Discord's mark, the same path Limusic desktop draws. */
-val SimpIcons.Discord: ImageVector by lazy {
+val LimusicIcons.Discord: ImageVector by lazy {
     ImageVector
         .Builder(
             name = "Discord",

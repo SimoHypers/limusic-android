@@ -125,7 +125,7 @@ internal class AudioOutputRouter(
         }?.id
     }
 
-    // The speaker takes the name the owner gave the phone in Settings — "maxrave's Phone" — rather
+    // The speaker takes the name the owner gave the phone in Settings — "Simo's Phone" — rather
     // than a model number. Anything else keeps its product name ("Pixel Buds Pro 2"), except that a
     // wire, HDMI and many USB devices report the PHONE's model as theirs: those come back blank, for
     // the UI to label by kind in the user's language.

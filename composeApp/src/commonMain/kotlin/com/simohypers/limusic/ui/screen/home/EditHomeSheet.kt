@@ -61,7 +61,7 @@ import com.simohypers.limusic.ui.component.rememberSurfaceDarkColors
 import com.simohypers.limusic.ui.icon.DragHandle
 import com.simohypers.limusic.ui.icon.GridView
 import com.simohypers.limusic.ui.icon.LibraryMusic
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Tune
 import com.simohypers.limusic.ui.theme.AppThemeContent
 import com.simohypers.limusic.ui.theme.typo
@@ -151,7 +151,7 @@ fun EditHomeSheet(
                     Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(SimpIcons.Tune, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
+                    Icon(LimusicIcons.Tune, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -326,10 +326,10 @@ private fun SheetBody(
                                 },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(SimpIcons.DragHandle, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
+                            Icon(LimusicIcons.DragHandle, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(20.dp))
                         }
                         Icon(
-                            if (section == SHORTCUTS_SECTION) SimpIcons.GridView else SimpIcons.LibraryMusic,
+                            if (section == SHORTCUTS_SECTION) LimusicIcons.GridView else LimusicIcons.LibraryMusic,
                             contentDescription = null,
                             tint = if (on) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else colors.disabled,
                             modifier = Modifier.size(20.dp),

@@ -47,7 +47,7 @@ import com.simohypers.limusic.expect.openUrl
 import com.simohypers.limusic.extension.ultraThinBarStyle
 import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.utils.VersionManager
 import com.mikepenz.markdown.m3.Markdown
@@ -237,7 +237,7 @@ fun CreditScreen(
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
                 RippleIconButton(
-                    SimpIcons.ArrowBackIosNew,
+                    LimusicIcons.ArrowBackIosNew,
                     Modifier
                         .size(32.dp),
                     true,

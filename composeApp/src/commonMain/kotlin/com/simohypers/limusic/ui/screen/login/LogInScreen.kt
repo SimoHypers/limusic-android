@@ -39,7 +39,7 @@ import com.simohypers.limusic.ui.component.DevLogInType
 import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.LogoDev
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.LogInViewModel
 import com.simohypers.limusic.viewModel.SettingsViewModel
@@ -175,7 +175,7 @@ fun LoginScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        SimpIcons.ArrowBackIosNew,
+                        LimusicIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
                         tint = MaterialTheme.colorScheme.onSurface,
@@ -191,7 +191,7 @@ fun LoginScreen(
                     },
                 ) {
                     Icon(
-                        SimpIcons.LogoDev,
+                        LimusicIcons.LogoDev,
                         "Developer Mode",
                     )
                 }

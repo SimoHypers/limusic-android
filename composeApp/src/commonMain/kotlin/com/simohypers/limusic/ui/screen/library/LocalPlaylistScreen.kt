@@ -130,7 +130,7 @@ import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.Search
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Sort
 import com.simohypers.limusic.ui.icon.TipsAndUpdates
 import com.simohypers.limusic.ui.theme.typo
@@ -179,7 +179,7 @@ fun LocalPlaylistScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val aiPainter = rememberVectorPainter(SimpIcons.TipsAndUpdates)
+    val aiPainter = rememberVectorPainter(LimusicIcons.TipsAndUpdates)
     val limit = 1.5f
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progressAnimated by transition.animateFloat(
@@ -464,7 +464,7 @@ fun LocalPlaylistScreen(
                                 }
                             }
                             IconButton(onClick = { showSearchBar = true }, modifier = Modifier.size(40.dp)) {
-                                Icon(SimpIcons.Search, "Search in playlist", tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(LimusicIcons.Search, "Search in playlist", tint = MaterialTheme.colorScheme.onSurface)
                             }
                             CollectionDownloadButton(
                                 download = download,
@@ -473,7 +473,7 @@ fun LocalPlaylistScreen(
                                 onDownloadMissing = viewModel::downloadMissing,
                             )
                             IconButton(onClick = onPlaylistMoreClick, modifier = Modifier.size(40.dp)) {
-                                Icon(SimpIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(LimusicIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     },
@@ -573,7 +573,7 @@ fun LocalPlaylistScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                imageVector = SimpIcons.Sort,
+                                imageVector = LimusicIcons.Sort,
                                 contentDescription = "Sort playlist",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(20.dp),
@@ -736,7 +736,7 @@ fun LocalPlaylistScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RippleIconButton(
-                        imageVector = SimpIcons.ArrowBackIosNew,
+                        imageVector = LimusicIcons.ArrowBackIosNew,
                         tint = MaterialTheme.colorScheme.onSurface,
                     ) {
                         navController.navigateUp()
@@ -779,7 +779,7 @@ fun LocalPlaylistScreen(
                             viewModel.setSearchQuery("")
                         },
                     ) {
-                        Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(LimusicIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -850,7 +850,7 @@ fun LocalPlaylistScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        SimpIcons.ArrowBackIosNew,
+                        LimusicIcons.ArrowBackIosNew,
                         Modifier
                             .size(32.dp),
                         true,

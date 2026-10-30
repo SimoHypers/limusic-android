@@ -88,7 +88,7 @@ import com.simohypers.limusic.ui.component.rememberHolderPainter
 import com.simohypers.limusic.ui.icon.Forward5
 import com.simohypers.limusic.ui.icon.Fullscreen
 import com.simohypers.limusic.ui.icon.Replay5
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Subtitles
 import com.simohypers.limusic.ui.icon.SubtitlesOff
 import com.simohypers.limusic.ui.screen.player.content.applemusic.AppleMusicBottomCluster
@@ -1043,7 +1043,7 @@ private fun AppleMusicArtworkPage(
                                             onClick = { actions.onEnterFullscreenVideo() },
                                             modifier = Modifier.align(Alignment.TopEnd),
                                         ) {
-                                            Icon(imageVector = SimpIcons.Fullscreen, contentDescription = "", tint = Color.White)
+                                            Icon(imageVector = LimusicIcons.Fullscreen, contentDescription = "", tint = Color.White)
                                         }
                                         Row(
                                             modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
@@ -1054,7 +1054,7 @@ private fun AppleMusicArtworkPage(
                                                 modifier = Modifier.size(48.dp).clip(CircleShape),
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.Replay5,
+                                                    imageVector = LimusicIcons.Replay5,
                                                     contentDescription = "",
                                                     tint = Color.White,
                                                     modifier = Modifier.size(36.dp).alpha(0.8f),
@@ -1065,7 +1065,7 @@ private fun AppleMusicArtworkPage(
                                                 modifier = Modifier.size(48.dp).clip(CircleShape),
                                             ) {
                                                 Icon(
-                                                    imageVector = SimpIcons.Forward5,
+                                                    imageVector = LimusicIcons.Forward5,
                                                     contentDescription = "",
                                                     tint = Color.White,
                                                     modifier = Modifier.size(36.dp).alpha(0.8f),
@@ -1078,7 +1078,7 @@ private fun AppleMusicArtworkPage(
                                                 modifier = Modifier.align(Alignment.BottomEnd),
                                             ) {
                                                 Icon(
-                                                    imageVector = if (showSubtitle) SimpIcons.SubtitlesOff else SimpIcons.Subtitles,
+                                                    imageVector = if (showSubtitle) LimusicIcons.SubtitlesOff else LimusicIcons.Subtitles,
                                                     contentDescription = "",
                                                     tint = Color.White,
                                                 )

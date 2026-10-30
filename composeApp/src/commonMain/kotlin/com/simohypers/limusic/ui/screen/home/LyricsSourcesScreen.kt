@@ -50,7 +50,7 @@ import com.simohypers.limusic.domain.data.model.lyrics.LyricsSource
 import com.simohypers.limusic.ui.component.SettingGroup
 import com.simohypers.limusic.ui.icon.DragHandle
 import com.simohypers.limusic.ui.icon.RestartAlt
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import org.jetbrains.compose.resources.StringResource
@@ -199,7 +199,7 @@ fun LyricsSourcesScreen(
                     modifier = Modifier.weight(1f).padding(top = 10.dp),
                 )
                 TextButton(onClick = { commit(LyricsSource.order(null)) }, enabled = !isDefault) {
-                    Icon(SimpIcons.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(LimusicIcons.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(Res.string.lyrics_sources_reset))
                 }
@@ -250,7 +250,7 @@ fun LyricsSourcesScreen(
                                     },
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Icon(SimpIcons.DragHandle, contentDescription = null, tint = scheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                                Icon(LimusicIcons.DragHandle, contentDescription = null, tint = scheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
                             }
                             // Where it sits among the sources that are on: the order they're asked in.
                             Box(

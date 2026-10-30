@@ -37,7 +37,7 @@ import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.HomeItemContentPlaylist
 import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.MoreAlbumsDestination
 import com.simohypers.limusic.ui.theme.typo
@@ -145,7 +145,7 @@ fun MoreAlbumsScreen(
                     navigationIcon = {
                         Box(Modifier.padding(horizontal = 5.dp)) {
                             RippleIconButton(
-                                SimpIcons.ArrowBackIosNew,
+                                LimusicIcons.ArrowBackIosNew,
                                 Modifier
                                     .size(32.dp),
                                 true,

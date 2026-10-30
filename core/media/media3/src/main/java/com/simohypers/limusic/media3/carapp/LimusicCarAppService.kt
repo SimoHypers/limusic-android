@@ -35,7 +35,7 @@ import com.simohypers.limusic.media3.service.SimpleMediaService
  * (header + custom queue screen) on top of it.
  */
 @UnstableApi
-internal class SimpMusicCarAppService : CarAppService() {
+internal class LimusicCarAppService : CarAppService() {
     override fun createHostValidator(): HostValidator =
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
             HostValidator.ALLOW_ALL_HOSTS_VALIDATOR
@@ -46,11 +46,11 @@ internal class SimpMusicCarAppService : CarAppService() {
                 .build()
         }
 
-    override fun onCreateSession(): Session = SimpMusicCarSession()
+    override fun onCreateSession(): Session = LimusicCarSession()
 }
 
 @UnstableApi
-internal class SimpMusicCarSession : Session() {
+internal class LimusicCarSession : Session() {
     private var browserFuture: ListenableFuture<MediaBrowser>? = null
 
     init {
@@ -154,7 +154,7 @@ internal class SimpMusicCarSession : Session() {
     }
 
     private companion object {
-        private const val TAG = "SimpMusicCarSession"
+        private const val TAG = "LimusicCarSession"
 
         // Docs-defined action for templated media apps; no library constant as of car-app 1.9.0-alpha01
         private const val ACTION_SHOW_MEDIA_PLAYBACK = "androidx.car.app.media.action.SHOW_MEDIA_PLAYBACK"

@@ -119,7 +119,7 @@ import com.simohypers.limusic.ui.icon.Headphones
 import com.simohypers.limusic.ui.icon.OpenInFull
 import com.simohypers.limusic.ui.icon.PictureInPictureAlt
 import com.simohypers.limusic.ui.icon.QueueMusic
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.VolumeOff
 import com.simohypers.limusic.ui.icon.VolumeUp
 import com.simohypers.limusic.ui.screen.player.content.toAudioQualityLabel
@@ -701,7 +701,7 @@ fun MiniPlayer(
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Icon(
-                                            imageVector = SimpIcons.OpenInFull,
+                                            imageVector = LimusicIcons.OpenInFull,
                                             contentDescription = null,
                                             tint = Color.White,
                                             modifier = Modifier.size(14.dp),
@@ -811,7 +811,7 @@ fun MiniPlayer(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    imageVector = SimpIcons.Headphones,
+                                    imageVector = LimusicIcons.Headphones,
                                     contentDescription = null,
                                     tint = textColor.copy(alpha = 0.45f),
                                     modifier = Modifier.size(13.dp),
@@ -887,7 +887,7 @@ fun MiniPlayer(
                         },
                     ) {
                         Icon(
-                            imageVector = SimpIcons.QueueMusic,
+                            imageVector = LimusicIcons.QueueMusic,
                             tint = textColor,
                             contentDescription = "",
                         )
@@ -896,7 +896,7 @@ fun MiniPlayer(
                     if (getPlatform() == Platform.Desktop) {
                         IconButton(onClick = { toggleMiniPlayer() }) {
                             Icon(
-                                imageVector = SimpIcons.PictureInPictureAlt,
+                                imageVector = LimusicIcons.PictureInPictureAlt,
                                 tint = textColor,
                                 contentDescription = "Mini Player",
                             )
@@ -949,9 +949,9 @@ fun MiniPlayer(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        SimpIcons.VolumeUp
+                                        LimusicIcons.VolumeUp
                                     } else {
-                                        SimpIcons.VolumeOff
+                                        LimusicIcons.VolumeOff
                                     },
                                 tint = textColor,
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
@@ -1075,9 +1075,9 @@ fun MiniPlayer(
                                     Icon(
                                         imageVector =
                                             if (controllerState.volume > 0f) {
-                                                SimpIcons.VolumeUp
+                                                LimusicIcons.VolumeUp
                                             } else {
-                                                SimpIcons.VolumeOff
+                                                LimusicIcons.VolumeOff
                                             },
                                         tint = textColor.copy(alpha = 0.7f),
                                         contentDescription = null,
@@ -1088,7 +1088,7 @@ fun MiniPlayer(
                         }
                     }
                     IconButton(onClick = { onClose() }) {
-                        Icon(SimpIcons.Close, "", tint = textColor)
+                        Icon(LimusicIcons.Close, "", tint = textColor)
                     }
                 }
             }

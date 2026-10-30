@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simohypers.limusic.ui.icon.Explicit
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
 import limusic.composeapp.generated.resources.Res
@@ -32,7 +32,7 @@ fun ExplicitBadge(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = SimpIcons.Explicit,
+            imageVector = LimusicIcons.Explicit,
             "Explicit",
             tint = Color.LightGray,
         )

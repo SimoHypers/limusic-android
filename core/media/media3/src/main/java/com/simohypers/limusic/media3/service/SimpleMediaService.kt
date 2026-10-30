@@ -3,6 +3,7 @@ package com.simohypers.limusic.media3.service
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningAppProcessInfo
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -105,6 +106,9 @@ internal class SimpleMediaService :
                 setSmallIcon(R.drawable.mono)
             },
         )
+        // ponytail: installs from before 2026-10-30 still have the playback channel under its old id;
+        // dropping it leaves one channel in Android's notification settings. Remove once testers have updated.
+        getSystemService(NotificationManager::class.java)?.deleteNotificationChannel("SimpMusic Playback Notification ID")
 
         if (mediaSession == null) {
             mediaSession =

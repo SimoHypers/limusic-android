@@ -146,7 +146,7 @@ import com.simohypers.limusic.ui.icon.Sensors
 import com.simohypers.limusic.ui.icon.Share
 import com.simohypers.limusic.ui.icon.Shuffle
 import com.simohypers.limusic.ui.icon.SelectAll
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.Speed
 import com.simohypers.limusic.ui.icon.Sync
@@ -564,7 +564,7 @@ fun InfoPlayerBottomSheet(
                                 // ponytail: no toast, Android 13+ shows its own clipboard confirmation.
                                 IconButton(onClick = { copyToClipboard("YouTube URL", url) }) {
                                     Icon(
-                                        imageVector = SimpIcons.ContentCopy,
+                                        imageVector = LimusicIcons.ContentCopy,
                                         contentDescription = stringResource(Res.string.youtube_url),
                                         tint = rememberSurfaceDarkColors().subtitle,
                                     )
@@ -674,22 +674,22 @@ private fun QueueItemActions(
         onDone()
     }
     if (index > 0) {
-        ActionButton(icon = SimpIcons.KeyboardDoubleArrowUp, text = Res.string.move_up) {
+        ActionButton(icon = LimusicIcons.KeyboardDoubleArrowUp, text = Res.string.move_up) {
             act { musicServiceHandler.moveInQueue(index, index - 1) }
         }
     }
     if (index < queueSize - 1) {
-        ActionButton(icon = SimpIcons.KeyboardDoubleArrowDown, text = Res.string.move_down) {
+        ActionButton(icon = LimusicIcons.KeyboardDoubleArrowDown, text = Res.string.move_down) {
             act { musicServiceHandler.moveInQueue(index, index + 1) }
         }
     }
     // Hidden on the playing track and on the one already next: there is nowhere to move them.
     if (current >= 0 && index != current && index != current + 1) {
-        ActionButton(icon = SimpIcons.SkipNext, text = Res.string.move_to_play_next) {
+        ActionButton(icon = LimusicIcons.SkipNext, text = Res.string.move_to_play_next) {
             act { musicServiceHandler.moveItemToPlayNext(index) }
         }
     }
-    ActionButton(icon = SimpIcons.Delete, text = Res.string.delete_from_queue) {
+    ActionButton(icon = LimusicIcons.Delete, text = Res.string.delete_from_queue) {
         act { musicServiceHandler.removeMediaItem(index) }
     }
 }
@@ -959,7 +959,7 @@ private fun NowPlayingBottomSheetContent(
                     Crossfade(targetState = onDelete != null) {
                         if (it) {
                             ActionButton(
-                                icon = SimpIcons.Delete,
+                                icon = LimusicIcons.Delete,
                                 text = Res.string.delete_song_from_playlist,
                             ) {
                                 hideModalBottomSheet()
@@ -970,7 +970,7 @@ private fun NowPlayingBottomSheetContent(
                     Crossfade(targetState = onLibraryDelete != null) {
                         if (it) {
                             ActionButton(
-                                icon = SimpIcons.Delete,
+                                icon = LimusicIcons.Delete,
                                 text = Res.string.delete,
                             ) {
                                 hideModalBottomSheet()
@@ -988,11 +988,11 @@ private fun NowPlayingBottomSheetContent(
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> SimpIcons.DownloadForOfflineOutlined
-                                DownloadState.STATE_DOWNLOADING -> SimpIcons.Downloading
-                                DownloadState.STATE_DOWNLOADED -> SimpIcons.DownloadForOffline
-                                DownloadState.STATE_PREPARING -> SimpIcons.Downloading
-                                else -> SimpIcons.DownloadForOfflineOutlined
+                                DownloadState.STATE_NOT_DOWNLOADED -> LimusicIcons.DownloadForOfflineOutlined
+                                DownloadState.STATE_DOWNLOADING -> LimusicIcons.Downloading
+                                DownloadState.STATE_DOWNLOADED -> LimusicIcons.DownloadForOffline
+                                DownloadState.STATE_PREPARING -> LimusicIcons.Downloading
+                                else -> LimusicIcons.DownloadForOfflineOutlined
                             },
                         // The old baseline_downloaded.xml carried #FF00A0CB baked in; the shared
                         // symbol is neutral, so the "done" state has to say the colour out loud.
@@ -1014,7 +1014,7 @@ private fun NowPlayingBottomSheetContent(
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
                     }
                     ActionButton(
-                        icon = SimpIcons.PlaylistAdd,
+                        icon = LimusicIcons.PlaylistAdd,
                         text = Res.string.add_to_a_playlist,
                     ) {
                         viewModel.resetPlaylists()
@@ -1023,23 +1023,23 @@ private fun NowPlayingBottomSheetContent(
                     // A queue row is already in the queue: its own rows above move it instead.
                     if (queuePosition == null) {
                         ActionButton(
-                            icon = SimpIcons.PlayCircle,
+                            icon = LimusicIcons.PlayCircle,
                             text = Res.string.play_next,
                         ) {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
                         }
-                        ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) {
+                        ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
                         }
                     }
                     ActionButton(
-                        icon = SimpIcons.PeopleAlt,
+                        icon = LimusicIcons.PeopleAlt,
                         text = Res.string.artists,
                     ) {
                         artist = true
                     }
                     ActionButton(
-                        icon = SimpIcons.Album,
+                        icon = LimusicIcons.Album,
                         // Three states, not two. A track can carry an album ID with no title: the
                         // row it was parsed from links an album but never spells its name out.
                         // That case still navigates, so it must not read "No album" — but the name
@@ -1067,7 +1067,7 @@ private fun NowPlayingBottomSheetContent(
                         }
                     }
                     ActionButton(
-                        icon = SimpIcons.Sensors,
+                        icon = LimusicIcons.Sensors,
                         text = Res.string.start_radio,
                     ) {
                         viewModel.onUIEvent(
@@ -1087,7 +1087,7 @@ private fun NowPlayingBottomSheetContent(
                             Crossfade(targetState = isRunning) { running ->
                                 if (running) {
                                     ActionButton(
-                                        icon = SimpIcons.AccessAlarm,
+                                        icon = LimusicIcons.AccessAlarm,
                                         textString =
                                             if (isEndOfSong) {
                                                 stringResource(Res.string.sleep_timer_end_of_song)
@@ -1102,7 +1102,7 @@ private fun NowPlayingBottomSheetContent(
                                     }
                                 } else {
                                     ActionButton(
-                                        icon = SimpIcons.AccessAlarm,
+                                        icon = LimusicIcons.AccessAlarm,
                                         text = Res.string.sleep_timer_off,
                                     ) {
                                         sleepTimer = true
@@ -1114,7 +1114,7 @@ private fun NowPlayingBottomSheetContent(
                     Crossfade(targetState = setSleepTimerEnable) {
                         if (it) {
                             ActionButton(
-                                icon = SimpIcons.Speed,
+                                icon = LimusicIcons.Speed,
                                 text =
                                     if (crossfadeEnabled != DataStoreManager.TRUE) {
                                         Res.string.playback_speed_pitch
@@ -1128,13 +1128,13 @@ private fun NowPlayingBottomSheetContent(
                         }
                     }
                     ActionButton(
-                        icon = SimpIcons.Share,
+                        icon = LimusicIcons.Share,
                         text = Res.string.share,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
                     }
                     if (onShowInfo != null) {
-                        ActionButton(icon = SimpIcons.Info, text = Res.string.song_info) {
+                        ActionButton(icon = LimusicIcons.Info, text = Res.string.song_info) {
                             hideModalBottomSheet()
                             onShowInfo()
                         }
@@ -1161,7 +1161,7 @@ fun PlayActionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
-            imageVector = SimpIcons.PlayArrow,
+            imageVector = LimusicIcons.PlayArrow,
             contentDescription = null,
             modifier = Modifier.wrapContentSize(Alignment.Center).padding(12.dp),
             colorFilter = ColorFilter.tint(accent),
@@ -1177,7 +1177,7 @@ fun PlayActionRow(
             contentAlignment = Alignment.Center,
         ) {
             Image(
-                imageVector = SimpIcons.Shuffle,
+                imageVector = LimusicIcons.Shuffle,
                 contentDescription = stringResource(Res.string.shuffle_play),
                 modifier = Modifier.size(20.dp),
                 colorFilter = ColorFilter.tint(accent),
@@ -1267,9 +1267,9 @@ fun CheckBoxActionButton(
                 } else {
                     Crossfade(stateChecked) {
                         if (it) {
-                            Icon(SimpIcons.CheckCircle, "")
+                            Icon(LimusicIcons.CheckCircle, "")
                         } else {
-                            Icon(SimpIcons.AddCircleOutline, "")
+                            Icon(LimusicIcons.AddCircleOutline, "")
                         }
                     }
                 }
@@ -1327,7 +1327,7 @@ fun HeartCheckBox(
                 )
             } else {
                 Image(
-                    imageVector = SimpIcons.FavoriteBorder,
+                    imageVector = LimusicIcons.FavoriteBorder,
                     contentDescription = "Favorite unchecked",
                     modifier = Modifier.fillMaxSize().padding(4.dp),
                     colorFilter = ColorFilter.tint(tint),
@@ -1378,7 +1378,7 @@ fun PlaybackSpeedPitchBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Image(
-                            imageVector = SimpIcons.Speed,
+                            imageVector = LimusicIcons.Speed,
                             contentDescription = stringResource(Res.string.playback_speed),
                             modifier = Modifier.size(24.dp),
                             colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().subtitle),
@@ -1394,7 +1394,7 @@ fun PlaybackSpeedPitchBottomSheet(
                             },
                         ) {
                             Icon(
-                                SimpIcons.Remove,
+                                LimusicIcons.Remove,
                                 contentDescription = "Decrease speed",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
@@ -1416,7 +1416,7 @@ fun PlaybackSpeedPitchBottomSheet(
                             },
                         ) {
                             Icon(
-                                SimpIcons.Add,
+                                LimusicIcons.Add,
                                 contentDescription = "Increase speed",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
@@ -1434,7 +1434,7 @@ fun PlaybackSpeedPitchBottomSheet(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                SimpIcons.Tune,
+                                LimusicIcons.Tune,
                                 contentDescription = stringResource(Res.string.pitch),
                                 modifier = Modifier.size(24.dp),
                                 tint = rememberSurfaceDarkColors().subtitle,
@@ -1447,7 +1447,7 @@ fun PlaybackSpeedPitchBottomSheet(
                                 },
                             ) {
                                 Icon(
-                                    SimpIcons.Remove,
+                                    LimusicIcons.Remove,
                                     contentDescription = "Decrease pitch",
                                     tint = rememberSurfaceDarkColors().subtitle,
                                 )
@@ -1466,7 +1466,7 @@ fun PlaybackSpeedPitchBottomSheet(
                                 },
                             ) {
                                 Icon(
-                                    SimpIcons.Add,
+                                    LimusicIcons.Add,
                                     contentDescription = "Increase pitch",
                                     tint = rememberSurfaceDarkColors().subtitle,
                                 )
@@ -1562,7 +1562,7 @@ fun SleepTimerBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Image(
-                            imageVector = SimpIcons.AccessAlarm,
+                            imageVector = LimusicIcons.AccessAlarm,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(accent),
                             modifier = Modifier.size(20.dp),
@@ -1899,7 +1899,7 @@ fun AddToPlaylistModalBottomSheet(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Icon(
-                                        imageVector = SimpIcons.Search,
+                                        imageVector = LimusicIcons.Search,
                                         contentDescription = null,
                                         tint = rememberSurfaceDarkColors().subtitle,
                                         modifier = Modifier.size(20.dp),
@@ -1920,7 +1920,7 @@ fun AddToPlaylistModalBottomSheet(
                                     } else {
                                         IconButton(onClick = { query = "" }) {
                                             Icon(
-                                                imageVector = SimpIcons.Close,
+                                                imageVector = LimusicIcons.Close,
                                                 contentDescription = null,
                                                 tint = rememberSurfaceDarkColors().subtitle,
                                                 modifier = Modifier.size(20.dp),
@@ -1969,7 +1969,7 @@ fun AddToPlaylistModalBottomSheet(
                                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Icon(SimpIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Icon(LimusicIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }
 
@@ -2076,7 +2076,7 @@ private fun PlaylistPickRow(
                 )
             }
         }
-        if (added) Icon(SimpIcons.Done, contentDescription = null, tint = colors.subtitle)
+        if (added) Icon(LimusicIcons.Done, contentDescription = null, tint = colors.subtitle)
     }
 }
 
@@ -2162,7 +2162,7 @@ fun ArtistModalBottomSheet(
                                         modifier = Modifier.padding(20.dp).align(Alignment.CenterStart),
                                     ) {
                                         Image(
-                                            imageVector = SimpIcons.PeopleAlt,
+                                            imageVector = LimusicIcons.PeopleAlt,
                                             contentDescription = "",
                                             colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
@@ -2240,29 +2240,29 @@ fun PlaylistBottomSheet(
                         hideModalBottomSheet()
                     }
                     PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
-                    ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
-                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
+                    ActionButton(icon = LimusicIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
+                    ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
                     if (onStartRadio != null) {
-                        ActionButton(icon = SimpIcons.Sensors, text = Res.string.start_radio) { run(onStartRadio) }
+                        ActionButton(icon = LimusicIcons.Sensors, text = Res.string.start_radio) { run(onStartRadio) }
                     }
-                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    ActionButton(icon = LimusicIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
                     if (onSelectTracks != null) {
-                        ActionButton(icon = SimpIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
+                        ActionButton(icon = LimusicIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
                     }
                     val shareTitle = stringResource(Res.string.share)
-                    ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
+                    ActionButton(icon = LimusicIcons.Share, text = Res.string.share) {
                         shareUrl(shareTitle, shareLink)
                     }
                     if (onRemoveShortcut != null) {
-                        ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
+                        ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
                     }
                     if (onEditPlaylist != null) {
-                        ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
+                        ActionButton(icon = LimusicIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
                     }
                     if (onDeletePlaylist != null) {
                         val danger = MaterialTheme.colorScheme.error
                         ActionButton(
-                            icon = SimpIcons.Delete,
+                            icon = LimusicIcons.Delete,
                             text = Res.string.delete_playlist,
                             textColor = danger,
                             iconColor = danger,
@@ -2328,22 +2328,22 @@ fun LocalPlaylistBottomSheet(
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
                     PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
-                    ActionButton(icon = SimpIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
-                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
-                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+                    ActionButton(icon = LimusicIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
+                    ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
+                    ActionButton(icon = LimusicIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
                     if (onSelectTracks != null) {
-                        ActionButton(icon = SimpIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
+                        ActionButton(icon = LimusicIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
                     }
                     if (onRemoveShortcut != null) {
-                        ActionButton(icon = SimpIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
+                        ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
                     }
-                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
+                    ActionButton(icon = LimusicIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
                     if (onMoveToYouTube != null) {
-                        ActionButton(icon = SimpIcons.Cloud, text = Res.string.move_to_youtube_music) { run(onMoveToYouTube) }
+                        ActionButton(icon = LimusicIcons.Cloud, text = Res.string.move_to_youtube_music) { run(onMoveToYouTube) }
                     }
                     val danger = MaterialTheme.colorScheme.error
                     ActionButton(
-                        icon = SimpIcons.Delete,
+                        icon = LimusicIcons.Delete,
                         text = Res.string.delete_playlist,
                         textColor = danger,
                         iconColor = danger,
@@ -2426,7 +2426,7 @@ fun SortPlaylistBottomSheet(
                                 Spacer(modifier = Modifier.weight(1f))
                                 if (isSelected) {
                                     Image(
-                                        imageVector = SimpIcons.Done,
+                                        imageVector = LimusicIcons.Done,
                                         contentDescription = "Selected",
                                         colorFilter = ColorFilter.tint(seed),
                                         modifier = Modifier.size(32.dp),
@@ -2562,7 +2562,7 @@ fun DevCookieLogInBottomSheet(
                             copyToClipboard(cookie.first, cookie.second ?: "")
                             showToast(copied, ToastGravity.Bottom)
                         }) {
-                            Icon(imageVector = SimpIcons.ContentCopy, contentDescription = "Copy")
+                            Icon(imageVector = LimusicIcons.ContentCopy, contentDescription = "Copy")
                         }
                     }
                 }

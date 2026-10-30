@@ -74,7 +74,7 @@ import com.simohypers.limusic.ui.component.selection.TrackSelection
 import com.simohypers.limusic.ui.component.selection.rowKey
 import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.PlayArrow
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
@@ -427,11 +427,11 @@ private fun TopResultCard(
                         .clickable(onClick = play),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(SimpIcons.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(LimusicIcons.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                 }
                 if (menu != null) {
                     IconButton(onClick = menu) {
-                        Icon(SimpIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(LimusicIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
                     Spacer(Modifier.width(12.dp))

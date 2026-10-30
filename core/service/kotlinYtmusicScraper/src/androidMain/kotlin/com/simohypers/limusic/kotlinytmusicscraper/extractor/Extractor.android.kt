@@ -102,11 +102,11 @@ actual class Extractor {
                 "-map",
                 "1:a:0",
                 "-shortest",
-                "$filePath-SimpMusic.mp4",
+                "$filePath-limusic.mp4",
             ).joinToString(" ")
 
-        if (FileSystem.SYSTEM.exists("$filePath-SimpMusic.mp4".toPath())) {
-            FileSystem.SYSTEM.delete("$filePath-SimpMusic.mp4".toPath())
+        if (FileSystem.SYSTEM.exists("$filePath-limusic.mp4".toPath())) {
+            FileSystem.SYSTEM.delete("$filePath-limusic.mp4".toPath())
         }
 
         val session =
@@ -165,8 +165,8 @@ actual class Extractor {
             if (FileSystem.SYSTEM.exists("$filePath.mp3".toPath())) {
                 FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
             }
-            if (FileSystem.SYSTEM.exists("$filePath-simpmusic.mp3".toPath())) {
-                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+            if (FileSystem.SYSTEM.exists("$filePath-limusic.mp3".toPath())) {
+                FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -222,7 +222,7 @@ actual class Extractor {
                 "-metadata",
                 "album=\"${track.album?.name ?: track.title}\"",
                 "-disposition:v:0 attached_pic",
-                "$filePath-simpmusic.mp3",
+                "$filePath-limusic.mp3",
             ).joinToString(" ")
         val sessionInject =
             FFmpegKit.execute(
@@ -245,7 +245,7 @@ actual class Extractor {
             try {
                 FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
-                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -256,7 +256,7 @@ actual class Extractor {
             try {
                 FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
-                FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             } catch (e: IOException) {
                 e.printStackTrace()
             }

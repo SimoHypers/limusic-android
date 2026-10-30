@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.CloudOff: ImageVector
+val LimusicIcons.CloudOff: ImageVector
   get() {
     if (_CloudOff != null) {
       return _CloudOff!!

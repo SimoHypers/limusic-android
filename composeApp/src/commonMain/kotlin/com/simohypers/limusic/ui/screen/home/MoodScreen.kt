@@ -19,7 +19,7 @@ import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.MoodAndGenresContentItem
 import com.simohypers.limusic.ui.component.NormalAppBar
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.MoodViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -52,7 +52,7 @@ fun MoodScreen(
             leftIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        SimpIcons.ArrowBackIosNew,
+                        LimusicIcons.ArrowBackIosNew,
                         contentDescription = "Back",
                     )
                 }

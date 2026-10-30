@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.simohypers.limusic.ui.icon.DownloadForOffline
 import com.simohypers.limusic.ui.icon.DownloadForOfflineOutlined
 import com.simohypers.limusic.ui.icon.KeyboardArrowDown
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.AutoEqStatus
 import com.simohypers.limusic.viewModel.AutoEqViewModel
@@ -100,7 +100,7 @@ fun AutoEqPicker(
                     },
             )
             Icon(
-                imageVector = SimpIcons.KeyboardArrowDown,
+                imageVector = LimusicIcons.KeyboardArrowDown,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
@@ -188,9 +188,9 @@ fun AutoEqPicker(
                                     Icon(
                                         imageVector =
                                             if (downloaded) {
-                                                SimpIcons.DownloadForOffline
+                                                LimusicIcons.DownloadForOffline
                                             } else {
-                                                SimpIcons.DownloadForOfflineOutlined
+                                                LimusicIcons.DownloadForOfflineOutlined
                                             },
                                         contentDescription = null,
                                         tint =

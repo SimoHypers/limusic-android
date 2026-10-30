@@ -81,7 +81,7 @@ import com.simohypers.limusic.ui.component.selection.keyedRows
 import com.simohypers.limusic.ui.component.selection.rememberTrackSelection
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.MoreVert
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.typo
@@ -185,7 +185,7 @@ fun AlbumScreen(
                                             )
                                         }
                                         IconButton(onClick = { albumBottomSheetShow = true }, modifier = Modifier.size(40.dp)) {
-                                            Icon(SimpIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
+                                            Icon(LimusicIcons.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
                                 },
@@ -323,7 +323,7 @@ fun AlbumScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    SimpIcons.ArrowBackIosNew,
+                                    LimusicIcons.ArrowBackIosNew,
                                     Modifier
                                         .size(32.dp),
                                     true,

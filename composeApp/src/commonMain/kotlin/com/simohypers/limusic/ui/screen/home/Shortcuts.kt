@@ -66,7 +66,7 @@ import com.simohypers.limusic.ui.icon.DownloadForOffline
 import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.GridView
 import com.simohypers.limusic.ui.icon.PeopleAlt
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.TrendingUp
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
@@ -125,7 +125,7 @@ fun ShortcutsSection(
     Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                SimpIcons.GridView,
+                LimusicIcons.GridView,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                 modifier = Modifier.size(22.dp),
@@ -144,7 +144,7 @@ fun ShortcutsSection(
                     modifier = Modifier.clip(RoundedCornerShape(50)).clickable { picking = true }.padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(SimpIcons.Add, contentDescription = null, tint = onSurfaceVariant, modifier = Modifier.size(14.dp))
+                    Icon(LimusicIcons.Add, contentDescription = null, tint = onSurfaceVariant, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(Res.string.add), style = typo().bodySmall, color = onSurfaceVariant)
                 }
@@ -262,7 +262,7 @@ private fun ShortcutMenu(
                             }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(SimpIcons.GridView, contentDescription = null, tint = colors.content)
+                    Icon(LimusicIcons.GridView, contentDescription = null, tint = colors.content)
                     Spacer(Modifier.width(12.dp))
                     Text(stringResource(Res.string.remove_shortcut), style = typo().labelSmall, color = colors.content)
                 }
@@ -289,7 +289,7 @@ private fun EmptyShortcuts(onClick: () -> Unit) {
             Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(accent.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(SimpIcons.Add, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
+            Icon(LimusicIcons.Add, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
         }
         Spacer(Modifier.width(12.dp))
         Column {
@@ -429,7 +429,7 @@ private fun ShortcutPicker(
                         ShortcutArt(shortcut, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
                         ShortcutText(shortcut, overview, colors.content, Modifier.weight(1f).padding(horizontal = 12.dp))
                         Icon(
-                            if (pinned) SimpIcons.CheckCircle else SimpIcons.AddCircleOutline,
+                            if (pinned) LimusicIcons.CheckCircle else LimusicIcons.AddCircleOutline,
                             contentDescription = null,
                             tint = if (pinned) MaterialTheme.colorScheme.primary else colors.subtitle,
                         )
@@ -477,10 +477,10 @@ private fun LibraryDynamicPlaylistType.label(): StringResource =
 
 private fun LibraryDynamicPlaylistType.icon(): ImageVector =
     when (this) {
-        LibraryDynamicPlaylistType.Favorite -> SimpIcons.Favorite
-        LibraryDynamicPlaylistType.Downloaded -> SimpIcons.DownloadForOffline
-        LibraryDynamicPlaylistType.MostPlayed -> SimpIcons.TrendingUp
-        else -> SimpIcons.PeopleAlt
+        LibraryDynamicPlaylistType.Favorite -> LimusicIcons.Favorite
+        LibraryDynamicPlaylistType.Downloaded -> LimusicIcons.DownloadForOffline
+        LibraryDynamicPlaylistType.MostPlayed -> LimusicIcons.TrendingUp
+        else -> LimusicIcons.PeopleAlt
     }
 
 @Composable

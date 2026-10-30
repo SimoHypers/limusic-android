@@ -86,7 +86,7 @@ import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
 import com.simohypers.limusic.ui.component.QueueBottomSheet
 import com.simohypers.limusic.ui.component.QueuePosition
 import com.simohypers.limusic.ui.icon.KeyboardArrowDown
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.simohypers.limusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
@@ -159,7 +159,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
-            dismissIcon = SimpIcons.KeyboardArrowDown,
+            dismissIcon = LimusicIcons.KeyboardArrowDown,
             onDismiss = {
                 hideSheet()
             },

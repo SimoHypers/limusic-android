@@ -67,7 +67,7 @@ import com.simohypers.limusic.ui.icon.DownloadForOffline
 import com.simohypers.limusic.ui.icon.Downloading
 import com.simohypers.limusic.ui.icon.Error
 import com.simohypers.limusic.ui.icon.LibraryMusic
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.typo
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -264,7 +264,7 @@ fun DownloadsHeader(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         DownloadsRow(
-            icon = SimpIcons.LibraryMusic,
+            icon = LimusicIcons.LibraryMusic,
             title = stringResource(Res.string.keep_library_downloaded),
             subtitle = stringResource(if (checkingLibrary) Res.string.checking_library else Res.string.keep_library_downloaded_description),
             subtitleLines = 2,
@@ -282,7 +282,7 @@ fun DownloadsHeader(
                 }
             val failed = queue.failed.takeIf { it > 0 }?.let { pluralStringResource(Res.plurals.downloads_failed_now, it, it) }
             DownloadsRow(
-                icon = SimpIcons.Downloading,
+                icon = LimusicIcons.Downloading,
                 title = stringResource(title, queue.done, total) + " · ${(queue.progress * 100).toInt()}%",
                 subtitle = listOfNotNull(failed, queue.blocked).joinToString(" · ").ifEmpty { null },
                 subtitleLines = 2,
@@ -295,7 +295,7 @@ fun DownloadsHeader(
             )
         }
         DownloadsRow(
-            icon = SimpIcons.DownloadForOffline,
+            icon = LimusicIcons.DownloadForOffline,
             title = stringResource(Res.string.downloaded_songs),
             subtitle = pluralStringResource(Res.plurals.liked_songs_count, songCount, songCount) + " · " + bytes.sizeText(),
             onClick = onOpenSongs,
@@ -303,7 +303,7 @@ fun DownloadsHeader(
         // Only once nothing is queued: until then a missing song may just be next in line.
         if (missing > 0 && queue.remaining == 0) {
             DownloadsRow(
-                icon = SimpIcons.Error,
+                icon = LimusicIcons.Error,
                 title = pluralStringResource(Res.plurals.downloads_missing, missing, missing),
                 trailing = { TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry), color = MaterialTheme.colorScheme.primary) } },
             )
@@ -367,7 +367,7 @@ private fun DownloadsRow(
                 trailing()
             } else if (onClick != null) {
                 Icon(
-                    SimpIcons.ArrowForwardIos,
+                    LimusicIcons.ArrowForwardIos,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(end = 6.dp).size(14.dp),

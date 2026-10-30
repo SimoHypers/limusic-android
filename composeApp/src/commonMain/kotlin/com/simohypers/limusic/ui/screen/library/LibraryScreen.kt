@@ -86,7 +86,7 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Album
 import com.simohypers.limusic.ui.icon.PeopleAlt
 import com.simohypers.limusic.ui.icon.LibraryMusic
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Sync
 import com.simohypers.limusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.simohypers.limusic.ui.navigation.destination.home.NotificationDestination
@@ -158,7 +158,7 @@ fun LibraryScreen(
 
     val chipRowState = rememberScrollState()
     val currentFilter by viewModel.currentScreen.collectAsStateWithLifecycle()
-    // A chip asked for by a deep link (simpmusic://library?tab=…), applied once and cleared.
+    // A chip asked for by a deep link (limusic://library?tab=…), applied once and cleared.
     val libraryTabRequest by sharedViewModel.libraryTabRequest.collectAsStateWithLifecycle()
     LaunchedEffect(libraryTabRequest) {
         libraryTabRequest?.let {
@@ -283,7 +283,7 @@ fun LibraryScreen(
                         }
                         item {
                             LibrarySectionHeader(
-                                icon = SimpIcons.QueueMusic,
+                                icon = LimusicIcons.QueueMusic,
                                 title = stringResource(Res.string.playlists),
                                 modifier = Modifier.padding(top = 20.dp),
                                 onMore = { viewModel.setCurrentScreen(LibraryChipType.LOCAL_PLAYLIST) },
@@ -455,21 +455,21 @@ fun LibraryScreen(
                         },
                     ) {
                         Icon(
-                            imageVector = SimpIcons.Sync,
+                            imageVector = LimusicIcons.Sync,
                             contentDescription = stringResource(Res.string.library_sync_to_youtube, unsyncedCount),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }
                 }
             }
-            RippleIconButton(imageVector = SimpIcons.Add, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = LimusicIcons.Add, tint = MaterialTheme.colorScheme.onBackground) {
                 showAddSheet = true
             }
-            RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = LimusicIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
             }
             // New releases from the artists you follow; moved here from Home, next to where they live.
-            RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = LimusicIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(NotificationDestination)
             }
             ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
@@ -514,11 +514,11 @@ private val YOUR_LIBRARY_MAX_WIDTH = 842.dp
 /** The chip row, in the order it reads. */
 private val LibraryChips =
     listOf(
-        Triple(LibraryChipType.YOUR_LIBRARY, SimpIcons.GridView, Res.string.all),
-        Triple(LibraryChipType.LOCAL_PLAYLIST, SimpIcons.QueueMusic, Res.string.playlists),
-        Triple(LibraryChipType.ALBUMS, SimpIcons.Album, Res.string.albums),
-        Triple(LibraryChipType.ARTISTS, SimpIcons.PeopleAlt, Res.string.artists),
-        Triple(LibraryChipType.SONGS, SimpIcons.LibraryMusic, Res.string.songs),
-        Triple(LibraryChipType.DOWNLOADED_PLAYLIST, SimpIcons.DownloadForOffline, Res.string.library_downloads),
-        Triple(LibraryChipType.FAVORITE_PODCAST, SimpIcons.Podcasts, Res.string.podcasts),
+        Triple(LibraryChipType.YOUR_LIBRARY, LimusicIcons.GridView, Res.string.all),
+        Triple(LibraryChipType.LOCAL_PLAYLIST, LimusicIcons.QueueMusic, Res.string.playlists),
+        Triple(LibraryChipType.ALBUMS, LimusicIcons.Album, Res.string.albums),
+        Triple(LibraryChipType.ARTISTS, LimusicIcons.PeopleAlt, Res.string.artists),
+        Triple(LibraryChipType.SONGS, LimusicIcons.LibraryMusic, Res.string.songs),
+        Triple(LibraryChipType.DOWNLOADED_PLAYLIST, LimusicIcons.DownloadForOffline, Res.string.library_downloads),
+        Triple(LibraryChipType.FAVORITE_PODCAST, LimusicIcons.Podcasts, Res.string.podcasts),
     )

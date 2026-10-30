@@ -56,7 +56,7 @@ import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.PlayCircle
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Shuffle
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.LibraryDynamicPlaylistViewModel
@@ -303,7 +303,7 @@ fun LibraryDynamicPlaylistScreen(
                 navigationIcon = {
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            SimpIcons.ArrowBackIosNew,
+                            LimusicIcons.ArrowBackIosNew,
                             Modifier
                                 .size(32.dp),
                             true,
@@ -316,7 +316,7 @@ fun LibraryDynamicPlaylistScreen(
                 actions = {
                     if (isSongType) {
                         RippleIconButton(
-                            SimpIcons.PlayCircle,
+                            LimusicIcons.PlayCircle,
                             Modifier
                                 .size(48.dp),
                             fillMaxSize = true,
@@ -325,7 +325,7 @@ fun LibraryDynamicPlaylistScreen(
                             viewModel.playAll(type)
                         }
                         RippleIconButton(
-                            SimpIcons.Shuffle,
+                            LimusicIcons.Shuffle,
                             Modifier.size(32.dp),
                             true,
                             tint = MaterialTheme.colorScheme.onBackground,
@@ -335,7 +335,7 @@ fun LibraryDynamicPlaylistScreen(
                     }
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            if (showSearchBar) SimpIcons.Close else SimpIcons.Search,
+                            if (showSearchBar) LimusicIcons.Close else LimusicIcons.Search,
                             Modifier
                                 .size(32.dp),
                             true,
@@ -379,7 +379,7 @@ fun LibraryDynamicPlaylistScreen(
                                     style = typo().bodySmall,
                                 )
                             },
-                            leadingIcon = { Icon(SimpIcons.Search, contentDescription = null) },
+                            leadingIcon = { Icon(LimusicIcons.Search, contentDescription = null) },
                         )
                     }
                 },

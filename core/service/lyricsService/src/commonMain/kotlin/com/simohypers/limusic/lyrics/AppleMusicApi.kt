@@ -23,7 +23,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import com.simohypers.limusic.lyrics.am.AMTokenManager
 
-class SimpMusicLyrics {
+class AppleMusicApi {
     private var httpClient = createClient()
     var proxy: ProxyConfig? = null
         set(value) {
@@ -40,7 +40,7 @@ class SimpMusicLyrics {
             followRedirects = true
             install(HttpCache)
             install(CurlLogger) {
-                logger = { Logger.d("SimpMusicLyrics", it) }
+                logger = { Logger.d("AppleMusicApi", it) }
             }
             install(HttpSend) {
                 maxSendCount = 100
@@ -66,7 +66,7 @@ class SimpMusicLyrics {
             }
             if (proxy != null) {
                 engine {
-                    proxy = this@SimpMusicLyrics.proxy
+                    proxy = this@AppleMusicApi.proxy
                 }
             }
         }

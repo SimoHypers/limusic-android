@@ -56,7 +56,7 @@ import com.simohypers.limusic.ui.component.SettingSheet
 import com.simohypers.limusic.ui.component.codeOf
 import com.simohypers.limusic.ui.icon.Computer
 import com.simohypers.limusic.ui.icon.MoreVert
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Smartphone
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.DeviceLinkViewModel
@@ -220,7 +220,7 @@ private fun ThisPhoneCard(
     SettingCard {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                DeviceIcon(SimpIcons.Smartphone, active = song != null && control.isPlaying)
+                DeviceIcon(LimusicIcons.Smartphone, active = song != null && control.isPlaying)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(link.selfName, style = typo().labelMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -266,7 +266,7 @@ private fun DeviceCard(
     SettingCard {
         Column(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 16.dp, end = 4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                DeviceIcon(SimpIcons.Computer, active = isPlayer && link.isPlaying && device.online)
+                DeviceIcon(LimusicIcons.Computer, active = isPlayer && link.isPlaying && device.online)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(device.name, style = typo().labelMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -299,7 +299,7 @@ private fun DeviceCard(
                     }
                 }
                 IconButton(onClick = onMore) {
-                    Icon(SimpIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(LimusicIcons.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             track?.let {
@@ -383,9 +383,9 @@ private fun Header(
 ) {
     Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            HeaderIcon(if (phoneFirst) SimpIcons.Smartphone else SimpIcons.Computer)
+            HeaderIcon(if (phoneFirst) LimusicIcons.Smartphone else LimusicIcons.Computer)
             HorizontalDivider(Modifier.width(28.dp), thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-            HeaderIcon(if (phoneFirst) SimpIcons.Computer else SimpIcons.Smartphone)
+            HeaderIcon(if (phoneFirst) LimusicIcons.Computer else LimusicIcons.Smartphone)
         }
         Spacer(Modifier.height(14.dp))
         Text(title, style = typo().titleMedium, color = MaterialTheme.colorScheme.onSurface)

@@ -70,7 +70,7 @@ import com.simohypers.limusic.ui.component.SettingSheet
 import com.simohypers.limusic.ui.component.SettingGroup
 import com.simohypers.limusic.ui.component.SettingItem
 import com.simohypers.limusic.ui.icon.Discord
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -380,7 +380,7 @@ private fun PartRow(
 @Composable
 private fun DiscordBadge() {
     Box(Modifier.size(40.dp).clip(CircleShape).background(Blurple), contentAlignment = Alignment.Center) {
-        Icon(SimpIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+        Icon(LimusicIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
     }
 }
 

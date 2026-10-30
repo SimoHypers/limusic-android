@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 /** Last.fm's mark, the same path Limusic desktop draws. */
-val SimpIcons.Lastfm: ImageVector by lazy {
+val LimusicIcons.Lastfm: ImageVector by lazy {
     ImageVector
         .Builder(
             name = "Lastfm",

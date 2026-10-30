@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.simohypers.limusic.domain.repository.ListenTogetherRepository
 import com.simohypers.limusic.ui.icon.Groups
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import org.koin.compose.koinInject
 
 /**
@@ -34,7 +34,7 @@ fun ListenTogetherIconButton(onClick: () -> Unit) {
 
     Box {
         RippleIconButton(
-            imageVector = SimpIcons.Groups,
+            imageVector = LimusicIcons.Groups,
             tint = MaterialTheme.colorScheme.onBackground,
             onClick = onClick,
         )

@@ -44,7 +44,7 @@ import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.FavoriteBorder
 import com.simohypers.limusic.ui.icon.Pause
 import com.simohypers.limusic.ui.icon.PlayArrow
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -166,7 +166,7 @@ fun LimusicMiniPlayer(
             }
             IconButton(onClick = { sharedViewModel.onUIEvent(UIEvent.ToggleLike) }) {
                 Icon(
-                    imageVector = if (control.isLiked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
+                    imageVector = if (control.isLiked) LimusicIcons.Favorite else LimusicIcons.FavoriteBorder,
                     contentDescription = null,
                     tint = if (control.isLiked) MaterialTheme.colorScheme.primary else onBackground,
                     modifier = Modifier.size(22.dp),
@@ -181,7 +181,7 @@ fun LimusicMiniPlayer(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = if (control.isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+                    imageVector = if (control.isPlaying) LimusicIcons.Pause else LimusicIcons.PlayArrow,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(22.dp),
@@ -189,7 +189,7 @@ fun LimusicMiniPlayer(
             }
             IconButton(onClick = { sharedViewModel.onUIEvent(UIEvent.Next) }, enabled = control.isNextAvailable) {
                 Icon(
-                    SimpIcons.SkipNext,
+                    LimusicIcons.SkipNext,
                     contentDescription = null,
                     tint = if (control.isNextAvailable) onBackground else onBackground.copy(alpha = 0.35f),
                 )

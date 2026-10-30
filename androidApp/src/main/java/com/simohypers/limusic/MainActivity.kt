@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity() {
                 ).build()
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "Artist Worker",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             request,
         )
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {

@@ -68,7 +68,7 @@ import com.simohypers.limusic.expect.currentOrientation
 import com.simohypers.limusic.extension.copy
 import com.simohypers.limusic.ui.component.AppNavigationRail
 import com.simohypers.limusic.ui.icon.ArrowForwardIos
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
 import com.simohypers.limusic.ui.navigation.destination.home.NotificationDestination
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDestination
@@ -182,7 +182,7 @@ fun App(
         val data = intent.data
         Logger.d("MainActivity", "onCreate: $data")
         if (data != null) {
-            if (data.scheme == "simpmusic" && data.host == "notification") {
+            if (data.scheme == "limusic" && data.host == "notification") {
                 viewModel.setIntent(null)
                 navController.navigate(
                     NotificationDestination,
@@ -195,23 +195,13 @@ fun App(
                     data.getQueryParameter("state"),
                     data.getQueryParameter("error_description") ?: data.getQueryParameter("error"),
                 )
-            } else if (data.host == "simpmusic.org" || data.scheme == "simpmusic") {
-                // https://simpmusic.org/app/watch?v=VIDEO_ID
-                // https://simpmusic.org/app/playlist?list=PLAYLIST_ID
-                // https://simpmusic.org/app/channel/CHANNEL_ID
-                // simpmusic://watch?v=VIDEO_ID  (host="watch", no path)
-                // simpmusic://playlist?list=PLAYLIST_ID
-                // simpmusic://channel/CHANNEL_ID
-                val segments = data.pathSegments
-                // For simpmusic.org: segments = ["app", "watch"] → appPath = segments[1]
-                // For simpmusic://: host IS the appPath (e.g. host="watch"), segments = []
-                val appPath =
-                    if (data.scheme == "simpmusic") {
-                        data.host
-                    } else {
-                        segments.getOrNull(1)
-                    }
-                Logger.d("MainActivity", "simpmusic.org deep link, appPath: $appPath")
+            } else if (data.scheme == "limusic") {
+                // limusic://watch?v=VIDEO_ID  (host="watch", no path)
+                // limusic://playlist?list=PLAYLIST_ID
+                // limusic://channel/CHANNEL_ID
+                // The host IS the appPath.
+                val appPath = data.host
+                Logger.d("MainActivity", "App link, appPath: $appPath")
                 // A path added to the when below must also go into APP_LINK_PATHS in AppLinks.kt.
                 viewModel.setIntent(null)
                 when (appPath) {
@@ -234,15 +224,8 @@ fun App(
                     }
 
                     "channel", "c" -> {
-                        // simpmusic://channel/UCxxx → segments = ["UCxxx"]
-                        // simpmusic.org/app/channel/UCxxx → segments = ["app", "channel", "UCxxx"]
-                        val artistId =
-                            if (data.scheme == "simpmusic") {
-                                segments.firstOrNull()
-                            } else {
-                                segments.getOrNull(2)
-                            }
-                        artistId?.let {
+                        // limusic://channel/UCxxx → segments = ["UCxxx"]
+                        data.pathSegments.firstOrNull()?.let {
                             if (it.startsWith("UC")) {
                                 navController.navigate(ArtistDestination(channelId = it))
                             } else {
@@ -257,19 +240,19 @@ fun App(
                         }
                     }
 
-                    // simpmusic://search → the search screen (the launcher shortcut)
+                    // limusic://search → the search screen (the launcher shortcut)
                     "search" -> {
                         navController.navigate(SearchDestination)
                     }
 
-                    // simpmusic://library                     → the Library tab
-                    // simpmusic://library?type=favorite       → one of its collections
+                    // limusic://library                     → the Library tab
+                    // limusic://library?type=favorite       → one of its collections
                     // Added for the Playlists widget, whose shortcuts have to reach these
                     // screens from the home screen without the app already running.
                     "library" -> {
                         val type = data.getQueryParameter("type")
                         if (type.isNullOrBlank()) {
-                            // simpmusic://library?tab=chart → the Library tab on one of its chips,
+                            // limusic://library?tab=chart → the Library tab on one of its chips,
                             // named as LibraryChipType stores them.
                             val tab = libraryTabOf(data)
                             if (!isAppLinkAvailable(appPath)) {
@@ -578,7 +561,7 @@ fun App(
                                                 navController = navController,
                                                 sharedViewModel = viewModel,
                                                 isExpanded = true,
-                                                dismissIcon = SimpIcons.ArrowForwardIos,
+                                                dismissIcon = LimusicIcons.ArrowForwardIos,
                                             ) {
                                                 isShowNowPlaylistScreen = false
                                             }

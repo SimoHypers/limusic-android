@@ -118,7 +118,7 @@ import com.simohypers.limusic.ui.icon.Lyrics
 import com.simohypers.limusic.ui.icon.PeopleAlt
 import com.simohypers.limusic.ui.icon.PlayCircle
 import com.simohypers.limusic.ui.icon.Settings
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Smartphone
 import com.simohypers.limusic.ui.icon.Sync
 import com.simohypers.limusic.ui.navigation.destination.home.AppLogDestination
@@ -369,13 +369,13 @@ enum class SettingsSection(
     val hint: StringResource,
     val icon: ImageVector,
 ) {
-    GENERAL(Res.string.settings_general, Res.string.settings_general_hint, SimpIcons.Settings),
-    APPEARANCE(Res.string.settings_appearance, Res.string.settings_appearance_hint, SimpIcons.Smartphone),
-    PLAYBACK(Res.string.playback, Res.string.settings_playback_hint, SimpIcons.PlayCircle),
-    LYRICS(Res.string.lyrics, Res.string.settings_lyrics_hint, SimpIcons.Lyrics),
-    INTEGRATIONS(Res.string.settings_integrations, Res.string.settings_integrations_hint, SimpIcons.Sync),
-    DATA(Res.string.settings_data, Res.string.settings_data_hint, SimpIcons.DownloadForOffline),
-    ABOUT(Res.string.about, Res.string.settings_about_hint, SimpIcons.Info),
+    GENERAL(Res.string.settings_general, Res.string.settings_general_hint, LimusicIcons.Settings),
+    APPEARANCE(Res.string.settings_appearance, Res.string.settings_appearance_hint, LimusicIcons.Smartphone),
+    PLAYBACK(Res.string.playback, Res.string.settings_playback_hint, LimusicIcons.PlayCircle),
+    LYRICS(Res.string.lyrics, Res.string.settings_lyrics_hint, LimusicIcons.Lyrics),
+    INTEGRATIONS(Res.string.settings_integrations, Res.string.settings_integrations_hint, LimusicIcons.Sync),
+    DATA(Res.string.settings_data, Res.string.settings_data_hint, LimusicIcons.DownloadForOffline),
+    ABOUT(Res.string.about, Res.string.settings_about_hint, LimusicIcons.Info),
 }
 
 @OptIn(
@@ -594,9 +594,9 @@ fun SettingScreen(
                                 leading = {
                                     AsyncImage(
                                         model = account?.thumbnailUrl,
-                                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
-                                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
-                                        fallback = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        placeholder = rememberVectorPainter(LimusicIcons.PeopleAlt),
+                                        error = rememberVectorPainter(LimusicIcons.PeopleAlt),
+                                        fallback = rememberVectorPainter(LimusicIcons.PeopleAlt),
                                         contentDescription = null,
                                         modifier = Modifier.size(40.dp).clip(CircleShape),
                                     )
@@ -1558,7 +1558,7 @@ fun SettingScreen(
                                         Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF5865F2)),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        Icon(SimpIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                        Icon(LimusicIcons.Discord, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                                     }
                                 },
                                 navigates = true,
@@ -1593,7 +1593,7 @@ fun SettingScreen(
                                                 Modifier.size(40.dp).clip(CircleShape).background(LastfmRed),
                                                 contentAlignment = Alignment.Center,
                                             ) {
-                                                Icon(SimpIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                                                Icon(LimusicIcons.Lastfm, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                                             }
                                         }
                                     },
@@ -1616,7 +1616,7 @@ fun SettingScreen(
                                         Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        Icon(SimpIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(22.dp))
+                                        Icon(LimusicIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(22.dp))
                                     }
                                 },
                                 navigates = true,
@@ -2287,7 +2287,7 @@ fun SettingScreen(
                                 },
                                 trailingIcon = {
                                     if (!verify.first) {
-                                        SimpIcons.Error
+                                        LimusicIcons.Error
                                     }
                                 },
                                 modifier =
@@ -2473,7 +2473,7 @@ internal fun SettingTopBar(
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
                 RippleIconButton(
-                    SimpIcons.ArrowBackIosNew,
+                    LimusicIcons.ArrowBackIosNew,
                     Modifier.size(32.dp),
                     true,
                     tint = MaterialTheme.colorScheme.onSurface,

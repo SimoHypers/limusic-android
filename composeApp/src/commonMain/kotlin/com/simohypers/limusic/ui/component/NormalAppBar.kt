@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.MoreVert
-import com.simohypers.limusic.ui.icon.SimpIcons
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import org.jetbrains.compose.resources.painterResource
 import limusic.composeapp.generated.resources.Res
 
@@ -57,7 +57,7 @@ fun NormalAppBarPreview() {
         leftIcon = {
             IconButton(onClick = { }) {
                 Icon(
-                    SimpIcons.ArrowBackIosNew,
+                    LimusicIcons.ArrowBackIosNew,
                     contentDescription = "Back",
                 )
             }
@@ -65,7 +65,7 @@ fun NormalAppBarPreview() {
         rightIcon = {
             IconButton(onClick = { }) {
                 Icon(
-                    SimpIcons.MoreVert,
+                    LimusicIcons.MoreVert,
                     contentDescription = "Back",
                 )
             }

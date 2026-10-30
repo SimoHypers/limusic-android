@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.Smartphone: ImageVector
+val LimusicIcons.Smartphone: ImageVector
   get() {
     if (_Smartphone != null) {
       return _Smartphone!!

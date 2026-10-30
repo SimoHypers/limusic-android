@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-val SimpIcons.Forward5: ImageVector
+val LimusicIcons.Forward5: ImageVector
   get() {
     if (_Forward5 != null) {
       return _Forward5!!
