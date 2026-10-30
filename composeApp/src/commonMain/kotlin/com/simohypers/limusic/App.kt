@@ -703,8 +703,9 @@ fun App(
 
 /**
  * The colour of the cover at [url], for "Adapt colors to artwork"; null when [url] is null. Picked
- * the way the M3 Expressive player seeds its scheme. A colourless cover, or one that fails to load,
- * keeps the previous colour instead of flashing back to the theme between tracks, as on desktop.
+ * the way the M3 Expressive player seeds its scheme. The previous colour stays until the new cover
+ * is decoded; a colourless cover, or one that fails to load, then drops back to the theme, as on
+ * desktop (#522: keeping the last track's colour paints this one in a cover it doesn't have).
  * The mini player has already loaded the same cover, so this is a disk-cache read.
  */
 @Composable
@@ -720,12 +721,15 @@ private fun rememberArtworkColor(url: String?): Color? {
             SingletonImageLoader
                 .get(context)
                 .execute(ImageRequest.Builder(context).data(url).size(ARTWORK_SEED_PX).build())
-                .image ?: return@LaunchedEffect
+                .image
         // ponytail: decoded on the track change, not one track early as desktop does; prewarm the
         // next cover if the colour visibly lands after the artwork.
-        withContext(Dispatchers.Default) {
-            runCatching { image.toImageBitmap().toReadableBitmap(ARTWORK_SEED_PX, ARTWORK_SEED_PX).themeColorOrNull() }.getOrNull()
-        }?.let { color = it }
+        color =
+            image?.let {
+                withContext(Dispatchers.Default) {
+                    runCatching { it.toImageBitmap().toReadableBitmap(ARTWORK_SEED_PX, ARTWORK_SEED_PX).themeColorOrNull() }.getOrNull()
+                }
+            }
     }
     return color
 }
