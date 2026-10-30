@@ -113,7 +113,6 @@
     <string name="no_equalizer">Cihazınız ekolayzır özelliğine sahip değil</string>
     <string name="open_system_equalizer">Sistem ekolayzırını aç</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Mime türü</string>
     <string name="bitrate">Bit hızı</string>
     <string name="warning">Uyarı</string>
     <string name="change_language_warning">Dili değiştirmek uygulamayı kapatacaktır. Emin misin?</string>
@@ -187,7 +186,6 @@
     <string name="log_out_warning">Tüm hesaplardan çıkış yapılsın mı?</string>
     <string name="play_next">Sonrakini çal</string>
     <string name="codec">Kodek</string>
-    <string name="plays">Oynatma/Görüntüleme Sayısı</string>
     <string name="published_at">Yayınlanma tarihi %1$s</string>
     <string name="less">Daha az</string>
     <string name="no_album">Albüm yok</string>
@@ -311,7 +309,6 @@
     <string name="combine_local_and_youtube_liked_songs_description">Yalnızca YouTube'da beğenilen videoları kullanın (çevrimdışıyken şarkı beğenme özelliği desteklenmiyor)</string>
     <string name="synced_playlist_cannot_change_order">Senkronize edilen çalma listelerindeki sıra değiştirilemez</string>
     <string name="key">Anahtar</string>
-    <string name="scale">Boyut</string>
     <string name="home_offline_title">Çevrimdışı</string>
     <string name="home_offline_subtitle">İnternet bağlantınızı kontrol edin ve yeniden deneyin yada indirdiğiniz müzikleri dinleyin.</string>
     <string name="listen_to_downloaded">İndirilen müzikleri dinle</string>

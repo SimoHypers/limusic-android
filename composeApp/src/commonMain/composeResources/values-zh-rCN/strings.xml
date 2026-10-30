@@ -111,7 +111,6 @@
     <string name="normalize_volume">标准化音量</string>
     <string name="audio">音频</string>
     <string name="itag">标签</string>
-    <string name="mime_type">Mime 类型</string>
     <string name="bitrate">比特率</string>
     <string name="warning">警告</string>
     <string name="change_language_warning">更改语言将关闭您的应用。确定吗？</string>
@@ -174,7 +173,6 @@
     <string name="log_out_warning">要登出所有账户吗？</string>
     <string name="play_next">下一个播放</string>
     <string name="codec">Codec</string>
-    <string name="plays">播放/查看计数</string>
     <string name="published_at">发布在 %1$s</string>
     <string name="less">减少</string>
     <string name="no_album">无专辑</string>

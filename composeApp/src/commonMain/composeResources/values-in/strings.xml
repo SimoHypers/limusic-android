@@ -109,7 +109,6 @@
     <string name="open_system_equalizer">Buka sistem equalizer</string>
     <string name="use_your_system_equalizer">Gunakan sistem equalizer anda</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Tipe Mime</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Peringatan</string>
     <string name="change_language_warning">Ganti bahasa akan menutup app anda. apa anda yakin?</string>
@@ -168,7 +167,6 @@
     <string name="log_out_warning">Keluar dari semua akun?</string>
     <string name="play_next">Putar selanjutnya</string>
     <string name="codec">Codec</string>
-    <string name="plays">Jumlah Putar/Lihat</string>
     <string name="published_at">Dirilis pada %1$s</string>
     <string name="less">Ringkas</string>
     <string name="no_album">Album tidak tersedia</string>

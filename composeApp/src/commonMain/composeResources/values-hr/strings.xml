@@ -114,8 +114,6 @@
     <string name="open_system_equalizer">Otvori system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
     <string name="itag">Itag</string>
-    <string name="extract_source">Extract source</string>
-    <string name="mime_type">Mime Type</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Upozorenje</string>
     <string name="change_language_warning">Changing language will close your app. Are you sure?</string>
@@ -194,7 +192,6 @@
     <string name="log_out_warning">Log out from all account?</string>
     <string name="play_next">Play next</string>
     <string name="codec">Codec</string>
-    <string name="plays">Play/View Count</string>
     <string name="published_at">Published on %1$s</string>
     <string name="less">Less</string>
     <string name="enable_animated_artwork">Animated artwork</string>
@@ -345,7 +342,6 @@
     <string name="synced_playlist_cannot_change_order">Synced playlist cannot change order</string>
     <string name="bpm">BPM</string>
     <string name="key">Key</string>
-    <string name="scale">Scale</string>
     <string name="home_offline_title">Can't connect</string>
     <string name="home_offline_subtitle">Check your internet connection and try again, or listen to your downloaded music.</string>
     <string name="listen_to_downloaded">Listen to downloaded music</string>

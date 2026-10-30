@@ -106,7 +106,6 @@
     <string name="normalize_volume">Səs səviyyəsini normallaşdır</string>
     <string name="audio">Səs</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Mime Növü</string>
     <string name="bitrate">Bit sürəti</string>
     <string name="warning">Xəbərdarlıq</string>
     <string name="change_language_warning">Dilin dəyişdirilməsi tətbiqinizi bağlayacaq. Əminsiz?</string>
@@ -164,7 +163,6 @@
     <string name="log_out_warning">Bütün hesablardan çıxılsın?</string>
     <string name="play_next">Sonra səsləndir</string>
     <string name="codec">Kodlama</string>
-    <string name="plays">Səsləndirmə/Baxış Sayı</string>
     <string name="less">Daha az</string>
     <string name="no_album">Albom yoxdur</string>
     <string name="delete">Sil</string>

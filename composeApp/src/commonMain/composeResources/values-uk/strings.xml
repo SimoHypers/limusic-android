@@ -123,8 +123,6 @@
     <string name="open_system_equalizer">Відкрити системний еквалайзер</string>
     <string name="use_your_system_equalizer">Відкрити ваш системний еквалайзер</string>
     <string name="itag">Теги</string>
-    <string name="extract_source">Видобути джерело</string>
-    <string name="mime_type">Тип Mime</string>
     <string name="bitrate">Бітрейт</string>
     <string name="warning">Попередження</string>
     <string name="change_language_warning">Зміна мови призведе до закриття програми. Ви впевнені?</string>
@@ -205,7 +203,6 @@
     <string name="log_out_warning">Вийти з усіх акаунтів?</string>
     <string name="play_next">Відтворити наступу</string>
     <string name="codec">Кодек</string>
-    <string name="plays">К-сть відтворень/переглядів</string>
     <string name="published_at">Опубліковано на %1$s</string>
     <string name="less">Менше</string>
     <string name="enable_animated_artwork">Анімовані ілюстрації</string>
@@ -359,7 +356,6 @@
     <string name="synced_playlist_cannot_change_order">Синхронізований список відтворення не може змінювати порядок</string>
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
-    <string name="scale">Масштаб</string>
     <string name="home_offline_title">Помилка підключення</string>
     <string name="home_offline_subtitle">Перевірте підключення до Інтернету і повторіть спробу, або слухайте вашу завантажену музику.</string>
     <string name="listen_to_downloaded">Слухати завантажену музику</string>

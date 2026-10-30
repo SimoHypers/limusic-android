@@ -111,7 +111,6 @@
     <string name="normalize_volume">음량 평준화</string>
     <string name="audio">오디오</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Mime 유형</string>
     <string name="bitrate">비트 전송률</string>
     <string name="warning">주의</string>
     <string name="change_language_warning">언어를 바꾸면 앱이 닫힙니다. 정말 진행하시겠습니까?</string>
@@ -179,7 +178,6 @@
     <string name="log_out_warning">모든 계정에서 로그아웃하시겠습니까?</string>
     <string name="play_next">다음에 재생</string>
     <string name="codec">코덱</string>
-    <string name="plays">재생/조회수</string>
     <string name="published_at">발매일: %1$s</string>
     <string name="less">간단히</string>
     <string name="no_album">앨범 없음</string>
@@ -309,7 +307,6 @@
     <string name="synced_playlist_cannot_change_order">청취 기록을 로컬 데이터베이스에 기록</string>
     <string name="bpm">BPM</string>
     <string name="key">키</string>
-    <string name="scale">스케일</string>
     <string name="home_offline_title">연결 할 수 없음</string>
     <string name="home_offline_subtitle">인터넷 연결을 확인하고 다시 시도하거나 다운로드한 음악을 들어보세요.</string>
     <string name="listen_to_downloaded">다운로드한 음악 듣기</string>

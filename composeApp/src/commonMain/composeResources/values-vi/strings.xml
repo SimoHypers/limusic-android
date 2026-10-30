@@ -121,8 +121,6 @@
     <string name="open_system_equalizer">Mở bộ chỉnh âm của hệ thống</string>
     <string name="use_your_system_equalizer">Sử dụng bộ chỉnh âm của hệ thống</string>
     <string name="itag">Itag</string>
-    <string name="extract_source">Nguồn trích xuất</string>
-    <string name="mime_type">Mime Type</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Cảnh báo</string>
     <string name="change_language_warning">Thay đổi ngôn ngữ sẽ làm ứng dụng đóng. Bạn có chắc chắn?</string>
@@ -203,7 +201,6 @@
     <string name="log_out_warning">Đăng xuất khỏi tất cả các tài khoản?</string>
     <string name="play_next">Phát tiếp theo</string>
     <string name="codec">Bộ giải mã</string>
-    <string name="plays">Lượt phát/xem</string>
     <string name="published_at">Phát hành lúc %1$s</string>
     <string name="less">Ẩn bớt</string>
     <string name="enable_animated_artwork">Ảnh cover động cho bài hát</string>
@@ -357,7 +354,6 @@
     <string name="synced_playlist_cannot_change_order">Danh sách phát đã đồng bộ không thể thay đổi thứ tự</string>
     <string name="bpm">Nhịp mỗi phút</string>
     <string name="key">Khóa</string>
-    <string name="scale">Thang</string>
     <string name="home_offline_title">Không thể kết nối</string>
     <string name="home_offline_subtitle">Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</string>
     <string name="listen_to_downloaded">Nghe những bài hát đã được tải xuống</string>

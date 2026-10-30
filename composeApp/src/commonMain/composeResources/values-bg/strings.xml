@@ -111,7 +111,6 @@
     <string name="normalize_volume">Нормализиране на звукът</string>
     <string name="audio">Звук</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Mime тип</string>
     <string name="bitrate">Побитова скорост</string>
     <string name="warning">Предупреждение</string>
     <string name="change_language_warning">Промяната на езика ще затвори приложението. Сигурни ли сте?</string>
@@ -173,7 +172,6 @@
     <string name="log_out_warning">Изход от всички акаунти?</string>
     <string name="play_next">Изпълни следваща</string>
     <string name="codec">Кодек</string>
-    <string name="plays">Изпълни/Виж броя</string>
     <string name="published_at">Публикувано на %1$s</string>
     <string name="less">По-малко</string>
     <string name="no_album">Без албум</string>

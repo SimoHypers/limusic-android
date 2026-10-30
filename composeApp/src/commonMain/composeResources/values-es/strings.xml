@@ -120,8 +120,6 @@
     <string name="open_system_equalizer">Ecualizador open system</string>
     <string name="use_your_system_equalizer">Usa tu ecualizador del sistema</string>
     <string name="itag">Etiqueta</string>
-    <string name="extract_source">Fuente de extracción</string>
-    <string name="mime_type">Tipo de Mime</string>
     <string name="bitrate">Tasa de bits</string>
     <string name="warning">Advertencia</string>
     <string name="change_language_warning">Cambiar el idioma cerrará tu aplicación. ¿Estás seguro?</string>
@@ -202,7 +200,6 @@
     <string name="log_out_warning">¿Cerrar sesión en todas las cuentas?</string>
     <string name="play_next">Reproducir siguiente</string>
     <string name="codec">Códec</string>
-    <string name="plays">Número de reproducciones y vistas</string>
     <string name="published_at">Publicado el %1$s</string>
     <string name="less">Menos</string>
     <string name="enable_animated_artwork">Arte animado</string>
@@ -352,7 +349,6 @@
     <string name="synced_playlist_cannot_change_order">No se puede cambiar el orden de la lista sincronizada</string>
     <string name="bpm">BPM</string>
     <string name="key">Clave</string>
-    <string name="scale">Escala</string>
     <string name="home_offline_title">No se puede conectar</string>
     <string name="home_offline_subtitle">Compruebe su conexión a Internet e inténtelo de nuevo, o escuche su música descargada.</string>
     <string name="listen_to_downloaded">Escucha la música descargada</string>

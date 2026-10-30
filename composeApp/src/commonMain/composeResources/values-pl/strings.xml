@@ -111,7 +111,6 @@
     <string name="normalize_volume">Normalizuj głośność</string>
     <string name="audio">Dźwięk</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Typ Mime</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Ostrzeżenie</string>
     <string name="change_language_warning">Zmiana języka spowoduje zamknięcie aplikacji. Jesteś pewien?</string>
@@ -173,7 +172,6 @@
     <string name="log_out_warning">Wylogować się ze wszystkich kont?</string>
     <string name="play_next">Odtwórz następny</string>
     <string name="codec">Kodek</string>
-    <string name="plays">Liczba odtworzeń/wyświetleń</string>
     <string name="published_at">Opublikowano %1$s</string>
     <string name="less">Mniej</string>
     <string name="no_album">Brak albumów</string>

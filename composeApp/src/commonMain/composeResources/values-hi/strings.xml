@@ -116,7 +116,6 @@
     <string name="normalize_volume">वॉल्यूम सामान्य करें</string>
     <string name="audio">ऑडियो</string>
     <string name="itag">आईटैग</string>
-    <string name="mime_type">माइम टाइप</string>
     <string name="bitrate">बिटरेट</string>
     <string name="warning">चेतावनी</string>
     <string name="change_language_warning">भाषा बदलने से ऐप बंद हो जाएगा। क्या आप सुनिश्चित हैं?</string>
@@ -178,7 +177,6 @@
     <string name="log_out_warning">सभी खातों से लॉग आउट करें?</string>
     <string name="play_next">अगला चलाएं</string>
     <string name="codec">कोडेक</string>
-    <string name="plays">प्ले/व्यू काउंट</string>
     <string name="less">कम</string>
     <string name="no_album">कोई एल्बम नहीं</string>
     <string name="delete">हटाएं</string>

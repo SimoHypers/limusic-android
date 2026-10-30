@@ -122,8 +122,6 @@
     <string name="open_system_equalizer">System-Equalizer öffnen</string>
     <string name="use_your_system_equalizer">Verwende deinen System-Equalizer</string>
     <string name="itag">Itag</string>
-    <string name="extract_source">Quelle extrahieren</string>
-    <string name="mime_type">Mime Typ</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Warnung</string>
     <string name="change_language_warning">Das Ändern der Sprache schließt die App. Möchtest du fortfahren?</string>
@@ -203,7 +201,6 @@
     <string name="log_out_warning">Von allen Accounts abmelden?</string>
     <string name="play_next">Als nächstes spielen</string>
     <string name="codec">Codec</string>
-    <string name="plays">Aufrufe</string>
     <string name="published_at">Veröffentlicht am %1$s</string>
     <string name="less">Weniger</string>
     <string name="enable_animated_artwork">Animiertes Cover</string>
@@ -357,7 +354,6 @@
     <string name="synced_playlist_cannot_change_order">Die Reihenfolge der synchronisierten Playlist kann nicht verändert werden</string>
     <string name="bpm">BPM</string>
     <string name="key">Tonart</string>
-    <string name="scale">Tonleiter</string>
     <string name="home_offline_title">Verbinden nicht möglich</string>
     <string name="home_offline_subtitle">Überprüfe deine Internetverbindung und versuche es noch einmal, oder höre deine heruntergeladene Musik.</string>
     <string name="listen_to_downloaded">Heruntergeladene Musik hören</string>

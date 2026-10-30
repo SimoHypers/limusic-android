@@ -124,8 +124,6 @@
     <string name="open_system_equalizer">Открыть системный эквалайзер</string>
     <string name="use_your_system_equalizer">Использовать системный эквалайзер</string>
     <string name="itag">Итег</string>
-    <string name="extract_source">Извлечь источник</string>
-    <string name="mime_type">Mime тип</string>
     <string name="bitrate">Битрейт</string>
     <string name="warning">Внимание</string>
     <string name="change_language_warning">Изменение языка закроет ваше приложение. Вы уверены?</string>
@@ -206,7 +204,6 @@
     <string name="log_out_warning">Выйти из всех аккаунтов?</string>
     <string name="play_next">Играть далее</string>
     <string name="codec">Кодек</string>
-    <string name="plays">Количество просмотров</string>
     <string name="published_at">Опубликовано: %1$s</string>
     <string name="less">Меньше</string>
     <string name="enable_animated_artwork">Анимированные обложки</string>
@@ -360,7 +357,6 @@
     <string name="synced_playlist_cannot_change_order">Порядок синхронизированного плейлиста невозможно изменить</string>
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
-    <string name="scale">Шкала</string>
     <string name="home_offline_title">Ошибка подключения</string>
     <string name="home_offline_subtitle">Проверьте подключение к Интернету и повторите попытку, или прослушивайте скачанную музыку.</string>
     <string name="listen_to_downloaded">Слушать скачанную музыку</string>

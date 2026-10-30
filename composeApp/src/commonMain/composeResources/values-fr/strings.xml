@@ -122,8 +122,6 @@
     <string name="open_system_equalizer">Ouvrir l'égaliseur système</string>
     <string name="use_your_system_equalizer">Utilisez l'égaliseur de votre système</string>
     <string name="itag">Itag</string>
-    <string name="extract_source">Extrait de la source</string>
-    <string name="mime_type">Mime Type</string>
     <string name="bitrate">Débit</string>
     <string name="warning">Attention</string>
     <string name="change_language_warning">Le changement de langue entraînera la fermeture de l'application. Êtes-vous sûr de vouloir continuer ?</string>
@@ -204,7 +202,6 @@
     <string name="log_out_warning">Se déconnecter de tous les comptes ?</string>
     <string name="play_next">Suivant</string>
     <string name="codec">Codec</string>
-    <string name="plays">Nombre de Lectures / Vues</string>
     <string name="published_at">Publié le %1$s</string>
     <string name="less">Moins</string>
     <string name="enable_animated_artwork">Illustrations animées</string>
@@ -358,7 +355,6 @@
     <string name="synced_playlist_cannot_change_order">L'ordre des titres d'une playlist synchronisée ne peut pas être modifié</string>
     <string name="bpm">BPM</string>
     <string name="key">Clé</string>
-    <string name="scale">Échelle</string>
     <string name="home_offline_title">Impossible de se connecter</string>
     <string name="home_offline_subtitle">Vérifiez votre connexion Internet et réessayez, ou écoutez la musique que vous avez téléchargée.</string>
     <string name="listen_to_downloaded">Écouter de la musique téléchargée</string>

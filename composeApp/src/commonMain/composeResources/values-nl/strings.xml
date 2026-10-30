@@ -107,7 +107,6 @@
     <string name="normalize_volume">Volume normaliseren</string>
     <string name="audio">Geluid</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">Mime-type</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Waarschuwing</string>
     <string name="change_language_warning">Veranderen van taal zal de app sluiten. Weet je het zeker?</string>

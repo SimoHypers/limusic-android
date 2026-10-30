@@ -111,7 +111,6 @@
     <string name="normalize_volume">ปรับระดับเสียงให้เท่ากัน</string>
     <string name="audio">เสียง</string>
     <string name="itag">Itag</string>
-    <string name="mime_type">ประเภท MIME</string>
     <string name="bitrate">บิตเรต</string>
     <string name="warning">คำเตือน</string>
     <string name="change_language_warning">การเปลี่ยนภาษาจะปิดแอปของคุณ คุณแน่ใจหรือไม่?</string>
@@ -186,7 +185,6 @@
     <string name="log_out_warning">ออกจากระบบทุกบัญชีใช่ไหม?</string>
     <string name="play_next">เล่นต่อไป</string>
     <string name="codec">โคเดก</string>
-    <string name="plays">เล่น/ดูจำนวน</string>
     <string name="published_at">เผยแพร่เมื่อ %1$s</string>
     <string name="less">น้อยลง</string>
     <string name="enable_animated_artwork">ปกภาพเคลื่อนไหว</string>
@@ -310,7 +308,6 @@
     <string name="synced_playlist_cannot_change_order">เพลย์ลิสต์ที่ซิงก์แล้วไม่สามารถเปลี่ยนลำดับได้</string>
     <string name="bpm">BPM</string>
     <string name="key">คีย์</string>
-    <string name="scale">บันไดเสียง</string>
     <string name="home_offline_title">ไม่สามารถเชื่อมต่อได้</string>
     <string name="home_offline_subtitle">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองใหม่อีกครั้ง หรือฟังเพลงที่คุณดาวน์โหลดไว้</string>
     <string name="listen_to_downloaded">ฟังเพลงที่ดาวน์โหลด</string>

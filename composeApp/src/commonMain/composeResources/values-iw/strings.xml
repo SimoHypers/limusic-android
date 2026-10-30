@@ -109,7 +109,6 @@
     <string name="open_system_equalizer">אקולייזר מערכת פתוחה</string>
     <string name="use_your_system_equalizer">השתמש באקולייזר המערכת שלך</string>
     <string name="itag">יציב</string>
-    <string name="mime_type">סוג Mime</string>
     <string name="bitrate">קצב סיביות</string>
     <string name="warning">אזהרה</string>
     <string name="change_language_warning">שינוי השפה יסגור את האפליקציה שלך. האם אתה בטוח?</string>
@@ -168,7 +167,6 @@
     <string name="log_out_warning">להתנתק מכל החשבונות?</string>
     <string name="play_next">ניגון השיר הבא</string>
     <string name="codec">מקודד</string>
-    <string name="plays">ספירת ניגון/צפייה</string>
     <string name="published_at">פורסם ב %1$s</string>
     <string name="less">פחות</string>
     <string name="no_album">אין אלבום</string>

@@ -120,8 +120,6 @@
     <string name="open_system_equalizer">Öppna systemets equalizer</string>
     <string name="use_your_system_equalizer">Använd systemets equalizer</string>
     <string name="itag">Itag</string>
-    <string name="extract_source">Extraheringskälla</string>
-    <string name="mime_type">MIME-typ</string>
     <string name="bitrate">Bithastighet</string>
     <string name="warning">Varning</string>
     <string name="change_language_warning">Om du ändrar språk stängs appen. Är du säker?</string>
@@ -202,7 +200,6 @@
     <string name="log_out_warning">Logga ut från alla konton?</string>
     <string name="play_next">Spela härnäst</string>
     <string name="codec">Kodek</string>
-    <string name="plays">Antal uppspelningar/visningar</string>
     <string name="published_at">Publicerad %1$s</string>
     <string name="less">Mindre</string>
     <string name="enable_animated_artwork">Animerat omslag</string>
@@ -356,7 +353,6 @@
     <string name="synced_playlist_cannot_change_order">Ordningen kan inte ändras i en synkroniserad spellista</string>
     <string name="bpm">BPM</string>
     <string name="key">Tonart</string>
-    <string name="scale">Skala</string>
     <string name="home_offline_title">Det går inte att ansluta</string>
     <string name="home_offline_subtitle">Kontrollera internetanslutningen och försök igen, eller lyssna på musik du har hämtat.</string>
     <string name="listen_to_downloaded">Lyssna på hämtad musik</string>

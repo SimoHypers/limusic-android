@@ -121,8 +121,6 @@
     <string name="open_system_equalizer">システムのイコライザーを開く</string>
     <string name="use_your_system_equalizer">システムのイコライザーを使用</string>
     <string name="itag">iタグ</string>
-    <string name="extract_source">ソースを抽出</string>
-    <string name="mime_type">MIME 種別</string>
     <string name="bitrate">ビットレート</string>
     <string name="warning">警告</string>
     <string name="change_language_warning">言語を変更するとアプリを閉じます。よろしいですか？</string>
@@ -203,7 +201,6 @@
     <string name="log_out_warning">すべてのアカウントをログアウトしますか？</string>
     <string name="play_next">次に再生</string>
     <string name="codec">コー​​デック</string>
-    <string name="plays">再生/表示回数</string>
     <string name="published_at">%1$s に公開</string>
     <string name="less">少なく表示</string>
     <string name="enable_animated_artwork">アニメーションアートワーク</string>
@@ -357,7 +354,6 @@
     <string name="synced_playlist_cannot_change_order">同期されたプレイリストは順序を変更できません</string>
     <string name="bpm">BPM</string>
     <string name="key">キー</string>
-    <string name="scale">音階</string>
     <string name="home_offline_title">接続できません</string>
     <string name="home_offline_subtitle">インターネット接続を確認して、もう一度試すか、ダウンロードした音楽を聴いてください。</string>
     <string name="listen_to_downloaded">ダウンロードした音楽を再生</string>

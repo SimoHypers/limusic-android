@@ -108,7 +108,6 @@
     <string name="normalize_volume">ضبط الصوت</string>
     <string name="audio">الصوت</string>
     <string name="itag">الوسم</string>
-    <string name="mime_type">نوع تنسيق الملف</string>
     <string name="bitrate">معدل النقل</string>
     <string name="warning">تحذير</string>
     <string name="change_language_warning">تغيير اللغة سيغلق تطبيقك. هل أنت متأكد؟</string>
@@ -170,7 +169,6 @@
     <string name="log_out_warning">تسجيل الخروج من كل الحساب؟</string>
     <string name="play_next">تشغيل التالي</string>
     <string name="codec">الترميز</string>
-    <string name="plays">عدد تشغيل/عرض</string>
     <string name="less">أقل</string>
     <string name="no_album">لا توجد ألبومات</string>
     <string name="delete">حذف</string>

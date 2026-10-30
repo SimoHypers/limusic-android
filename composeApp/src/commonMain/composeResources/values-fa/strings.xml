@@ -111,7 +111,6 @@
     <string name="normalize_volume">نرمال‌سازی صدا</string>
     <string name="audio">صدا</string>
     <string name="itag">آی‌تگ</string>
-    <string name="mime_type">نوع MIME</string>
     <string name="bitrate">نرخ بیت</string>
     <string name="warning">هشدار</string>
     <string name="change_language_warning">تغییر زبان باعث بسته شدن برنامه شما می‌شود. آیا مطمئن
@@ -176,7 +175,6 @@
     <string name="log_out_warning">آیا از همه حساب‌ها خارج شوید؟</string>
     <string name="play_next">پخش بعدی</string>
     <string name="codec">کدک</string>
-    <string name="plays">تعداد پخش/نمایش</string>
     <string name="less">کمتر</string>
     <string name="no_album">هیچ آلبومی وجود ندارد</string>
     <string name="delete">پاک‌کردن</string>
