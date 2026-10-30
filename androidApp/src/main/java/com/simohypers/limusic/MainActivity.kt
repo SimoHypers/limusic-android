@@ -243,7 +243,9 @@ class MainActivity : AppCompatActivity() {
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
             viewModel.isServiceRunning = false
         }
-        unloadKoinModules(viewModelModule)
+        // No unloadKoinModules here: onCreate already reloads the module, and a launcher shortcut
+        // starts the new activity before this one is destroyed, so unloading here would pull the
+        // view models out from under the new one.
         super.onDestroy()
         Logger.d("MainActivity", "onDestroy: ")
     }

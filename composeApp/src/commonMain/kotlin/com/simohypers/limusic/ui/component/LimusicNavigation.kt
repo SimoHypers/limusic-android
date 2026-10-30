@@ -60,6 +60,17 @@ private val limusicTabs =
 fun limusicTabIndex(destination: NavDestination): Int = limusicTabs.indexOfFirst { destination.hasRoute(it.destination::class) }
 
 /**
+ * Opens a tab the way tapping it does. A tab opened with a plain navigate (an app link) sits on
+ * Home's stack, and the next Home tap then saves and restores it straight back.
+ */
+fun NavController.navigateToTab(destination: Any) =
+    navigate(destination) {
+        popUpTo(graph.startDestinationId) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+
+/**
  * The bottom tabs. The tab you are in is the last tab on the back stack, so it stays lit on the
  * album or artist pages opened from it. Tapping it there goes back to the tab's root; tapping it on
  * the root calls [onReselect] (scroll to top or refresh).
@@ -90,11 +101,7 @@ fun LimusicNavigationBar(
                             // Restoring this tab's saved stack would bring the same page back, so pop to its root.
                             navController.popBackStack(tab.destination, inclusive = false)
                         } else {
-                            navController.navigate(tab.destination) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab(tab.destination)
                         }
                     },
                     icon = { Icon(tab.icon, contentDescription = null) },

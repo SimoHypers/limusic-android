@@ -82,6 +82,7 @@ import com.simohypers.limusic.ui.navigation.destination.player.FullscreenDestina
 import com.simohypers.limusic.ui.navigation.graph.AppNavigationGraph
 import com.simohypers.limusic.ui.component.LimusicMiniPlayer
 import com.simohypers.limusic.ui.component.LimusicNavigationBar
+import com.simohypers.limusic.ui.component.navigateToTab
 import com.simohypers.limusic.ui.screen.MiniPlayer
 import com.simohypers.limusic.ui.screen.player.NowPlayingScreen
 import com.simohypers.limusic.ui.screen.player.NowPlayingScreenContent
@@ -242,7 +243,7 @@ fun App(
 
                     // limusic://search → the search screen (the launcher shortcut)
                     "search" -> {
-                        navController.navigate(SearchDestination)
+                        navController.navigateToTab(SearchDestination)
                     }
 
                     // limusic://library                     → the Library tab
@@ -259,7 +260,7 @@ fun App(
                                 viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                             } else {
                                 viewModel.requestLibraryTab(tab)
-                                navController.navigate(LibraryDestination)
+                                navController.navigateToTab(LibraryDestination)
                             }
                         } else {
                             navController.navigate(LibraryDynamicPlaylistDestination(type = type))
@@ -351,13 +352,7 @@ fun App(
                 it.hasRoute(MixForYouDestination::class)
             } == true
         ) {
-            navController.navigate(HomeDestination) {
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
-                }
-                launchSingleTop = true
-                restoreState = true
-            }
+            navController.navigateToTab(HomeDestination)
         }
     }
     var isScrolledToTop by rememberSaveable {
