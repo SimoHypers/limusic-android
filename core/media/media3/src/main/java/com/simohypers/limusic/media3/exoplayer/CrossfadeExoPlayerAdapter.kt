@@ -1553,7 +1553,15 @@ internal class CrossfadeExoPlayerAdapter(
                 message = error.message,
                 refusal = error.refusalReason(),
             )
-        Logger.e(TAG, "Playback error: ${error.message}")
+        // Media3's OkHttpDataSource folds every OkHttp failure (DNS, TLS, refused, timeout, EMFILE)
+        // into ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, so the code alone says nothing: log the
+        // cause chain, and the open fd / thread counts that tell a leak from a bad network.
+        val causes = generateSequence(error.cause) { it.cause }.joinToString(" <- ") { "${it.javaClass.simpleName}: ${it.message}" }
+        Logger.e(
+            TAG,
+            "Playback error ${error.errorCodeName}: ${error.message} <- $causes " +
+                "(fds ${java.io.File("/proc/self/fd").list()?.size}, threads ${java.io.File("/proc/self/task").list()?.size})",
+        )
         listeners.forEach { it.onPlayerError(genericError) }
         transitionToState(InternalState.ERROR)
     }
