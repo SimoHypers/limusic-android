@@ -84,6 +84,7 @@ import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.component.LyricText
 import com.simohypers.limusic.ui.component.ExplicitBadge
 import com.simohypers.limusic.ui.component.PillIconButton
+import com.simohypers.limusic.ui.component.doubleTapToLike
 import com.simohypers.limusic.ui.component.rememberHolderPainter
 import com.simohypers.limusic.ui.icon.Forward5
 import com.simohypers.limusic.ui.icon.Fullscreen
@@ -984,10 +985,11 @@ private fun AppleMusicArtworkPage(
                                 // the title.
                                 .fillMaxSize()
                                 .padding(bottom = bottomContentHeightDp.dp)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                ) { onToggleVideoOverlay() },
+                                .doubleTapToLike(
+                                    state.controllerState.isLiked,
+                                    onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
+                                    onTap = onToggleVideoOverlay,
+                                ),
                     ) {
                         val ratio = state.videoAspectRatio
                         val frameHeight =
@@ -1143,6 +1145,22 @@ private fun AppleMusicArtworkPage(
                                 ) { actions.onToggleControls() },
                     )
                 }
+            }
+            // Double tap to like, over the artwork and on top of everything: the animated
+            // artwork's video surface would take the taps meant for a cover under it. A video
+            // backdrop keeps its own, on its zone, under the over-video buttons this would cover.
+            if (!isVideoBackdrop) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(artworkHeight)
+                        .doubleTapToLike(
+                            state.controllerState.isLiked,
+                            onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
+                            onTap = if (fullscreenCanvas) actions.onToggleControls else null,
+                        ),
+                )
             }
         } else if (pageTrack != null) {
             val staticThumb = pageTrack.thumbnails?.maxByOrNull { it.width * it.height }?.url

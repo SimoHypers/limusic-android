@@ -1,20 +1,31 @@
 package com.simohypers.limusic.ui.component
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
+import com.simohypers.limusic.ui.icon.Favorite
+import com.simohypers.limusic.ui.icon.LimusicIcons
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -78,41 +89,109 @@ fun Modifier.heartBurst(
 
     return this.drawWithContent {
         drawContent()
-        if (state.bursts.isEmpty()) return@drawWithContent
         // Launch point sits slightly above the button centre; travel distance scales with the
         // button so the effect reads the same on a 24dp list heart and a 48dp player heart.
-        val origin = Offset(size.width / 2f, size.height * 0.3f)
-        val reach = size.height * 2.2f
-        state.bursts.forEach { burst ->
-            val progress = burst.progress.value
-            if (progress <= 0f) return@forEach
-            // Decelerating flight + quadratic gravity pulling the sparks back down.
-            val flight = 1f - (1f - progress) * (1f - progress)
-            val fall = progress * progress * reach * 0.35f
-            val alpha = (1f - progress).coerceIn(0f, 1f)
-            burst.sparks.forEach { spark ->
-                val distance = spark.speed * flight * reach
-                val x = origin.x + cos(spark.angleRad) * distance
-                val y = origin.y + sin(spark.angleRad) * distance + fall
-                val sparkSize = size.height * spark.relativeSize
-                withTransform({
-                    translate(x, y)
-                    rotate(degrees = spark.spin * progress * 360f, pivot = Offset.Zero)
-                }) {
-                    when (spark.shape) {
-                        HeartSparkShape.STAR ->
-                            withTransform({ scale(sparkSize, sparkSize, Offset.Zero) }) {
-                                drawPath(starPath, color = spark.color, alpha = alpha)
-                            }
+        drawBursts(state, starPath, origin = Offset(size.width / 2f, size.height * 0.3f), extent = size.height)
+    }
+}
 
-                        HeartSparkShape.GLITTER ->
-                            drawRect(
-                                color = spark.color,
-                                alpha = alpha,
-                                topLeft = Offset(-sparkSize * 0.18f, -sparkSize * 0.55f),
-                                size = Size(sparkSize * 0.36f, sparkSize * 1.1f),
-                            )
+/**
+ * Double tap to like, for a player's artwork: a white heart pops up in the middle, overshooting a
+ * little, holds, then fades, with the like button's sparks flying off it. A double tap only ever
+ * likes; on a song already liked it just plays again, so unliking stays on the heart button.
+ *
+ * [onTap] keeps a single tap's own job where the area had one (showing the controls over a canvas
+ * or a video). That tap then waits out the double-tap window before it fires.
+ */
+@Composable
+fun Modifier.doubleTapToLike(
+    liked: Boolean,
+    onLike: () -> Unit,
+    onTap: (() -> Unit)? = null,
+): Modifier {
+    val scope = rememberCoroutineScope()
+    val heart = rememberVectorPainter(LimusicIcons.Favorite)
+    val starPath = remember { buildUnitStarPath() }
+    val burst = rememberHeartBurstState()
+    val pop = remember { Animatable(1f) }
+    val latestLiked by rememberUpdatedState(liked)
+    val latestOnLike by rememberUpdatedState(onLike)
+    val latestOnTap by rememberUpdatedState(onTap)
+
+    return this
+        .pointerInput(onTap != null) {
+            detectTapGestures(
+                onTap = if (onTap != null) ({ latestOnTap?.invoke() }) else null,
+                onDoubleTap = {
+                    if (!latestLiked) latestOnLike()
+                    burst.fire()
+                    // snapTo cancels a pop still running, so a quick second double tap restarts it.
+                    scope.launch {
+                        pop.snapTo(0f)
+                        pop.animateTo(1f, tween(POP_MS, easing = LinearEasing))
                     }
+                },
+            )
+        }.drawWithContent {
+            drawContent()
+            val ms = pop.value * POP_MS
+            if (ms < POP_MS) {
+                val scale = EaseOutBack.transform((ms / POP_IN_MS).coerceAtMost(1f))
+                val alpha = 1f - ((ms - POP_FADE_AT_MS) / (POP_MS - POP_FADE_AT_MS)).coerceIn(0f, 1f)
+                val side = size.minDimension * 0.32f * scale
+                val topLeft = center - Offset(side / 2f, side / 2f)
+                // ponytail: a hard offset shadow, so a white heart still reads on a white cover; a soft
+                // one needs a blur layer.
+                translate(topLeft.x, topLeft.y + side * 0.03f) {
+                    with(heart) { draw(Size(side, side), alpha = alpha * 0.3f, colorFilter = ColorFilter.tint(Color.Black)) }
+                }
+                translate(topLeft.x, topLeft.y) {
+                    with(heart) { draw(Size(side, side), alpha = alpha, colorFilter = ColorFilter.tint(Color.White)) }
+                }
+            }
+            val heartSide = size.minDimension * 0.32f
+            drawBursts(burst, starPath, origin = center - Offset(0f, heartSide * 0.25f), extent = heartSide * 0.5f)
+        }
+}
+
+/** The live bursts of [state], fanning up from [origin]; [extent] sets their reach and size. */
+private fun DrawScope.drawBursts(
+    state: HeartBurstState,
+    starPath: Path,
+    origin: Offset,
+    extent: Float,
+) {
+    if (state.bursts.isEmpty()) return
+    val reach = extent * 2.2f
+    state.bursts.forEach { burst ->
+        val progress = burst.progress.value
+        if (progress <= 0f) return@forEach
+        // Decelerating flight + quadratic gravity pulling the sparks back down.
+        val flight = 1f - (1f - progress) * (1f - progress)
+        val fall = progress * progress * reach * 0.35f
+        val alpha = (1f - progress).coerceIn(0f, 1f)
+        burst.sparks.forEach { spark ->
+            val distance = spark.speed * flight * reach
+            val x = origin.x + cos(spark.angleRad) * distance
+            val y = origin.y + sin(spark.angleRad) * distance + fall
+            val sparkSize = extent * spark.relativeSize
+            withTransform({
+                translate(x, y)
+                rotate(degrees = spark.spin * progress * 360f, pivot = Offset.Zero)
+            }) {
+                when (spark.shape) {
+                    HeartSparkShape.STAR ->
+                        withTransform({ scale(sparkSize, sparkSize, Offset.Zero) }) {
+                            drawPath(starPath, color = spark.color, alpha = alpha)
+                        }
+
+                    HeartSparkShape.GLITTER ->
+                        drawRect(
+                            color = spark.color,
+                            alpha = alpha,
+                            topLeft = Offset(-sparkSize * 0.18f, -sparkSize * 0.55f),
+                            size = Size(sparkSize * 0.36f, sparkSize * 1.1f),
+                        )
                 }
             }
         }
@@ -132,6 +211,11 @@ object HeartBurstDefaults {
 }
 
 private const val BURST_DURATION_MS = 750
+
+// The artwork heart: pops in over 300 ms, holds, and fades over the last 300 ms.
+private const val POP_MS = 1000
+private const val POP_IN_MS = 300f
+private const val POP_FADE_AT_MS = 700f
 private const val PARTICLES_PER_BURST = 16
 
 internal enum class HeartSparkShape { STAR, GLITTER }

@@ -91,6 +91,7 @@ import com.simohypers.limusic.ui.component.LyricsOffsetBar
 import com.simohypers.limusic.ui.component.LyricsView
 import com.simohypers.limusic.ui.component.PlayPauseButton
 import com.simohypers.limusic.ui.component.hasTiming
+import com.simohypers.limusic.ui.component.doubleTapToLike
 import com.simohypers.limusic.ui.component.lyrics.ShareLyricsSheet
 import com.simohypers.limusic.ui.component.lyrics.toShareLyricsLines
 import com.simohypers.limusic.ui.component.rememberHolderPainter
@@ -168,7 +169,15 @@ internal fun ExpressiveArtworkCardPage(
     // square card — fitted into a slot no taller than the square card a song gets, so a tall video
     // narrows the card instead of pushing the page past the fold. Every page shares the slot so the
     // pager height matches the measuring spacer in the content column (expressiveCardSlotRatio).
-    val cardAspectRatio = if (state.screenData.isVideo && state.shouldShowVideo) state.videoAspectRatio else 1f
+    val showsVideo = state.screenData.isVideo && state.shouldShowVideo
+    val cardAspectRatio = if (showsVideo) state.videoAspectRatio else 1f
+    val toggleControls = {
+        if (state.mainScrollState.value == 0) {
+            actions.onToggleControls()
+        }
+    }
+    val liked = state.controllerState.isLiked
+    val like = { actions.onUIEvent(UIEvent.ToggleLike) }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -182,11 +191,7 @@ internal fun ExpressiveArtworkCardPage(
                 // otherwise no-op — Classic verbatim.
                 .clickable(
                     enabled = pageHasCanvas,
-                    onClick = {
-                        if (state.mainScrollState.value == 0) {
-                            actions.onToggleControls()
-                        }
-                    },
+                    onClick = toggleControls,
                     indication = null,
                     interactionSource =
                         remember {
@@ -383,14 +388,7 @@ internal fun ExpressiveArtworkCardPage(
                                 modifier =
                                     Modifier
                                         .fillMaxSize()
-                                        .clickable(
-                                            onClick = onToggleFullscreenOverlay,
-                                            indication = null,
-                                            interactionSource =
-                                                remember {
-                                                    MutableInteractionSource()
-                                                },
-                                        ),
+                                        .doubleTapToLike(liked, like, onTap = onToggleFullscreenOverlay),
                             ) {
                                 Crossfade(targetState = showHideFullscreenOverlay) {
                                     if (it) {
@@ -535,6 +533,22 @@ internal fun ExpressiveArtworkCardPage(
                 topChrome = topAppBarHeightDp.dp,
                 pageColor = colorScheme.surface,
             )
+        }
+
+        // Double tap to like, laid over the card's slot on top of everything: the animated
+        // artwork's video surface would take the taps meant for a card under it. A video keeps
+        // its own inside the card, under the over-video buttons this would cover.
+        if (isCurrentArtworkPage && !showsVideo) {
+            Column(Modifier.fillMaxSize()) {
+                Spacer(Modifier.height((topAppBarHeightDp + middleLayoutPaddingDp).dp))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .aspectRatio(state.expressiveCardSlotRatio())
+                        .doubleTapToLike(liked, like, onTap = if (pageHasCanvas) toggleControls else null),
+                )
+            }
         }
     }
 }

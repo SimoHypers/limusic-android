@@ -107,6 +107,7 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Repeat
 import com.simohypers.limusic.ui.icon.RepeatOne
 import com.simohypers.limusic.ui.icon.Shuffle
+import com.simohypers.limusic.ui.component.doubleTapToLike
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
@@ -485,7 +486,10 @@ private fun CurrentArtwork(
     val showVideo = state.screenData.isVideo && state.shouldShowVideo
     // maxresdefault only exists for HD videos; hqdefault always does.
     var artworkUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(
+        Modifier.fillMaxSize().doubleTapToLike(state.controllerState.isLiked, onLike = { actions.onUIEvent(UIEvent.ToggleLike) }),
+        contentAlignment = Alignment.Center,
+    ) {
         if (!showVideo) {
             AsyncImage(
                 model =
