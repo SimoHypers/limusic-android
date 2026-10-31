@@ -57,6 +57,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.koinInject
+import com.simohypers.limusic.viewModel.SharedViewModel
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -653,6 +656,15 @@ private fun NowPlayingM3ExpressiveLayout(
                         }
                     }
                     // === 7. Below the fold ===
+                    // Starts at the screen's bottom edge: the fold math above leaves its minimum
+                    // padding free down there, and the artist card's photo used to peek into it.
+                    Spacer(
+                        Modifier.height(
+                            (screenInfo.hDP - topAppBarHeightDp - 2 * middleLayoutPaddingDp - middleLayoutHeightDp - infoLayoutHeightDp)
+                                .coerceAtLeast(0)
+                                .dp,
+                        ),
+                    )
                     ExpressiveBelowTheFold(state = state, actions = actions)
                 }
             }
@@ -679,6 +691,13 @@ internal fun ExpressiveTrackInfoRow(
     actions: NowPlayingContentActions,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val nowPlaying by koinInject<SharedViewModel>().nowPlayingState.collectAsStateWithLifecycle()
+    // "Artist • Album"; a video or a track without an album shows the artist alone.
+    val artistLine =
+        listOfNotNull(
+            state.screenData.artistName.takeIf { it.isNotBlank() },
+            nowPlaying?.songEntity?.albumName?.takeIf { it.isNotBlank() },
+        ).joinToString(" • ")
     Row(
         modifier =
             Modifier
@@ -741,7 +760,7 @@ internal fun ExpressiveTrackInfoRow(
                     )
                 }
                 Text(
-                    text = state.screenData.artistName,
+                    text = artistLine,
                     style = typo().bodyMedium,
                     color = state.secondaryTextColor(),
                     maxLines = 1,
