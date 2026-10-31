@@ -51,7 +51,6 @@ import com.simohypers.limusic.ui.component.LyricsView
 import com.simohypers.limusic.ui.component.hasTiming
 import com.simohypers.limusic.ui.component.lyrics.ShareLyricsSheet
 import com.simohypers.limusic.ui.component.lyrics.toShareLyricsLines
-import com.simohypers.limusic.ui.icon.OpenInFull
 import com.simohypers.limusic.ui.icon.Share
 import com.simohypers.limusic.ui.icon.AvTimer
 import com.simohypers.limusic.ui.icon.LimusicIcons
@@ -260,7 +259,6 @@ internal fun AppleMusicLyricsView(
                             AppleMusicFloatingCircleButton(icon = LimusicIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
                         }
                         AppleMusicFloatingCircleButton(icon = LimusicIcons.Share, onClick = { showShareSheet = true })
-                        AppleMusicFloatingCircleButton(icon = LimusicIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }
                 }
             }
@@ -304,9 +302,8 @@ internal fun AppleMusicLyricsView(
     }
 }
 
-// Long enough to read a line or two and reach for a control, short enough that the page clears
-// itself while you are just listening.
-private const val CLUSTER_AUTO_HIDE_MS = 8_000L
+// The page clears itself quickly while you are just listening; any touch brings the controls back.
+private const val CLUSTER_AUTO_HIDE_MS = 3_000L
 
 @Composable
 private fun AppleMusicFloatingCircleButton(

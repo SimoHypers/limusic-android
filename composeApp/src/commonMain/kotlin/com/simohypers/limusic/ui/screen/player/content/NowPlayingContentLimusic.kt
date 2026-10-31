@@ -147,29 +147,46 @@ fun NowPlayingContentLimusic(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    // With "Adapt colors to artwork" on, the player takes the same cover colours as the rest of
-    // the app, so opening it doesn't change the accent.
-    if (LocalArtworkColors.current) {
-        ClassicLayout(state, actions)
-    } else {
-        NowPlayingExpressiveTheme(state = state) {
-            ClassicLayout(state, actions)
-        }
-    }
+    ClassicTheme(state) { ClassicLayout(state, actions) }
+}
+
+/**
+ * Classic's Lyrics view as a page of its own: what M3 Expressive opens for fullscreen lyrics
+ * (Apple Music has its own lyrics view). The seek bar and pills come with it, the row of squares doesn't; [onClose] closes it.
+ */
+@Composable
+internal fun ClassicLyricsPage(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+    onClose: () -> Unit,
+) {
+    ClassicTheme(state) { ClassicLayout(state, actions, lyricsPageClose = onClose) }
+}
+
+// With "Adapt colors to artwork" on, the player takes the same cover colours as the rest of
+// the app, so opening it doesn't change the accent.
+@Composable
+private fun ClassicTheme(
+    state: NowPlayingContentState,
+    content: @Composable () -> Unit,
+) {
+    if (LocalArtworkColors.current) content() else NowPlayingExpressiveTheme(state = state, content = content)
 }
 
 /** What the middle of the Classic page shows. The controls under it are the same for all three. */
 private enum class ClassicView { PLAYER, QUEUE, LYRICS }
 
+/** The Classic page; with [lyricsPageClose] it is [ClassicLyricsPage], held on Lyrics. */
 @Composable
 private fun ClassicLayout(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
+    lyricsPageClose: (() -> Unit)? = null,
 ) {
     val sharedViewModel = koinInject<SharedViewModel>()
-    var view by rememberSaveable { mutableStateOf(ClassicView.PLAYER) }
+    var view by rememberSaveable { mutableStateOf(if (lyricsPageClose != null) ClassicView.LYRICS else ClassicView.PLAYER) }
     // Back leaves Queue or Lyrics for the cover before it closes the player.
-    PlatformBackHandler(enabled = view != ClassicView.PLAYER) { view = ClassicView.PLAYER }
+    PlatformBackHandler(enabled = view != ClassicView.PLAYER) { lyricsPageClose?.invoke() ?: run { view = ClassicView.PLAYER } }
     // The mini player's lyrics button opens the player on its lyrics.
     val lyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
     LaunchedEffect(lyricsRequested) {
@@ -224,7 +241,7 @@ private fun ClassicLayout(
                 when (shown) {
                     ClassicView.PLAYER -> PlayerView(state, actions, onSwipeUp = { view = ClassicView.QUEUE })
                     ClassicView.QUEUE -> QueueView(state, actions)
-                    ClassicView.LYRICS -> LyricsView(sharedViewModel, state, actions)
+                    ClassicView.LYRICS -> LyricsView(sharedViewModel, state, actions, onClose = lyricsPageClose ?: actions.onDismiss)
                 }
             }
             Column(Modifier.padding(horizontal = 24.dp)) {
@@ -254,8 +271,10 @@ private fun ClassicLayout(
                         Spacer(Modifier.height(RAISE))
                     }
                 }
-                Spacer(Modifier.height(28.dp))
-                BottomRow(state, actions, view, onQueue = { toggle(ClassicView.QUEUE) }, onLyrics = { toggle(ClassicView.LYRICS) })
+                if (lyricsPageClose == null) {
+                    Spacer(Modifier.height(28.dp))
+                    BottomRow(state, actions, view, onQueue = { toggle(ClassicView.QUEUE) }, onLyrics = { toggle(ClassicView.LYRICS) })
+                }
                 Spacer(Modifier.height(12.dp))
             }
         }
@@ -343,12 +362,13 @@ private fun LyricsView(
     sharedViewModel: SharedViewModel,
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
+    onClose: () -> Unit,
 ) {
     val lyricsData = state.screenData.lyricsData
     var sharing by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = actions.onDismiss) {
+            IconButton(onClick = onClose) {
                 Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
             Text(stringResource(Res.string.lyrics), style = typo().titleMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))

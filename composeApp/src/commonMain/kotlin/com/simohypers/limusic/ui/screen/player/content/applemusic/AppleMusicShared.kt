@@ -928,8 +928,8 @@ private val DOCK_BUTTON_SIZE = 40.dp
 private val CAPSULE_SEGMENT_WIDTH = 64.dp
 
 /**
- * Progress bar + times + transport — the playback half of [AppleMusicBottomCluster], shared with
- * the fullscreen lyrics landscape layout. Emits straight into the caller's Column; the horizontal
+ * Progress bar + times + transport — the playback half of [AppleMusicBottomCluster]. Emits
+ * straight into the caller's Column; the horizontal
  * gutter belongs to that Column, as it does in the cluster.
  */
 @Composable

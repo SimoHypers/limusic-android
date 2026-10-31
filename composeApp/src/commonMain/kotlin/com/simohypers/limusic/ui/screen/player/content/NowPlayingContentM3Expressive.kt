@@ -159,8 +159,7 @@ fun NowPlayingContentM3Expressive(
 }
 
 /**
- * This style's colour system, shared with the fullscreen lyrics landscape layout, which renders
- * this style's track row and playback controls and must colour them the same way.
+ * This style's colour system.
  */
 @Composable
 internal fun NowPlayingExpressiveTheme(
@@ -678,7 +677,6 @@ private fun NowPlayingM3ExpressiveLayout(
 internal fun ExpressiveTrackInfoRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
-    showCanvasThumbnail: Boolean = true,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     Row(
@@ -689,9 +687,8 @@ internal fun ExpressiveTrackInfoRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // While a canvas hides the big artwork, a small thumbnail joins the row — Classic
-        // verbatim (its shared NowPlayingTrackInfoRow does exactly this). Switched off by the
-        // fullscreen lyrics landscape layout, which shows the full artwork right above the row.
-        AnimatedVisibility(showCanvasThumbnail && state.screenData.fullscreenCanvas() != null) {
+        // verbatim (its shared NowPlayingTrackInfoRow does exactly this).
+        AnimatedVisibility(state.screenData.fullscreenCanvas() != null) {
             AsyncImage(
                 model =
                     ImageRequest
@@ -794,8 +791,8 @@ internal fun ExpressiveTrackInfoRow(
 }
 
 /**
- * Wavy seek bar + time row + transport — the playback half of the info block, shared with the
- * fullscreen lyrics landscape layout. Must be composed inside [NowPlayingExpressiveTheme]. Emits
+ * Wavy seek bar + time row + transport — the playback half of the info block. Must be composed
+ * inside [NowPlayingExpressiveTheme]. Emits
  * straight into the caller's Column: isElementVisible (passed in through [sliderModifier]) compares
  * the seek bar against its PARENT layout, so a wrapper here would change what it compares against.
  */

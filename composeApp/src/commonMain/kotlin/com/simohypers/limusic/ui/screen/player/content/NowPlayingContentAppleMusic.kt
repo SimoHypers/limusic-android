@@ -141,6 +141,14 @@ fun NowPlayingContentAppleMusic(
         )
     }
     LaunchedEffect(viewState) { sharedViewModel.setLastPlayerViewTab(viewState.name) }
+    // The mini player's lyrics button opens this player on its Lyrics view, as Classic does.
+    val lyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(lyricsRequested) {
+        if (lyricsRequested) {
+            viewState = AppleMusicView.LYRICS
+            sharedViewModel.consumeFullscreenLyricsRequest()
+        }
+    }
 
     // Lyrics can disappear mid-session (provider swap gone offline, a track that simply has none)
     // — fall back to MAIN rather than stranding the user on an empty body, matching the dock's own
@@ -741,8 +749,8 @@ private fun AppleMusicMainView(
 }
 
 /**
- * The frosted cover art behind the page, with the artwork-derived gradient washed over it. Shared
- * with the fullscreen lyrics landscape layout. Emits straight into the caller's Box; anything
+ * The frosted cover art behind the page, with the artwork-derived gradient washed over it.
+ * Emits straight into the caller's Box; anything
  * stacked after this call (the canvas black layer here) must keep drawing on top of it.
  */
 @Composable

@@ -13,7 +13,6 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,7 +38,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -78,24 +76,21 @@ import com.simohypers.limusic.domain.data.model.lyrics.RomanizationLanguage
 import com.simohypers.limusic.domain.repository.LyricsRomanizerRepository
 import com.simohypers.limusic.expect.ui.isLyricsBlurSupported
 import com.simohypers.limusic.domain.data.model.metadata.Line
+import com.simohypers.limusic.ui.screen.player.content.ClassicLyricsPage
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentActions
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentState
 import com.simohypers.limusic.ui.screen.player.content.stripRichSyncTimestamps
 import org.koin.compose.koinInject
-import androidx.navigation.NavController
 import com.simohypers.limusic.domain.data.model.streams.TimeLine
 import com.simohypers.limusic.extension.LyricsStagger
 import com.simohypers.limusic.extension.ParsedRichSyncLine
 import com.simohypers.limusic.extension.animateScrollAndAnchorItemTop
 import com.simohypers.limusic.extension.animateScrollAndCentralizeItem
-import com.simohypers.limusic.extension.getScreenSizeInfo
 import com.simohypers.limusic.extension.parseRichSyncWords
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.NowPlayingScreenData
-import com.simohypers.limusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import java.text.Bidi
 import kotlin.math.abs
 import kotlin.math.exp
@@ -436,7 +431,6 @@ fun LyricsView(
     timeLine: StateFlow<TimeLine>,
     onLineClick: (Float) -> Unit,
     modifier: Modifier = Modifier,
-    showScrollShadows: Boolean = false,
     backgroundColor: Color = Color(0xFF242424),
     // Optional trailing slot rendered as the LAST list item, so a caller's caption scrolls with
     // the lyrics instead of sitting anchored below them. Null by default: every existing caller
@@ -1516,62 +1510,37 @@ private fun ShapedLyricsWord(
 }
 
 /**
- * Android's host for [FullscreenLyricsContent]: the page as a full-height bottom sheet. Desktop
- * hosts the same content in a full-window Popup instead (NowPlayingScreenContent).
+ * M3 Expressive's fullscreen lyrics: Classic's Lyrics view ([ClassicLyricsPage]) in a full-height
+ * bottom sheet.
  */
 @ExperimentalMaterial3Api
-@ExperimentalFoundationApi
 @Composable
 fun FullscreenLyricsSheet(
-    sharedViewModel: SharedViewModel,
-    navController: NavController,
-    color: Color = Color(0xFF242424),
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
-    nowPlayingStyle: String,
     onDismiss: () -> Unit,
 ) {
-    val sheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
-    // ModalBottomSheet caps its width at 640dp by default, which would squeeze the two-column
-    // landscape layout into a centred strip on a phone turned sideways. Portrait keeps the default.
-    val screenInfo = getScreenSizeInfo()
-    val isLandscape = screenInfo.wDP > screenInfo.hDP
-
     ModalBottomSheet(
-        onDismissRequest = {
-            onDismiss()
-        },
+        onDismissRequest = onDismiss,
         containerColor = Color.Black,
         contentColor = Color.Transparent,
         dragHandle = {},
         scrimColor = Color.Black.copy(alpha = .5f),
-        sheetMaxWidth = if (isLandscape) Dp.Unspecified else BottomSheetDefaults.SheetMaxWidth,
+        // The default 640dp cap would leave a centred strip on a phone turned sideways.
+        sheetMaxWidth = Dp.Unspecified,
         sheetState = sheetState,
-        modifier =
-            Modifier
-                .fillMaxHeight(),
+        modifier = Modifier.fillMaxHeight(),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
     ) {
-        FullscreenLyricsContent(
-            sharedViewModel = sharedViewModel,
-            navController = navController,
-            color = color,
-            state = state,
-            actions = actions,
-            nowPlayingStyle = nowPlayingStyle,
-            // A dismiss the page asks for itself slides the sheet away before it leaves
-            // composition, instead of cutting it off mid-screen.
-            onDismiss = {
-                coroutineScope.launch {
-                    sheetState.hide()
-                    onDismiss()
-                }
-            },
-        )
+        // The page's own close slides the sheet away before it leaves composition.
+        ClassicLyricsPage(state, actions) {
+            coroutineScope.launch {
+                sheetState.hide()
+                onDismiss()
+            }
+        }
     }
 }

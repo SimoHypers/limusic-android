@@ -1718,14 +1718,11 @@ fun NowPlayingContentSpotify(
 // The focused info layout (controls visible) and the canvas-unfocused overlay rendered this
 // exact metadata row twice — thumbnail-when-canvas, title, explicit badge + artists,
 // YouTube like button, favourite heart. Extracted once; both call sites pass the same holders.
-// The fullscreen lyrics landscape layout reuses it too, with the thumbnail off: that layout
-// already shows the artwork at full size right above the row.
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun NowPlayingTrackInfoRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
-    showCanvasThumbnail: Boolean = true,
 ) {
     Row(
         modifier =
@@ -1734,7 +1731,7 @@ internal fun NowPlayingTrackInfoRow(
                 .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AnimatedVisibility(showCanvasThumbnail && state.screenData.fullscreenCanvas() != null) {
+        AnimatedVisibility(state.screenData.fullscreenCanvas() != null) {
             AsyncImage(
                 model =
                     ImageRequest
@@ -1817,8 +1814,8 @@ internal fun NowPlayingTrackInfoRow(
     }
 }
 
-// Seek bar, time row and transport — the playback half of the info layout, shared with the
-// fullscreen lyrics landscape layout. Emits straight into the caller's Column rather than wrapping
+// Seek bar, time row and transport — the playback half of the info layout. Emits straight into
+// the caller's Column rather than wrapping
 // itself in one: isElementVisible (passed in through [sliderModifier]) compares the slider against
 // its PARENT layout, so a wrapper here would silently change what it compares against.
 @Composable
