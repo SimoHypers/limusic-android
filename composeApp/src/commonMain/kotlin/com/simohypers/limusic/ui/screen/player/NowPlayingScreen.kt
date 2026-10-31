@@ -259,19 +259,28 @@ fun NowPlayingScreenContent(
     // ⓪ Same track, new page: a reorder (shuffle) or a trimmed radio history moves the playing
     // track to another page without changing it. Jump in the SAME frame: ① is a LaunchedEffect and
     // only runs on the next one, so for a frame the pager drew whatever cover the new order had put
-    // on its old page, or slid in from it. A plain holder, not state: it only remembers which track
-    // the last composition saw, and writing it must not recompose.
+    // on its old page, or slid in from it. Plain holders, not state: they only remember what the
+    // last composition saw, and writing them must not recompose.
+    //
+    // Only when the INDEX moved, not the pager: after a swipe settles, the seek takes a few frames
+    // to change the track, and in that gap "same track, other page" holds too. Jumping then
+    // snapped the pager back to the old cover before it slid forward again.
     val lastTrackId = remember { arrayOfNulls<String>(1) }
+    val lastOrderIndex = remember { intArrayOf(currentOrderIndex) }
     val jumpTarget = currentOrderIndex
     if (!isUserDraggingActive &&
         jumpTarget in artworkQueue.indices &&
         jumpTarget != artworkPagerState.currentPage &&
+        jumpTarget != lastOrderIndex[0] &&
         nowPlayingVideoId != null &&
         nowPlayingVideoId == lastTrackId[0]
     ) {
         SideEffect { artworkPagerState.requestScrollToPage(jumpTarget) }
     }
-    SideEffect { lastTrackId[0] = nowPlayingVideoId }
+    SideEffect {
+        lastTrackId[0] = nowPlayingVideoId
+        lastOrderIndex[0] = jumpTarget
+    }
 
     // ① Player → Pager: animate to new track when player advances.
     //
