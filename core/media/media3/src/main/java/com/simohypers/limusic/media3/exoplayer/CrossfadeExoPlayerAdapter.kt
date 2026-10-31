@@ -218,6 +218,15 @@ internal class CrossfadeExoPlayerAdapter(
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     }
 
+    /**
+     * One audio session for every player this adapter builds. Each track gets a new ExoPlayer, and
+     * each ExoPlayer would otherwise open its own session, so a system equalizer (Poweramp, Wavelet)
+     * had to attach again on every track. Declared above the initial player, which reads it.
+     */
+    private val sharedAudioSessionId: Int by lazy {
+        audioManager?.generateAudioSessionId()?.takeIf { it > 0 } ?: C.AUDIO_SESSION_ID_UNSET
+    }
+
     @Volatile
     private var hasAudioFocus = false
 
@@ -613,6 +622,7 @@ internal class CrossfadeExoPlayerAdapter(
                 .setMediaSourceFactory(mediaSourceFactory)
                 .setRenderersFactory(perPlayerRenderers)
                 .build()
+        if (sharedAudioSessionId != C.AUDIO_SESSION_ID_UNSET) player.setAudioSessionId(sharedAudioSessionId)
 
         // The output the user picked, if any: a player built for the next track, a crossfade or a
         // precache starts where the others are playing rather than back on the system's choice.

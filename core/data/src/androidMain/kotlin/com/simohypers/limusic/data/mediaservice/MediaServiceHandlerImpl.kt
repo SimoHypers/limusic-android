@@ -1681,9 +1681,9 @@ internal class MediaServiceHandlerImpl(
             return
         }
 
-        // Always recreate LoudnessEnhancer because CrossfadeExoPlayerAdapter creates new
-        // ExoPlayer instances per track, each with a different audio session ID.
-        // The old LoudnessEnhancer becomes attached to a released session and has no effect.
+        // Always recreate LoudnessEnhancer: CrossfadeExoPlayerAdapter creates a new ExoPlayer per
+        // track, and they share one audio session only when the system handed one out. Otherwise
+        // each has its own, and an old LoudnessEnhancer sits on a released session with no effect.
         // Skip entirely while casting: a Cast session has no local audio session, and
         // constructing a LoudnessEnhancer with session id 0 (AUDIO_SESSION_ID_UNSET) throws.
         if (!_castState.value.isRemote && player.audioSessionId != PlayerConstants.AUDIO_SESSION_ID_UNSET) {
