@@ -642,6 +642,10 @@ internal class CrossfadeExoPlayerAdapter(
                             Logger.d(TAG, "Play: replaying from the start after end of queue")
                             player.seekTo(0L)
                         }
+                        // A controller's stop (system media controls, after a long pause) reaches the
+                        // ExoPlayer through the ForwardingPlayer without passing here: it sits idle at
+                        // its position while this adapter still says paused, and play() alone does nothing.
+                        if (player.playbackState == Player.STATE_IDLE) player.prepare()
                         player.play()
                         transitionToState(InternalState.PLAYING)
                         internalPlayWhenReady = true
