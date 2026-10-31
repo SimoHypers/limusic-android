@@ -205,6 +205,7 @@
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
     <string name="song">Song</string>
+    <string name="video">Video</string>
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Auto created by YouTube Music</string>
     <string name="start_radio">Start radio</string>

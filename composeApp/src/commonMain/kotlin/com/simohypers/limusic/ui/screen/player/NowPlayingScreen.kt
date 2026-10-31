@@ -629,6 +629,10 @@ fun NowPlayingScreenContent(
             audioQualityLabel = formatState.toAudioQualityLabel(),
             lyricsOffsetMs = lyricsOffsetMs.toLong(),
             videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
+            // Like desktop, only while videos are on: with them off a video plays as its sound.
+            canSwitchVersion =
+                shouldShowVideo &&
+                    artworkQueue.getOrNull(currentOrderIndex)?.takeIf { it.videoId == nowPlayingVideoId }?.counterpart != null,
         )
     val actions =
         NowPlayingContentActions(
@@ -687,6 +691,7 @@ fun NowPlayingScreenContent(
                 mediaPlayerHandler.removeMediaItem(index)
             },
             onQueueItemMore = { index, track -> queueMoreFor = index to track },
+            onSwitchVersion = mediaPlayerHandler::switchVersion,
             onOpenLyricsSettings = {
                 onDismiss()
                 navController.navigate(LyricsSourcesDestination)

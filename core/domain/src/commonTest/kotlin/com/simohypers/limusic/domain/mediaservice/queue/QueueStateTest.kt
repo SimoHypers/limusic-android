@@ -2,6 +2,8 @@ package com.simohypers.limusic.domain.mediaservice.queue
 
 import com.simohypers.limusic.common.LOCAL_PLAYLIST_ID
 import com.simohypers.limusic.domain.data.model.browse.album.Track
+import com.simohypers.limusic.domain.data.model.browse.album.TwinSegment
+import com.simohypers.limusic.domain.data.model.searchResult.songs.Thumbnail
 import com.simohypers.limusic.domain.mediaservice.handler.RepeatState
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -495,5 +497,106 @@ class QueueStateTest {
         assertEquals(2, v.leftCount)
         assertEquals(240, v.leftSecs)
         assertEquals(0, queueView(listOf(timed("now", "3:00")), 0).leftCount)
+    }
+    // Desktop's Song/Video switch tests (#442, #520, #535), carried over with the code they check.
+    private fun seg(
+        start: Long,
+        twin: Long,
+        duration: Long,
+    ) = TwinSegment(start, twin, duration)
+
+    private fun art(url: String) = listOf(Thumbnail(height = 1, url = url, width = 1))
+
+    @Test
+    fun swapVersionGoesBothWays() {
+        val audio =
+            song("audio").copy(
+                thumbnails = art("cover"),
+                counterpart = song("video").copy(videoType = "MUSIC_VIDEO_TYPE_OMV", thumbnails = art("frame")),
+                twinSegments = listOf(seg(0, 5477, 484451)),
+            )
+        val video = assertNotNull(audio.swappedVersion())
+        assertEquals("video" to "audio", video.videoId to video.counterpart?.videoId)
+        assertEquals("MUSIC_VIDEO_TYPE_OMV", video.videoType)
+        assertEquals(art("frame"), video.thumbnails)
+        assertEquals(listOf(seg(5477, 0, 484451)), video.twinSegments)
+        assertEquals("audio", video.title) // the row keeps its own title
+        val back = assertNotNull(video.swappedVersion())
+        assertEquals("audio" to "video", back.videoId to back.counterpart?.videoId)
+        assertEquals(art("cover"), back.thumbnails)
+        assertEquals(listOf(seg(0, 5477, 484451)), back.twinSegments)
+        // A twin known without art: the row keeps its own.
+        val album = song("audio").copy(thumbnails = art("cover"), counterpart = song("video"))
+        assertEquals(art("cover"), album.swappedVersion()?.thumbnails)
+        assertNull(song("a").swappedVersion())
+    }
+
+    // The Mirrors pair from #520: the song starts 5.477 s into the video.
+    @Test
+    fun aSwitchLandsOnTheSameMomentOfTheOtherVersion() {
+        val video = listOf(seg(5477, 0, 484451))
+        val song = listOf(seg(0, 5477, 484451))
+        assertEquals(94_523, video.twinPositionMs(100_000))
+        assertEquals(100_000, song.twinPositionMs(94_523))
+        assertEquals(0, video.twinPositionMs(3_000)) // still in the intro: the song's start
+        assertEquals(42_000, emptyList<TwinSegment>().twinPositionMs(42_000))
+    }
+
+    // "Locked Away" from #535: the video breaks between 1:49.1 and 2:03.6.
+    @Test
+    fun aSwitchMapsThroughEverySegment() {
+        val song = listOf(seg(0, 22698, 86438), seg(86439, 123644, 141061))
+        val video = listOf(seg(22698, 0, 86438), seg(123644, 86439, 141061))
+        assertEquals(82_698, song.twinPositionMs(60_000))
+        assertEquals(187_205, song.twinPositionMs(150_000))
+        assertEquals(150_000, video.twinPositionMs(187_205))
+        assertEquals(0, video.twinPositionMs(10_000)) // the intro: the song's start
+        assertEquals(86_439, video.twinPositionMs(115_000)) // the break: where the song picks up
+        assertEquals(227_500, video.twinPositionMs(265_500)) // the outro: the song's end
+    }
+
+    @Test
+    fun aTwinIsAdoptedOnlyByARowWithoutOne() {
+        val answer = song("v").copy(counterpart = song("s"), twinSegments = listOf(seg(5477, 0, 484451)))
+        val row = assertNotNull(song("v").adoptTwin(answer))
+        assertEquals("s", row.counterpart?.videoId)
+        assertEquals(listOf(seg(5477, 0, 484451)), row.twinSegments)
+        assertNull(row.adoptTwin(song("v")))
+        assertNull(row.adoptTwin(song("v").copy(counterpart = song("x"))))
+        // Known without a map: the same twin fills it in, once.
+        val bare = assertNotNull(song("v").copy(counterpart = song("s")).adoptTwin(answer))
+        assertEquals(listOf(seg(5477, 0, 484451)), bare.twinSegments)
+        assertNull(bare.adoptTwin(answer))
+    }
+
+    @Test
+    fun swappedSegmentsStayInOrder() {
+        val it = song("v").copy(counterpart = song("s"), twinSegments = listOf(seg(0, 50000, 10000), seg(20000, 0, 10000)))
+        assertEquals(listOf(seg(0, 20000, 10000), seg(50000, 0, 10000)), it.swappedVersion()?.twinSegments)
+    }
+
+    @Test
+    fun theQueueSwitchesThePlayingRowAndItsUnshuffledCopy() {
+        val q = QueueState()
+        val a = song("a").copy(counterpart = song("a-video"))
+        q.items = mutableListOf(song("x"), a, song("y"))
+        q.current = 1
+        q.shuffleOrig = mutableListOf(a, song("x"), song("y"))
+        assertTrue(q.switchVersion())
+        assertEquals(listOf("x", "a-video", "y"), ids(q.items))
+        assertEquals(listOf("a-video", "x", "y"), ids(q.shuffleOrig!!))
+        q.current = 0
+        assertFalse(q.switchVersion()) // x has no other version
+    }
+
+    @Test
+    fun theSeedLearnsItsTwinAndTheRadioDoesNotBringItsFirstVersionBack() {
+        val q = QueueState()
+        q.items = mutableListOf(song("a"))
+        assertTrue(q.learnTwin(song("a").copy(counterpart = song("a-video"))))
+        assertFalse(q.learnTwin(song("a").copy(counterpart = song("a-video"))))
+        q.switchVersion()
+        q.absorbSongRadio(listOf(song("a"), song("b")), whole = false)
+        assertEquals(listOf("a-video", "b"), ids(q.items))
     }
 }

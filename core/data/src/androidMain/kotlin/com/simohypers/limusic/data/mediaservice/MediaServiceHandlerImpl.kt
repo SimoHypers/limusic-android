@@ -1,5 +1,8 @@
 package com.simohypers.limusic.data.mediaservice
 
+import com.simohypers.limusic.domain.mediaservice.queue.twinPositionMs
+import com.simohypers.limusic.domain.mediaservice.queue.switchVersion
+import com.simohypers.limusic.domain.mediaservice.queue.learnTwin
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningAppProcessInfo
@@ -1205,6 +1208,20 @@ internal class MediaServiceHandlerImpl(
             return
         }
         playTracks(items, start, QueueData.Data(playlistId = seed, playlistName = name, playlistType = PlaylistType.RADIO), play, radio = true)
+    }
+
+    override fun switchVersion() {
+        val from = q.items.getOrNull(q.current) ?: return
+        if (!q.switchVersion()) return
+        val position = player.contentPosition
+        // Only a track that has really started carries on; at its very start or end the other
+        // version starts from the top.
+        val resume = player.duration > 0 && position > 1_000 && position < player.duration
+        sync(reload = true, startPositionMs = if (resume) from.twinSegments.twinPositionMs(position) else 0L)
+    }
+
+    override fun learnTwin(row: Track) {
+        if (q.learnTwin(row)) sync()
     }
 
     /** The notification's Radio button: a radio on the playing song, behind it. */

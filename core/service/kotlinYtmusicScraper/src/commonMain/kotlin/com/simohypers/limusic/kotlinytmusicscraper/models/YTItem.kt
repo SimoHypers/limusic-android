@@ -21,6 +21,16 @@ data class Album(
     val id: String,
 )
 
+/**
+ * A stretch two versions of a recording share (#442 on desktop): [startMs] into this one is
+ * [twinStartMs] into the other, for [durationMs]. A `segmentMap` entry of a queue row.
+ */
+data class TwinSegment(
+    val startMs: Long,
+    val twinStartMs: Long,
+    val durationMs: Long,
+)
+
 data class SongItem(
     override val id: String,
     override val title: String,
@@ -44,6 +54,8 @@ data class SongItem(
      * YouTube shipped one alongside it in a queue. Only a logged-in client is sent these.
      */
     val counterpart: SongItem? = null,
+    /** Where this version's moments sit in [counterpart]; empty when YouTube sent no map. */
+    val counterpartSegments: List<TwinSegment> = emptyList(),
     /** "53M plays", from an artist page's top songs; null everywhere else. */
     val playCount: String? = null,
 ) : YTItem() {

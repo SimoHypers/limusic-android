@@ -2,6 +2,7 @@ package com.simohypers.limusic.data.mapping
 
 import com.simohypers.limusic.data.parser.toListThumbnail
 import com.simohypers.limusic.domain.data.model.browse.album.Track
+import com.simohypers.limusic.domain.data.model.browse.album.TwinSegment
 import com.simohypers.limusic.domain.data.model.home.Content
 import com.simohypers.limusic.domain.data.model.metadata.Line
 import com.simohypers.limusic.domain.data.model.metadata.Lyrics
@@ -44,6 +45,8 @@ internal fun SongItem.toTrack(): Track =
         resultType = null,
         year = null,
         setVideoId = this.setVideoId,
+        counterpart = this.counterpart?.toTrack(),
+        twinSegments = this.counterpartSegments.map { TwinSegment(it.startMs, it.twinStartMs, it.durationMs) },
     )
 
 internal fun VideoItem.toTrack(): Track =

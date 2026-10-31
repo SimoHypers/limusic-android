@@ -459,8 +459,13 @@ private fun TopRow(
         IconButton(onClick = actions.onDismiss) {
             Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
-        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            val remoteDevice = rememberRemoteDevice()
+        val remoteDevice = rememberRemoteDevice()
+        // Song | Video takes the middle while there is another version, as in YouTube Music.
+        if (state.canSwitchVersion && remoteDevice == null) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                VersionSwitch(isVideo = state.screenData.isVideo, onSwitch = actions.onSwitchVersion)
+            }
+        } else Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             if (remoteDevice != null) {
                 PlayingOnLabel(remoteDevice, playing = state.controllerState.isPlaying, style = typo().bodyMedium)
             } else {

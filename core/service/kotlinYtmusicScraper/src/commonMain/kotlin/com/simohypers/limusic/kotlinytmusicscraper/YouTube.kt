@@ -1138,8 +1138,17 @@ class YouTube {
             return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
         }
 
-    /** Null when the response carries no like button, which says nothing about the like. */
-    suspend fun getLikedInfo(videoId: String): Result<LikeStatus?> =
+    /**
+     * The like on [videoId] and its own queue row, off one watch page. The like is null when the
+     * response carries no like button, which says nothing about the like. The row carries the
+     * track's other version (song or video), which YouTube sends to a signed-in client only.
+     */
+    data class WatchInfo(
+        val likeStatus: LikeStatus?,
+        val row: SongItem?,
+    )
+
+    suspend fun getWatchInfo(videoId: String): Result<WatchInfo> =
         runCatching {
             val response =
                 ytMusic
@@ -1161,7 +1170,22 @@ class YouTube {
                     ?.likeStatus
                     ?.toLikeStatus()
             Logger.d("YouTube", "Like status: $likeStatus")
-            return@runCatching likeStatus
+            val row =
+                response.contents
+                    ?.singleColumnMusicWatchNextResultsRenderer
+                    ?.tabbedRenderer
+                    ?.watchNextTabbedResultsRenderer
+                    ?.tabs
+                    ?.firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.musicQueueRenderer
+                    ?.content
+                    ?.playlistPanelRenderer
+                    ?.contents
+                    ?.firstOrNull { it.track?.videoId == videoId }
+                    ?.let(NextPage::fromPlaylistPanelContent)
+            return@runCatching WatchInfo(likeStatus, row)
         }
 
     suspend fun getSongInfo(videoId: String): Result<SongInfo> =

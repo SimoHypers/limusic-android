@@ -5,6 +5,7 @@ import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.di.LOCAL_PLAYER_HANDLER
 import com.simohypers.limusic.data.extension.getFullDataFromDB
 import com.simohypers.limusic.data.mapping.toListTrack
+import com.simohypers.limusic.data.mapping.toTrack
 import com.simohypers.limusic.data.mapping.toSongItemForDownload
 import com.simohypers.limusic.data.mapping.toWatchEndpoint
 import com.simohypers.limusic.domain.data.entities.QueueEntity
@@ -490,14 +491,18 @@ internal class SongRepositoryImpl(
             songs to page.continuation?.takeIf { songs.isNotEmpty() }
         }
 
-    override suspend fun refreshLikeFromYouTube(videoId: String) {
-        if (!librarySync.loggedIn() || librarySync.isUnsynced(LibrarySync.song(videoId))) return
+    override suspend fun refreshLikeFromYouTube(videoId: String): Track? {
+        if (!librarySync.loggedIn()) return null
         val epoch = likeEpoch
-        val status = withContext(Dispatchers.IO) { youTube.getLikedInfo(videoId) }.getOrNull() ?: return
-        if (epoch != likeEpoch) return
+        val info = withContext(Dispatchers.IO) { youTube.getWatchInfo(videoId) }.getOrNull() ?: return null
+        val row = info.row?.toTrack()
+        val status = info.likeStatus ?: return row
+        // A like still on its way up wins over what YouTube says now.
+        if (epoch != likeEpoch || librarySync.isUnsynced(LibrarySync.song(videoId))) return row
         val liked = status == LikeStatus.LIKE
-        val song = localDataSource.getSong(videoId) ?: return
+        val song = localDataSource.getSong(videoId) ?: return row
         if (song.liked != liked) localDataSource.updateLiked(if (liked) 1 else 0, videoId)
+        return row
     }
 
     override fun downloadToFile(

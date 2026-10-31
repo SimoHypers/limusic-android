@@ -123,6 +123,8 @@ class NowPlayingContentState(
      * its video frame from this one value, so a frame and the spacer that measures it cannot drift.
      */
     val videoAspectRatio: Float = 16f / 9,
+    /** The playing track has another version (song or video) and videos are on: show Song | Video. */
+    val canSwitchVersion: Boolean = false,
 )
 
 /**
@@ -158,4 +160,6 @@ class NowPlayingContentActions(
     val onQueueItemMore: (index: Int, track: Track) -> Unit,
     /** Closes the player and opens Settings › Lyrics sources. */
     val onOpenLyricsSettings: () -> Unit = {},
+    /** Song | Video: play the playing track's other version from the same moment. */
+    val onSwitchVersion: () -> Unit = {},
 )

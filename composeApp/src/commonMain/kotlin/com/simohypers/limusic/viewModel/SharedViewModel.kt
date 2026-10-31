@@ -606,10 +606,11 @@ class SharedViewModel(
         }
     }
 
-    // The hearts read the local row; signed in, this brings it in line with YouTube's like.
+    // The hearts read the local row; signed in, this brings it in line with YouTube's like. The
+    // same answer names the track's other version, for the player's Song/Video switch.
     private fun getLikeStatus(videoId: String?) {
         if (videoId == null) return
-        viewModelScope.launch { songRepository.refreshLikeFromYouTube(videoId) }
+        viewModelScope.launch { songRepository.refreshLikeFromYouTube(videoId)?.let(mediaPlayerHandler::learnTwin) }
     }
 
     // The song the lyrics chain last came back empty for, so the lyrics page can tell "still

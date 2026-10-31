@@ -38,6 +38,12 @@ interface MediaPlayerHandler {
 
     fun toggleRadio()
 
+    /** The Song/Video switch: the playing track on its other version, from the same moment. */
+    fun switchVersion()
+
+    /** [row] is a track's own queue row as YouTube sent it: its rows here learn the other version it names. */
+    fun learnTwin(row: Track)
+
     fun toggleLike()
 
     fun like(liked: Boolean)

@@ -363,7 +363,16 @@ private fun NowPlayingM3ExpressiveLayout(
                             contentDescription = "",
                         )
                     }
-                    Column(
+                    // Song | Video takes the middle while there is another version, as on Classic.
+                    if (state.canSwitchVersion) {
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            VersionSwitch(
+                                isVideo = state.screenData.isVideo,
+                                onSwitch = actions.onSwitchVersion,
+                                containerColor = colorScheme.surfaceContainerHigh,
+                            )
+                        }
+                    } else Column(
                         modifier =
                             Modifier
                                 .weight(1f)

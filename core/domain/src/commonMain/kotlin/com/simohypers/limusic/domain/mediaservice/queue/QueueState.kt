@@ -2,6 +2,7 @@ package com.simohypers.limusic.domain.mediaservice.queue
 
 import com.simohypers.limusic.common.LOCAL_PLAYLIST_ID
 import com.simohypers.limusic.domain.data.model.browse.album.Track
+import com.simohypers.limusic.domain.data.model.browse.album.TwinSegment
 import com.simohypers.limusic.domain.mediaservice.handler.RepeatState
 
 /**
@@ -162,19 +163,94 @@ fun QueueState.absorbSongRadio(
     page: List<Track>,
     whole: Boolean,
 ) {
-    val seen = items.mapTo(HashSet()) { it.videoId }
+    // The other versions count as seen: after a Song/Video switch the radio still names the seed's
+    // first version, which must not come back as the next track.
+    val seen = items.flatMapTo(HashSet()) { listOfNotNull(it.videoId, it.counterpart?.videoId) }
     for (track in page) {
         if (seen.add(track.videoId)) {
             items.add(track.unmarked())
         } else {
             val i = items.indexOfFirst { it.videoId == track.videoId }
-            if (i >= 0 && items[i].album == null) items[i] = items[i].copy(album = track.album)
+            if (i >= 0) {
+                val have = items[i].let { if (it.album == null) it.copy(album = track.album) else it }
+                items[i] = have.adoptTwin(track) ?: have
+            }
         }
     }
     if (shuffled) {
         shuffleOrig = items.toMutableList()
         shuffleUpcoming(items, current, whole)
     }
+}
+
+/**
+ * This row on its other version (desktop #442): it trades its id, kind, art and length with
+ * [Track.counterpart], which keeps the old ones as the way back. Title, artists, album and the queue
+ * marks stay the row's. Null when it has no other version.
+ */
+fun Track.swappedVersion(): Track? {
+    val twin = counterpart ?: return null
+    return copy(
+        videoId = twin.videoId,
+        videoType = twin.videoType,
+        // A twin known without art keeps the row's own rather than losing it.
+        thumbnails = twin.thumbnails?.takeIf { it.isNotEmpty() } ?: thumbnails,
+        duration = twin.duration,
+        durationSeconds = twin.durationSeconds,
+        counterpart = twin.copy(videoId = videoId, videoType = videoType, thumbnails = thumbnails, duration = duration, durationSeconds = durationSeconds),
+        twinSegments = twinSegments.map { TwinSegment(it.twinStartMs, it.startMs, it.durationMs) }.sortedBy { it.startMs },
+    )
+}
+
+/**
+ * Where [ms] into one version falls in the other, through the stretch playing. A video's intro or
+ * break has no moment in the song, so it lands where the song picks up again; past the last
+ * stretch, at its end. No map: the same time.
+ */
+fun List<TwinSegment>.twinPositionMs(ms: Long): Long {
+    val seg = firstOrNull { ms < it.startMs + it.durationMs } ?: return lastOrNull()?.let { it.twinStartMs + it.durationMs } ?: ms
+    return seg.twinStartMs + (ms - seg.startMs).coerceAtLeast(0)
+}
+
+/**
+ * [from]'s other version, with its map, on this row of the same track when it has none; or the map
+ * it lacks for that same version. Null when there is nothing to learn.
+ */
+fun Track.adoptTwin(from: Track): Track? {
+    val twin = from.counterpart ?: return null
+    val have = counterpart
+    return when {
+        have == null -> copy(counterpart = twin, twinSegments = from.twinSegments)
+        have.videoId == twin.videoId && twinSegments.isEmpty() && from.twinSegments.isNotEmpty() -> copy(twinSegments = from.twinSegments)
+        else -> null
+    }
+}
+
+/** The playing row on its other version. False when it has none. */
+fun QueueState.switchVersion(): Boolean {
+    val row = items.getOrNull(current) ?: return false
+    items[current] = row.swappedVersion() ?: return false
+    // Un-shuffling rebuilds the queue from this copy, which would bring the old version back.
+    shuffleOrig?.let { orig ->
+        val i = orig.indexOfFirst { it.videoId == row.videoId }
+        if (i >= 0) orig[i] = orig[i].swappedVersion() ?: orig[i]
+    }
+    return true
+}
+
+/** Every row of [row]'s track takes the other version YouTube paired it with. True when one learned it. */
+fun QueueState.learnTwin(row: Track): Boolean {
+    var learned = false
+    for (list in listOfNotNull(items, shuffleOrig)) {
+        for (i in list.indices) {
+            if (list[i].videoId != row.videoId) continue
+            list[i].adoptTwin(row)?.let {
+                list[i] = it
+                learned = true
+            }
+        }
+    }
+    return learned
 }
 
 /**

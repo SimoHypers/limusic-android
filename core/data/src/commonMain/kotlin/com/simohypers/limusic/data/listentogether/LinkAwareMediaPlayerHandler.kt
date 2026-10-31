@@ -290,6 +290,11 @@ class LinkAwareMediaPlayerHandler(
         if (!hostOnly()) local.toggleRadio()
     }
 
+    // While the computer plays, the queue on screen is its own: nothing here to switch.
+    override fun switchVersion() {
+        if (remote.value == null && !hostOnly()) local.switchVersion()
+    }
+
     override fun backToPrevious() {
         if (!hostOnly()) local.backToPrevious()
     }

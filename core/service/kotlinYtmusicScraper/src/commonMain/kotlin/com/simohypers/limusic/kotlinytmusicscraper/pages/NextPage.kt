@@ -106,6 +106,7 @@ object NextPage {
     fun fromPlaylistPanelContent(content: PlaylistPanelRenderer.Content): SongItem? =
         content.track?.let(::fromPlaylistPanelVideoRenderer)?.copy(
             counterpart = content.counterpartTrack?.let(::fromPlaylistPanelVideoRenderer),
+            counterpartSegments = content.counterpartSegments,
         )
 
     fun fromPlaylistPanelVideoRenderer(renderer: PlaylistPanelVideoRenderer): SongItem? {

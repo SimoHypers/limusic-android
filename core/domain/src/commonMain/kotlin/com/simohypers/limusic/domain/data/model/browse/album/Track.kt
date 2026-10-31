@@ -40,4 +40,19 @@ data class Track(
     val autoplay: Boolean = false,
     /** This row's entry in a YouTube playlist: what removes it, and what tells two copies apart. */
     val setVideoId: String? = null,
+    /**
+     * The same recording's other version, the music video for a song or the song for a video, when
+     * YouTube paired them (signed in only). What the player's Song/Video switch plays.
+     */
+    val counterpart: Track? = null,
+    /** Where this version's moments sit in [counterpart], sorted by [TwinSegment.startMs]. */
+    val twinSegments: List<TwinSegment> = emptyList(),
+)
+
+/** [startMs] into one version of a recording is [twinStartMs] into the other, for [durationMs]. */
+@Serializable
+data class TwinSegment(
+    val startMs: Long,
+    val twinStartMs: Long,
+    val durationMs: Long,
 )

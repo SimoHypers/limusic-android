@@ -37,6 +37,21 @@ data class PlaylistPanelRenderer(
                 ?.counterpart
                 ?.firstNotNullOfOrNull { it.counterpartRenderer?.playlistPanelVideoRenderer }
 
+        /** Where [track]'s moments sit in [counterpartTrack], sorted by [TwinSegment.startMs]. */
+        val counterpartSegments: List<TwinSegment>
+            get() =
+                playlistPanelVideoWrapperRenderer
+                    ?.counterpart
+                    .orEmpty()
+                    .flatMap { it.segmentMap?.segment.orEmpty() }
+                    .mapNotNull { seg ->
+                        TwinSegment(
+                            startMs = seg.primaryVideoStartTimeMilliseconds?.toLongOrNull() ?: return@mapNotNull null,
+                            twinStartMs = seg.counterpartVideoStartTimeMilliseconds?.toLongOrNull() ?: return@mapNotNull null,
+                            durationMs = seg.durationMilliseconds?.toLongOrNull() ?: return@mapNotNull null,
+                        )
+                    }.sortedBy { it.startMs }
+
         /**
          * A queue row that exists in more than one rendition.
          *
@@ -58,11 +73,26 @@ data class PlaylistPanelRenderer(
             @Serializable
             data class Counterpart(
                 val counterpartRenderer: CounterpartRenderer?,
+                /** The stretches the two versions share: a video's intro has no moment in the song. */
+                val segmentMap: SegmentMap? = null,
             ) {
                 @Serializable
                 data class CounterpartRenderer(
                     val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer?,
                 )
+
+                @Serializable
+                data class SegmentMap(
+                    val segment: List<Segment>? = null,
+                ) {
+                    // YouTube sends the numbers as strings.
+                    @Serializable
+                    data class Segment(
+                        val primaryVideoStartTimeMilliseconds: String? = null,
+                        val counterpartVideoStartTimeMilliseconds: String? = null,
+                        val durationMilliseconds: String? = null,
+                    )
+                }
             }
         }
     }

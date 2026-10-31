@@ -44,6 +44,8 @@ data class NextResponse(
 @Serializable
 data class NextAndroidMusicResponse(
     val playerOverlays: PlayerOverlays?,
+    /** The queue, for the playing track's own row and the other version it carries. */
+    val contents: NextResponse.Contents? = null,
 ) {
     @Serializable
     data class PlayerOverlays(

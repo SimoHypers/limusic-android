@@ -317,6 +317,21 @@ fun NowPlayingContentAppleMusic(
                             .background(Color.White.copy(alpha = 0.35f)),
                 )
             }
+            // Song | Video under the grabber, on the cover's page only, while there is another version.
+            if (state.canSwitchVersion && viewState == AppleMusicView.MAIN) {
+                VersionSwitch(
+                    isVideo = state.screenData.isVideo,
+                    onSwitch = actions.onSwitchVersion,
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() } + GRABBER_HEIGHT),
+                    containerColor = Color.Black.copy(alpha = 0.35f),
+                    selectedColor = Color.White,
+                    selectedContentColor = Color.Black,
+                    contentColor = Color.White,
+                )
+            }
         }
 
         if (showOutputSheet) {
