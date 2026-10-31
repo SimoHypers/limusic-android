@@ -30,6 +30,7 @@ import com.simohypers.limusic.ui.icon.LibraryMusic
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
+import com.simohypers.limusic.ui.navigation.destination.home.SettingsDestination
 import com.simohypers.limusic.ui.navigation.destination.library.LibraryDestination
 import com.simohypers.limusic.ui.navigation.destination.search.SearchDestination
 import com.simohypers.limusic.ui.theme.typo
@@ -82,7 +83,11 @@ fun LimusicNavigationBar(
     onReselect: (KClass<*>) -> Unit = {},
 ) {
     val backStack by navController.currentBackStack.collectAsState()
-    val currentTab = backStack.lastOrNull { limusicTabIndex(it.destination) >= 0 }?.destination?.let(::limusicTabIndex) ?: -1
+    val tabEntry = backStack.indexOfLast { limusicTabIndex(it.destination) >= 0 }
+    val stackTab = backStack.getOrNull(tabEntry)?.destination?.let(::limusicTabIndex) ?: -1
+    // Settings and the pages opened from it belong to no tab, so none is lit there.
+    val inSettings = backStack.indexOfLast { it.destination.hasRoute(SettingsDestination::class) } > tabEntry
+    val currentTab = if (inSettings) -1 else stackTab
     val onTabRoot = backStack.lastOrNull()?.destination?.let(::limusicTabIndex) == currentTab
     Column(modifier) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -97,7 +102,7 @@ fun LimusicNavigationBar(
                     onClick = {
                         if (selected && onTabRoot) {
                             onReselect(tab.destination::class)
-                        } else if (selected) {
+                        } else if (index == stackTab) {
                             // Restoring this tab's saved stack would bring the same page back, so pop to its root.
                             navController.popBackStack(tab.destination, inclusive = false)
                         } else {
