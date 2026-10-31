@@ -8,17 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
-import com.kmpalette.loader.rememberNetworkLoader
-import com.kmpalette.rememberDominantColorState
 import com.simohypers.limusic.Platform
 import com.simohypers.limusic.extension.angledGradientBackground
 import com.simohypers.limusic.extension.artworkScrimBrush
@@ -27,7 +23,6 @@ import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.theme.desktopPanelDark
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.http.Url
 
 /**
  * Home's ambient top glow for pages that have no artwork of their own: the theme's primary tone
@@ -96,26 +91,9 @@ fun AmbientThemeGlow(
 }
 
 /**
- * The dominant colour of the now-playing artwork, for feeding [AmbientThemeGlow]'s tint.
- *
- * The same DominantColorState + network-loader machinery HomeScreen runs on its main thumbnail.
- * Null while nothing is playing AND while the artwork has not resolved yet — deliberately not a
- * theme-colour fallback, so a silent app shows a plain page rather than a stand-in glow.
- * `Color.Unspecified` is the sentinel for "not resolved": the state must start somewhere, and any
- * real colour would flash as a wrong glow for the first frames.
+ * The one HTTP client the artwork-tint loaders (Mix for you, Browse) share. A Ktor CIO client opens
+ * a NIO selector, file descriptors included, as it is built and keeps it until close(): one built
+ * per recomposition or per visit leaked those for the life of the process.
  */
-@Composable
-fun rememberNowPlayingGlowTint(thumbnailUrl: String?): Color? {
-    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
-    val dominantColorState =
-        rememberDominantColorState(
-            defaultColor = Color.Unspecified,
-            defaultOnColor = Color.Unspecified,
-            loader = networkLoader,
-        )
-    LaunchedEffect(thumbnailUrl) {
-        thumbnailUrl?.let { dominantColorState.updateFrom(Url(it)) }
-    }
-    if (thumbnailUrl == null) return null
-    return dominantColorState.color.takeIf { it.isSpecified }
-}
+// ponytail: lives as long as the process, so nothing ever closes it
+val artworkTintHttpClient by lazy { HttpClient(CIO) }

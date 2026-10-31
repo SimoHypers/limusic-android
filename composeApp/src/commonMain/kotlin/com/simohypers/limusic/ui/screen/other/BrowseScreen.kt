@@ -70,6 +70,7 @@ import com.simohypers.limusic.ui.component.HomeContentCard
 import com.simohypers.limusic.ui.component.MoodMomentAndGenreHomeItem
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
 import com.simohypers.limusic.ui.component.RippleIconButton
+import com.simohypers.limusic.ui.component.artworkTintHttpClient
 import com.simohypers.limusic.ui.component.homeCardAspectRatio
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.LimusicIcons
@@ -82,8 +83,6 @@ import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.http.Url
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -137,8 +136,7 @@ fun BrowseScreen(
         }
     var topHeaderColor by remember { mutableStateOf(backgroundColor) }
     val animatedColor by animateColorAsState(topHeaderColor, tween(500))
-    val httpClient = remember { HttpClient(CIO) }
-    val networkLoader = rememberNetworkLoader(httpClient)
+    val networkLoader = rememberNetworkLoader(artworkTintHttpClient)
     val dominantColorState =
         rememberDominantColorState(
             defaultColor = backgroundColor,
