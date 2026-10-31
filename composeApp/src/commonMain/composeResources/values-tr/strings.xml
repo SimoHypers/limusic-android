@@ -41,7 +41,6 @@
     <string name="good_night">İyi Geceler</string>
     <string name="quick_picks">Hızlı seçimler</string>
     <string name="playlist_name_cannot_be_empty">Oynatma listesi adı boş olamaz</string>
-    <string name="this_app_needs_to_access_your_notification">Bu uygulamanın bildirimlere erişmesi gerekiyor</string>
     <string name="shared">Paylaşılan</string>
     <string name="rich_synced">Kelime kelime</string>
     <string name="line_synced">Hat Senkronize Edildi</string>

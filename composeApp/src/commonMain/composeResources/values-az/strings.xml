@@ -41,7 +41,6 @@
     <string name="good_night">Gecəniz Xeyrə</string>
     <string name="quick_picks">Cəld seçimlər</string>
     <string name="playlist_name_cannot_be_empty">Pleylist adı boş ola bilməz</string>
-    <string name="this_app_needs_to_access_your_notification">Bu tətbiq bildirişinizə girməlidir</string>
     <string name="shared">Paylaşılan</string>
     <string name="line_synced">Əlaqə Sinxronlaşdırılıb</string>
     <string name="unsynced">Sinxronlaşdırılmayan</string>

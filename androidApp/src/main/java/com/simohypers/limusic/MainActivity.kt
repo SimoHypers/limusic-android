@@ -2,6 +2,17 @@ package com.simohypers.limusic
 
 import com.simohypers.limusic.domain.repository.DeviceLinkRepository
 import android.Manifest
+import kotlinx.coroutines.flow.map
+import com.simohypers.limusic.domain.repository.ArtistRepository
+import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.content.pm.PackageManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -47,7 +58,6 @@ import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import org.koin.dsl.module
 import com.simohypers.limusic.crashlytics.pushPlayerError
-import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -59,6 +69,8 @@ class MainActivity : AppCompatActivity() {
 
     /** The device link's socket is open while paired and this activity is started (or playing). */
     private val deviceLink: DeviceLinkRepository by inject()
+    private val downloadHandler: DownloadHandler by inject()
+    private val artistRepository: ArtistRepository by inject()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -207,31 +219,35 @@ class MainActivity : AppCompatActivity() {
             ExistingPeriodicWorkPolicy.UPDATE,
             request,
         )
-        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val doNotAsk = getString("notification_permission_do_not_ask")
-                if (doNotAsk != "true") {
-                    val wasAsked = getString("notification_permission_asked")
-                    if (wasAsked != "true") {
-                        // First time: request system permission
-                        EasyPermissions.requestPermissions(
-                            this,
-                            runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.NOTIFICATION_REQUEST) },
-                            1,
-                            Manifest.permission.POST_NOTIFICATIONS,
-                        )
-                        putString("notification_permission_asked", "true")
-                    } else {
-                        // Already asked before: show custom dialog with "Don't show again"
-                        viewModel.showNotificationPermissionDialog()
-                    }
-                }
-            }
-        }
         viewModel.getLocation()
 
         setContent {
             App(viewModel)
+            AskForNotificationsWhenNeeded()
+        }
+    }
+
+    /**
+     * Android's notification prompt, asked the first time something needs it rather than at launch:
+     * the first download (its progress) and the first followed artist (new-release alerts). The
+     * player's notification is a media session's, which Android exempts. Once per reason, and never
+     * for an install an older version already asked at launch.
+     */
+    @Composable
+    private fun AskForNotificationsWhenNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+        val downloading by remember { downloadHandler.queue.map { it.remaining > 0 } }.collectAsState(false)
+        val following by remember { artistRepository.getFollowedArtists().map { it.isNotEmpty() } }.collectAsState(false)
+        for ((reason, needed) in listOf("download" to downloading, "follow" to following)) {
+            LaunchedEffect(reason, needed) {
+                if (!needed || getString("notification_permission_asked") == "true") return@LaunchedEffect
+                if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return@LaunchedEffect
+                val key = "notification_asked_$reason"
+                if (getString(key) == "true") return@LaunchedEffect
+                putString(key, "true")
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 

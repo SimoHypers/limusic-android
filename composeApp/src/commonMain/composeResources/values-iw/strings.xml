@@ -41,7 +41,6 @@
     <string name="good_night">לילה טוב</string>
     <string name="quick_picks">בחירה מהירה</string>
     <string name="playlist_name_cannot_be_empty">שם רשימת ההשמעה לא יכול להיות ריק</string>
-    <string name="this_app_needs_to_access_your_notification">האפליקציה הזו צריכה לגשת להתראה שלך</string>
     <string name="shared">משותף</string>
     <string name="line_synced">קו מסונכרן</string>
     <string name="unsynced">לא מסונכרן</string>

@@ -50,7 +50,6 @@
     <string name="good_night">На добраніч</string>
     <string name="quick_picks">Швидкий вибір</string>
     <string name="playlist_name_cannot_be_empty">Назва списку не може бути порожньою</string>
-    <string name="this_app_needs_to_access_your_notification">Цей додаток повинен мати доступ до ваших сповіщень</string>
     <string name="shared">Спільний доступ</string>
     <string name="rich_synced">Слово за словом</string>
     <string name="line_synced">Рядок синхронізовано</string>

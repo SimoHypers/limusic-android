@@ -41,7 +41,6 @@
     <string name="good_night">晚安</string>
     <string name="quick_picks">快速选择</string>
     <string name="playlist_name_cannot_be_empty">歌单名称不能为空</string>
-    <string name="this_app_needs_to_access_your_notification">此应用需要通知权限</string>
     <string name="shared">已分享</string>
     <string name="rich_synced">逐字逐句</string>
     <string name="line_synced">已同步行</string>

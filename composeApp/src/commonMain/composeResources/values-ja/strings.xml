@@ -47,7 +47,6 @@
     <string name="good_night">おやすみなさい</string>
     <string name="quick_picks">おすすめ</string>
     <string name="playlist_name_cannot_be_empty">再生リスト名は空にできません。</string>
-    <string name="this_app_needs_to_access_your_notification">このアプリは、通知へのアクセスを必要とします</string>
     <string name="shared">共有</string>
     <string name="rich_synced">単語ごと</string>
     <string name="line_synced">行を同期中</string>

@@ -47,7 +47,6 @@
     <string name="good_night">Buenas noches</string>
     <string name="quick_picks">Selecciones rápidas</string>
     <string name="playlist_name_cannot_be_empty">El nombre de la lista de reproducción no puede estar vacío</string>
-    <string name="this_app_needs_to_access_your_notification">Esta aplicación necesita tener permiso para crear notificaciones</string>
     <string name="shared">Compartido</string>
     <string name="rich_synced">Palabra por palabra</string>
     <string name="line_synced">Línea sincronizada</string>

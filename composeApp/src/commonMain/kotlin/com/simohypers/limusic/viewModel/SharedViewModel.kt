@@ -150,8 +150,6 @@ class SharedViewModel(
     private val _intent: MutableStateFlow<GenericIntent?> = MutableStateFlow(null)
     val intent: StateFlow<GenericIntent?> = _intent
 
-    private val _showNotificationPermissionDialog = MutableStateFlow(false)
-    val showNotificationPermissionDialog: StateFlow<Boolean> = _showNotificationPermissionDialog
 
     // One-shot: the Desktop capsule asks the Now Playing panel, which hosts the page, to open
     // full-screen lyrics. The panel consumes it once shown.
@@ -592,17 +590,6 @@ class SharedViewModel(
             } else {
                 makeToast(getString(Res.string.discord_login_failed))
             }
-        }
-    }
-
-    fun showNotificationPermissionDialog() {
-        _showNotificationPermissionDialog.value = true
-    }
-
-    fun dismissNotificationPermissionDialog(doNotShowAgain: Boolean) {
-        _showNotificationPermissionDialog.value = false
-        if (doNotShowAgain) {
-            putString("notification_permission_do_not_ask", "true")
         }
     }
 

@@ -33,7 +33,6 @@ gson = "2.14.0"
 coil3 = "3.6.3"
 kmpalette = "3.1.0"
 materialkolor = "5.0.1"
-easypermissions = "3.0.0"
 datastore-preferences = "1.2.1"
 paging = "3.5.2"
 customactivityoncrash = "2.4.0"
@@ -149,7 +148,6 @@ coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
 coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "coroutines-guava" }
 navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }

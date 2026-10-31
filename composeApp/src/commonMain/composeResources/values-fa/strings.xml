@@ -41,7 +41,6 @@
     <string name="good_night">شب بخیر</string>
     <string name="quick_picks">انتخاب‌های سریع</string>
     <string name="playlist_name_cannot_be_empty">نام پلی‌لیست نمی‌تواند خالی باشد</string>
-    <string name="this_app_needs_to_access_your_notification">این برنامه نیاز به دسترسی به اعلان‌های شما دارد</string>
     <string name="shared">هم‌رسانی شده</string>
     <string name="rich_synced">کلمه به کلمه</string>
     <string name="line_synced">هماهنگ شده</string>

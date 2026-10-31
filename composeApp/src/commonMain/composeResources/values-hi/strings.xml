@@ -47,7 +47,6 @@
     <string name="good_night">शुभ रात्रि</string>
     <string name="quick_picks">त्वरित चयन</string>
     <string name="playlist_name_cannot_be_empty">प्लेलिस्ट का नाम खाली नहीं हो सकता</string>
-    <string name="this_app_needs_to_access_your_notification">इस ऐप को आपकी सूचनाओं तक पहुंच की आवश्यकता है</string>
     <string name="shared">साझा किया गया</string>
     <string name="rich_synced">एक-एक शब्द</string>
     <string name="line_synced">लाइन सिंक की गई</string>

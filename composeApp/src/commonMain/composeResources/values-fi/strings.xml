@@ -41,7 +41,6 @@
     <string name="good_night">Hyvää yötä</string>
     <string name="quick_picks">Pikapoiminnat</string>
     <string name="playlist_name_cannot_be_empty">Soittolistan nimi ei voi olla tyhjä</string>
-    <string name="this_app_needs_to_access_your_notification">Tämä sovellus tarvitsee käyttöoikeuden ilmoituksiin</string>
     <string name="shared">Jaettu</string>
     <string name="line_synced">Rivisynkronoitu</string>
     <string name="unsynced">Synkronoimaton</string>

@@ -48,7 +48,6 @@
     <string name="good_night">Buonanotte</string>
     <string name="quick_picks">Scelte rapide</string>
     <string name="playlist_name_cannot_be_empty">Il nome della playlist non può essere vuoto</string>
-    <string name="this_app_needs_to_access_your_notification">Questa app necessita di accedere alle tue notifiche</string>
     <string name="shared">Condivisi</string>
     <string name="rich_synced">Parola per parola</string>
     <string name="line_synced">Linea sincronizzata</string>

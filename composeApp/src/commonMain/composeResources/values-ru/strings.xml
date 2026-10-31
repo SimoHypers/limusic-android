@@ -50,7 +50,6 @@
     <string name="good_night">Доброй ночи</string>
     <string name="quick_picks">Подборки по треку</string>
     <string name="playlist_name_cannot_be_empty">Название плейлиста не может быть пустым</string>
-    <string name="this_app_needs_to_access_your_notification">Это приложение должно получить доступ к вашим уведомлениям</string>
     <string name="shared">Поделились</string>
     <string name="rich_synced">Пословно</string>
     <string name="line_synced">Синхронизация строк</string>

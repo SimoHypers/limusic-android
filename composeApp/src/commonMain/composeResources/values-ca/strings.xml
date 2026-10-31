@@ -41,7 +41,6 @@
     <string name="good_night">Bona nit</string>
     <string name="quick_picks">Seleccions ràpides</string>
     <string name="playlist_name_cannot_be_empty">El nom de la llista de reproducció no pot estar buit</string>
-    <string name="this_app_needs_to_access_your_notification">Aquesta aplicació ha d'accedir a la teva notificació</string>
     <string name="shared">S'ha compartit</string>
     <string name="rich_synced">Paraula per paraula</string>
     <string name="line_synced">Línia sincronitzada</string>

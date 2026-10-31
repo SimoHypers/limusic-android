@@ -47,7 +47,6 @@
     <string name="good_night">God natt</string>
     <string name="quick_picks">Snabbval</string>
     <string name="playlist_name_cannot_be_empty">Spellistans namn får inte vara tomt</string>
-    <string name="this_app_needs_to_access_your_notification">Den här appen behöver åtkomst till dina aviseringar</string>
     <string name="shared">Delad</string>
     <string name="rich_synced">Ord för ord</string>
     <string name="line_synced">Synkroniserad radvis</string>

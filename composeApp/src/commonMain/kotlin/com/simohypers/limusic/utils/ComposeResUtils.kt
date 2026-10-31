@@ -9,7 +9,6 @@ import limusic.composeapp.generated.resources.ltd_host_controls
 import limusic.composeapp.generated.resources.new_albums
 import limusic.composeapp.generated.resources.new_singles
 import limusic.composeapp.generated.resources.playback_refused
-import limusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import limusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 import limusic.composeapp.generated.resources.youtube_write_failed
 
@@ -21,10 +20,6 @@ object ComposeResUtils {
         when (type) {
             StringType.EXPLICIT_CONTENT_BLOCKED -> {
                 getString(Res.string.explicit_content_blocked)
-            }
-
-            StringType.NOTIFICATION_REQUEST -> {
-                getString(Res.string.this_app_needs_to_access_your_notification)
             }
 
             StringType.TIME_OUT_ERROR -> {
@@ -63,7 +58,6 @@ object ComposeResUtils {
 
     enum class StringType {
         EXPLICIT_CONTENT_BLOCKED,
-        NOTIFICATION_REQUEST,
         TIME_OUT_ERROR,
         PLAYBACK_REFUSED,
         NEW_SINGLES,

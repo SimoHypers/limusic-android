@@ -41,7 +41,6 @@
     <string name="good_night">طابت ليلتك</string>
     <string name="quick_picks">اختيارات سريعة</string>
     <string name="playlist_name_cannot_be_empty">لا يمكن أن يكون اسم قائمة التشغيل فارغًا</string>
-    <string name="this_app_needs_to_access_your_notification">يحتاج هذا التطبيق إلى صلاحية الوصول إلى إشعاراتك</string>
     <string name="shared">تمت المشاركة</string>
     <string name="rich_synced">كلمه بكلمه</string>
     <string name="line_synced">متزامنة الخط</string>

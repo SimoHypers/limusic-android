@@ -41,7 +41,6 @@
     <string name="good_night">Selamat Malam</string>
     <string name="quick_picks">Pilihan Cepat</string>
     <string name="playlist_name_cannot_be_empty">Nama playlist tidak boleh kosong</string>
-    <string name="this_app_needs_to_access_your_notification">Aplikasi ini memerlukan akses notifikasi anda</string>
     <string name="shared">Bagikan</string>
     <string name="line_synced">Sinkronisasi Baris</string>
     <string name="unsynced">Tidak disinkronkan</string>

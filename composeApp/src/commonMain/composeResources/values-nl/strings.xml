@@ -41,7 +41,6 @@
     <string name="good_night">Goedenacht</string>
     <string name="quick_picks">Snelle keuzes</string>
     <string name="playlist_name_cannot_be_empty">Afspeellijstnaam mag niet leeg zijn</string>
-    <string name="this_app_needs_to_access_your_notification">Deze app heeft toegang nodig tot meldingen</string>
     <string name="shared">Gedeeld</string>
     <string name="line_synced">Lijn-gesynchroniseerd</string>
     <string name="unsynced">Niet langer gesynchroniseerd</string>

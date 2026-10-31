@@ -8,7 +8,6 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -103,13 +101,9 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import limusic.composeapp.generated.resources.Res
-import limusic.composeapp.generated.resources.cancel
-import limusic.composeapp.generated.resources.do_not_show_again
 import limusic.composeapp.generated.resources.good_night
 import limusic.composeapp.generated.resources.notification
-import limusic.composeapp.generated.resources.settings
 import limusic.composeapp.generated.resources.sleep_timer_off
-import limusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import limusic.composeapp.generated.resources.this_link_is_not_supported
 import limusic.composeapp.generated.resources.yes
 import kotlin.time.ExperimentalTime
@@ -118,9 +112,6 @@ import kotlin.time.ExperimentalTime
 @Composable
 fun App(
     viewModel: SharedViewModel = koinInject(),
-    showDesktopNotificationPermissionDialog: Boolean = false,
-    onDismissDesktopNotificationPermissionDialog: (doNotShowAgain: Boolean) -> Unit = {},
-    onOpenDesktopNotificationSettings: (doNotShowAgain: Boolean) -> Unit = {},
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
@@ -129,7 +120,6 @@ fun App(
     val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     val intent by viewModel.intent.collectAsStateWithLifecycle()
-    val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     // Mix for you comes from the signed-in YouTube account, so its tab follows the session — the
     // same condition that used to hide the chip inside Library.
@@ -610,89 +600,6 @@ fun App(
                                 stringResource(Res.string.good_night),
                                 style = typo().bodySmall,
                             )
-                        },
-                    )
-                }
-
-                if (showNotificationPermissionDialog || showDesktopNotificationPermissionDialog) {
-                    var doNotShowAgain by remember { mutableStateOf(false) }
-                    val dismissPermissionDialog = {
-                        if (showDesktopNotificationPermissionDialog) {
-                            onDismissDesktopNotificationPermissionDialog(doNotShowAgain)
-                        } else {
-                            viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
-                        }
-                    }
-                    AlertDialog(
-                        onDismissRequest = {
-                            dismissPermissionDialog()
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    if (showDesktopNotificationPermissionDialog) {
-                                        onOpenDesktopNotificationSettings(doNotShowAgain)
-                                    } else {
-                                        viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
-                                    }
-                                },
-                            ) {
-                                Text(
-                                    stringResource(
-                                        if (showDesktopNotificationPermissionDialog) {
-                                            Res.string.settings
-                                        } else {
-                                            Res.string.yes
-                                        },
-                                    ),
-                                    style = typo().bodySmall,
-                                )
-                            }
-                        },
-                        dismissButton =
-                            if (showDesktopNotificationPermissionDialog) {
-                                {
-                                    TextButton(onClick = dismissPermissionDialog) {
-                                        Text(
-                                            stringResource(Res.string.cancel),
-                                            style = typo().bodySmall,
-                                        )
-                                    }
-                                }
-                            } else {
-                                null
-                            },
-                        title = {
-                            Text(
-                                stringResource(Res.string.notification),
-                                style = typo().labelSmall,
-                            )
-                        },
-                        text = {
-                            Column {
-                                Text(
-                                    stringResource(Res.string.this_app_needs_to_access_your_notification),
-                                    style = typo().bodySmall,
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier =
-                                        Modifier
-                                            .clickable { doNotShowAgain = !doNotShowAgain }
-                                            .fillMaxWidth(),
-                                ) {
-                                    Checkbox(
-                                        checked = doNotShowAgain,
-                                        onCheckedChange = { doNotShowAgain = it },
-                                    )
-                                    Spacer(modifier = Modifier.width(5.dp))
-                                    Text(
-                                        stringResource(Res.string.do_not_show_again),
-                                        style = typo().bodySmall,
-                                    )
-                                }
-                            }
                         },
                     )
                 }

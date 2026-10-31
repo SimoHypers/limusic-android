@@ -47,7 +47,6 @@
     <string name="good_night">Chúc bạn ngủ ngon</string>
     <string name="quick_picks">Chọn nhanh đài phát</string>
     <string name="playlist_name_cannot_be_empty">Tên danh sách phát không thể để trống</string>
-    <string name="this_app_needs_to_access_your_notification">Ứng dụng này cần quyền để tạo thông báo</string>
     <string name="shared">Đã được chia sẻ</string>
     <string name="rich_synced">Từng từ một</string>
     <string name="line_synced">Đã được đồng bộ</string>

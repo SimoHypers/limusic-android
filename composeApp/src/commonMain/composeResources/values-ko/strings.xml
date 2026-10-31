@@ -41,7 +41,6 @@
     <string name="good_night">좋은 저녁입니다</string>
     <string name="quick_picks">빠른 선택</string>
     <string name="playlist_name_cannot_be_empty">재생 목록 이름은 비워둘 수 없습니다</string>
-    <string name="this_app_needs_to_access_your_notification">이 앱은 알림에 접근해야 합니다</string>
     <string name="shared">공유됨</string>
     <string name="rich_synced">단어 단위 싱크</string>
     <string name="line_synced">가사 싱크 제공</string>

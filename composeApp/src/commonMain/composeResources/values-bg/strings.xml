@@ -41,7 +41,6 @@
     <string name="good_night">Лека нощ</string>
     <string name="quick_picks">Бърз избор</string>
     <string name="playlist_name_cannot_be_empty">Името на плейлиста не може да бъде празно</string>
-    <string name="this_app_needs_to_access_your_notification">Приложението има нужда от достъп до известията ти</string>
     <string name="shared">Споделено</string>
     <string name="rich_synced">Дума по дума</string>
     <string name="line_synced">Синхронизирано</string>

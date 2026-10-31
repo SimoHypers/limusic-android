@@ -48,7 +48,6 @@
     <string name="good_night">Gute Nacht</string>
     <string name="quick_picks">Schnellauswahl</string>
     <string name="playlist_name_cannot_be_empty">Playlist-Name darf nicht leer sein</string>
-    <string name="this_app_needs_to_access_your_notification">Diese App muss auf deine Benachrichtigungen zugreifen können</string>
     <string name="shared">Geteilt</string>
     <string name="rich_synced">Wort für Wort</string>
     <string name="line_synced">Zeile synchronisiert</string>

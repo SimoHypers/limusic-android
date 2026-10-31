@@ -191,7 +191,6 @@ dependencies {
     implementation(libs.customactivityoncrash)
 
     // Easy Permissions
-    implementation(libs.easypermissions)
 
     // Legacy Support
     implementation(libs.legacy.support.v4)

@@ -41,7 +41,6 @@
     <string name="good_night">ราตรีสวัสดิ์</string>
     <string name="quick_picks">เลือกด่วน</string>
     <string name="playlist_name_cannot_be_empty">ชื่อเพลย์ลิสต์ไม่สามารถปล่อยให้ว่างเปล่าได้</string>
-    <string name="this_app_needs_to_access_your_notification">แอปนี้จำเป็นต้องเข้าถึงการแจ้งเตือนของคุณ</string>
     <string name="shared">แชร์</string>
     <string name="rich_synced">คำ ต่อ คำ</string>
     <string name="line_synced">ซิงค์แล้ว</string>
