@@ -477,7 +477,7 @@ private fun AppleMusicMainView(
             )
         }
 
-        // The wash under the status bar: as dark as the sleeve's own top band is bright, 16%–65%,
+        // The wash under the status bar: as dark as the sleeve's own top band is bright, 16%–45%,
         // so a dark cover is left almost untouched and a bright one still carries white icons.
         if (topBand > 0.dp) {
             val topWashAlpha by animateFloatAsState(
@@ -1396,15 +1396,15 @@ private fun topWashBrush(alpha: Float): Brush =
             },
     )
 
-// The top band's length below the status bar, the wash's range (16% on a black sleeve to 65% on a
-// white one), its stops, its change on a skip (the mesh's own crossfade), and the band's blur (the
-// artist page's).
+// The top band's length below the status bar, the wash's range (16% on a black sleeve to 45% on a
+// white one), its stops, its change on a skip (the mesh's own crossfade), and the band's blur. The
+// wash and blur were toned down from 65% and 32dp: a tester found the top too blurred and contrasty.
 private val TOP_BAND_STRIP = 32.dp
 private const val TOP_WASH_STEPS = 24
 private const val TOP_WASH_MIN_ALPHA = 0.16f
-private const val TOP_WASH_MAX_ALPHA = 0.65f
+private const val TOP_WASH_MAX_ALPHA = 0.45f
 private const val TOP_WASH_FADE_MS = 900
-private val TOP_BAND_BLUR = 32.dp
+private val TOP_BAND_BLUR = 16.dp
 
 // Radius of the frosted cover art behind the page. Large enough that no detail of the artwork
 // survives as a shape — what is left is its colour and its broad light and dark areas, which is
@@ -1430,8 +1430,9 @@ private val VIDEO_FRAME_BOTTOM_GAP = 16.dp
 // towards the bottom so the transport stays readable; not so much that it hides the art again.
 private const val BACKDROP_TINT_ALPHA = 0.62f
 
-// The bottom share of the artwork that dissolves into the page.
-private const val ARTWORK_FADE_FRACTION = 0.42f
+// The bottom share of the artwork that dissolves into the page. Was 0.42: a tester found the
+// cover's edge too blurred.
+private const val ARTWORK_FADE_FRACTION = 0.25f
 
 // A full-width square cover fits a portrait page with room to spare; only a landscape window is
 // short enough for this cap to bite.

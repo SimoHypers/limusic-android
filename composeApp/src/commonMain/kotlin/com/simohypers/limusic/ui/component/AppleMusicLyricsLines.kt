@@ -47,8 +47,10 @@ import kotlin.math.abs
 //
 // Expressed against the font size rather than in fixed dp, so changing the type size keeps the
 // depth of field proportional.
-private const val BLUR_PER_LINE_EM = 0.095f
-private const val BLUR_MAX_EM = 0.45f
+//
+// Halved from the measured 0.095 / 0.45 em: a tester could not read the lines around the sung one.
+private const val BLUR_PER_LINE_EM = 0.045f
+private const val BLUR_MAX_EM = 0.2f
 // AMLL's resolveOpacity returns a flat 1 for unsung lines, but the reference screenshots plainly
 // fade with distance — the line under the sung one sits at roughly half, the next at a third, and
 // beyond that they all but vanish. AMLL is reproducing Apple, not defining it, and on this point
@@ -60,8 +62,9 @@ private const val ACTIVE_LINE_ALPHA = 1f
 // Measured off the same screenshot: one line out still reads clearly, two is noticeably dimmer,
 // and past three they level off — blur is doing most of the work by then, so driving opacity any
 // harder just turns the far lines black.
-private const val ALPHA_FALLOFF_PER_LINE = 0.25f
-private const val MIN_LINE_ALPHA = 0.25f
+// Softened from 0.25 / 0.25 for the same tester: the far lines stay faint but legible.
+private const val ALPHA_FALLOFF_PER_LINE = 0.15f
+private const val MIN_LINE_ALPHA = 0.4f
 
 // Before the FIRST line is due — an intro, a long instrumental opening — there is no sung line for
 // anything to be near, so distance is meaningless and every line is equally "not yet". They are

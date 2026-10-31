@@ -333,7 +333,8 @@ private const val MESH_TEX = 32
 /** What the artwork is read at before it is averaged — a whole multiple of [MESH_GRID]. */
 private const val MESH_SOURCE_PX = 120
 
-private const val MESH_VIBRANCE = 1.12f
+// The colours as the cover has them (was 1.12, which a tester found too contrasty).
+private const val MESH_VIBRANCE = 1f
 private const val MESH_FLOOR = 0.045f
 
 /** How long the page takes to change colour on a skip: long enough to read as a change, not a cut. */
