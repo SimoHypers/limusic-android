@@ -154,6 +154,7 @@
     <string name="title">Title</string>
     <string name="custom_order">Custom order</string>
     <string name="album">Album</string>
+    <string name="go_to_album">Go to album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="now_playing">Now Playing</string>
     <string name="queue">Queue</string>

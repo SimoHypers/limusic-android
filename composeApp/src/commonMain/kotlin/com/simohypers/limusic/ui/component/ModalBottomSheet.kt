@@ -177,6 +177,7 @@ import limusic.composeapp.generated.resources.add_to_a_playlist
 import limusic.composeapp.generated.resources.add_to_queue
 import limusic.composeapp.generated.resources.about
 import limusic.composeapp.generated.resources.album
+import limusic.composeapp.generated.resources.go_to_album
 import limusic.composeapp.generated.resources.artists
 import limusic.composeapp.generated.resources.baseline_favorite_24
 import limusic.composeapp.generated.resources.bitrate
@@ -1040,22 +1041,13 @@ private fun NowPlayingBottomSheetContent(
                     }
                     ActionButton(
                         icon = LimusicIcons.Album,
-                        // Three states, not two. A track can carry an album ID with no title: the
-                        // row it was parsed from links an album but never spells its name out.
-                        // That case still navigates, so it must not read "No album" — but the name
-                        // is genuinely unknown, so fall back to the generic label rather than
-                        // showing a blank row. The parser deliberately leaves the name empty
-                        // instead of inventing one, because a made-up title would travel out to
-                        // MediaSession and into external scrobblers.
-                        text =
-                            when {
-                                uiState.songUIState.album == null -> Res.string.no_album
-                                uiState.songUIState.album
-                                    ?.name
-                                    .isNullOrBlank() -> Res.string.album
-                                else -> null
-                            },
-                        textString =
+                        // "Go to album" with the album's name under it. A track can carry an album
+                        // ID with no title (the row it was parsed from links an album but never
+                        // spells its name out): it still navigates, just without the name. The
+                        // parser leaves the name empty instead of inventing one, because a made-up
+                        // title would travel out to MediaSession and into external scrobblers.
+                        text = if (uiState.songUIState.album == null) Res.string.no_album else Res.string.go_to_album,
+                        subtitle =
                             uiState.songUIState.album
                                 ?.name
                                 ?.takeIf { it.isNotBlank() },
@@ -1194,6 +1186,7 @@ fun ActionButton(
     textColor: Color? = null,
     iconColor: Color = Color.Unspecified,
     enable: Boolean = true,
+    subtitle: String? = null,
     onClick: () -> Unit,
 ) {
     val c = rememberSurfaceDarkColors()
@@ -1225,15 +1218,23 @@ fun ActionButton(
                         ColorFilter.tint(c.disabled)
                     },
             )
-            Text(
-                text = if (text != null) stringResource(text) else textString ?: "",
-                style = typo().labelSmall,
-                color = if (enable) textColor ?: c.content else c.disabled,
-                modifier =
-                    Modifier
-                        .padding(start = 10.dp)
-                        .wrapContentHeight(Alignment.CenterVertically),
-            )
+            Column(Modifier.padding(start = 10.dp)) {
+                Text(
+                    text = if (text != null) stringResource(text) else textString ?: "",
+                    style = typo().labelSmall,
+                    color = if (enable) textColor ?: c.content else c.disabled,
+                    modifier = Modifier.wrapContentHeight(Alignment.CenterVertically),
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = typo().bodySmall,
+                        color = if (enable) c.subtitle else c.disabled,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
