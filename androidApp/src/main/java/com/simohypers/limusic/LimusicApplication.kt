@@ -58,7 +58,8 @@ class LimusicApplication :
         // First, so the rest of startup reaches the App log too (Settings → Developer option).
         Logger.enableFileLogging(File(filesDir, "logs").path)
         watchConnectivity(this)
-        applicationScope.launch {
+        // IO: closing TLS sockets writes to them.
+        applicationScope.launch(Dispatchers.IO) {
             Connectivity.reconnects().collect {
                 Logger.i("Network", "Connected again or moved to another network; dropping old connections")
                 dropIdleConnections()

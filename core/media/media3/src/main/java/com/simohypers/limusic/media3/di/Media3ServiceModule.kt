@@ -560,7 +560,9 @@ private fun playerHttpClient(proxy: Proxy?): OkHttpClient =
  * one, from the byte it had reached.
  */
 private fun CoroutineScope.dropPlayerConnectionsOnNetworkChange() =
-    launch {
+    // Off the main thread, which the service scope is on: closing a TLS socket writes to it, and
+    // Android kills the app for network I/O on the main thread.
+    launch(Dispatchers.IO) {
         Connectivity.reconnects().collect {
             playerHttp?.run {
                 dispatcher.cancelAll()
