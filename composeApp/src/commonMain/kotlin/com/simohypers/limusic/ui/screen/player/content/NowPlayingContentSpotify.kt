@@ -54,7 +54,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -122,6 +121,7 @@ import com.simohypers.limusic.extension.parseTimestampToMilliseconds
 import com.simohypers.limusic.extension.smoothScrimBrush
 import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.component.LyricText
+import com.simohypers.limusic.ui.component.LimusicLoader
 import com.simohypers.limusic.ui.component.DescriptionView
 import com.simohypers.limusic.ui.component.ExplicitBadge
 import com.simohypers.limusic.ui.component.HeartCheckBox
@@ -1653,11 +1653,7 @@ fun NowPlayingContentSpotify(
                         Crossfade(targetState = state.timelineState.loading, label = "") {
                             if (it) {
                                 Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        color = Color.LightGray,
-                                        strokeWidth = 3.dp,
-                                    )
+                                    LimusicLoader(Modifier.size(22.dp), color = Color.LightGray)
                                 }
                             } else {
                                 PlayPauseButton(isPlaying = state.controllerState.isPlaying, modifier = Modifier.size(48.dp)) {

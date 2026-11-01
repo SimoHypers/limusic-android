@@ -23,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -287,7 +286,7 @@ fun LyricsSourceSheet(
                         modifier = Modifier.weight(1f),
                     )
                     when {
-                        answer is Answer.Loading -> CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = colors.subtitle)
+                        answer is Answer.Loading -> LimusicLoader(Modifier.size(18.dp), color = colors.subtitle)
                         answer is Answer.Idle -> Status(stringResource(Res.string.lyrics_off), stringResource(Res.string.lyrics_check), colors)
                         answer is Answer.Failed -> Status(stringResource(Res.string.lyrics_unreachable), stringResource(Res.string.lyrics_retry), colors)
                         hit != null -> LyricsKindBadge(LyricsKind.of(hit.syncType))

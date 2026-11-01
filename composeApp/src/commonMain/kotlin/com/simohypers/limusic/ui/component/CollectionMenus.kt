@@ -106,7 +106,15 @@ fun PlaylistMenu(
                     fetching = false
                 }
             },
-            onEditPlaylist = if (own) ({ editing = true }) else null,
+            onEditPlaylist =
+                if (own) {
+                    {
+                        editing = true
+                        viewModel.afterLoad {}
+                    }
+                } else {
+                    null
+                },
             onDeletePlaylist = if (own) ({ deleting = true }) else null,
             onRemoveShortcut = onRemoveShortcut,
             onPlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.PlayAll) } },

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import androidx.compose.material3.LocalContentColor
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -98,14 +99,15 @@ fun NewPlaylistSheet(
             }
         }
         Button(
-            enabled = !creating && title.isNotBlank(),
+            enabled = title.isNotBlank(),
             onClick = {
+                if (creating) return@Button
                 creating = true
                 onCreate(title.trim(), canPickYouTube && youTube) { ok -> if (!ok) creating = false }
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(Res.string.create))
+            if (creating) LimusicLoader(Modifier.size(20.dp), color = LocalContentColor.current) else Text(stringResource(Res.string.create))
         }
     }
 }

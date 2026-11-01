@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content.expressive
 
+import com.simohypers.limusic.ui.component.LimusicLoader
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -183,11 +183,7 @@ fun ExpressiveTransportRow(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                color = colorScheme.onPrimary,
-                                strokeWidth = 3.dp,
-                            )
+                            LimusicLoader(Modifier.size(26.dp), color = colorScheme.onPrimary)
                         }
                     } else {
                         Crossfade(

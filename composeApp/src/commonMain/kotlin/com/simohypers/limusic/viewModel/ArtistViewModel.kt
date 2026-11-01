@@ -36,7 +36,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.loading
 import limusic.composeapp.generated.resources.radio
+import limusic.composeapp.generated.resources.starting_radio
 import limusic.composeapp.generated.resources.youtube_write_failed
 import org.jetbrains.compose.resources.getString
 
@@ -194,7 +196,7 @@ class ArtistViewModel(
 
     fun onRadioClick(endpoint: YouTubeWatchEndpoint) {
         viewModelScope.launch {
-            songRepository.getRadioFromEndpoint(endpoint).collectLatest { res ->
+            songRepository.getRadioFromEndpoint(endpoint).busy(Res.string.starting_radio).collectLatest { res ->
                 val data = res.data
                 when (res) {
                     is Resource.Success if data != null && data.first.isNotEmpty() -> {
@@ -225,7 +227,7 @@ class ArtistViewModel(
 
     fun onShuffleClick(endpoint: YouTubeWatchEndpoint) {
         viewModelScope.launch {
-            songRepository.getRadioFromEndpoint(endpoint).collectLatest { res ->
+            songRepository.getRadioFromEndpoint(endpoint).busy(Res.string.loading).collectLatest { res ->
                 val data = res.data
                 when (res) {
                     is Resource.Success if data != null && data.first.isNotEmpty() -> {

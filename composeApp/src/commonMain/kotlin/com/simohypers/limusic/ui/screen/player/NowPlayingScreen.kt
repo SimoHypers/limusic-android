@@ -12,8 +12,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -35,10 +38,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kmpalette.rememberPaletteState
@@ -54,6 +59,7 @@ import com.simohypers.limusic.extension.getColorFromPalette
 import com.simohypers.limusic.extension.hsvToColor
 import com.simohypers.limusic.extension.rememberIsInPipMode
 import com.simohypers.limusic.ui.component.AddToPlaylistModalBottomSheet
+import com.simohypers.limusic.ui.component.BusyPill
 import com.simohypers.limusic.ui.component.FullscreenLyricsSheet
 import com.simohypers.limusic.ui.component.InfoPlayerBottomSheet
 import com.simohypers.limusic.domain.data.model.browse.album.Track
@@ -126,15 +132,18 @@ fun NowPlayingScreen(
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
     ) {
-        NowPlayingScreenContent(
-            sharedViewModel = sharedViewModel,
-            navController = navController,
-            isExpanded = sheetState.currentValue == SheetValue.Expanded,
-            dismissIcon = LimusicIcons.KeyboardArrowDown,
-            onDismiss = {
-                hideSheet()
-            },
-        )
+        Box {
+            NowPlayingScreenContent(
+                sharedViewModel = sharedViewModel,
+                navController = navController,
+                isExpanded = sheetState.currentValue == SheetValue.Expanded,
+                dismissIcon = LimusicIcons.KeyboardArrowDown,
+                onDismiss = {
+                    hideSheet()
+                },
+            )
+            BusyPill(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 16.dp))
+        }
     }
 }
 

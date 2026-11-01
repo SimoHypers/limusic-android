@@ -65,6 +65,7 @@ import com.simohypers.limusic.expect.Orientation
 import com.simohypers.limusic.expect.currentOrientation
 import com.simohypers.limusic.extension.copy
 import com.simohypers.limusic.ui.component.AppNavigationRail
+import com.simohypers.limusic.ui.component.BusyPill
 import com.simohypers.limusic.ui.icon.ArrowForwardIos
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
@@ -553,6 +554,11 @@ fun App(
                             }
                         }
                     }
+                    BusyPill(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = innerPadding.calculateBottomPadding() + 12.dp),
+                    )
                 }
 
                 if (isShowNowPlaylistScreen && !isTabletLandscape) {

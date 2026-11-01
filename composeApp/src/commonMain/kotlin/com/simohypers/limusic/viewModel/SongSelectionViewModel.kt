@@ -124,10 +124,10 @@ class SongSelectionViewModel(
         )
     }
 
-    private val _youTubePlaylists = MutableStateFlow<List<PlaylistsResult>>(emptyList())
+    private val _youTubePlaylists = MutableStateFlow<List<PlaylistsResult>?>(null)
 
-    /** Your YouTube playlists for the Save to playlist sheet, fetched when it opens. */
-    val youTubePlaylists: StateFlow<List<PlaylistsResult>> = _youTubePlaylists
+    /** Your YouTube playlists for the Save to playlist sheet, fetched when it opens; null until they are in. */
+    val youTubePlaylists: StateFlow<List<PlaylistsResult>?> = _youTubePlaylists
 
     fun loadYouTubePlaylists() {
         viewModelScope.launch {

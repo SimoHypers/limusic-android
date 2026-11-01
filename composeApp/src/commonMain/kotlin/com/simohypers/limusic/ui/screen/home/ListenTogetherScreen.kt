@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +60,7 @@ import com.simohypers.limusic.domain.data.model.listentogether.RoomConnection
 import com.simohypers.limusic.domain.data.model.listentogether.RoomMember
 import com.simohypers.limusic.expect.shareUrl
 import com.simohypers.limusic.ui.component.CodeInput
+import com.simohypers.limusic.ui.component.LimusicLoader
 import com.simohypers.limusic.ui.component.SettingSheet
 import com.simohypers.limusic.ui.component.codeOf
 import com.simohypers.limusic.ui.icon.Add
@@ -202,7 +202,7 @@ private fun Waiting(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            CircularProgressIndicator(Modifier.size(36.dp), strokeWidth = 3.dp)
+            LimusicLoader(Modifier.size(40.dp))
             Text(
                 stringResource(if (connection is RoomConnection.Connected) Res.string.ltd_waiting_for_host else Res.string.ltd_connecting),
                 style = typo().bodyMedium,

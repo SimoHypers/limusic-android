@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import limusic.composeapp.generated.resources.starting_radio
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.added_to_playlist
@@ -61,7 +62,7 @@ class NowPlayingBottomSheetViewModel(
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
                 listLocalPlaylist = emptyList(),
-                listYouTubePlaylist = emptyList(),
+                listYouTubePlaylist = null,
                 sleepTimer =
                     SleepTimerState(
                         false,
@@ -340,7 +341,8 @@ class NowPlayingBottomSheetViewModel(
                                 videoId = ev.videoId,
                                 playlistId = "RDAMVM${ev.videoId}",
                             ),
-                        ).collectLatest { res ->
+                        ).busy(Res.string.starting_radio)
+                        .collectLatest { res ->
                             val data = res.data
                             when (res) {
                                 is Resource.Success if (data != null && data.first.isNotEmpty()) -> {
@@ -375,7 +377,8 @@ class NowPlayingBottomSheetViewModel(
 data class NowPlayingBottomSheetUIState(
     val songUIState: SongUIState = SongUIState(),
     val listLocalPlaylist: List<LocalPlaylistEntity>,
-    val listYouTubePlaylist: List<PlaylistsResult>,
+    // Null until the account's playlists have come back.
+    val listYouTubePlaylist: List<PlaylistsResult>?,
     val sleepTimer: SleepTimerState,
     val loggedIn: Boolean = false,
 ) {

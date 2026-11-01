@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -85,6 +84,7 @@ import com.simohypers.limusic.extension.parseTimestampToMilliseconds
 import com.simohypers.limusic.extension.smoothScrimBrush
 import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.component.DescriptionView
+import com.simohypers.limusic.ui.component.LimusicLoader
 import com.simohypers.limusic.ui.component.ExplicitBadge
 import com.simohypers.limusic.ui.component.HeartCheckBox
 import com.simohypers.limusic.ui.component.LyricsOffsetBar
@@ -980,11 +980,7 @@ internal fun ExpressiveCollapsedToolbar(
                     Crossfade(targetState = state.timelineState.loading, label = "") {
                         if (it) {
                             Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    color = colorScheme.onSurfaceVariant,
-                                    strokeWidth = 3.dp,
-                                )
+                                LimusicLoader(Modifier.size(22.dp), color = colorScheme.onSurfaceVariant)
                             }
                         } else {
                             PlayPauseButton(

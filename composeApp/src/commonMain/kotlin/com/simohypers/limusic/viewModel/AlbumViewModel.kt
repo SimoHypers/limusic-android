@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
+import limusic.composeapp.generated.resources.loading_album
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.album
@@ -243,7 +244,7 @@ class AlbumViewModel(
         action: (AlbumUIState) -> Unit,
     ) {
         viewModelScope.launch {
-            val state = uiState.first { it.loadState != LocalPlaylistState.PlaylistLoadState.Loading }
+            val state = busy(Res.string.loading_album) { uiState.first { it.loadState != LocalPlaylistState.PlaylistLoadState.Loading } }
             if (state.loadState == LocalPlaylistState.PlaylistLoadState.Success) action(state)
             onDone()
         }

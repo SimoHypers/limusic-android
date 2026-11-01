@@ -51,7 +51,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -327,7 +326,7 @@ fun InfoPlayerBottomSheet(
                             )
                             Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                                 if (!downloadProgress.isDone && !downloadProgress.isError) {
-                                    CircularProgressIndicator()
+                                    LimusicLoader(Modifier.size(40.dp))
                                     Spacer(Modifier.size(15.dp))
                                 }
                                 Crossfade(downloadProgress) {
@@ -1802,7 +1801,8 @@ fun SleepTimerBottomSheet(
 fun AddToPlaylistModalBottomSheet(
     isBottomSheetVisible: Boolean,
     listLocalPlaylist: List<LocalPlaylistEntity>,
-    listYouTubePlaylist: List<PlaylistsResult>,
+    // Null while the account's playlists are still loading.
+    listYouTubePlaylist: List<PlaylistsResult>?,
     videoId: String? = null,
     onClick: (LocalPlaylistEntity) -> Unit,
     // Null where the songs can only go into phone playlists: no YouTube tab, and New playlist makes one on the phone.
@@ -1827,8 +1827,9 @@ fun AddToPlaylistModalBottomSheet(
         // One just made on YouTube shows until YouTube's own list catches up, as in Library.
         val youTubePlaylists =
             remember(listYouTubePlaylist, createdPlaylists) {
-                val listed = listYouTubePlaylist.mapTo(HashSet()) { it.browseId.removePrefix("VL") }
-                createdPlaylists.filter { it.browseId.removePrefix("VL") !in listed } + listYouTubePlaylist
+                val loaded = listYouTubePlaylist.orEmpty()
+                val listed = loaded.mapTo(HashSet()) { it.browseId.removePrefix("VL") }
+                createdPlaylists.filter { it.browseId.removePrefix("VL") !in listed } + loaded
             }
         var newPlaylist by remember { mutableStateOf(false) }
         if (newPlaylist) {
@@ -2002,7 +2003,9 @@ fun AddToPlaylistModalBottomSheet(
                         if (if (onYouTubeTab) shownYouTubePlaylist.isEmpty() else shownLocalPlaylist.isEmpty()) {
                             // With no playlists at all there is nothing to say: New playlist above is the way on.
                             Box(listModifier) {
-                                if (keyword.isNotEmpty()) {
+                                if (onYouTubeTab && listYouTubePlaylist == null) {
+                                    LimusicLoader(Modifier.align(Alignment.Center).padding(vertical = 32.dp).size(40.dp))
+                                } else if (keyword.isNotEmpty()) {
                                     Text(
                                         text = stringResource(Res.string.no_results_found),
                                         style = typo().labelSmall,

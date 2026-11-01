@@ -47,7 +47,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -109,6 +108,7 @@ import com.simohypers.limusic.extension.elapsedLabel
 import com.simohypers.limusic.extension.formatDuration
 import com.simohypers.limusic.getPlatform
 import com.simohypers.limusic.ui.component.ExplicitBadge
+import com.simohypers.limusic.ui.component.LimusicLoader
 import com.simohypers.limusic.ui.component.HeartCheckBox
 import com.simohypers.limusic.ui.component.PlayPauseButton
 import com.simohypers.limusic.ui.component.PlayerControlLayout
@@ -485,11 +485,7 @@ fun MiniPlayer(
                         Crossfade(targetState = loading, label = "") {
                             if (it) {
                                 Box(modifier = Modifier.size(controlSize), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        color = playColor,
-                                        strokeWidth = 3.dp,
-                                    )
+                                    LimusicLoader(Modifier.size(22.dp), color = playColor)
                                 }
                             } else {
                                 PlayPauseButton(isPlaying = isPlaying, modifier = Modifier.size(controlSize), tint = playColor) {

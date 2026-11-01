@@ -54,6 +54,8 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import limusic.composeapp.generated.resources.loading_playlist
+import limusic.composeapp.generated.resources.starting_radio
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.auto_created_by_youtube_music
@@ -550,7 +552,7 @@ class PlaylistViewModel(
                     data.radioEndpoint ?: YouTubeWatchEndpoint(playlistId = "RDAMPL${data.id.removePrefix("VL")}")
                 run {
                     viewModelScope.launch {
-                        songRepository.getRadioFromEndpoint(radioEndpoint).collectLatest { res ->
+                        songRepository.getRadioFromEndpoint(radioEndpoint).busy(Res.string.starting_radio).collectLatest { res ->
                             val result = res.data
                             when (res) {
                                 is Resource.Success if (result != null) -> {
@@ -596,7 +598,7 @@ class PlaylistViewModel(
     /** Walks in every page, then calls [callback] once with the whole list, in the order on screen. */
     fun getFullTracks(callback: (List<Track>) -> Unit) {
         viewModelScope.launch {
-            if (walkAll()) callback(ordered(tracks.value))
+            if (busy(Res.string.loading_playlist) { walkAll() }) callback(ordered(tracks.value))
         }
     }
 
@@ -626,7 +628,7 @@ class PlaylistViewModel(
     /** Runs [action] once the playlist has loaded; never, if it failed. */
     fun afterLoad(action: () -> Unit) {
         viewModelScope.launch {
-            if (uiState.first { it !is Loading } is Success) action()
+            if (busy(Res.string.loading_playlist) { uiState.first { it !is Loading } } is Success) action()
         }
     }
 

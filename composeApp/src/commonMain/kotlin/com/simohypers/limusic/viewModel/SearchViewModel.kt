@@ -18,6 +18,7 @@ import com.simohypers.limusic.common.Config
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
 import com.simohypers.limusic.domain.mediaservice.handler.PlaylistType
 import com.simohypers.limusic.domain.mediaservice.handler.QueueData
+import limusic.composeapp.generated.resources.starting_radio
 import org.jetbrains.compose.resources.getString
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.radio
@@ -299,6 +300,7 @@ class SearchViewModel(
             val (tracks, continuation) =
                 songRepository
                     .getRadioFromEndpoint(YouTubeWatchEndpoint(playlistId = artist.radioId))
+                    .busy(Res.string.starting_radio)
                     .lastOrNull()
                     ?.data
                     ?.takeIf { it.first.isNotEmpty() }

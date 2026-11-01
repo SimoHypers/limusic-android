@@ -14,10 +14,14 @@ import com.simohypers.limusic.domain.utils.isRadioQueueId
 import com.simohypers.limusic.logger.LogLevel
 import com.simohypers.limusic.logger.Logger
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastDuration
@@ -29,6 +33,7 @@ import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.loading
+import limusic.composeapp.generated.resources.starting_radio
 
 abstract class BaseViewModel :
     ViewModel(),
@@ -74,6 +79,30 @@ abstract class BaseViewModel :
     init {
         getNowPlayingVideoId()
     }
+
+    companion object {
+        private val waits = MutableStateFlow<List<StringResource>>(emptyList())
+
+        /** What the app is fetching behind a closed menu, newest last, for the pill above the mini player. */
+        val busyLabels: StateFlow<List<StringResource>> = waits
+    }
+
+    /** Runs [block] with the pill above the mini player saying [label]. */
+    protected suspend fun <T> busy(
+        label: StringResource,
+        block: suspend () -> T,
+    ): T {
+        waits.update { it + label }
+        try {
+            return block()
+        } finally {
+            waits.update { it - label }
+        }
+    }
+
+    /** This flow, with the pill above the mini player saying [label] until it ends. */
+    protected fun <T> Flow<T>.busy(label: StringResource): Flow<T> =
+        onStart { waits.update { it + label } }.onCompletion { waits.update { it - label } }
 
     fun makeToast(message: String?) {
         showToast(
@@ -147,11 +176,11 @@ abstract class BaseViewModel :
         endpoint: YouTubeWatchEndpoint,
         name: String,
     ) {
+        val isRadio = endpoint.playlistId?.isRadioQueueId() == true
         viewModelScope.launch {
-            playbackSongRepository.getRadioFromEndpoint(endpoint).collectLatest { res ->
+            playbackSongRepository.getRadioFromEndpoint(endpoint).busy(if (isRadio) Res.string.starting_radio else Res.string.loading).collectLatest { res ->
                 val tracks = res.data?.first
                 if (res is Resource.Success && !tracks.isNullOrEmpty()) {
-                    val isRadio = endpoint.playlistId?.isRadioQueueId() == true
                     setQueueData(
                         QueueData.Data(
                             listTracks = tracks.toCollection(arrayListOf<Track>()),

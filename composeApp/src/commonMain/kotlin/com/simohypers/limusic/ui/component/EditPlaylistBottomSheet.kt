@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import androidx.compose.material3.LocalContentColor
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -207,8 +208,8 @@ fun EditPlaylistBottomSheet(
                     }
                     val emptyName = stringResource(Res.string.playlist_name_cannot_be_empty)
                     Button(
-                        enabled = !saving,
                         onClick = {
+                            if (saving) return@Button
                             if (newTitle.isBlank()) {
                                 showToast(emptyName, ToastGravity.Bottom)
                                 return@Button
@@ -231,7 +232,7 @@ fun EditPlaylistBottomSheet(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(text = stringResource(Res.string.save))
+                        if (saving) LimusicLoader(Modifier.size(20.dp), color = LocalContentColor.current) else Text(text = stringResource(Res.string.save))
                     }
                     EndOfModalBottomSheet()
                 }
