@@ -13,6 +13,8 @@
         <item quantity="other">%1$d songs</item>
     </plurals>
     <string name="like">Like</string>
+    <string name="dislike">Dislike</string>
+    <string name="remove_dislike">Remove dislike</string>
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="library_downloads">Downloads</string>

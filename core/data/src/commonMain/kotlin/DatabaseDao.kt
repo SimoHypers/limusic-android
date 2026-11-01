@@ -243,6 +243,13 @@ interface DatabaseDao {
         favoriteAt: LocalDateTime? = if (liked == 1) now() else null,
     )
 
+    /** YouTube's rating string; only "DISLIKE" is read back (the heart is [updateLiked]). */
+    @Query("UPDATE song SET likeStatus = :likeStatus WHERE videoId = :videoId")
+    suspend fun updateLikeStatus(
+        likeStatus: String,
+        videoId: String,
+    )
+
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertSong(song: SongEntity): Long
 

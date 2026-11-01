@@ -152,6 +152,7 @@ import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.Speed
 import com.simohypers.limusic.ui.icon.Sync
 import com.simohypers.limusic.ui.icon.Tune
+import com.simohypers.limusic.ui.icon.ThumbDown
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.AppThemeContent
@@ -188,6 +189,8 @@ import limusic.composeapp.generated.resources.cancel
 import limusic.composeapp.generated.resources.codec
 import limusic.composeapp.generated.resources.copied_to_clipboard
 import limusic.composeapp.generated.resources.delete
+import limusic.composeapp.generated.resources.dislike
+import limusic.composeapp.generated.resources.remove_dislike
 import limusic.composeapp.generated.resources.delete_from_queue
 import limusic.composeapp.generated.resources.delete_playlist
 import limusic.composeapp.generated.resources.delete_song_from_playlist
@@ -987,6 +990,16 @@ private fun NowPlayingBottomSheetContent(
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
                     )
+                    // A YouTube rating: nothing to send it to while signed out.
+                    if (uiState.loggedIn) {
+                        ActionButton(
+                            icon = LimusicIcons.ThumbDown,
+                            text = if (uiState.songUIState.disliked) Res.string.remove_dislike else Res.string.dislike,
+                        ) {
+                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleDislike)
+                            hideModalBottomSheet()
+                        }
+                    }
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
@@ -1246,7 +1259,7 @@ fun CheckBoxActionButton(
     isHeartIcon: Boolean,
     onChangeListener: (checked: Boolean) -> Unit,
 ) {
-    var stateChecked by remember { mutableStateOf(defaultChecked) }
+    var stateChecked by remember(defaultChecked) { mutableStateOf(defaultChecked) }
     Box(
         modifier =
             Modifier

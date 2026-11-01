@@ -866,6 +866,18 @@ class Ytmusic {
             )
         }
 
+    /** Cleared by [removeFromLiked]: `removelike` drops either rating. */
+    suspend fun dislike(videoId: String) =
+        httpClient.post("like/dislike") {
+            ytClient(WEB_REMIX, true)
+            setBody(
+                LikeBody(
+                    context = WEB_REMIX.toContext(locale, visitorData),
+                    target = LikeBody.Target(videoId),
+                ),
+            )
+        }
+
     suspend fun removeFromLiked(videoId: String) =
         httpClient.post("like/removelike") {
             ytClient(WEB_REMIX, true)

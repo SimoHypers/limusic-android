@@ -11,6 +11,7 @@ import com.simohypers.limusic.domain.data.model.searchResult.songs.Artist
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
+import com.simohypers.limusic.domain.mediaservice.handler.PlayerEvent
 import com.simohypers.limusic.domain.mediaservice.handler.PlaylistType
 import com.simohypers.limusic.domain.mediaservice.handler.QueueData
 import com.simohypers.limusic.domain.mediaservice.handler.SleepTimerState
@@ -99,7 +100,14 @@ class NowPlayingBottomSheetViewModel(
                         }
                     }
                 }
+            val loggedInJob =
+                launch {
+                    dataStoreManager.loggedIn.collectLatest { v ->
+                        _uiState.update { it.copy(loggedIn = v == DataStoreManager.TRUE) }
+                    }
+                }
             sleepTimerJob.join()
+            loggedInJob.join()
             listLocalPlaylistJob.join()
             listYouTubePlaylistJob.join()
         }
@@ -170,6 +178,7 @@ class NowPlayingBottomSheetViewModel(
                                             } ?: emptyList(),
                                         thumbnails = song.thumbnails,
                                         liked = song.liked,
+                                        disliked = song.likeStatus == "DISLIKE",
                                         downloadState = song.downloadState,
                                         album =
                                             song.albumName?.takeIf { it.isNotEmpty() }?.let { name ->
@@ -233,6 +242,25 @@ class NowPlayingBottomSheetViewModel(
                             if (songUIState.liked) 0 else 1,
                         )
                     if (!written) makeToast(getString(Res.string.youtube_write_failed))
+                }
+
+                is NowPlayingBottomSheetUIEvent.ToggleDislike -> {
+                    val id = songUIState.videoId
+                    val disliking = !songUIState.disliked
+                    if (!songRepository.updateDislike(id, disliking)) {
+                        makeToast(getString(Res.string.youtube_write_failed))
+                    } else if (disliking) {
+                        // Like desktop: a disliked song shouldn't play, or wait to. Upcoming copies
+                        // go back to front so the indices stay valid; played ones are history.
+                        val queue = mediaPlayerHandler.queueData.value?.data?.listTracks.orEmpty()
+                        val current = mediaPlayerHandler.currentOrderIndex()
+                        for (i in queue.indices.reversed()) {
+                            if (i > current && queue[i].videoId == id) mediaPlayerHandler.removeMediaItem(i)
+                        }
+                        if (mediaPlayerHandler.nowPlayingState.value.songEntity?.videoId == id) {
+                            mediaPlayerHandler.onPlayerEvent(PlayerEvent.Next)
+                        }
+                    }
                 }
 
                 is NowPlayingBottomSheetUIEvent.Download -> {
@@ -349,6 +377,7 @@ data class NowPlayingBottomSheetUIState(
     val listLocalPlaylist: List<LocalPlaylistEntity>,
     val listYouTubePlaylist: List<PlaylistsResult>,
     val sleepTimer: SleepTimerState,
+    val loggedIn: Boolean = false,
 ) {
     data class SongUIState(
         val videoId: String = "",
@@ -356,6 +385,7 @@ data class NowPlayingBottomSheetUIState(
         val listArtists: List<Artist> = emptyList(),
         val thumbnails: String? = null,
         val liked: Boolean = false,
+        val disliked: Boolean = false,
         val isAddedToYouTubeLiked: Boolean = false,
         val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
         val album: Album? = null,
@@ -369,6 +399,8 @@ sealed class NowPlayingBottomSheetUIEvent {
     ) : NowPlayingBottomSheetUIEvent()
 
     data object ToggleLike : NowPlayingBottomSheetUIEvent()
+
+    data object ToggleDislike : NowPlayingBottomSheetUIEvent()
 
     data object Download : NowPlayingBottomSheetUIEvent()
 

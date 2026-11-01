@@ -111,6 +111,15 @@ interface SongRepository {
         likeStatus: Int,
     ): Boolean
 
+    /**
+     * YouTube Music's dislike, signed in only. YouTube's ratings exclude each other, so a dislike
+     * also clears the heart. Written to YouTube first, then the row; false when YouTube refused.
+     */
+    suspend fun updateDislike(
+        videoId: String,
+        disliked: Boolean,
+    ): Boolean
+
     fun updateSongInLibrary(
         inLibrary: LocalDateTime,
         videoId: String,

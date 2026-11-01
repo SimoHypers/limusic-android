@@ -267,6 +267,8 @@ internal class SongRepositoryImpl(
                     localDataSource.updateLiked(if (song?.liked == true) 1 else 0, videoId)
                     return@withContext false
                 }
+                // YouTube's ratings exclude each other: the like just cleared any dislike.
+                if (likeStatus == 1 && song?.likeStatus == LikeStatus.DISLIKE.name) localDataSource.updateLikeStatus("LIKE", videoId)
                 librarySync.mark(key, false)
             } else {
                 librarySync.mark(key, likeStatus == 1)
@@ -277,6 +279,26 @@ internal class SongRepositoryImpl(
                     Logger.d(TAG, "Auto-downloading liked song: $videoId")
                     downloadHandler.downloadTracks(listOf(song))
                 }
+            }
+            true
+        }
+
+    override suspend fun updateDislike(
+        videoId: String,
+        disliked: Boolean,
+    ): Boolean =
+        withContext(Dispatchers.Main) {
+            likeEpoch++
+            // removelike clears a dislike the same way it clears a like.
+            val written = withContext(Dispatchers.IO) { if (disliked) youTube.dislike(videoId) else youTube.removeFromLiked(videoId) }
+            if (written.isFailure) {
+                Logger.w(TAG, "Dislike on YouTube failed: ${written.exceptionOrNull()?.message}")
+                return@withContext false
+            }
+            localDataSource.updateLikeStatus(if (disliked) LikeStatus.DISLIKE.name else "INDIFFERENT", videoId)
+            if (disliked) {
+                localDataSource.updateLiked(0, videoId)
+                librarySync.mark(LibrarySync.song(videoId), false)
             }
             true
         }
@@ -502,6 +524,7 @@ internal class SongRepositoryImpl(
         val liked = status == LikeStatus.LIKE
         val song = localDataSource.getSong(videoId) ?: return row
         if (song.liked != liked) localDataSource.updateLiked(if (liked) 1 else 0, videoId)
+        if ((song.likeStatus == LikeStatus.DISLIKE.name) != (status == LikeStatus.DISLIKE)) localDataSource.updateLikeStatus(status.name, videoId)
         return row
     }
 
