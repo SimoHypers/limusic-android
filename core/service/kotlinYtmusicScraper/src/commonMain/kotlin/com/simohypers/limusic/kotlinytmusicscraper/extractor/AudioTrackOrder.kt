@@ -9,9 +9,8 @@ private val XTAGS = Regex("[?&]xtags=([^&]+)")
  * English at position 23. Each googlevideo URL names its own track in the `xtags` query value, e.g.
  * `acont=original:drc=1:lang=en-US` or `acont=dubbed-auto:lang=vi`.
  *
- * Ranks a URL so that a stable sort puts, per itag, a track in [preferredLanguage] first, then the
- * original, then everything else. A single-track video carries no `xtags` at all, ranks as
- * original and keeps its order — songs are unaffected.
+ * Ranks a URL: a track in [preferredLanguage] 0, the original 1, everything else 2. A single-track
+ * video carries no `xtags` at all and ranks as original, so songs are unaffected.
  */
 internal fun audioTrackRank(
     url: String,
@@ -37,4 +36,20 @@ internal fun audioTrackRank(
         acont == null || acont == "original" -> 1
         else -> 2
     }
+}
+
+/**
+ * Only the audio formats of the best-ranked track; video formats pass untouched. Sorting the best
+ * track first was not enough: when the itag the quality setting wants is missing (a 256 kbps one
+ * without Premium), the caller falls back to the highest bitrate, and with every dub still listed
+ * that was whichever dub YouTube encoded largest (measured 2026-11-01 on The Diary Of A CEO:
+ * Romanian, Hungarian, Russian, Hindi over the English original).
+ */
+internal fun <T> List<T>.keepBestAudioTrack(
+    preferredLanguage: String?,
+    isAudio: (T) -> Boolean,
+    url: (T) -> String,
+): List<T> {
+    val best = filter(isAudio).minOfOrNull { audioTrackRank(url(it), preferredLanguage) } ?: return this
+    return filter { !isAudio(it) || audioTrackRank(url(it), preferredLanguage) == best }
 }

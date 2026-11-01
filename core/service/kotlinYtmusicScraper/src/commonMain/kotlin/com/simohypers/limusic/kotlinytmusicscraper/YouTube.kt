@@ -6,7 +6,7 @@ import com.simohypers.limusic.domain.utils.PlaylistSort
 import com.simohypers.limusic.kotlinytmusicscraper.YouTube.Companion.DEFAULT_VISITOR_DATA
 import com.simohypers.limusic.kotlinytmusicscraper.extractor.ExtractSource
 import com.simohypers.limusic.kotlinytmusicscraper.cipher.FaradayCipherEngine
-import com.simohypers.limusic.kotlinytmusicscraper.extractor.audioTrackRank
+import com.simohypers.limusic.kotlinytmusicscraper.extractor.keepBestAudioTrack
 import com.simohypers.limusic.kotlinytmusicscraper.extractor.nChallengeOf
 import com.simohypers.limusic.kotlinytmusicscraper.extractor.parseSignatureCipher
 import com.simohypers.limusic.kotlinytmusicscraper.extractor.signedUrl
@@ -1533,8 +1533,8 @@ class YouTube {
     }
 
     /**
-     * [streaming] with a ready-to-play URL on every format that can have one, the preferred audio
-     * language first within each itag. A [web] client's formats are deciphered on the device, get
+     * [streaming] with a ready-to-play URL on every format that can have one, and of the audio
+     * only the one track to play (see keepBestAudioTrack). A [web] client's formats are deciphered on the device, get
      * their `n` solved (desktop's NEEDS_N_TRANSFORM) and carry [pot] when there is one; a direct
      * client's are used as they come. Null when a web client's challenges cannot be asked for at all.
      */
@@ -1573,7 +1573,7 @@ class YouTube {
         }
 
         fun List<PlayerResponse.StreamingData.Format>.ready() =
-            mapNotNull { ready(it) }.sortedBy { audioTrackRank(it.url!!, preferredAudioLanguage) }
+            mapNotNull { ready(it) }.keepBestAudioTrack(preferredAudioLanguage, { it.isAudio }) { it.url!! }
 
         return streaming.copy(formats = streaming.formats?.ready(), adaptiveFormats = streaming.adaptiveFormats.ready())
     }
