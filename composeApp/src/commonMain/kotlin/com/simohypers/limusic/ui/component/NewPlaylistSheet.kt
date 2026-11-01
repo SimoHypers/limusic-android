@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -120,7 +120,7 @@ private fun WhereOption(
     onClick: () -> Unit,
 ) {
     val accent = MaterialTheme.colorScheme.primary
-    val shape = RoundedCornerShape(16.dp)
+    val shape = rounded(16.dp)
     Row(
         modifier =
             Modifier

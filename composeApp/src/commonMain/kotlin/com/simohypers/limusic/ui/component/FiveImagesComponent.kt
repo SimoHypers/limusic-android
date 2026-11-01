@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,7 +51,7 @@ fun FiveImagesComponent(
     modifier: Modifier,
     images: List<ImageData>,
     landscape: Boolean = false,
-    shape: Shape = RoundedCornerShape(12.dp),
+    shape: Shape = rounded(12.dp),
 ) {
     if (images.isEmpty()) return
     // Rounded on the OUTSIDE of the block only. The tiles stay flush with each other on purpose —

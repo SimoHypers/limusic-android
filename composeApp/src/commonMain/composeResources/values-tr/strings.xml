@@ -198,14 +198,9 @@
     <string name="no_notification">Bildirim yok</string>
     <string name="created_at">Oluşturuldu: %1$s</string>
     <string name="unknown">Bilinmeyen</string>
-    <string name="now_playing_style">Şimdi Oynatılıyor stili</string>
     <string name="now_playing_style_spotify">Klasik</string>
     <string name="lyrics_style">Şarkı Sözü Şekli</string>
     <string name="lyrics_style_classic">Klasik</string>
-    <string name="theme_color">Tema Rengi</string>
-    <string name="theme_color_default">Varsayılan</string>
-    <string name="theme_color_wallpaper">Duvar Kağıdı</string>
-    <string name="theme_color_custom">Özel</string>
     <string name="custom_color">Özel renk</string>
     <string name="relax">Rahatlama</string>
     <string name="sleep">Uyku</string>

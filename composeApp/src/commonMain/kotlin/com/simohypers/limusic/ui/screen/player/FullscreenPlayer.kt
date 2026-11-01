@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
@@ -551,7 +552,7 @@ fun FullscreenPlayer(
                                                             .padding(
                                                                 horizontal = 3.dp,
                                                             ).clip(
-                                                                RoundedCornerShape(8.dp),
+                                                                rounded(8.dp),
                                                             ),
                                                     color = Color.Gray,
                                                     trackColor = Color.DarkGray,
@@ -569,7 +570,7 @@ fun FullscreenPlayer(
                                                             .padding(
                                                                 horizontal = 3.dp,
                                                             ).clip(
-                                                                RoundedCornerShape(8.dp),
+                                                                rounded(8.dp),
                                                             ),
                                                     color = Color.Gray,
                                                     trackColor = Color.DarkGray,

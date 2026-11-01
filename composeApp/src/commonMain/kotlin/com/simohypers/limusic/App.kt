@@ -1,5 +1,6 @@
 package com.simohypers.limusic
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -89,7 +89,6 @@ import com.simohypers.limusic.ui.theme.ForceDarkContent
 import com.simohypers.limusic.ui.theme.desktopPanelDark
 import com.simohypers.limusic.ui.theme.desktopWindowDark
 import com.simohypers.limusic.ui.theme.desktopWindowLight
-import com.simohypers.limusic.ui.theme.parseThemeColorHex
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.utils.isAppLinkAvailable
 import com.simohypers.limusic.utils.libraryTabOf
@@ -127,8 +126,7 @@ fun App(
     val showMixForYouTab = isYouTubeLoggedIn == TRUE
 
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
-    val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
-    val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val artworkColors by viewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
     val artworkColor =
         rememberArtworkColor(
@@ -353,8 +351,7 @@ fun App(
 
     AppTheme(
         themeMode = themeMode,
-        themeColorSource = themeColorSource,
-        customThemeColor = parseThemeColorHex(customThemeColorHex),
+        appearance = appearance,
         artworkColor = artworkColor,
     ) {
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
@@ -421,7 +418,7 @@ fun App(
                                     if (isDesktopShell) {
                                         Modifier
                                             .padding(8.dp)
-                                            .clip(RoundedCornerShape(12.dp))
+                                            .clip(rounded(12.dp))
                                             .background(desktopPanel)
                                     } else {
                                         Modifier
@@ -532,7 +529,7 @@ fun App(
                                                     Modifier
                                                 },
                                             ).clip(
-                                                RoundedCornerShape(12.dp),
+                                                rounded(12.dp),
                                             ).then(
                                                 if (isDesktopShell) {
                                                     Modifier.background(desktopPanel)

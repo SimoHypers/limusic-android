@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content.applemusic
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -401,7 +402,7 @@ internal fun AppleMusicCompactHeader(
             placeholder = rememberHolderPainter(),
             error = rememberHolderPainter(),
             contentDescription = null,
-            modifier = Modifier.size(55.dp).clip(RoundedCornerShape(4.dp)),
+            modifier = Modifier.size(55.dp).clip(rounded(4.dp)),
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

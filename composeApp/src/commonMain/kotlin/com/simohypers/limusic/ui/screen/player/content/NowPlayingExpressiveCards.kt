@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -36,7 +37,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -124,10 +124,10 @@ import limusic.composeapp.generated.resources.unsynced
 import limusic.composeapp.generated.resources.view_count
 
 // Shared shape for the below-the-fold tonal cards.
-private val ExpressiveCardShape = RoundedCornerShape(20.dp)
+private val ExpressiveCardShape get() = rounded(20.dp)
 
 // Artwork card corner radius — the signature shape of the "Tonal pills" design.
-private val ArtworkCardShape = RoundedCornerShape(28.dp)
+private val ArtworkCardShape get() = rounded(28.dp)
 
 /**
  * Width / height of the slot the artwork card takes in the column: the video's own shape while
@@ -1011,7 +1011,7 @@ internal fun ExpressiveCollapsedToolbar(
                                 .height(1.dp)
                                 .background(
                                     color = Color.Transparent,
-                                    shape = RoundedCornerShape(4.dp),
+                                    shape = rounded(4.dp),
                                 ),
                         color = colorScheme.primary,
                         trackColor = colorScheme.surfaceContainerHighest,

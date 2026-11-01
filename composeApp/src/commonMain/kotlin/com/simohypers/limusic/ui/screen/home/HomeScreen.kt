@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -44,7 +45,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -390,7 +390,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(rounded(8.dp))
                                 .clickable {
                                     doNotShowAgain = !doNotShowAgain
                                 }.fillMaxWidth(),
@@ -1156,7 +1156,7 @@ fun ChartData(
                         onClick = { navController.navigate(PodcastDestination(podcastId = data.browseId)) },
                         data = data,
                         widthDp = if (isPortrait) gridWidthDp else minOf(gridWidthDp, LandscapeGridItemMaxWidth),
-                        thumbnailShape = RoundedCornerShape(8.dp),
+                        thumbnailShape = rounded(8.dp),
                         subtitle = data.subscribers,
                     )
                 }

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
@@ -77,10 +77,10 @@ fun CodeInput(
                             Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(14.dp))
+                                .clip(rounded(14.dp))
                                 .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
                                 .then(
-                                    if (isCaret) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)) else Modifier,
+                                    if (isCaret) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, rounded(14.dp)) else Modifier,
                                 ).clickable {
                                     // The field keeps its focus when the keyboard is closed with
                                     // back, so focusing again shows nothing: ask for the keyboard.

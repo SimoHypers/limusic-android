@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -137,7 +137,7 @@ fun DevicesSettingsScreen(
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(rounded(20.dp))
                         .clickable { viewModel.unlinkThisPhone() }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
@@ -155,7 +155,7 @@ fun DevicesSettingsScreen(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(rounded(12.dp))
                     .clickable {
                         viewModel.unlink(device.id)
                         menuFor = null
@@ -323,7 +323,7 @@ internal fun SettingCard(content: @Composable () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(rounded(20.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f)),
     ) { content() }
 }
@@ -355,7 +355,7 @@ private fun NowPlayingRow(
         Modifier
             .padding(top = 12.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(rounded(12.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f))
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -364,7 +364,7 @@ private fun NowPlayingRow(
             model = cover,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier.size(40.dp).clip(rounded(8.dp)),
         )
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {

@@ -1,12 +1,12 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -50,7 +50,7 @@ fun PlaylistSortSheet(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(rounded(12.dp))
                         .selectable(selected = option == sort, role = Role.RadioButton) { onSort(option) },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -62,7 +62,7 @@ fun PlaylistSortSheet(
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(rounded(12.dp))
                 .toggleable(value = desc, role = Role.Switch, onValueChange = onReverse)
                 .padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

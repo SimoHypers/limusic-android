@@ -218,7 +218,6 @@
     <string name="theme_mode_system">Systemstandard</string>
     <string name="theme_mode_dark">Mörkt</string>
     <string name="theme_mode_light">Ljust</string>
-    <string name="now_playing_style">Stil för vyn Nu spelas</string>
     <string name="now_playing_style_spotify">Klassisk</string>
     <string name="lyrics_style">Låttextstil</string>
     <string name="lyrics_style_classic">Klassisk</string>
@@ -231,10 +230,6 @@
     <string name="romanization_japanese_dict_downloading">Hämtar den japanska ordlistan…</string>
     <string name="romanization_japanese_dict_ready">Den japanska ordlistan har hämtats</string>
     <string name="romanization_japanese_dict_failed">Det gick inte att hämta den japanska ordlistan. Kontrollera anslutningen och välj japanska igen för att försöka på nytt.</string>
-    <string name="theme_color">Temafärg</string>
-    <string name="theme_color_default">Standard</string>
-    <string name="theme_color_wallpaper">Bakgrundsbild</string>
-    <string name="theme_color_custom">Anpassad</string>
     <string name="custom_color">Anpassad färg</string>
     <string name="relax">Slappna av</string>
     <string name="sleep">Sömn</string>

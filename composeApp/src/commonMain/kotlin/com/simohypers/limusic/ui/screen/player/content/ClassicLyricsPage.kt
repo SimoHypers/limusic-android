@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -230,7 +230,7 @@ private fun Footer(
                         color = if (textScale != 1f) scheme.primary else scheme.onSurface.copy(alpha = 0.8f),
                     )
                 }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = RoundedCornerShape(16.dp)) {
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = rounded(16.dp)) {
                     Row(Modifier.padding(horizontal = 14.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(Res.string.lyrics_text_size), style = typo().labelMedium, color = scheme.onSurface)
                         Spacer(Modifier.width(14.dp))
@@ -306,7 +306,7 @@ private fun Skeleton() {
                 Modifier
                     .fillMaxWidth((55 + (i * 17) % 40) / 100f)
                     .height(24.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(rounded(8.dp))
                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = pulse)),
             )
         }

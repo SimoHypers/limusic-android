@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import com.simohypers.limusic.extension.shimmer
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -221,7 +222,7 @@ fun NavController.openLibraryItem(item: PlaylistType) {
 @Composable
 internal fun PlaylistTileSkeleton(modifier: Modifier = Modifier) {
     Column(modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)) {
-        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)).shimmer())
+        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(rounded(10.dp)).shimmer())
         Box(Modifier.padding(top = 10.dp).fillMaxWidth(0.7f).height(14.dp).clip(RoundedCornerShape(50)).shimmer())
         Box(Modifier.padding(top = 6.dp).fillMaxWidth(0.45f).height(11.dp).clip(RoundedCornerShape(50)).shimmer())
     }

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import com.simohypers.limusic.extension.shimmer
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -158,7 +159,7 @@ fun RecentlyAddedList(
 @Composable
 private fun SongRowSkeleton() {
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).shimmer())
+        Box(Modifier.size(48.dp).clip(rounded(8.dp)).shimmer())
         Column(Modifier.padding(start = 12.dp).fillMaxWidth()) {
             Box(Modifier.fillMaxWidth(0.6f).height(14.dp).clip(RoundedCornerShape(50)).shimmer())
             Box(Modifier.padding(top = 8.dp).fillMaxWidth(0.35f).height(11.dp).clip(RoundedCornerShape(50)).shimmer())

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -29,7 +30,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Text
@@ -175,7 +175,7 @@ fun PodcastScreen(
                                         Modifier
                                             .fillMaxWidth()
                                             .height(260.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .clip(rounded(8.dp))
                                             .angledGradientBackground(gradientColors, 25f),
                                 )
                                 Box(
@@ -227,7 +227,7 @@ fun PodcastScreen(
                                                 .height(250.dp)
                                                 .wrapContentWidth()
                                                 .align(Alignment.CenterHorizontally)
-                                                .clip(RoundedCornerShape(8.dp)),
+                                                .clip(rounded(8.dp)),
                                     )
                                     Box(
                                         modifier =

@@ -219,7 +219,6 @@
     <string name="theme_mode_system">システムのデフォルト</string>
     <string name="theme_mode_dark">ダーク</string>
     <string name="theme_mode_light">ライト</string>
-    <string name="now_playing_style">再生中のスタイル</string>
     <string name="now_playing_style_spotify">クラシック</string>
     <string name="lyrics_style">歌詞スタイル</string>
     <string name="lyrics_style_classic">クラシック</string>
@@ -232,10 +231,6 @@
     <string name="romanization_japanese_dict_downloading">日本語辞書をダウンロードしています…</string>
     <string name="romanization_japanese_dict_ready">日本語辞書をダウンロードしました</string>
     <string name="romanization_japanese_dict_failed">日本語辞書をダウンロードできませんでした。接続を確認して日本語を再試行してください。</string>
-    <string name="theme_color">テーマカラー</string>
-    <string name="theme_color_default">デフォルト</string>
-    <string name="theme_color_wallpaper">壁紙</string>
-    <string name="theme_color_custom">カスタム</string>
     <string name="custom_color">カスタムの色</string>
     <string name="relax">リラックス</string>
     <string name="sleep">睡眠</string>

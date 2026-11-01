@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component.lyrics
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -356,7 +356,7 @@ private fun ShareLyricsLineRow(
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 3.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(rounded(10.dp))
                 .background(if (selected) content else Color.Transparent)
                 .clickable(onClick = onClick)
                 .padding(horizontal = 14.dp, vertical = 12.dp),

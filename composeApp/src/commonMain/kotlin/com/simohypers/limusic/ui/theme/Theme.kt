@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.TextStyle
@@ -20,8 +21,15 @@ import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.hct.Hct
 import com.materialkolor.PaletteStyle
@@ -29,6 +37,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.expect.ui.SystemBarAppearanceEffect
 import com.simohypers.limusic.expect.ui.platformDynamicColorScheme
+import kotlin.math.sqrt
 
 /**
  * Semantic colors that sit outside the Material 3 ColorScheme.
@@ -172,82 +181,59 @@ internal val LimusicLightColorScheme: ColorScheme =
     )
 
 /** Limusic's corner radii: the desktop's 0.45rem for small parts, growing for cards and sheets. */
-internal val LimusicShapes =
-    Shapes(
-        extraSmall = RoundedCornerShape(4.dp),
-        small = RoundedCornerShape(7.dp),
-        medium = RoundedCornerShape(10.dp),
-        large = RoundedCornerShape(14.dp),
-        extraLarge = RoundedCornerShape(20.dp),
-    )
+internal val LimusicShapes
+    get() =
+        Shapes(
+            extraSmall = rounded(4.dp),
+            small = rounded(7.dp),
+            medium = rounded(10.dp),
+            large = rounded(14.dp),
+            extraLarge = rounded(20.dp),
+        )
+
+/**
+ * The Roundness setting as a multiple of the corners the app was drawn with (desktop's 0.45rem).
+ * Written by [AppTheme] and read through [rounded], so every shape built in composition follows it.
+ * A shape kept in a top-level val would be built once at scale 1, hence the getters on those.
+ */
+object Corners {
+    var scale by mutableFloatStateOf(1f)
+        internal set
+}
+
+/** A rounded shape drawn at [radius] for the default roundness, scaled by the setting. */
+fun rounded(radius: Dp): RoundedCornerShape = RoundedCornerShape(radius * Corners.scale)
+
+fun rounded(
+    topStart: Dp = 0.dp,
+    topEnd: Dp = 0.dp,
+    bottomEnd: Dp = 0.dp,
+    bottomStart: Dp = 0.dp,
+): RoundedCornerShape {
+    val k = Corners.scale
+    return RoundedCornerShape(topStart * k, topEnd * k, bottomEnd * k, bottomStart * k)
+}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppTheme(
     themeMode: String = DataStoreManager.THEME_MODE_DARK,
-    themeColorSource: String = DataStoreManager.THEME_COLOR_DEFAULT,
-    customThemeColor: Color? = null,
+    appearance: Appearance = Appearance(),
     // "Adapt colors to artwork": the playing cover's colour, null while the switch is off, nothing
-    // plays or the cover has no colour. Layered over the colour source, which comes back untouched.
+    // plays or the cover has no colour. Layered over the theme, which comes back untouched.
     artworkColor: Color? = null,
     content:
         @Composable()
         () -> Unit,
 ) {
-    val isDark = isDarkTheme(themeMode)
-    val wallpaperScheme =
-        if (themeColorSource == DataStoreManager.THEME_COLOR_WALLPAPER) {
-            platformDynamicColorScheme(isDark)
-        } else {
-            null
-        }
-    val seedColor =
-        artworkColor
-            ?: if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
-                customThemeColor ?: seed
-            } else {
-                seed
-            }
-    // The default is Limusic's own palette. A wallpaper or custom colour generates a scheme from
-    // that seed instead, on Limusic's neutrals so the app keeps its ground either way.
-    val limusicScheme = if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme
-    val colorScheme =
-        when {
-            artworkColor != null ->
-                rememberDynamicColorScheme(
-                    seedColor = artworkColor,
-                    isDark = isDark,
-                    style = PaletteStyle.TonalSpot,
-                    modifyColorScheme = { it.withLimusicNeutrals(isDark).withArtworkFills(artworkColor, isDark) },
-                )
-            wallpaperScheme != null -> wallpaperScheme.withLimusicNeutrals(isDark)
-            themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM ->
-                rememberDynamicColorScheme(
-                    seedColor = seedColor,
-                    isDark = isDark,
-                    style = PaletteStyle.TonalSpot,
-                    modifyColorScheme = { it.withLimusicNeutrals(isDark) },
-                )
-            else -> limusicScheme
-        }
+    val isDark = appearance.theme.alwaysDark || isDarkTheme(themeMode)
+    val colorScheme = rememberThemeScheme(appearance, isDark, artworkColor)
     // Immersive screens stay dark even at light theme (see [ForceDarkContent]).
-    val forcedDarkScheme =
-        if (isDark) {
-            colorScheme
-        } else if (themeColorSource == DataStoreManager.THEME_COLOR_DEFAULT && artworkColor == null) {
-            LimusicDarkColorScheme
-        } else {
-            rememberDynamicColorScheme(
-                seedColor = seedColor,
-                isDark = true,
-                style = PaletteStyle.TonalSpot,
-                modifyColorScheme = { scheme ->
-                    scheme.withLimusicNeutrals(true).let { if (artworkColor != null) it.withArtworkFills(artworkColor, true) else it }
-                },
-            )
-        }
+    val forcedDarkScheme = if (isDark) colorScheme else rememberThemeScheme(appearance, true, artworkColor)
     SystemBarAppearanceEffect(isDark)
-    val fonts = AppFonts(fontFamily(), headingFontFamily())
+    val cornerScale = appearance.cornerScale
+    SideEffect { Corners.scale = cornerScale }
+    val fonts = AppFonts(rememberFontFamily(appearance.bodyFont), rememberFontFamily(appearance.headingFont))
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         shapes = LimusicShapes,
@@ -372,29 +358,176 @@ fun AppThemeContent(content: @Composable () -> Unit) {
 @Composable
 private fun defaultTextStyle(): TextStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Unspecified)
 
-/** Keeps a generated scheme's accents but puts it on Limusic's background and surface ramp. */
-private fun ColorScheme.withLimusicNeutrals(isDark: Boolean): ColorScheme {
-    val base = if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme
+/**
+ * The scheme for [appearance] in one mode: the preset, then the accent (the user's, or the
+ * wallpaper's), then the playing cover over both while "Adapt colors to artwork" has one. Material
+ * You is generated whole instead, from the cover, the accent or the wallpaper, in that order.
+ */
+@Composable
+internal fun rememberThemeScheme(
+    appearance: Appearance,
+    isDark: Boolean,
+    artwork: Color? = null,
+): ColorScheme {
+    val theme = appearance.theme
+    val wallpaper =
+        if (theme == ThemePreset.MATERIAL_YOU || appearance.accent == Appearance.WALLPAPER) platformDynamicColorScheme(isDark) else null
+    if (theme == ThemePreset.MATERIAL_YOU) {
+        val seed = artwork ?: appearance.accentColor
+        if (seed == null && wallpaper != null) return wallpaper
+        return rememberDynamicColorScheme(seedColor = seed ?: MaterialYouSeed, isDark = isDark, style = PaletteStyle.TonalSpot)
+    }
+    val accent = artwork?.let { artworkAccent(it, isDark) } ?: appearance.accentColor?.let { userAccent(it, isDark) }
+    val wallpaperAccent = wallpaper?.primary
+    val wallpaperOn = wallpaper?.onPrimary
+    return remember(theme, appearance.hue, isDark, accent, wallpaperAccent, artwork) {
+        var scheme =
+            when (theme) {
+                ThemePreset.DEFAULT ->
+                    (if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme)
+                        .let { s -> appearance.hue?.let { s.withNeutralHue(it.toDouble()) } ?: s }
+                else -> (if (isDark) theme.dark else theme.light)!!.scheme(isDark)
+            }
+        if (accent != null) {
+            scheme = scheme.withAccent(accent, onAccent(accent), isDark)
+        } else if (wallpaperAccent != null && wallpaperOn != null) {
+            scheme = scheme.withAccent(wallpaperAccent, wallpaperOn, isDark)
+        }
+        if (artwork != null) scheme = scheme.withArtworkFills(artwork, isDark)
+        scheme
+    }
+}
+
+/**
+ * A palette preset as a Material scheme, mapped the way [LimusicDarkColorScheme] maps the desktop's
+ * default tokens. The container ramp climbs from the page to the palette's card; a palette whose card
+ * sits on the wrong side of its page (white cards on an off-white page, in light mode) climbs to its
+ * muted grey instead, since Material containers step towards the reader.
+ */
+internal fun Palette.scheme(isDark: Boolean): ColorScheme {
+    val bg = Color(background)
+    val fg = Color(foreground)
+    val cardColor = Color(card)
+    val raised = if (card != background && (cardColor.luminance() > bg.luminance()) == isDark) cardColor else Color(muted)
+    val base = if (isDark) darkColorScheme() else lightColorScheme()
+    return base
+        .copy(
+            secondary = Color(mutedForeground),
+            onSecondary = bg,
+            secondaryContainer = Color(secondary),
+            onSecondaryContainer = Color(onSecondary),
+            background = bg,
+            onBackground = fg,
+            surface = bg,
+            onSurface = fg,
+            surfaceVariant = Color(muted),
+            onSurfaceVariant = Color(mutedForeground),
+            inverseSurface = fg,
+            inverseOnSurface = bg,
+            error = Color(destructive),
+            onError = bg,
+            outline = Color(ring),
+            outlineVariant = Color(border),
+            scrim = Color.Black,
+            surfaceBright = lerp(raised, fg, 0.1f),
+            surfaceDim = bg,
+            surfaceContainerLowest = bg,
+            surfaceContainerLow = lerp(bg, raised, 0.5f),
+            surfaceContainer = lerp(bg, raised, 0.8f),
+            surfaceContainerHigh = raised,
+            surfaceContainerHighest = lerp(raised, fg, 0.1f),
+        ).withAccent(Color(primary), Color(onPrimary), isDark)
+}
+
+/** [primary] as the accent, its containers at Material's container tones of the same hue. */
+private fun ColorScheme.withAccent(
+    primary: Color,
+    onPrimary: Color,
+    isDark: Boolean,
+): ColorScheme {
+    val hct = Hct.fromInt(primary.toArgb())
+
+    fun at(
+        maxChroma: Double,
+        tone: Double,
+    ) = Color(Hct.from(hct.hue, minOf(hct.chroma, maxChroma), tone).toInt())
+    val container = at(48.0, if (isDark) 30.0 else 90.0)
+    val onContainer = at(16.0, if (isDark) 90.0 else 10.0)
     return copy(
-        background = base.background,
-        onBackground = base.onBackground,
-        surface = base.surface,
-        onSurface = base.onSurface,
-        surfaceVariant = base.surfaceVariant,
-        onSurfaceVariant = base.onSurfaceVariant,
-        surfaceBright = base.surfaceBright,
-        surfaceDim = base.surfaceDim,
-        surfaceContainerLowest = base.surfaceContainerLowest,
-        surfaceContainerLow = base.surfaceContainerLow,
-        surfaceContainer = base.surfaceContainer,
-        surfaceContainerHigh = base.surfaceContainerHigh,
-        surfaceContainerHighest = base.surfaceContainerHighest,
-        outline = base.outline,
-        outlineVariant = base.outlineVariant,
-        inverseSurface = base.inverseSurface,
-        inverseOnSurface = base.inverseOnSurface,
+        primary = primary,
+        onPrimary = onPrimary,
+        primaryContainer = container,
+        onPrimaryContainer = onContainer,
+        inversePrimary = primary,
+        surfaceTint = primary,
+        tertiary = primary,
+        onTertiary = onPrimary,
+        tertiaryContainer = container,
+        onTertiaryContainer = onContainer,
     )
 }
+
+/**
+ * A picked accent, kept as picked unless it would vanish as text: lifted to tone 50 on a dark page,
+ * held to 60 on a light one. Desktop's swatches all sit inside that band and don't move.
+ */
+private fun userAccent(
+    color: Color,
+    isDark: Boolean,
+): Color {
+    val hct = Hct.fromInt(color.toArgb())
+    val tone = if (isDark) maxOf(hct.tone, 50.0) else minOf(hct.tone, 60.0)
+    return if (tone == hct.tone) color else Color(Hct.from(hct.hue, hct.chroma, tone).toInt())
+}
+
+/** A cover's colour pulled to the tone the mode needs, as desktop's artcolor.ts `toAccent` does. */
+private fun artworkAccent(
+    color: Color,
+    isDark: Boolean,
+): Color {
+    val hct = Hct.fromInt(color.toArgb())
+    return Color(Hct.from(hct.hue, maxOf(hct.chroma, 30.0), if (isDark) 70.0 else 40.0).toInt())
+}
+
+/** Text on an accent fill: desktop's two neutrals, picked by perceived brightness (color.ts `isLight`). */
+fun onAccent(color: Color): Color {
+    val hsp = sqrt(0.299f * color.red * color.red + 0.587f * color.green * color.green + 0.114f * color.blue * color.blue)
+    return if (hsp > 0.6f) Color(0xFF171717) else Color(0xFFFAFAFA)
+}
+
+/** The Default theme's greys turned to [hue] at their own tone and chroma (desktop's `--hue`). */
+private fun ColorScheme.withNeutralHue(hue: Double): ColorScheme {
+    fun Color.h(): Color {
+        val hct = Hct.fromInt(toArgb())
+        return Color(Hct.from(hue, hct.chroma, hct.tone).toInt())
+    }
+    return copy(
+        secondary = secondary.h(),
+        onSecondary = onSecondary.h(),
+        secondaryContainer = secondaryContainer.h(),
+        onSecondaryContainer = onSecondaryContainer.h(),
+        background = background.h(),
+        onBackground = onBackground.h(),
+        surface = surface.h(),
+        onSurface = onSurface.h(),
+        surfaceVariant = surfaceVariant.h(),
+        onSurfaceVariant = onSurfaceVariant.h(),
+        inverseSurface = inverseSurface.h(),
+        inverseOnSurface = inverseOnSurface.h(),
+        outline = outline.h(),
+        outlineVariant = outlineVariant.h(),
+        surfaceBright = surfaceBright.h(),
+        surfaceDim = surfaceDim.h(),
+        surfaceContainerLowest = surfaceContainerLowest.h(),
+        surfaceContainerLow = surfaceContainerLow.h(),
+        surfaceContainer = surfaceContainer.h(),
+        surfaceContainerHigh = surfaceContainerHigh.h(),
+        surfaceContainerHighest = surfaceContainerHighest.h(),
+    )
+}
+
+/** Where the tint slider starts on the Default theme: the hue its greys already have. */
+val DefaultNeutralHue: Float = Hct.fromInt(LimusicDark.card.toArgb()).hue.toFloat()
 
 /**
  * Desktop's artwork tint: the Limusic fills (background, surfaces, containers) turned to the cover's

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -79,7 +79,7 @@ fun LimusicMiniPlayer(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(rounded(10.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onOpen)
             .pointerInput(Unit) {
@@ -142,7 +142,7 @@ fun LimusicMiniPlayer(
                     modifier =
                         Modifier
                             .size(42.dp)
-                            .clip(RoundedCornerShape(6.dp)),
+                            .clip(rounded(6.dp)),
                 )
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {

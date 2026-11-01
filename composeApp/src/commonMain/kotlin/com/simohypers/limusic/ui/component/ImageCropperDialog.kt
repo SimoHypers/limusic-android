@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -101,7 +101,7 @@ fun ImageCropperDialog(
         // occupy — everything else stays see-through onto whatever sits behind the dialog.
         Surface(
             modifier = Modifier.fillMaxWidth().widthIn(max = MAX_DIALOG_WIDTH),
-            shape = RoundedCornerShape(16.dp),
+            shape = rounded(16.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp,
         ) {
@@ -120,7 +120,7 @@ fun ImageCropperDialog(
                         Modifier
                             .fillMaxWidth()
                             .aspectRatio(STAGE_ASPECT)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(rounded(12.dp))
                             .background(Color.Black)
                             .onSizeChanged { size ->
                                 if (size.width != frameSizePx && size.width > 0) {

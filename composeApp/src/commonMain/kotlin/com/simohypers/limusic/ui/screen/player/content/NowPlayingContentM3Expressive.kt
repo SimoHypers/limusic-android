@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -44,7 +45,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
@@ -118,7 +118,7 @@ import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.simohypers.limusic.ui.screen.player.content.expressive.ExpressiveTransportRow
 import com.simohypers.limusic.ui.screen.player.content.expressive.WavySeekBar
-import com.simohypers.limusic.ui.theme.seed
+import com.simohypers.limusic.ui.theme.LocalArtworkColors
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.UIEvent
 import kotlinx.coroutines.Dispatchers
@@ -162,19 +162,21 @@ fun NowPlayingContentM3Expressive(
 }
 
 /**
- * This style's colour system.
+ * This style's colour system: a scheme of its own from the cover with Adapt colors to artwork on,
+ * the app's own scheme (the accent the user picked) with it off.
  */
 @Composable
 internal fun NowPlayingExpressiveTheme(
     state: NowPlayingContentState,
     content: @Composable () -> Unit,
 ) {
+    if (!LocalArtworkColors.current) return content()
     // === 1. Color system: full dark scheme derived from the artwork ===
     // Seeded the way Material You seeds from a wallpaper: quantize the artwork and score the colours
     // by population and chroma. Not from the shell's palette colour: that is the cover's DARK
     // swatch, chosen for Classic's gradient, and on a light cover it is often a near-grey line whose
     // stray hue the Vibrant style below blows up into a colour the cover does not have (a pink
-    // sleeve came out green). The app seed stands in until it resolves, and for a colourless cover.
+    // sleeve came out green). The app's accent, already the cover's, stands in until it resolves.
     val artwork = state.screenData.bitmap
     val artworkSeed by produceState<Color?>(initialValue = null, artwork) {
         value =
@@ -184,7 +186,7 @@ internal fun NowPlayingExpressiveTheme(
                 }
             }
     }
-    val seedColor = artworkSeed ?: seed
+    val seedColor = artworkSeed ?: MaterialTheme.colorScheme.primary
     // Track changes must GLIDE between palettes: the shell's startColor spring is quick, and a
     // whole tonal scheme snapping at once reads as a flash. 800ms matches the palette crossfade
     // feel of the other immersive screens.
@@ -403,7 +405,7 @@ private fun NowPlayingM3ExpressiveLayout(
                     }
                     IconButton(
                         onClick = { actions.onShowMoreSheet() },
-                        shape = RoundedCornerShape(14.dp),
+                        shape = rounded(14.dp),
                         colors =
                             IconButtonDefaults.iconButtonColors(
                                 containerColor = colorScheme.surfaceContainerHigh,
@@ -735,7 +737,7 @@ internal fun ExpressiveTrackInfoRow(
                         .width(55.dp)
                         .padding(end = 10.dp)
                         .clip(
-                            RoundedCornerShape(4.dp),
+                            rounded(4.dp),
                         ).align(Alignment.CenterVertically),
             )
         }
@@ -956,9 +958,9 @@ private fun ExpressiveConnectedGroup(
     onOpenOutput: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val startCap = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 24.dp)
-    val endCap = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomEnd = 24.dp, bottomStart = 6.dp)
-    val middle = RoundedCornerShape(6.dp)
+    val startCap = rounded(topStart = 24.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 24.dp)
+    val endCap = rounded(topStart = 6.dp, topEnd = 24.dp, bottomEnd = 24.dp, bottomStart = 6.dp)
+    val middle = rounded(6.dp)
     Row(
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         verticalAlignment = Alignment.CenterVertically,

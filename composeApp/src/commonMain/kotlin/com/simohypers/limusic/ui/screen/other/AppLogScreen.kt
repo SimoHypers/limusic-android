@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -19,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -261,7 +261,7 @@ fun AppLogScreen(
                     }
                     Box(
                         Modifier
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(rounded(10.dp))
                             .background(
                                 if (stickToBottom) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else Color.Transparent,
                             ),
@@ -433,7 +433,7 @@ private fun LogSearchField(
         onValueChange = onQueryChange,
         modifier = modifier,
         singleLine = true,
-        shape = RoundedCornerShape(8.dp),
+        shape = rounded(8.dp),
         textStyle = typo().labelMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         placeholder = { Text(stringResource(Res.string.log_search_hint), style = typo().labelMedium) },
         leadingIcon = { Icon(LimusicIcons.Search, contentDescription = null) },
@@ -481,7 +481,7 @@ private fun MetaText(
         Box(
             Modifier
                 .size(6.dp)
-                .clip(RoundedCornerShape(3.dp))
+                .clip(rounded(3.dp))
                 .background(MaterialTheme.colorScheme.primary),
         )
         Spacer(Modifier.width(6.dp))
@@ -581,7 +581,7 @@ private fun LevelBadge(
     Box(
         modifier
             .size(16.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(rounded(4.dp))
             .background(color.copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center,
     ) {
@@ -610,7 +610,7 @@ private fun ErrorCard(
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(rounded(20.dp))
             .background(cardColor.copy(alpha = 0.5f))
             .clickable(enabled = hasTrace, onClick = onToggle)
             .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 14.dp),
@@ -651,7 +651,7 @@ private fun ErrorCard(
                     Modifier
                         .padding(top = 10.dp, end = 12.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(rounded(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                         .horizontalScroll(rememberScrollState())
                         .padding(horizontal = 12.dp, vertical = 10.dp),

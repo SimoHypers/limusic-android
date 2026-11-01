@@ -216,7 +216,6 @@
     <string name="theme_mode_system">Impostazioni predefinite di sistema</string>
     <string name="theme_mode_dark">Scuro</string>
     <string name="theme_mode_light">Chiaro</string>
-    <string name="now_playing_style">Stile di In riproduzione</string>
     <string name="now_playing_style_spotify">Classico</string>
     <string name="lyrics_style">Stile testi</string>
     <string name="lyrics_style_classic">Classico</string>
@@ -225,10 +224,6 @@
     <string name="romanization_japanese_dict_downloading">Download del dizionario giapponese…</string>
     <string name="romanization_japanese_dict_ready">Dizionario giapponese scaricato</string>
     <string name="romanization_japanese_dict_failed">Impossibile scaricare il dizionario giapponese. Controlla la tua connessione e seleziona di nuovo il giapponese per riprovare.</string>
-    <string name="theme_color">Colore del tema</string>
-    <string name="theme_color_default">Predefinito</string>
-    <string name="theme_color_wallpaper">Sfondo</string>
-    <string name="theme_color_custom">Personalizzato</string>
     <string name="custom_color">Colore personalizzato</string>
     <string name="relax">Relax</string>
     <string name="sleep">Riposo</string>

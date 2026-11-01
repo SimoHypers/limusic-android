@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
@@ -449,7 +450,7 @@ fun InfoPlayerBottomSheet(
                         .fillMaxWidth()
                         .wrapContentHeight(),
                 // Limusic's sheet corner, on the card colour its desktop menus use.
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
                 Column(
@@ -869,7 +870,7 @@ private fun NowPlayingBottomSheetContent(
                         .fillMaxWidth()
                         .wrapContentHeight(),
                 // Limusic's sheet corner, on the card colour its desktop menus use.
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
                 Column(
@@ -1360,7 +1361,7 @@ fun PlaybackSpeedPitchBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(
@@ -1539,7 +1540,7 @@ fun SleepTimerBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(
@@ -1594,7 +1595,7 @@ fun SleepTimerBottomSheet(
                                         customMinutes = ""
                                     },
                                     modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = rounded(12.dp),
                                     colors =
                                         ButtonDefaults.outlinedButtonColors(
                                             containerColor = if (isSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
@@ -1632,7 +1633,7 @@ fun SleepTimerBottomSheet(
                                 customMinutes = ""
                             },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = rounded(12.dp),
                             colors =
                                 ButtonDefaults.outlinedButtonColors(
                                     containerColor = if (isEndSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
@@ -1660,7 +1661,7 @@ fun SleepTimerBottomSheet(
                                 selectedPreset = -1
                             },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = rounded(12.dp),
                             colors =
                                 ButtonDefaults.outlinedButtonColors(
                                     containerColor = if (isCustomSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
@@ -1708,7 +1709,7 @@ fun SleepTimerBottomSheet(
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = rounded(12.dp),
                             )
                         }
                     }
@@ -1757,7 +1758,7 @@ fun SleepTimerBottomSheet(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = rounded(12.dp),
                         colors =
                             ButtonDefaults.buttonColors(
                                 containerColor = accent,
@@ -2054,11 +2055,11 @@ private fun PlaylistPickRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(rounded(12.dp))
                 .clickable(enabled = !added, onClick = onClick)
                 .padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(6.dp))) { cover() }
+        Box(Modifier.size(48.dp).clip(rounded(6.dp))) { cover() }
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -2133,7 +2134,7 @@ fun ArtistModalBottomSheet(
             ) {
                 Card(
                     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                     colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2225,7 +2226,7 @@ fun PlaylistBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2317,7 +2318,7 @@ fun LocalPlaylistBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2387,7 +2388,7 @@ fun SortPlaylistBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2469,7 +2470,7 @@ fun DevLogInBottomSheet(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = rounded(topStart = 20.dp, topEnd = 20.dp),
             colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2533,7 +2534,7 @@ fun DevCookieLogInBottomSheet(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = rounded(topStart = 20.dp, topEnd = 20.dp),
             colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {

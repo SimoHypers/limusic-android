@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.PaddingValues
 import com.simohypers.limusic.ui.component.CollectionTitleText
@@ -45,7 +46,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -487,7 +487,7 @@ fun ArtistScreen(
                                     // Back button.
                                     PillIconButton(
                                         imageVector = LimusicIcons.ArrowBackIosNew,
-                                        shape = RoundedCornerShape(24.dp),
+                                        shape = rounded(24.dp),
                                         tint = MaterialTheme.colorScheme.onSurface,
                                         // Matching the other three headers: the pill-style directional rim, thickened
                                         // from the 0.5.dp default so it stays visible around a 48dp circle.
@@ -509,7 +509,7 @@ fun ArtistScreen(
                                                 .padding(12.dp)
                                                 .windowInsetsPadding(WindowInsets.statusBars)
                                                 .height(48.dp)
-                                                .pillSurface(RoundedCornerShape(24.dp))
+                                                .pillSurface(rounded(24.dp))
                                                 .padding(horizontal = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {

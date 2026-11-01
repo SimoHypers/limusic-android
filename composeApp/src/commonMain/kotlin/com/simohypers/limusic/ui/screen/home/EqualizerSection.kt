@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -18,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
@@ -114,7 +114,7 @@ fun EqualizerSection(viewModel: SettingsViewModel = koinViewModel()) {
     // the reset button read as three unrelated rows in the list.
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = rounded(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -135,7 +135,7 @@ fun EqualizerSection(viewModel: SettingsViewModel = koinViewModel()) {
                 Row(
                     modifier =
                         Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(rounded(8.dp))
                             .clickable { presetMenuOpen = true }
                             .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,

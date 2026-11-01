@@ -218,7 +218,6 @@
     <string name="theme_mode_system">Predeterminado del sistema</string>
     <string name="theme_mode_dark">Oscuro</string>
     <string name="theme_mode_light">Claro</string>
-    <string name="now_playing_style">Estilo de Sonando Ahora</string>
     <string name="now_playing_style_spotify">Clásico</string>
     <string name="lyrics_style">Estilo de letras de canciones</string>
     <string name="lyrics_style_classic">Clásico</string>
@@ -230,10 +229,6 @@
     <string name="romanization_japanese_dict_downloading">Descargando el diccionario japonés…</string>
     <string name="romanization_japanese_dict_ready">Diccionario japonés descargado</string>
     <string name="romanization_japanese_dict_failed">No se pudo descargar el diccionario japonés. Comprueba tu conexión y selecciona el japonés de nuevo para volver a intentarlo.</string>
-    <string name="theme_color">Color de tema</string>
-    <string name="theme_color_default">Predeterminado</string>
-    <string name="theme_color_wallpaper">Fondo de pantalla</string>
-    <string name="theme_color_custom">Personalizado</string>
     <string name="custom_color">Color personalizado</string>
     <string name="relax">Relax</string>
     <string name="sleep">Para dormir</string>

@@ -202,10 +202,6 @@
     <string name="theme_mode_system">ธีมของอุปกรณ์</string>
     <string name="theme_mode_dark">มืด</string>
     <string name="theme_mode_light">สว่าง</string>
-    <string name="theme_color">สีของธีม</string>
-    <string name="theme_color_default">ค่าเริ่มต้น</string>
-    <string name="theme_color_wallpaper">วอลเปเปอร์</string>
-    <string name="theme_color_custom">กำหนดเอง</string>
     <string name="custom_color">กำหนดสี</string>
     <string name="relax">ผ่อนคลาย</string>
     <string name="sleep">นอน</string>

@@ -219,7 +219,6 @@
     <string name="theme_mode_system">Mặc định theo hệ thống</string>
     <string name="theme_mode_dark">Tối</string>
     <string name="theme_mode_light">Sáng</string>
-    <string name="now_playing_style">Kiểu Đang phát</string>
     <string name="now_playing_style_spotify">Cổ điển</string>
     <string name="lyrics_style">Kiểu lời bài hát</string>
     <string name="lyrics_style_classic">Cổ điển</string>
@@ -232,10 +231,6 @@
     <string name="romanization_japanese_dict_downloading">Đang tải từ điển tiếng Nhật xuống…</string>
     <string name="romanization_japanese_dict_ready">Từ điển tiếng Nhật đã tải xuống</string>
     <string name="romanization_japanese_dict_failed">Không thể tải xuống từ điển tiếng Nhật. Hãy kiểm tra kết nối của bạn và chọn lại tiếng Nhật để thử lại.</string>
-    <string name="theme_color">Màu chủ đề</string>
-    <string name="theme_color_default">Mặc định</string>
-    <string name="theme_color_wallpaper">Hình nền</string>
-    <string name="theme_color_custom">Tuỳ chỉnh</string>
     <string name="custom_color">Màu tùy chỉnh</string>
     <string name="relax">Thư giãn</string>
     <string name="sleep">Dễ ngủ</string>

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -356,7 +356,7 @@ private fun TopResultCard(
     }
 
     val card = MaterialTheme.colorScheme.surfaceContainerHigh
-    val shape = RoundedCornerShape(20.dp)
+    val shape = rounded(20.dp)
     Box(
         Modifier
             .padding(start = 16.dp, end = 16.dp, top = 4.dp)
@@ -388,7 +388,7 @@ private fun TopResultCard(
                 Modifier.fillMaxWidth().clickable(onClick = open).padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val coverShape = if (top is ArtistsResult) CircleShape else RoundedCornerShape(12.dp)
+                val coverShape = if (top is ArtistsResult) CircleShape else rounded(12.dp)
                 AsyncImage(
                     model = ImageRequest.Builder(LocalPlatformContext.current).data(thumbnail).crossfade(true).build(),
                     placeholder = rememberHolderPainter(),
@@ -452,7 +452,7 @@ private fun ArtistCircle(
     onClick: () -> Unit,
 ) {
     Column(
-        modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(10.dp),
+        modifier.clip(rounded(8.dp)).clickable(onClick = onClick).padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AsyncImage(
@@ -483,7 +483,7 @@ private fun VideoCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    Column(Modifier.width(240.dp).clip(RoundedCornerShape(8.dp)).combinedClickable(onClick = onClick, onLongClick = onLongClick).padding(10.dp)) {
+    Column(Modifier.width(240.dp).clip(rounded(8.dp)).combinedClickable(onClick = onClick, onLongClick = onLongClick).padding(10.dp)) {
         AsyncImage(
             model = ImageRequest.Builder(LocalPlatformContext.current).data(video.thumbnails?.lastOrNull()?.url).crossfade(true).build(),
             placeholder = rememberHolderPainter(),
@@ -491,7 +491,7 @@ private fun VideoCard(
             contentDescription = null,
             // YouTube's hqdefault is 4:3 with black bands; the crop drops them.
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(10.dp)),
+            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(rounded(10.dp)),
         )
         Text(
             text = video.title,

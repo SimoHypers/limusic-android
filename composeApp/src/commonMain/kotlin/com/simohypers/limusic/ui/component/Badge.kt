@@ -1,12 +1,12 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
@@ -45,7 +45,7 @@ fun AIBadge() {
         modifier = Modifier.height(24.dp)
             .padding(3.dp)
             .wrapContentWidth()
-            .clip(RoundedCornerShape(2.dp))
+            .clip(rounded(2.dp))
             .background(Color.LightGray),
         contentAlignment = Alignment.Center,
     ) {

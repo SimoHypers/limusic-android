@@ -77,6 +77,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import com.simohypers.limusic.ui.theme.Appearance
 import kotlinx.coroutines.launch
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
 import kotlinx.coroutines.runBlocking
@@ -1176,9 +1177,20 @@ class SharedViewModel(
 
     fun getThemeMode() = dataStoreManager.themeMode
 
-    fun getThemeColorSource() = dataStoreManager.themeColorSource
+    /** The Appearance page's picks; before the first one, the old colour settings carried over. */
+    val appearance: StateFlow<Appearance> =
+        combine(
+            dataStoreManager.getString(Appearance.KEY),
+            dataStoreManager.themeColorSource,
+            dataStoreManager.customThemeColor,
+        ) { raw, source, hex -> Appearance.parse(raw, source, hex) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance())
 
-    fun getCustomThemeColor() = dataStoreManager.customThemeColor
+    fun setAppearance(appearance: Appearance) {
+        viewModelScope.launch {
+            dataStoreManager.putString(Appearance.KEY, Appearance.encode(appearance))
+        }
+    }
 
     fun getArtworkColors() = dataStoreManager.artworkColors
 
@@ -1200,21 +1212,9 @@ class SharedViewModel(
         }
     }
 
-    fun setThemeColorSource(source: String) {
-        viewModelScope.launch {
-            dataStoreManager.setThemeColorSource(source)
-        }
-    }
-
     fun setArtworkColors(enable: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setArtworkColors(enable)
-        }
-    }
-
-    fun setCustomThemeColor(argbHex: String) {
-        viewModelScope.launch {
-            dataStoreManager.setCustomThemeColor(argbHex)
         }
     }
 

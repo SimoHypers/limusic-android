@@ -332,20 +332,16 @@ interface DataStoreManager {
 
     suspend fun setThemeMode(mode: String)
 
-    /** One of [THEME_COLOR_DEFAULT], [THEME_COLOR_WALLPAPER], [THEME_COLOR_CUSTOM]. */
+    /** Pre-presets colour source, one of [THEME_COLOR_DEFAULT], [THEME_COLOR_WALLPAPER], [THEME_COLOR_CUSTOM]. Read once, to carry it into the app's Appearance settings. */
     val themeColorSource: Flow<String>
-
-    suspend fun setThemeColorSource(source: String)
 
     /** "Adapt colors to artwork": the playing cover's colour layered over the theme colour. */
     val artworkColors: Flow<String>
 
     suspend fun setArtworkColors(enable: Boolean)
 
-    /** Seed color for the custom theme as an 8-digit ARGB hex string (e.g. "FF8ECAE6"). */
+    /** Pre-presets custom colour, 8-digit ARGB hex (e.g. "FF8ECAE6"). Read like [themeColorSource]. */
     val customThemeColor: Flow<String>
-
-    suspend fun setCustomThemeColor(argbHex: String)
 
     /** One of [NOW_PLAYING_STYLE_SPOTIFY], [NOW_PLAYING_STYLE_M3_EXPRESSIVE], [NOW_PLAYING_STYLE_APPLE_MUSIC]. */
     val nowPlayingStyle: Flow<String>

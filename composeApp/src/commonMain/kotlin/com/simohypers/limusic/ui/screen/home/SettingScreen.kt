@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import limusic.composeapp.generated.resources.devices_not_linked
 import limusic.composeapp.generated.resources.devices_linked_to
 import limusic.composeapp.generated.resources.devices
@@ -39,7 +40,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,7 +97,6 @@ import com.simohypers.limusic.Platform
 import com.simohypers.limusic.expect.ui.filePickerResult
 import com.simohypers.limusic.expect.ui.fileSaverResult
 import com.simohypers.limusic.expect.ui.isLyricsBlurSupported
-import com.simohypers.limusic.expect.ui.isWallpaperDynamicColorSupported
 import com.simohypers.limusic.expect.ui.openEqResult
 import com.simohypers.limusic.extension.barBlurStyle
 import com.simohypers.limusic.extension.bytesToMB
@@ -139,7 +138,6 @@ import limusic.composeapp.generated.resources.discord_showing
 import limusic.composeapp.generated.resources.discord_showing_as
 import com.simohypers.limusic.ui.navigation.destination.login.LoginDestination
 import com.simohypers.limusic.ui.theme.md_theme_dark_primary
-import com.simohypers.limusic.ui.theme.parseThemeColorHex
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.utils.VersionManager
 import com.simohypers.limusic.viewModel.ImportViewModel
@@ -175,6 +173,7 @@ import limusic.composeapp.generated.resources.animated_artwork_info
 import limusic.composeapp.generated.resources.app_log
 import limusic.composeapp.generated.resources.app_log_description
 import limusic.composeapp.generated.resources.app_name
+import limusic.composeapp.generated.resources.appearance_player
 import limusic.composeapp.generated.resources.audio
 import limusic.composeapp.generated.resources.author
 import limusic.composeapp.generated.resources.auto_backup
@@ -209,9 +208,6 @@ import limusic.composeapp.generated.resources.crossfade_dj_mode_description
 import limusic.composeapp.generated.resources.crossfade_duration
 import limusic.composeapp.generated.resources.crossfade_skip_album
 import limusic.composeapp.generated.resources.crossfade_skip_album_description
-import limusic.composeapp.generated.resources.custom_color
-import limusic.composeapp.generated.resources.artwork_colors
-import limusic.composeapp.generated.resources.artwork_colors_description
 import limusic.composeapp.generated.resources.daily
 import limusic.composeapp.generated.resources.database
 import limusic.composeapp.generated.resources.developer_option
@@ -264,10 +260,6 @@ import limusic.composeapp.generated.resources.monthly
 import limusic.composeapp.generated.resources.never
 import limusic.composeapp.generated.resources.normalize_volume
 import limusic.composeapp.generated.resources.not_available_while_casting
-import limusic.composeapp.generated.resources.now_playing_style
-import limusic.composeapp.generated.resources.now_playing_style_apple_music
-import limusic.composeapp.generated.resources.now_playing_style_m3_expressive
-import limusic.composeapp.generated.resources.now_playing_style_spotify
 import limusic.composeapp.generated.resources.ok
 import limusic.composeapp.generated.resources.open_system_equalizer
 import limusic.composeapp.generated.resources.original_audio
@@ -334,14 +326,6 @@ import limusic.composeapp.generated.resources.socks
 import limusic.composeapp.generated.resources.spotify_canvas_cache
 import limusic.composeapp.generated.resources.storage
 import limusic.composeapp.generated.resources.such_as_music_video_lyrics_video_podcasts_and_more
-import limusic.composeapp.generated.resources.theme
-import limusic.composeapp.generated.resources.theme_color
-import limusic.composeapp.generated.resources.theme_color_custom
-import limusic.composeapp.generated.resources.theme_color_default
-import limusic.composeapp.generated.resources.theme_color_wallpaper
-import limusic.composeapp.generated.resources.theme_mode_dark
-import limusic.composeapp.generated.resources.theme_mode_light
-import limusic.composeapp.generated.resources.theme_mode_system
 import limusic.composeapp.generated.resources.thumbnail_cache
 import limusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import limusic.composeapp.generated.resources.use_your_system_equalizer
@@ -484,15 +468,10 @@ fun SettingScreen(
     val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
     val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
-    val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
-    val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
-    val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
-    val artworkColors by sharedViewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
     val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
     val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
     val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
     val japaneseDictionaryState by viewModel.japaneseDictionaryState.collectAsStateWithLifecycle()
-    var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
     val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
@@ -909,120 +888,9 @@ fun SettingScreen(
                         }
                     }
                     SettingsSection.APPEARANCE -> {
-                        SettingGroup(title = null) {
-                            val themeModeLabels =
-                                listOf(
-                                    DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
-                                    DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
-                                    DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
-                                )
-                            SettingItem(
-                                title = stringResource(Res.string.theme),
-                                subtitle = themeModeLabels.firstOrNull { it.first == themeMode }?.second ?: "",
-                                onClick = {
-                                    viewModel.setAlertData(
-                                        SettingAlertState(
-                                            title = runBlocking { getString(Res.string.theme) },
-                                            selectOne =
-                                                SettingAlertState.SelectData(
-                                                    listSelect = themeModeLabels.map { (it.first == themeMode) to it.second },
-                                                ),
-                                            confirm =
-                                                runBlocking { getString(Res.string.change) } to { state ->
-                                                    val selected = state.selectOne?.getSelected()
-                                                    themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
-                                                        sharedViewModel.setThemeMode(it)
-                                                    }
-                                                },
-                                            dismiss = runBlocking { getString(Res.string.cancel) },
-                                        ),
-                                    )
-                                },
-                            )
-                            val colorSourceLabels =
-                                buildList {
-                                    add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
-                                    if (isWallpaperDynamicColorSupported()) {
-                                        add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
-                                    }
-                                    add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
-                                }
-                            SettingItem(
-                                title = stringResource(Res.string.theme_color),
-                                subtitle = colorSourceLabels.firstOrNull { it.first == themeColorSource }?.second ?: "",
-                                onClick = {
-                                    viewModel.setAlertData(
-                                        SettingAlertState(
-                                            title = runBlocking { getString(Res.string.theme_color) },
-                                            selectOne =
-                                                SettingAlertState.SelectData(
-                                                    listSelect = colorSourceLabels.map { (it.first == themeColorSource) to it.second },
-                                                ),
-                                            confirm =
-                                                runBlocking { getString(Res.string.change) } to { state ->
-                                                    val selected = state.selectOne?.getSelected()
-                                                    colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
-                                                        sharedViewModel.setThemeColorSource(it)
-                                                        if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
-                                                            showColorPickerDialog = true
-                                                        }
-                                                    }
-                                                },
-                                            dismiss = runBlocking { getString(Res.string.cancel) },
-                                        ),
-                                    )
-                                },
-                            )
-                            if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
-                                SettingItem(
-                                    title = stringResource(Res.string.custom_color),
-                                    subtitle = "#${customThemeColorHex.takeLast(6)}",
-                                    smallSubtitle = true,
-                                    onClick = { showColorPickerDialog = true },
-                                )
-                            }
-                            SettingItem(
-                                title = stringResource(Res.string.artwork_colors),
-                                subtitle = stringResource(Res.string.artwork_colors_description),
-                                smallSubtitle = true,
-                                switch = ((artworkColors == DataStoreManager.TRUE) to { sharedViewModel.setArtworkColors(it) }),
-                            )
-                            // The Apple Music treatments ARE the blur — the frosted page behind the player, and
-                            // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
-                            // Android 12, so on an older device they render as a flat, wrong-looking version of
-                            // themselves. The requirement is spelled out on the option itself rather than left
-                            // for the user to discover after switching.
-                            val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
-                            val nowPlayingStyleLabels =
-                                listOf(
-                                    DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
-                                    DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
-                                    DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
-                                        stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
-                                )
-                            SettingItem(
-                                title = stringResource(Res.string.now_playing_style),
-                                subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
-                                onClick = {
-                                    viewModel.setAlertData(
-                                        SettingAlertState(
-                                            title = runBlocking { getString(Res.string.now_playing_style) },
-                                            selectOne =
-                                                SettingAlertState.SelectData(
-                                                    listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
-                                                ),
-                                            confirm =
-                                                runBlocking { getString(Res.string.change) } to { state ->
-                                                    val selected = state.selectOne?.getSelected()
-                                                    nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
-                                                        sharedViewModel.setNowPlayingStyle(it)
-                                                    }
-                                                },
-                                            dismiss = runBlocking { getString(Res.string.cancel) },
-                                        ),
-                                    )
-                                },
-                            )
+                        AppearanceSettings(sharedViewModel)
+                        SettingGroup(title = stringResource(Res.string.appearance_player)) {
+                            PlayerStylePicker(nowPlayingStyle, onStyle = sharedViewModel::setNowPlayingStyle)
                             // Shown in the Apple Music and Material 3 Expressive styles, and on artist pages.
                             SettingItem(
                                 title = stringResource(Res.string.enable_animated_artwork),
@@ -1746,7 +1614,7 @@ fun SettingScreen(
                                             Modifier
                                                 .fillMaxWidth()
                                                 .height(8.dp)
-                                                .clip(RoundedCornerShape(8.dp))
+                                                .clip(rounded(8.dp))
                                                 .onGloballyPositioned { layoutCoordinates ->
                                                     with(localDensity) {
                                                         width =
@@ -2160,80 +2028,6 @@ fun SettingScreen(
         )
     }
     SettingAlertDialog(viewModel)
-    if (showColorPickerDialog) {
-        val presetColors =
-            listOf(
-                "FF8ECAE6",
-                "FF4C82EF",
-                "FF9B72CF",
-                "FFEF6C9B",
-                "FFEF5350",
-                "FFF4A340",
-                "FFFFCA28",
-                "FF66BB6A",
-                "FF26A69A",
-                "FFBDBDBD",
-            )
-        var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
-        val parsedColor = parseThemeColorHex(pendingHex)
-        AlertDialog(
-            onDismissRequest = { showColorPickerDialog = false },
-            title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
-            text = {
-                Column {
-                    presetColors.chunked(5).forEach { rowColors ->
-                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                            rowColors.forEach { hex ->
-                                val color = parseThemeColorHex(hex) ?: Color.Gray
-                                val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .padding(4.dp)
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(color)
-                                            .border(
-                                                width = if (isSelected) 3.dp else 0.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                                                shape = CircleShape,
-                                            ).clickable { pendingHex = hex.takeLast(6) },
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    TextField(
-                        value = pendingHex,
-                        onValueChange = { pendingHex = it.removePrefix("#").take(8).uppercase() },
-                        label = { Text("HEX") },
-                        prefix = { Text("#") },
-                        singleLine = true,
-                        isError = parsedColor == null,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = parsedColor != null,
-                    onClick = {
-                        parsedColor?.let {
-                            val argb = "FF${pendingHex.takeLast(6).uppercase()}"
-                            sharedViewModel.setCustomThemeColor(argb)
-                            sharedViewModel.setThemeColorSource(DataStoreManager.THEME_COLOR_CUSTOM)
-                        }
-                        showColorPickerDialog = false
-                    },
-                ) { Text(text = stringResource(Res.string.change)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showColorPickerDialog = false }) {
-                    Text(text = stringResource(Res.string.cancel))
-                }
-            },
-        )
-    }
     if (showYouTubeAccountDialog) {
         YouTubeAccountDialog(
             viewModel = viewModel,

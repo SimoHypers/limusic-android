@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -129,7 +130,7 @@ fun EditHomeSheet(
             sheetState = sheetState,
             containerColor = colors.container,
             contentColor = colors.content,
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = rounded(topStart = 20.dp, topEnd = 20.dp),
             dragHandle = {
                 Box(Modifier.padding(vertical = 10.dp).size(60.dp, 4.dp).clip(RoundedCornerShape(50)).background(colors.handle))
             },
@@ -148,7 +149,7 @@ fun EditHomeSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha = 0.12f)),
+                    Modifier.size(40.dp).clip(rounded(12.dp)).background(accent.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(LimusicIcons.Tune, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
@@ -410,7 +411,7 @@ private fun Group(
     colors: SurfaceDarkColors,
     content: @Composable () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(colors.content.copy(alpha = 0.05f))) {
+    Column(Modifier.fillMaxWidth().clip(rounded(14.dp)).background(colors.content.copy(alpha = 0.05f))) {
         content()
     }
 }
@@ -457,7 +458,7 @@ private fun SizeOption(
             HomeLayout.CardSize.MEDIUM -> 3 to 15.dp
             HomeLayout.CardSize.LARGE -> 2 to 24.dp
         }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = rounded(12.dp)
     Column(
         modifier =
             modifier
@@ -474,7 +475,7 @@ private fun SizeOption(
                 Box(
                     Modifier
                         .size(side)
-                        .clip(RoundedCornerShape(3.dp))
+                        .clip(rounded(3.dp))
                         .background(if (selected) accent.copy(alpha = 0.7f) else colors.subtitle.copy(alpha = 0.3f)),
                 )
             }

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -104,7 +104,7 @@ fun HomeDiscoverSection(
                     Modifier
                         .fillMaxSize()
                         .then(hoverModifier)
-                        .maskClip(RoundedCornerShape(28.dp))
+                        .maskClip(rounded(28.dp))
                         .combinedClickable(
                             onClick = play,
                             onLongClick = { sheetTrack = song.toTrack() },

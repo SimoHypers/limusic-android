@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -174,7 +174,7 @@ fun GenreMoodTile(
                 .size(84.dp)
                 .rotate(16f)
                 .fadeMask(Brush.horizontalGradient(0f to Color.Transparent, 0.55f to Color.Black))
-                .clip(RoundedCornerShape(8.dp))
+                .clip(rounded(8.dp))
                 .background(color.copy(alpha = 0.45f)),
         ) {
             if (artworkUrl != null) MoodArt(artworkUrl, Modifier.fillMaxSize())
@@ -197,7 +197,7 @@ private fun MoodTile(
     onClick: () -> Unit,
     content: @Composable BoxScope.(tint: Color) -> Unit,
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = rounded(20.dp)
     val tint = lerp(MaterialTheme.colorScheme.surfaceContainerHigh, color, 0.14f)
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()

@@ -2,6 +2,7 @@
 
 package com.simohypers.limusic.ui.screen.player.content.applemusic
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,7 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
@@ -355,7 +355,7 @@ private fun AppleMusicQueuePill(
                 // the full inflate would visibly overlap its neighbour on every tap.
                 .appleMusicPressInflate(pressedScale = 1.08f)
                 .height(40.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(rounded(20.dp))
                 .background(if (active) activeContainer else AppleMusicPillInactive)
                 .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,

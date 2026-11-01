@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.pluralStringResource
 import com.simohypers.limusic.ui.component.CollectionAuthorLine
@@ -35,7 +36,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -302,7 +302,7 @@ fun PlaylistScreen(
                                     onBack = { navController.navigateUp() },
                                     actions = {
                                         Row(
-                                            modifier = Modifier.height(48.dp).pillSurface(RoundedCornerShape(24.dp)).padding(horizontal = 4.dp),
+                                            modifier = Modifier.height(48.dp).pillSurface(rounded(24.dp)).padding(horizontal = 4.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
                                             IconButton(onClick = { showSearchBar = true }, modifier = Modifier.size(40.dp)) {

@@ -577,14 +577,6 @@ internal class DataStoreManagerImpl(
             preferences[THEME_COLOR_SOURCE] ?: DataStoreManager.THEME_COLOR_DEFAULT
         }
 
-    override suspend fun setThemeColorSource(source: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[THEME_COLOR_SOURCE] = source
-            }
-        }
-    }
-
     override val artworkColors =
         settingsDataStore.data.map { preferences ->
             preferences[ARTWORK_COLORS] ?: TRUE
@@ -602,14 +594,6 @@ internal class DataStoreManagerImpl(
         settingsDataStore.data.map { preferences ->
             preferences[CUSTOM_THEME_COLOR] ?: DataStoreManager.DEFAULT_THEME_COLOR_HEX
         }
-
-    override suspend fun setCustomThemeColor(argbHex: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[CUSTOM_THEME_COLOR] = argbHex
-            }
-        }
-    }
 
     override val nowPlayingStyle =
         settingsDataStore.data.map { preferences ->

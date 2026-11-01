@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -50,7 +51,7 @@ fun SettingSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = colors.container),
             ) {
                 Column(

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -255,7 +256,7 @@ private fun ShortcutMenu(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(rounded(10.dp))
                             .clickable {
                                 onRemove()
                                 onClose()
@@ -279,14 +280,14 @@ private fun EmptyShortcuts(onClick: () -> Unit) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
+                .clip(rounded(10.dp))
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
                 .clickable(onClick = onClick)
                 .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(accent.copy(alpha = 0.12f)),
+            Modifier.size(40.dp).clip(rounded(10.dp)).background(accent.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(LimusicIcons.Add, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
@@ -312,7 +313,7 @@ private fun ShortcutTile(
         modifier =
             modifier
                 .height(56.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(rounded(10.dp))
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -420,13 +421,13 @@ private fun ShortcutPicker(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(rounded(10.dp))
                                 .clickable(enabled = enabled) { onToggle(shortcut) }
                                 .padding(vertical = 6.dp)
                                 .alpha(if (enabled) 1f else 0.4f),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        ShortcutArt(shortcut, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
+                        ShortcutArt(shortcut, Modifier.size(48.dp).clip(rounded(8.dp)))
                         ShortcutText(shortcut, overview, colors.content, Modifier.weight(1f).padding(horizontal = 12.dp))
                         Icon(
                             if (pinned) LimusicIcons.CheckCircle else LimusicIcons.AddCircleOutline,

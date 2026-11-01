@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -442,12 +442,12 @@ private fun DiscordCardPreview(
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(rounded(12.dp))
             .background(DcCard)
             .padding(12.dp),
     ) {
         Row(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)).clickable { onEdit(CardPart.HEADER) },
+            Modifier.fillMaxWidth().clip(rounded(4.dp)).clickable { onEdit(CardPart.HEADER) },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Discord's own wording, untranslated: it renders this in the viewer's language anyway.
@@ -504,7 +504,7 @@ private fun DiscordCardPreview(
             Ghost(stringResource(Res.string.discord_buttons), Modifier.fillMaxWidth()) { onEdit(CardPart.BUTTONS) }
         } else {
             Column(
-                Modifier.clip(RoundedCornerShape(4.dp)).clickable { onEdit(CardPart.BUTTONS) },
+                Modifier.clip(rounded(4.dp)).clickable { onEdit(CardPart.BUTTONS) },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 buttons.forEach { label ->
@@ -517,7 +517,7 @@ private fun DiscordCardPreview(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(4.dp))
+                                .clip(rounded(4.dp))
                                 .background(DcButton)
                                 .padding(vertical = 7.dp),
                     )
@@ -535,7 +535,7 @@ private fun Artwork(
 ) {
     if (!cfg.cover) {
         Box(
-            Modifier.size(60.dp).dashed().clip(RoundedCornerShape(6.dp)).clickable(onClick = onClick),
+            Modifier.size(60.dp).dashed().clip(rounded(6.dp)).clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
             Text("+", color = DcMuted.copy(alpha = 0.7f), fontSize = 22.sp)
@@ -546,7 +546,7 @@ private fun Artwork(
         Box(
             Modifier
                 .size(60.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .clip(rounded(6.dp))
                 .background(Brush.linearGradient(listOf(Blurple.copy(alpha = 0.5f), DcPink.copy(alpha = 0.4f)))),
             contentAlignment = Alignment.Center,
         ) {
@@ -601,7 +601,7 @@ private fun CardLine(
         textDecoration = if (linked) TextDecoration.Underline else null,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(3.dp)).clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().clip(rounded(3.dp)).clickable(onClick = onClick),
     )
 }
 
@@ -621,7 +621,7 @@ private fun Ghost(
             modifier
                 .padding(vertical = 2.dp)
                 .dashed()
-                .clip(RoundedCornerShape(4.dp))
+                .clip(rounded(4.dp))
                 .clickable(onClick = onClick)
                 .padding(horizontal = 6.dp, vertical = 2.dp),
     )
@@ -644,7 +644,7 @@ private fun Bar(
 ) {
     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
     Row(
-        Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(3.dp)).clickable(onClick = onClick),
+        Modifier.fillMaxWidth().padding(top = 6.dp).clip(rounded(3.dp)).clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(clock(positionMs), color = DcMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
@@ -685,7 +685,7 @@ private fun MemberRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(rounded(10.dp))
             .background(DcMemberRow)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 6.dp),

@@ -218,7 +218,6 @@
     <string name="theme_mode_system">跟隨系統</string>
     <string name="theme_mode_dark">開啟</string>
     <string name="theme_mode_light">關閉</string>
-    <string name="now_playing_style">目前撥放的風格</string>
     <string name="now_playing_style_spotify">經典</string>
     <string name="lyrics_style">歌詞樣式</string>
     <string name="lyrics_style_classic">經典</string>
@@ -231,10 +230,6 @@
     <string name="romanization_japanese_dict_downloading">正在下載日語字典......</string>
     <string name="romanization_japanese_dict_ready">日語字典已經下載完成</string>
     <string name="romanization_japanese_dict_failed">無法下載日語字典。請檢察您的網路連線並再次選擇日語以重試。</string>
-    <string name="theme_color">主題顏色</string>
-    <string name="theme_color_default">預設</string>
-    <string name="theme_color_wallpaper">跟隨桌布</string>
-    <string name="theme_color_custom">自訂</string>
     <string name="custom_color">自訂顏色</string>
     <string name="relax">放鬆</string>
     <string name="sleep">睡眠</string>

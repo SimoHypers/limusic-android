@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -422,7 +422,7 @@ private fun PresetSheet(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(rounded(12.dp))
                         .clickable(enabled = !added) { onPick(preset.rule) }
                         .padding(vertical = 12.dp, horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -439,7 +439,7 @@ private fun PresetSheet(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(rounded(12.dp))
                     .clickable(onClick = onBlank)
                     .padding(vertical = 12.dp, horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -599,7 +599,7 @@ private fun Stat(
 ) {
     Column(
         modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(rounded(14.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f))
             .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -640,7 +640,7 @@ private fun NowScrobbling(
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Box(
-                    Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    Modifier.size(56.dp).clip(rounded(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (thumbnail != null) {

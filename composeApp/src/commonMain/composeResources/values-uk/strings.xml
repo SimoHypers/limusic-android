@@ -221,7 +221,6 @@
     <string name="theme_mode_system">Системна</string>
     <string name="theme_mode_dark">Темна</string>
     <string name="theme_mode_light">Світла</string>
-    <string name="now_playing_style">Стиль «Зараз Грає»</string>
     <string name="now_playing_style_spotify">Класичний</string>
     <string name="lyrics_style">Стиль текстів пісень</string>
     <string name="lyrics_style_classic">Класичний</string>
@@ -234,10 +233,6 @@
     <string name="romanization_japanese_dict_downloading">Завантаження японського словника…</string>
     <string name="romanization_japanese_dict_ready">Японський словник завантажено</string>
     <string name="romanization_japanese_dict_failed">Не вдалося завантажити японський словник. Перевірте ваше з'єднання та виберіть японську знову щоб спробувати знову.</string>
-    <string name="theme_color">Колір теми</string>
-    <string name="theme_color_default">Стандартний</string>
-    <string name="theme_color_wallpaper">Шпалери</string>
-    <string name="theme_color_custom">Власний</string>
     <string name="custom_color">Власний колір</string>
     <string name="relax">Відпочинок</string>
     <string name="sleep">Сон</string>

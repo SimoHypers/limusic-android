@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -47,7 +48,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -113,7 +113,6 @@ import com.simohypers.limusic.ui.icon.SkipNext
 import com.simohypers.limusic.ui.icon.SkipPrevious
 import com.simohypers.limusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.simohypers.limusic.ui.screen.player.content.expressive.WavySeekBar
-import com.simohypers.limusic.ui.theme.LocalArtworkColors
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.stringResource
@@ -123,8 +122,8 @@ import limusic.composeapp.generated.resources.lyrics
 import limusic.composeapp.generated.resources.now_playing
 import limusic.composeapp.generated.resources.share
 
-private val ArtworkShape = RoundedCornerShape(16.dp)
-private val SmallShape = RoundedCornerShape(12.dp)
+private val ArtworkShape get() = rounded(16.dp)
+private val SmallShape get() = rounded(12.dp)
 private val FROST_BLUR = 80.dp
 private const val FROST_DECODE_PX = 256
 
@@ -139,7 +138,7 @@ private val RAISE = 16.dp
  * and artist with like, the wavy seek bar, a row of rounded transport buttons, and a
  * row of squares at the bottom (Queue, Lyrics and the rest), the audio output top right. Queue and Lyrics are views of the same
  * page, like the Apple Music style's: they take the cover's place and the controls stay put.
- * Colours come from the cover (the M3 Expressive style's artwork scheme) over the cover itself,
+ * Colours are the app's own (the cover's with Adapt colors to artwork on), over the cover itself,
  * frosted.
  */
 @Composable
@@ -147,7 +146,7 @@ fun NowPlayingContentLimusic(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    ClassicTheme(state) { ClassicLayout(state, actions) }
+    ClassicLayout(state, actions)
 }
 
 /**
@@ -160,17 +159,7 @@ internal fun ClassicLyricsPage(
     actions: NowPlayingContentActions,
     onClose: () -> Unit,
 ) {
-    ClassicTheme(state) { ClassicLayout(state, actions, lyricsPageClose = onClose) }
-}
-
-// With "Adapt colors to artwork" on, the player takes the same cover colours as the rest of
-// the app, so opening it doesn't change the accent.
-@Composable
-private fun ClassicTheme(
-    state: NowPlayingContentState,
-    content: @Composable () -> Unit,
-) {
-    if (LocalArtworkColors.current) content() else NowPlayingExpressiveTheme(state = state, content = content)
+    ClassicLayout(state, actions, lyricsPageClose = onClose)
 }
 
 /** What the middle of the Classic page shows. The controls under it are the same for all three. */

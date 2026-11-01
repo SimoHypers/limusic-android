@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -125,7 +126,7 @@ fun EditPlaylistBottomSheet(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = colors.container),
             ) {
                 Column(
@@ -157,7 +158,7 @@ fun EditPlaylistBottomSheet(
                             modifier =
                                 Modifier
                                     .size(96.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(rounded(8.dp))
                                     .clickable { picker.launch() },
                         )
                         TextButton(onClick = { picker.launch() }) {

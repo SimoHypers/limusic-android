@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -43,7 +44,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -426,7 +426,7 @@ fun SearchScreen(
                                             indication = ripple(),
                                             onClick = { runSearch(suggestion) },
                                         ).padding(horizontal = 12.dp, vertical = 2.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
+                                        .clip(rounded(8.dp)),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
@@ -876,7 +876,7 @@ fun SuggestItemRow(
             modifier =
                 Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(4.dp)),
+                    .clip(rounded(4.dp)),
         ) {
             AsyncImage(
                 model =
@@ -898,7 +898,7 @@ fun SuggestItemRow(
                             if (searchResult is ArtistsResult) {
                                 CircleShape
                             } else {
-                                RoundedCornerShape(4.dp)
+                                rounded(4.dp)
                             },
                         ),
             )

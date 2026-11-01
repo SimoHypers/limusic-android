@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -218,7 +218,7 @@ private fun settingGroupColor(): Color =
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-private val SettingGroupShape = RoundedCornerShape(20.dp)
+private val SettingGroupShape get() = rounded(20.dp)
 private val SettingRowPaddingHorizontal = 16.dp
 private val SettingDividerThickness = 0.5.dp
 private val SettingLeadingSize = 40.dp

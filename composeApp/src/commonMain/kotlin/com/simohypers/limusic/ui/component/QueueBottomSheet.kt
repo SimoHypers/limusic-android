@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -32,7 +33,6 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -493,7 +493,7 @@ internal fun SongHeader(
             contentScale = ContentScale.Crop,
             placeholder = rememberHolderPainter(),
             error = rememberHolderPainter(),
-            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier.size(56.dp).clip(rounded(8.dp)),
         )
         Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
             Text(title, style = typo().titleSmall, fontWeight = FontWeight.SemiBold, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -590,7 +590,7 @@ private fun LazyItemScope.QueueRow(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(rounded(8.dp))
                 .then(if (playing) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)) else Modifier),
         ) {
             SongFullWidthItems(

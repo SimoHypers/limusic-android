@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -110,7 +110,7 @@ fun LyricsOffsetFloatingControl(
                 // The fullscreen page's own pill: 48dp, 24dp corners, like its volume pill.
                 PillContainer(
                     modifier = Modifier.padding(end = 8.dp).height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = rounded(24.dp),
                 ) {
                     LyricsOffsetBar(
                         offsetMs = offsetMs,

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -141,7 +142,7 @@ private fun QuickTile(
     Card(
         onClick = onClick,
         modifier = modifier.height(72.dp),
-        shape = RoundedCornerShape(18.dp),
+        shape = rounded(18.dp),
         colors = CardDefaults.cardColors(containerColor = container),
     ) {
         Box(Modifier.fillMaxSize()) {
@@ -173,7 +174,7 @@ private fun QuickTile(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha = 0.16f)),
+                    Modifier.size(40.dp).clip(rounded(12.dp)).background(accent.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
@@ -301,7 +302,7 @@ internal fun NewPlaylistTile(
     val accent = MaterialTheme.colorScheme.primary
     Column(
         Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .clickable(onClick = onClick)
             .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 6.dp)
             .then(modifier),
@@ -310,7 +311,7 @@ internal fun NewPlaylistTile(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(rounded(10.dp))
                 .background(accent.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {

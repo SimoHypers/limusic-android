@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.pluralStringResource
@@ -39,7 +40,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -167,7 +167,7 @@ fun AlbumScreen(
                                 onBack = { navController.navigateUp() },
                                 actions = {
                                     Row(
-                                        modifier = Modifier.height(48.dp).pillSurface(RoundedCornerShape(24.dp)).padding(horizontal = 4.dp),
+                                        modifier = Modifier.height(48.dp).pillSurface(rounded(24.dp)).padding(horizontal = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         CollectionDownloadButton(

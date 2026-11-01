@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -661,7 +662,7 @@ fun MiniPlayer(
                             modifier =
                                 Modifier
                                     .size(32.dp)
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(rounded(6.dp))
                                     .hoverable(artworkInteraction),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -982,7 +983,7 @@ fun MiniPlayer(
                                             .hoverable(popupInteraction)
                                             .width(44.dp)
                                             .height(VOLUME_POPUP_HEIGHT)
-                                            .clip(RoundedCornerShape(14.dp))
+                                            .clip(rounded(14.dp))
                                             // Theme surface, not `background` — that one animates to the
                                             // artwork's palette colour, which turned the popup olive green
                                             // for one cover and pink for the next.
@@ -1144,7 +1145,7 @@ private fun CapsuleProgress(
                                 Modifier
                                     .fillMaxWidth()
                                     .height(trackHeight)
-                                    .clip(RoundedCornerShape(8.dp)),
+                                    .clip(rounded(8.dp)),
                             // The capsule's own colours, not NowPlaying's hardcoded greys: this track
                             // sits on liquid glass whose tone follows the artwork behind it.
                             color = progressColor,

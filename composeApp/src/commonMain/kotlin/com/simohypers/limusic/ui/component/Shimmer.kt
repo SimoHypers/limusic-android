@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -172,7 +173,7 @@ fun ShimmerSearchItem() {
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(4.dp))
+                .clip(rounded(4.dp))
                 .background(LocalAppColors.current.shimmerBackground)
                 .shimmer()
         )
@@ -185,7 +186,7 @@ fun ShimmerSearchItem() {
                 modifier = Modifier
                     .width(200.dp)
                     .height(16.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(rounded(4.dp))
                     .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )
@@ -196,7 +197,7 @@ fun ShimmerSearchItem() {
                 modifier = Modifier
                     .width(150.dp)
                     .height(14.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(rounded(4.dp))
                     .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )
@@ -207,7 +208,7 @@ fun ShimmerSearchItem() {
                 modifier = Modifier
                     .width(80.dp)
                     .height(12.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(rounded(4.dp))
                     .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )

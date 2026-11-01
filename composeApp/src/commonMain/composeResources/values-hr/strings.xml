@@ -210,7 +210,6 @@
     <string name="theme_mode_system">Sustav default</string>
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_light">Light</string>
-    <string name="now_playing_style">Trenutno se reproducira style</string>
     <string name="now_playing_style_spotify">Classic</string>
     <string name="lyrics_style">Tekst pjesme style</string>
     <string name="lyrics_style_classic">Classic</string>
@@ -223,10 +222,6 @@
     <string name="romanization_japanese_dict_downloading">Preuzimanje the Japanese dictionary…</string>
     <string name="romanization_japanese_dict_ready">Japanese dictionary downloaded</string>
     <string name="romanization_japanese_dict_failed">Couldn't download the Japanese dictionary. Check your connection and select Japanese again to retry.</string>
-    <string name="theme_color">Theme color</string>
-    <string name="theme_color_default">Zadano</string>
-    <string name="theme_color_wallpaper">Wallpaper</string>
-    <string name="theme_color_custom">Prilagođeno</string>
     <string name="custom_color">Prilagođeno color</string>
     <string name="relax">Relax</string>
     <string name="sleep">Sleep</string>

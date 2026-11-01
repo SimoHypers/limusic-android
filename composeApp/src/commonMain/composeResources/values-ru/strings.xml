@@ -222,7 +222,6 @@
     <string name="theme_mode_system">Системная</string>
     <string name="theme_mode_dark">Тёмная</string>
     <string name="theme_mode_light">Светлая</string>
-    <string name="now_playing_style">Стиль окна "Сейчас играет"</string>
     <string name="now_playing_style_spotify">Классический</string>
     <string name="lyrics_style">Стиль текстов песен</string>
     <string name="lyrics_style_classic">Классический</string>
@@ -235,10 +234,6 @@
     <string name="romanization_japanese_dict_downloading">Загрузка японского словаря…</string>
     <string name="romanization_japanese_dict_ready">Японский словарь загружен</string>
     <string name="romanization_japanese_dict_failed">Не удается загрузить японский словарь. Проверьте соединение и выберите японский язык ещё раз.</string>
-    <string name="theme_color">Цвет темы</string>
-    <string name="theme_color_default">По умолчанию</string>
-    <string name="theme_color_wallpaper">Обои</string>
-    <string name="theme_color_custom">Пользовательский</string>
     <string name="custom_color">Пользовательский цвет</string>
     <string name="relax">Релакс</string>
     <string name="sleep">Сон</string>

@@ -191,9 +191,6 @@
     <string name="theme_mode_system">Padrão do sistema</string>
     <string name="theme_mode_dark">Escuro</string>
     <string name="theme_mode_light">Claro</string>
-    <string name="theme_color">Cor do tema</string>
-    <string name="theme_color_default">Padrão</string>
-    <string name="theme_color_wallpaper">Papel de parede</string>
     <string name="relax">Relaxante</string>
     <string name="sleep">Suspensão</string>
     <string name="energize">Inspirar</string>

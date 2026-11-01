@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content.expressive
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -135,7 +136,7 @@ fun ExpressiveTransportRow(
                     onUIEvent(UIEvent.Previous)
                 }
             },
-            shape = RoundedCornerShape(34.dp),
+            shape = rounded(34.dp),
             color = colorScheme.secondaryContainer,
             interactionSource = prevInteraction,
             modifier =
@@ -215,7 +216,7 @@ fun ExpressiveTransportRow(
                     onUIEvent(UIEvent.Next)
                 }
             },
-            shape = RoundedCornerShape(34.dp),
+            shape = rounded(34.dp),
             color = colorScheme.secondaryContainer,
             interactionSource = nextInteraction,
             modifier =
@@ -260,7 +261,7 @@ private fun RowScope.ExpressiveToggleButton(
     val colorScheme = MaterialTheme.colorScheme
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(34.dp),
+        shape = rounded(34.dp),
         color = if (active) colorScheme.primaryContainer else colorScheme.surfaceContainerHigh,
         modifier =
             Modifier

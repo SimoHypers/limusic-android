@@ -191,10 +191,6 @@
     <string name="theme_mode_system">Bawaan sistem</string>
     <string name="theme_mode_dark">Gelap</string>
     <string name="theme_mode_light">Terang</string>
-    <string name="theme_color">Warna tema</string>
-    <string name="theme_color_default">Bawaan</string>
-    <string name="theme_color_wallpaper">Wallpaper</string>
-    <string name="theme_color_custom">Khusus</string>
     <string name="custom_color">Warna khusus</string>
     <string name="relax">Santai</string>
     <string name="sleep">Tidur</string>

@@ -15,43 +15,55 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.sp
+import com.simohypers.limusic.expect.ui.fileFontFamily
 import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.FontResource
 import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.dm_sans
+import limusic.composeapp.generated.resources.google_sans
 import limusic.composeapp.generated.resources.ibm_plex_sans
+import limusic.composeapp.generated.resources.montserrat
+import limusic.composeapp.generated.resources.outfit
 import limusic.composeapp.generated.resources.oxanium
 
 /**
- * Limusic's text face, Oxanium (OFL), as on the desktop app. One variable font file; each weight is
- * an instance of its `wght` axis.
+ * The bundled faces (all OFL, licences in files/fonts), desktop's font list. The variable ones are
+ * subset to Latin, Greek, Cyrillic and Vietnamese; other scripts fall back to the system font.
+ */
+enum class AppFont(
+    val label: String,
+    internal val res: FontResource?,
+) {
+    OXANIUM("Oxanium", Res.font.oxanium),
+    IBM_PLEX_SANS("IBM Plex Sans", Res.font.ibm_plex_sans),
+    MONTSERRAT("Montserrat", Res.font.montserrat),
+    OUTFIT("Outfit", Res.font.outfit),
+    DM_SANS("DM Sans", Res.font.dm_sans),
+    GOOGLE_SANS("Google Sans", Res.font.google_sans),
+    SYSTEM("System", null),
+}
+
+private val FontWeights = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold)
+
+/**
+ * A font as the Appearance settings store it: an [AppFont] name, or the path of a file the user
+ * loaded. Each weight is an instance of the file's `wght` axis; a static file just ignores it. A file
+ * that has gone missing gives the system font.
  */
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun fontFamily(): FontFamily =
-    FontFamily(
-        listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold).map { weight ->
-            Font(
-                Res.font.oxanium,
-                weight,
-                FontStyle.Normal,
-                variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
-            )
+fun rememberFontFamily(id: String): FontFamily {
+    val bundled = AppFont.entries.firstOrNull { it.name == id } ?: return remember(id) { fileFontFamily(id) ?: FontFamily.Default }
+    val res = bundled.res ?: return FontFamily.Default
+    return FontFamily(
+        FontWeights.map { weight ->
+            Font(res, weight, FontStyle.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)))
         },
     )
+}
 
-/** Limusic's heading face, IBM Plex Sans (OFL), for the large titles. */
-@OptIn(ExperimentalTextApi::class)
-@Composable
-fun headingFontFamily(): FontFamily =
-    FontFamily(
-        listOf(FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold).map { weight ->
-            Font(
-                Res.font.ibm_plex_sans,
-                weight,
-                FontStyle.Normal,
-                variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
-            )
-        },
-    )
+/** The name a loaded font file goes by: its file name without the extension, as on desktop. */
+fun fontFileLabel(path: String): String = path.substringAfterLast('/').substringBeforeLast('.')
 
 /** Both faces, built once by [AppTheme] so [typo] doesn't rebuild seven Font entries per call. */
 @Immutable
@@ -74,7 +86,7 @@ fun typo(
     colorScheme: ColorScheme = MaterialTheme.colorScheme,
     forceDark: Boolean = LocalForceDarkText.current,
     // Outside AppTheme (previews) nothing provides the pair, so build one here.
-    fonts: AppFonts = LocalAppFonts.current ?: AppFonts(fontFamily(), headingFontFamily()),
+    fonts: AppFonts = LocalAppFonts.current ?: AppFonts(rememberFontFamily(AppFont.OXANIUM.name), rememberFontFamily(AppFont.IBM_PLEX_SANS.name)),
 ): Typography {
     // Titles were pure white, everything else muted gray (#A8A8A8) in the old dark-only palette.
     // forceDark keeps that; otherwise both come from the scheme (theme-aware light/dark).

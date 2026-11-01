@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content.applemusic
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -145,7 +146,7 @@ internal fun AppleMusicOutputSheet(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            shape = rounded(topStart = 8.dp, topEnd = 8.dp),
             colors = CardDefaults.cardColors().copy(containerColor = colors.container),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {

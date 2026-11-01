@@ -187,10 +187,6 @@
     <string name="theme_mode_system">Domyślny systemowy</string>
     <string name="theme_mode_dark">Ciemny</string>
     <string name="theme_mode_light">Jasny</string>
-    <string name="theme_color">Kolor motywu</string>
-    <string name="theme_color_default">Domyślny</string>
-    <string name="theme_color_wallpaper">Tapeta</string>
-    <string name="theme_color_custom">Niestandardowy</string>
     <string name="custom_color">Kolor niestandardowy</string>
     <string name="relax">Relaks</string>
     <string name="sleep">Sen</string>

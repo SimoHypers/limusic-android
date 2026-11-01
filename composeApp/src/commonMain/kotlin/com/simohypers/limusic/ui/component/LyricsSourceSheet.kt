@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -181,7 +181,7 @@ fun LyricsSourceSheet(
                     Modifier
                         .padding(vertical = 6.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(rounded(12.dp))
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -211,7 +211,7 @@ fun LyricsSourceSheet(
                         Box(
                             Modifier
                                 .size(34.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(rounded(10.dp))
                                 .background(if (pinned) colors.disabled.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -326,7 +326,7 @@ fun LyricsSourceSheet(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(rounded(12.dp))
                         .clickable { searchOpen = true }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -386,7 +386,7 @@ private fun SourceRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(rounded(14.dp))
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f) else Color.Transparent)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 7.dp),

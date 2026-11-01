@@ -53,6 +53,49 @@ internal object LimusicLight {
     val destructive = Color(0xFFE7000B)
 }
 
+// ===== Preset palettes =====
+// Desktop's preset themes (layout.css), oklch converted to sRGB, translucent borders flattened onto
+// the background. One mode each, as its shadcn tokens; [Palette.scheme] maps them onto Material roles.
+
+internal class Palette(
+    val background: Long,
+    val foreground: Long,
+    val card: Long,
+    val primary: Long,
+    val onPrimary: Long,
+    val secondary: Long,
+    val onSecondary: Long,
+    val muted: Long,
+    val mutedForeground: Long,
+    val border: Long,
+    val ring: Long,
+    val destructive: Long,
+)
+
+internal val CatppuccinLight =
+    Palette(0xFFEFF1F5, 0xFF4C4F69, 0xFFFFFFFF, 0xFF8839EF, 0xFFFFFFFF, 0xFFCCD0DA, 0xFF4C4F69, 0xFFDCE0E8, 0xFF6C6F85, 0xFFBCC0CC, 0xFF8839EF, 0xFFD20F39)
+internal val CatppuccinDark =
+    Palette(0xFF181825, 0xFFCDD6F4, 0xFF1E1E2E, 0xFFCBA6F7, 0xFF1E1E2E, 0xFF585B70, 0xFFCDD6F4, 0xFF292C3C, 0xFFA6ADC8, 0xFF313244, 0xFFCBA6F7, 0xFFF38BA8)
+internal val CaffeineLight =
+    Palette(0xFFF9F9F9, 0xFF202020, 0xFFFCFCFC, 0xFF644A40, 0xFFFFFFFF, 0xFFFFDFB5, 0xFF582D1D, 0xFFEFEFEF, 0xFF646464, 0xFFD8D8D8, 0xFF644A40, 0xFFE54D2E)
+internal val CaffeineDark =
+    Palette(0xFF111111, 0xFFEEEEEE, 0xFF191919, 0xFFFFE0C2, 0xFF081A1B, 0xFF393028, 0xFFFFE0C2, 0xFF222222, 0xFFB4B4B4, 0xFF201E18, 0xFFFFE0C2, 0xFFE54D2E)
+internal val NeonLight =
+    Palette(0xFFF8F9FA, 0xFF0C0C1D, 0xFFFFFFFF, 0xFFFF00C8, 0xFFFFFFFF, 0xFFF0F0FF, 0xFF0C0C1D, 0xFFF0F0FF, 0xFF0C0C1D, 0xFFDFE6E9, 0xFFFF00C8, 0xFFFF3D00)
+internal val NeonDark =
+    Palette(0xFF0C0C1D, 0xFFECEFF4, 0xFF1E1E3F, 0xFFFF00C8, 0xFFFFFFFF, 0xFF1E1E3F, 0xFFECEFF4, 0xFF151530, 0xFF8085A6, 0xFF2E2E5E, 0xFFFF00C8, 0xFFFF3D00)
+
+// ponytail: desktop's AMOLED cards are black and set apart by borders. Phone cards have no border,
+// so the card takes AMOLED's secondary grey (#171717) instead; the page stays #000000.
+internal val AmoledDark =
+    Palette(0xFF000000, 0xFFFAFAFA, 0xFF171717, 0xFFFAFAFA, 0xFF0A0A0A, 0xFF171717, 0xFFFAFAFA, 0xFF0F0F0F, 0xFFA1A1A1, 0xFF242424, 0xFF737373, 0xFFFF6467)
+
+/** Desktop's eight accent swatches, mid-tones that read as a fill under white text in both modes. */
+val AccentSwatches = listOf("E11D48", "EA580C", "D97706", "16A34A", "0D9488", "2563EB", "7C3AED", "DB2777")
+
+/** Material You's seed where there is no wallpaper colour (below Android 12): desktop's purple. */
+internal val MaterialYouSeed = Color(0xFF6750A4)
+
 // ===== Semantic colors (not derivable from the color scheme) =====
 
 /** Liked/favorite state (heart buttons, favorite tiles). */

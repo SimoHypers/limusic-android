@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -342,7 +342,7 @@ private fun NameField(
         onValueChange = { onChange(it.take(ListenTogetherViewModel.MAX_NAME_LENGTH)) },
         singleLine = true,
         placeholder = { Text(stringResource(Res.string.ltd_your_name)) },
-        shape = RoundedCornerShape(12.dp),
+        shape = rounded(12.dp),
         modifier = Modifier.fillMaxWidth(),
     )
 }
@@ -395,7 +395,7 @@ private fun Room(
                     model = track.thumbnail.ifBlank { null },
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    modifier = Modifier.size(48.dp).clip(rounded(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 )
                 Spacer(Modifier.width(12.dp))
                 TitleAndLine(
@@ -427,7 +427,7 @@ private fun Room(
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(rounded(20.dp))
             .clickable(onClick = viewModel::leave)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
@@ -650,7 +650,7 @@ private fun SheetRow(
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(rounded(12.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
     ) {
@@ -677,7 +677,7 @@ private fun ServerSheet(
             placeholder = { Text(stringResource(Res.string.ltd_sync_server_placeholder)) },
             textStyle = typo().bodyMedium,
             keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-            shape = RoundedCornerShape(12.dp),
+            shape = rounded(12.dp),
             modifier = Modifier.fillMaxWidth(),
         )
         Row(verticalAlignment = Alignment.CenterVertically) {

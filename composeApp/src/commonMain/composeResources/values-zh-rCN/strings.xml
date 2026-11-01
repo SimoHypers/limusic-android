@@ -189,10 +189,6 @@
     <string name="theme_mode_system">系统默认</string>
     <string name="theme_mode_dark">深色模式</string>
     <string name="theme_mode_light">浅色模式</string>
-    <string name="theme_color">主题颜色</string>
-    <string name="theme_color_default">默认</string>
-    <string name="theme_color_wallpaper">壁纸</string>
-    <string name="theme_color_custom">自定义</string>
     <string name="custom_color">自定义颜色</string>
     <string name="relax">放松</string>
     <string name="sleep">睡眠</string>

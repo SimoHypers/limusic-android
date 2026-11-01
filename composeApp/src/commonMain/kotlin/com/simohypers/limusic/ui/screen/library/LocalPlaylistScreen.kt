@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.library
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.PaddingValues
 import org.jetbrains.compose.resources.pluralStringResource
@@ -49,7 +50,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -419,7 +419,7 @@ fun LocalPlaylistScreen(
                     placeholder = painterPlaylistThumbnail(uiState.title, style = typo().labelMedium, 250.dp to 250.dp),
                     actions = {
                         Row(
-                            modifier = Modifier.height(48.dp).pillSurface(RoundedCornerShape(24.dp)).padding(horizontal = 4.dp),
+                            modifier = Modifier.height(48.dp).pillSurface(rounded(24.dp)).padding(horizontal = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             // YouTube's suggestions, only while synced with YouTube.

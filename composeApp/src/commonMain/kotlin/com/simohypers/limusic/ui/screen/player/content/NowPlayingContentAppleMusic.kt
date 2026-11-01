@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
@@ -281,7 +282,7 @@ fun NowPlayingContentAppleMusic(
             if (viewState == AppleMusicView.MAIN) {
                 PillIconButton(
                     imageVector = state.dismissIcon,
-                    shape = RoundedCornerShape(24.dp),
+                    shape = rounded(24.dp),
                     // Same as AnalyticsScreen's back button: a 48dp circle catches only a short arc
                     // of the default directional sweep and reads as rimless. 1.dp is the smallest
                     // step that stays visible without looking like a plain border.
@@ -726,7 +727,7 @@ private fun AppleMusicMainView(
                                     error = rememberHolderPainter(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(55.dp).clip(RoundedCornerShape(4.dp)),
+                                    modifier = Modifier.size(55.dp).clip(rounded(4.dp)),
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
@@ -1033,7 +1034,7 @@ private fun AppleMusicArtworkPage(
                                     .size(width = frameWidth, height = frameHeight)
                                     // A vertical video stands clear of the screen edges, so it is rounded
                                     // like a card; wide ones run edge to edge and stay square.
-                                    .then(if (ratio < 1f) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier),
+                                    .then(if (ratio < 1f) Modifier.clip(rounded(12.dp)) else Modifier),
                         ) {
                             MediaPlayerViewWithSubtitle(
                                 playerName = MAIN_PLAYER,

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -12,7 +13,6 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -50,7 +50,7 @@ fun InfiniteBorderAnimationView(
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     contentPadding: Dp = 0.dp,
     borderWidth: Dp = 1.dp,
-    shape: Shape = RoundedCornerShape(12.dp),
+    shape: Shape = rounded(12.dp),
     oneCircleDurationMillis: Int = 3000,
     content: @Composable () -> Unit,
 ) {
@@ -123,7 +123,7 @@ fun LimitedBorderAnimationView(
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     contentPadding: Dp = 0.dp,
     borderWidth: Dp = 1.dp,
-    shape: Shape = RoundedCornerShape(12.dp),
+    shape: Shape = rounded(12.dp),
     oneCircleDurationMillis: Int = 3000,
     interactionNumber: Int = 1,
     content: @Composable () -> Unit,

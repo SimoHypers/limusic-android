@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component.lyrics
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,7 +92,7 @@ internal fun ShareLyricsCard(
             modifier
                 .fillMaxWidth()
                 .widthIn(max = ShareLyricsCardMaxWidth)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(rounded(20.dp))
                 // Not a flat fill: Spotify's card ramps its tint top-to-bottom, which is what stops
                 // a large block of one colour from reading as a coloured rectangle rather than a
                 // designed object.
@@ -105,7 +105,7 @@ internal fun ShareLyricsCard(
                     bitmap = artwork,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(38.dp).clip(RoundedCornerShape(5.dp)),
+                    modifier = Modifier.size(38.dp).clip(rounded(5.dp)),
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }

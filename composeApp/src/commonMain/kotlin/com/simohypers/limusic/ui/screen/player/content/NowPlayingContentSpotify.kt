@@ -2,6 +2,7 @@
 
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -50,7 +51,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -536,7 +536,7 @@ fun NowPlayingContentSpotify(
                                                 .background(Color.Transparent)
                                                 .shadow(
                                                     elevation = 3.dp,
-                                                    shape = RoundedCornerShape(8.dp),
+                                                    shape = rounded(8.dp),
                                                     spotColor =
                                                         state.spotShadowColor.copy(
                                                             alpha = 0.6f,
@@ -583,7 +583,7 @@ fun NowPlayingContentSpotify(
                                                         },
                                                     ).background(Color.Transparent)
                                                     .clip(
-                                                        RoundedCornerShape(8.dp),
+                                                        rounded(8.dp),
                                                     ).alpha(
                                                         if (!state.screenData.isVideo || !state.shouldShowVideo) 1f else 0f,
                                                     ),
@@ -606,7 +606,7 @@ fun NowPlayingContentSpotify(
                                             modifier =
                                                 Modifier
                                                     .aspectRatio(state.videoAspectRatio)
-                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clip(rounded(8.dp))
                                                     .background(Color.Black),
                                         ) {
                                             Box(Modifier.fillMaxSize()) {
@@ -762,7 +762,7 @@ fun NowPlayingContentSpotify(
                                                 .background(Color.Transparent)
                                                 .shadow(
                                                     elevation = 3.dp,
-                                                    shape = RoundedCornerShape(8.dp),
+                                                    shape = rounded(8.dp),
                                                     spotColor = Color.Black.copy(alpha = 0.4f),
                                                     ambientColor = Color.Transparent,
                                                 ),
@@ -796,7 +796,7 @@ fun NowPlayingContentSpotify(
                                                     .padding(3.dp)
                                                     .fillMaxWidth()
                                                     .aspectRatio(1f)
-                                                    .clip(RoundedCornerShape(8.dp)),
+                                                    .clip(rounded(8.dp)),
                                         )
                                     }
                                 }
@@ -1255,7 +1255,7 @@ fun NowPlayingContentSpotify(
                         ) {
                             ElevatedCard(
                                 onClick = {},
-                                shape = RoundedCornerShape(8.dp),
+                                shape = rounded(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
                                         containerColor = state.startColor.value,
@@ -1400,7 +1400,7 @@ fun NowPlayingContentSpotify(
                                 onClick = {
                                     actions.onNavigateToArtist()
                                 },
-                                shape = RoundedCornerShape(8.dp),
+                                shape = rounded(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
                                         containerColor = Color(0xFF212121),
@@ -1485,7 +1485,7 @@ fun NowPlayingContentSpotify(
                         AnimatedVisibility(visible = state.screenData.songInfoData != null) {
                             ElevatedCard(
                                 onClick = {},
-                                shape = RoundedCornerShape(8.dp),
+                                shape = rounded(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
                                         containerColor = state.startColor.value,
@@ -1680,7 +1680,7 @@ fun NowPlayingContentSpotify(
                                     .height(1.dp)
                                     .background(
                                         color = Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp),
+                                        shape = rounded(4.dp),
                                     ),
                             color = Color.White,
                             trackColor = Color.Gray.copy(alpha = 0.4f),
@@ -1750,7 +1750,7 @@ internal fun NowPlayingTrackInfoRow(
                         .width(55.dp)
                         .padding(end = 10.dp)
                         .clip(
-                            RoundedCornerShape(4.dp),
+                            rounded(4.dp),
                         ).align(Alignment.CenterVertically),
             )
         }
@@ -1850,7 +1850,7 @@ internal fun ColumnScope.SpotifyPlaybackControls(
                                     .padding(
                                         horizontal = 3.dp,
                                     ).clip(
-                                        RoundedCornerShape(8.dp),
+                                        rounded(8.dp),
                                     ),
                             color = Color.Gray,
                             trackColor = Color.DarkGray,
@@ -1868,7 +1868,7 @@ internal fun ColumnScope.SpotifyPlaybackControls(
                                     .padding(
                                         horizontal = 3.dp,
                                     ).clip(
-                                        RoundedCornerShape(8.dp),
+                                        rounded(8.dp),
                                     ),
                             color = Color.Gray,
                             trackColor =

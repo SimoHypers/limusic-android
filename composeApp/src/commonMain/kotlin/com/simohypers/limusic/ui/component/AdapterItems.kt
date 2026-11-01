@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -204,7 +205,7 @@ fun HomeSectionHeader(
             if (channelId != null) {
                 Modifier
                     .focusable(true)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(rounded(8.dp))
                     .clickable {
                         navController.navigate(
                             ArtistDestination(
@@ -216,7 +217,7 @@ fun HomeSectionHeader(
                 // The section title carries the same endpoint as its "More" button, as on the web.
                 Modifier
                     .focusable(true)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(rounded(8.dp))
                     .clickable { navController.navigateToMoreEndpoint(moreEndpoint, data.title) }
             } else {
                 Modifier
@@ -522,7 +523,7 @@ fun HomeItemContentPlaylist(
             .then(hoverModifier)
             .wrapContentSize()
             .focusable(true)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .clickable {
                 onClick()
             },
@@ -598,7 +599,7 @@ fun HomeItemContentPlaylist(
                         (if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.size(thumbSize))
                             .aspectRatio(1f)
                             .clip(
-                                RoundedCornerShape(10.dp),
+                                rounded(10.dp),
                             ),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
@@ -729,7 +730,7 @@ fun QuickPicksItem(
                 .wrapContentHeight()
                 .width(widthDp - 30.dp)
                 .focusable(true)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(rounded(8.dp))
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
@@ -845,7 +846,7 @@ fun HomeItemSong(
                 .then(hoverModifier)
                 .fillMaxSize()
                 .focusable(true)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(rounded(8.dp))
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
@@ -883,7 +884,7 @@ fun HomeItemSong(
                         Modifier
                             .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(LocalHomeCardSize.current))
                             .clip(
-                                RoundedCornerShape(10.dp),
+                                rounded(10.dp),
                             ),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
@@ -956,7 +957,7 @@ fun HomeItemVideo(
             .then(hoverModifier)
             .fillMaxSize()
             .focusable(true)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -988,7 +989,7 @@ fun HomeItemVideo(
                             .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.height(LocalHomeCardSize.current))
                             .aspectRatio(16f / 9f)
                             .clip(
-                                RoundedCornerShape(10.dp),
+                                rounded(10.dp),
                             ),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
@@ -1053,7 +1054,7 @@ private fun LiveBadge(modifier: Modifier = Modifier) {
         modifier =
             modifier
                 // YouTube's own live red, so the chip reads the same as on the web.
-                .background(LiveBadgeRed, RoundedCornerShape(2.dp))
+                .background(LiveBadgeRed, rounded(2.dp))
                 .padding(horizontal = 3.dp),
     )
 }
@@ -1075,7 +1076,7 @@ fun HomeItemArtist(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .clickable {
                 onClick()
             },
@@ -1154,7 +1155,7 @@ fun MoodMomentAndGenreHomeItem(
                 defaultElevation = 6.dp,
             ),
         onClick = onClick,
-        shape = RoundedCornerShape(5.dp),
+        shape = rounded(5.dp),
         modifier =
             (if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(160.dp))
                 .height(50.dp)
@@ -1194,7 +1195,7 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .clickable {
                 onClick()
             },
@@ -1294,7 +1295,7 @@ fun ItemArtistChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(rounded(8.dp))
             .clickable {
                 onClick()
             },
@@ -1395,7 +1396,7 @@ fun ItemTrackChart(
             Modifier
                 .wrapContentSize()
                 .focusable(true)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(rounded(8.dp))
                 .clickable {
                     onClick()
                 },

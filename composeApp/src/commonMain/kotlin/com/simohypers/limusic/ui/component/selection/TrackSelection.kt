@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component.selection
 
+import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
@@ -35,7 +36,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -248,7 +248,7 @@ fun TrackSelectionBar(
         enter = fadeIn(tween(180)) + slideInVertically(spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { it / 2 },
         exit = fadeOut(tween(150)) + slideOutVertically(tween(180)) { it / 2 },
     ) {
-        val shape = RoundedCornerShape(16.dp)
+        val shape = rounded(16.dp)
         val ink = MaterialTheme.colorScheme.onSurface
         val muted = MaterialTheme.colorScheme.onSurfaceVariant
         Column(
