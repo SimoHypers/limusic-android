@@ -270,6 +270,7 @@ class PlaylistViewModel(
 
                             else -> {
                                 _uiState.value = Error(res.message ?: "Empty response")
+                                reloadWhenOnline({ playlistId == id && _uiState.value is Error }) { getData(id) }
                             }
                         }
                     }
@@ -455,6 +456,7 @@ class PlaylistViewModel(
                     _tracksListState.value = ListState.PAGINATION_EXHAUST
                 } else {
                     _uiState.value = Error("Empty response")
+                    reloadWhenOnline({ playlistId == id && _uiState.value is Error }) { getData(id) }
                 }
             }
     }

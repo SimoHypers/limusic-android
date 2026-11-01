@@ -193,6 +193,7 @@ class HomeViewModel(
                         if (home is Resource.Error) {
                             showSnackBarErrorState.emit(home.message ?: "Unknown error")
                             Logger.w("Error", "getHomeItemList: ${home.message}")
+                            reloadWhenOnline({ _homeItemList.value.isEmpty() }) { getHomeItemList(params) }
                         }
                     }
                 // Quick picks leads Home, but YouTube can send it on a later page. Fetch up to it

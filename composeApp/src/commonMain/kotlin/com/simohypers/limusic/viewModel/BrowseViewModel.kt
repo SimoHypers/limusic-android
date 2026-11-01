@@ -29,6 +29,7 @@ class BrowseViewModel(
                     if (resource is Resource.Success && page != null && (page.contents.isNotEmpty() || page.moods.isNotEmpty())) {
                         BrowseUIState.Success(page)
                     } else {
+                        reloadWhenOnline({ _uiState.value is BrowseUIState.Error }) { getBrowsePage(browseId, params) }
                         BrowseUIState.Error(resource.message ?: getString(Res.string.error))
                     }
             }

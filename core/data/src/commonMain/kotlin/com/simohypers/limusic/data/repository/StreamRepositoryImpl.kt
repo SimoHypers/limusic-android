@@ -10,6 +10,7 @@ import com.simohypers.limusic.domain.data.entities.NewFormatEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.player.LiveStreamRegistry
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
+import com.simohypers.limusic.domain.data.player.UnreachableStreams
 import com.simohypers.limusic.domain.extension.isBefore
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.domain.extension.plusSeconds
@@ -123,6 +124,7 @@ internal class StreamRepositoryImpl(
                 )
                 .onSuccess { data ->
                     PlaybackRefusals.clear(videoId)
+                    UnreachableStreams.clear(videoId)
                     val response = data.second
                     val isLive = response.videoDetails?.isLive == true
                     LiveStreamRegistry.recordLiveStatus(videoId, isLive)
@@ -270,6 +272,8 @@ internal class StreamRepositoryImpl(
                         )
                     }
                 }.onFailure {
+                    // Nothing came back (DNS, a dead socket, a timeout): the network's fault, not the song's.
+                    if (it is java.io.IOException) UnreachableStreams.mark(videoId) else UnreachableStreams.clear(videoId)
                     if (it is PlayerRefusedException) {
                         PlaybackRefusals.record(videoId, it.reason ?: it.status)
                         if (it.isBotCheck) PlaybackRefusals.block(it.reason ?: it.status)

@@ -5,6 +5,7 @@
  */
 package com.simohypers.limusic.listentogether
 
+import com.simohypers.limusic.common.Connectivity
 import com.simohypers.limusic.ktorext.getEngine
 import com.simohypers.limusic.logger.Logger
 import io.ktor.client.HttpClient
@@ -27,12 +28,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -241,8 +244,10 @@ class ListenTogetherClient(
                 _events.emit(ListenTogetherEvent.Connected(serverVersion = "", resumed = token != null))
 
                 val pinger = launch { pingLoop() }
+                val watchdog = launch { watch(live) }
                 reader.join()
                 pinger.cancel()
+                watchdog.cancel()
             }
         } finally {
             session = null
@@ -254,7 +259,9 @@ class ListenTogetherClient(
     }
 
     private suspend fun readFrames(live: DefaultClientWebSocketSession) {
+        lastHeard = TimeSource.Monotonic.markNow()
         for (frame in live.incoming) {
+            lastHeard = TimeSource.Monotonic.markNow()
             // Limusic's server writes text frames only.
             if (frame !is Frame.Text) continue
             val text = frame.readText()
@@ -305,6 +312,33 @@ class ListenTogetherClient(
         while (send(MessageTypes.PING)) delay(PING_INTERVAL)
     }
 
+    /** When the last frame came in. The server answers every ping, so silence means a dead socket. */
+    private var lastHeard = TimeSource.Monotonic.markNow()
+
+    /**
+     * Ends a socket that died without closing (a network switch, a Wi-Fi left behind in another
+     * room), which would otherwise look connected until TCP gives up minutes later. Ending it is
+     * what starts the reconnect. Like desktop: a minute of silence. After a network change the
+     * socket is likely on the old network, so it gets ten seconds to answer a ping.
+     */
+    private suspend fun watch(live: DefaultClientWebSocketSession): Unit =
+        coroutineScope {
+            launch {
+                Connectivity.reconnects().collect {
+                    val asked = TimeSource.Monotonic.markNow()
+                    send(MessageTypes.PING)
+                    delay(NETWORK_CHANGE_LIMIT)
+                    if (lastHeard < asked) {
+                        Logger.w(TAG, "No answer on the old network after a network change; reconnecting")
+                        live.cancel()
+                    }
+                }
+            }
+            while (lastHeard.elapsedNow() < SILENCE_LIMIT) delay(1.seconds)
+            Logger.w(TAG, "Server went silent; reconnecting")
+            live.cancel()
+        }
+
     private suspend fun scheduleReconnect() {
         if (fatal) {
             _events.emit(ListenTogetherEvent.Disconnected("Server rejected this client", willRetry = false))
@@ -326,11 +360,19 @@ class ListenTogetherClient(
             return
         }
 
-        reconnectAttempts++
-        Logger.i(TAG, "Reconnecting in $reconnectDelay (attempt $reconnectAttempts of $MAX_RECONNECT_ATTEMPTS)")
         _events.emit(ListenTogetherEvent.Disconnected("Connection lost", willRetry = true))
-        delay(reconnectDelay)
-        reconnectDelay = (reconnectDelay * 2).coerceAtMost(MAX_RECONNECT_DELAY)
+        if (!Connectivity.state.value.hasNetwork) {
+            // Offline every try fails: wait for a network without spending any, and go the moment
+            // one is back. The server keeps the seat two minutes, so a short dead zone resumes the room.
+            Logger.i(TAG, "Offline; reconnecting when a network is back")
+            Connectivity.state.first { it.hasNetwork }
+        } else {
+            reconnectAttempts++
+            Logger.i(TAG, "Reconnecting in $reconnectDelay (attempt $reconnectAttempts of $MAX_RECONNECT_ATTEMPTS)")
+            // A network coming back cuts the wait short.
+            withTimeoutOrNull(reconnectDelay) { Connectivity.reconnects().first() }
+            reconnectDelay = (reconnectDelay * 2).coerceAtMost(MAX_RECONNECT_DELAY)
+        }
         connectionJob = null
         startConnection()
     }
@@ -346,17 +388,23 @@ class ListenTogetherClient(
         private val PING_INTERVAL = 25.seconds
 
         private val INITIAL_RECONNECT_DELAY: Duration = 1.seconds
-        private val MAX_RECONNECT_DELAY: Duration = 60.seconds
+        private val MAX_RECONNECT_DELAY: Duration = 32.seconds
+
+        /** Desktop's: this long without a frame and the socket is taken for dead. */
+        private val SILENCE_LIMIT: Duration = 60.seconds
+
+        /** How long a socket gets to answer a ping after the phone changed networks. */
+        private val NETWORK_CHANGE_LIMIT: Duration = 10.seconds
 
         /**
          * How many times a dropped connection is retried before the user is told, in so many words,
-         * that it failed. The delay doubles each time — 1s, 2s, 4s, 8s, 16s — so five attempts span
-         * a little over half a minute of genuinely bad network before giving up rather than
-         * retrying into a flat battery.
+         * that it failed. Desktop's numbers: the delay doubles from 1s up to 32s, so fifteen attempts
+         * span about six minutes of genuinely bad network. Attempts while offline are not counted:
+         * the client just waits for a network.
          *
          * Counted attempts, not elapsed time: the budget refills when a socket opens.
          */
-        private const val MAX_RECONNECT_ATTEMPTS = 5
+        private const val MAX_RECONNECT_ATTEMPTS = 15
 
         /** Errors where reconnecting repeats the same rejection. */
         private val NON_RECOVERABLE_ERROR_CODES = setOf("server_full")

@@ -1,5 +1,8 @@
 package com.simohypers.limusic.viewModel.base
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
+import com.simohypers.limusic.common.Connectivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simohypers.limusic.common.Config
@@ -51,6 +54,28 @@ abstract class BaseViewModel :
      * Tag for logging
      */
     protected val tag: String = this::class.simpleName ?: "BaseViewModel"
+
+    private var reloadJob: Job? = null
+
+    /**
+     * The page could not load: [reload] runs by itself the next time a network comes back (or the
+     * phone moves to another one), if [stillFailed] by then. Called where a page records its
+     * error; a later call replaces the earlier one.
+     */
+    protected fun reloadWhenOnline(
+        stillFailed: () -> Boolean,
+        reload: () -> Unit,
+    ) {
+        reloadJob?.cancel()
+        reloadJob =
+            viewModelScope.launch {
+                Connectivity.reconnects().first()
+                if (stillFailed()) {
+                    log("Back online: loading the page again")
+                    reload()
+                }
+            }
+    }
 
     /**
      * Log with viewModel tag

@@ -16,6 +16,9 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import com.simohypers.limusic.common.AppIdentity
+import com.simohypers.limusic.common.Connectivity
+import com.simohypers.limusic.common.watchConnectivity
+import com.simohypers.limusic.ktorext.dropIdleConnections
 import com.simohypers.limusic.data.di.loader.loadAllModules
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.logger.Logger
@@ -54,6 +57,13 @@ class LimusicApplication :
         super.onCreate()
         // First, so the rest of startup reaches the App log too (Settings → Developer option).
         Logger.enableFileLogging(File(filesDir, "logs").path)
+        watchConnectivity(this)
+        applicationScope.launch {
+            Connectivity.reconnects().collect {
+                Logger.i("Network", "Connected again or moved to another network; dropping old connections")
+                dropIdleConnections()
+            }
+        }
         configCrashlytics(this, BuildKonfig.sentryDsn)
         configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
         startKoin {

@@ -170,6 +170,9 @@ class AlbumViewModel(
                                         loadState = LocalPlaylistState.PlaylistLoadState.Error,
                                     )
                                 }
+                                reloadWhenOnline({
+                                    uiState.value.browseId == browseId && uiState.value.loadState == LocalPlaylistState.PlaylistLoadState.Error
+                                }) { updateBrowseId(browseId) }
                             }
                         }
                     }

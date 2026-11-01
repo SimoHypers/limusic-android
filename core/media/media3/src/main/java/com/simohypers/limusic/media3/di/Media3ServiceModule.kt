@@ -50,6 +50,8 @@ import com.simohypers.limusic.common.Config.SERVICE_SCOPE
 import com.simohypers.limusic.common.MERGING_DATA_TYPE
 import com.simohypers.limusic.domain.data.player.LiveStreamRegistry
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
+import com.simohypers.limusic.domain.data.player.UnreachableStreams
+import com.simohypers.limusic.common.Connectivity
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
@@ -71,9 +73,10 @@ import com.simohypers.limusic.media3.repository.CacheRepositoryImpl
 import com.simohypers.limusic.media3.service.SimpleMediaService
 import com.simohypers.limusic.media3.service.callback.SimpleMediaSessionCallback
 import com.simohypers.limusic.media3.service.download.DownloadUtils
-import com.simohypers.limusic.media3.service.mediasourcefactory.LiveStreamAwareLoadErrorHandlingPolicy
+import com.simohypers.limusic.media3.service.mediasourcefactory.PlaybackLoadErrorPolicy
 import com.simohypers.limusic.media3.service.mediasourcefactory.LiveStreamDetectedException
 import com.simohypers.limusic.media3.service.mediasourcefactory.StreamRefusedException
+import com.simohypers.limusic.media3.service.mediasourcefactory.StreamUnreachableException
 import com.simohypers.limusic.media3.service.mediasourcefactory.MergingMediaSourceFactory
 import com.simohypers.limusic.media3.service.mediasourcefactory.liveStreamDataSourceFactory
 import com.simohypers.limusic.media3.utils.CoilBitmapLoader
@@ -171,7 +174,7 @@ private val mediaServiceModule =
                 get(),
                 get(named(SERVICE_SCOPE)),
                 get(),
-            )
+            ).also { get<CoroutineScope>(named(SERVICE_SCOPE)).dropPlayerConnectionsOnNetworkChange() }
         }
 
         single<DefaultRenderersFactory>(createdAtStart = true) {
@@ -305,6 +308,9 @@ private fun provideResolvingDataSourceFactory(
             // cache that shrinks under us falls back to resolving a real URL.
             return@Factory dataSpec.subrange(dataSpec.uriPositionOffset, chunkLength)
         }
+        // Nothing to reach: fail now, before any lookup. The load retries every second until a
+        // network is back (PlaybackLoadErrorPolicy), so this has to cost nothing.
+        if (!Connectivity.state.value.hasNetwork) throw StreamUnreachableException(videoId)
         var dataSpecReturn: DataSpec = dataSpec
         var resolved = false
         runBlocking(Dispatchers.IO) {
@@ -372,6 +378,7 @@ private fun provideResolvingDataSourceFactory(
         if (LiveStreamRegistry.isLive(videoId)) throw LiveStreamDetectedException(videoId)
         if (!resolved) {
             PlaybackRefusals.reasonFor(videoId)?.let { throw StreamRefusedException(videoId, it) }
+            if (videoId in UnreachableStreams) throw StreamUnreachableException(videoId)
             Logger.e("Stream", "Failed to resolve stream URL for $mediaId")
             throw java.io.IOException("Failed to resolve stream URL for $mediaId")
         }
@@ -422,7 +429,7 @@ private fun provideMediaSourceFactory(
             coroutineScope,
         ),
         provideExtractorFactory(),
-    ).setLoadErrorHandlingPolicy(LiveStreamAwareLoadErrorHandlingPolicy())
+    ).setLoadErrorHandlingPolicy(PlaybackLoadErrorPolicy())
 
 /** The proxy the user configured, for every HTTP source the player opens. */
 private fun provideProxy(dataStoreManager: DataStoreManager): Proxy? =
@@ -529,7 +536,39 @@ private fun provideCacheDataSource(
         ).setCacheWriteDataSinkFactory(null)
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
 
-/** The network underneath every player source: OkHttp behind the user's proxy, with header logging. */
+/**
+ * The one OkHttp client under every player source: behind the user's proxy, with header logging.
+ * Fifteen seconds without a byte is a dead connection (a Wi-Fi left behind in another room), and
+ * the load is better off retried on whatever network the phone has now.
+ */
+private var playerHttp: OkHttpClient? = null
+
+private fun playerHttpClient(proxy: Proxy?): OkHttpClient =
+    playerHttp ?: OkHttpClient
+        .Builder()
+        .connectTimeout(15.seconds)
+        .readTimeout(15.seconds)
+        .proxy(proxy)
+        .addInterceptor(
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.HEADERS },
+        ).build()
+        .also { playerHttp = it }
+
+/**
+ * Back online, or moved to another network: every player read in flight is on the old one, where it
+ * would sit until its timeout. Cancelled, it is retried at once (PlaybackLoadErrorPolicy) on the new
+ * one, from the byte it had reached.
+ */
+private fun CoroutineScope.dropPlayerConnectionsOnNetworkChange() =
+    launch {
+        Connectivity.reconnects().collect {
+            playerHttp?.run {
+                dispatcher.cancelAll()
+                connectionPool.evictAll()
+            }
+        }
+    }
+
 @UnstableApi
 private fun provideHttpDataSourceFactory(
     context: Context,
@@ -537,20 +576,7 @@ private fun provideHttpDataSourceFactory(
 ): DataSource.Factory =
     DefaultDataSource.Factory(
         context,
-        OkHttpDataSource.Factory(
-            OkHttpClient
-                .Builder()
-                .connectTimeout(30.seconds)
-                .readTimeout(30.seconds)
-                .proxy(
-                    proxy,
-                ).addInterceptor(
-                    HttpLoggingInterceptor()
-                        .apply {
-                            level = HttpLoggingInterceptor.Level.HEADERS
-                        },
-                ).build(),
-        ),
+        OkHttpDataSource.Factory(playerHttpClient(proxy)),
     )
 
 @UnstableApi

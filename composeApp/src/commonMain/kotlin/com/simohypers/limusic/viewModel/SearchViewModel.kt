@@ -231,6 +231,7 @@ class SearchViewModel(
                 val v = videos.await()?.data
                 if (a == null && s == null && v == null) {
                     _searchScreenUIState.value = SearchScreenUIState.Error
+                    reloadWhenOnline({ this@SearchViewModel.query == query && _searchScreenUIState.value == SearchScreenUIState.Error }) { search(query) }
                     return@launch
                 }
                 _searchScreenState.update {
@@ -290,6 +291,11 @@ class SearchViewModel(
                     } != null
                 if (ok) loaded += type
                 _searchScreenUIState.value = if (ok) SearchScreenUIState.Success else SearchScreenUIState.Error
+                if (!ok) {
+                    reloadWhenOnline({ this@SearchViewModel.query == query && _searchScreenState.value.searchType == type && type !in loaded }) {
+                        loadCards(type)
+                    }
+                }
             }
     }
 

@@ -200,6 +200,8 @@ dependencies {
 
     implementation(projects.composeApp)
     implementation(projects.data)
+    // dropIdleConnections on a network change (LimusicApplication).
+    implementation(projects.ktorExt)
 
     implementation(projects.crashlyticsEmpty)
 }

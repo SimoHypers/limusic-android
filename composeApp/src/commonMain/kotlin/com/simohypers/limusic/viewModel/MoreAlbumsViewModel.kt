@@ -31,6 +31,7 @@ class MoreAlbumsViewModel(
                         MoreAlbumsUIState.Error(
                             message = getString(Res.string.error),
                         )
+                    reloadWhenOnline({ _uiState.value is MoreAlbumsUIState.Error }) { getAlbumMore(id) }
                 }
             }
         }
@@ -51,6 +52,7 @@ class MoreAlbumsViewModel(
                         MoreAlbumsUIState.Error(
                             message = getString(Res.string.error),
                         )
+                    reloadWhenOnline({ _uiState.value is MoreAlbumsUIState.Error }) { getSingleMore(id) }
                 }
             }
         }

@@ -316,6 +316,7 @@ class LibraryViewModel(
             val page = songRepository.getLibrarySongs(null)
             songsContinuation = page?.second
             _songs.value = page?.let { LocalResource.Success(it.first.distinctBy { track -> track.videoId }) } ?: LocalResource.Error("")
+            if (page == null) reloadWhenOnline({ _songs.value is LocalResource.Error }) { getSongs() }
         }
     }
 

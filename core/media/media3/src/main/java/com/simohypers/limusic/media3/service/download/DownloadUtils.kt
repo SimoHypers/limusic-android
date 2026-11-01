@@ -28,6 +28,10 @@ import com.simohypers.limusic.domain.data.entities.DownloadState
 import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.model.download.DownloadQueue
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
+import com.simohypers.limusic.domain.data.player.UnreachableStreams
+import com.simohypers.limusic.common.Connectivity
+import com.simohypers.limusic.media3.service.mediasourcefactory.StreamUnreachableException
+import com.simohypers.limusic.media3.service.mediasourcefactory.isNetworkFailure
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
@@ -167,6 +171,7 @@ internal class DownloadUtils(
             }
             if (!resolved) {
                 Logger.e("Stream", "Failed to resolve download stream URL for $mediaId")
+                if (mediaId in UnreachableStreams) throw StreamUnreachableException(mediaId)
                 throw java.io.IOException("Failed to resolve stream URL for $mediaId")
             }
             return@Factory dataSpecReturn
@@ -339,6 +344,21 @@ internal class DownloadUtils(
             }
     }
 
+    // Main thread only: songs whose download failed on the network, not on YouTube. Asked for again,
+    // and no longer counted as failed, once a network is back.
+    private val failedOnNetwork = HashSet<String>()
+
+    private fun retryNetworkFailures() {
+        if (failedOnNetwork.isEmpty()) return
+        val again = failedOnNetwork.toList()
+        failedOnNetwork.clear()
+        Logger.i("Download", "Back online: retrying ${again.size} download(s) that failed on the network")
+        _queue.update { it.copy(failed = (it.failed - again.size).coerceAtLeast(0)) }
+        again.forEach { id -> runCatching { downloadManager.downloadIndex.getDownload(id) }.getOrNull()?.request?.let(downloadManager::addDownload) }
+        // Started from the background this can be refused; the next app start resumes them then.
+        runCatching { DownloadService.start(context, MusicDownloadService::class.java) }
+    }
+
     // Once the queue runs dry, not when a pause idles it.
     private fun notifyFinished() {
         val (finished, failed, remaining) = queue.value
@@ -383,6 +403,7 @@ internal class DownloadUtils(
                 updateQueue()
             }
         }
+        mainScope.launch { Connectivity.reconnects().collect { retryNetworkFailures() } }
         mainScope.launch {
             dataStoreManager.downloadWifiOnly.distinctUntilChanged().collect {
                 downloadManager.requirements =
@@ -422,6 +443,7 @@ internal class DownloadUtils(
                         }
                         Download.STATE_FAILED -> {
                             _queue.update { it.copy(failed = it.failed + 1) }
+                            if (finalException?.isNetworkFailure() == true) failedOnNetwork += id
                             // Refused outright, not pushed back on (a bot check is recorded as a refusal too).
                             if (PlaybackRefusals.reasonFor(id) != null && PlaybackRefusals.blocked.value == null) {
                                 PlaybackRefusals.rememberDownloadRefusals(listOf(id))

@@ -158,6 +158,7 @@
     <string name="go_to_album">Go to album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="now_playing">Now Playing</string>
+    <string name="waiting_for_network">Waiting for network</string>
     <string name="queue">Queue</string>
     <string name="recently">Recently</string>
     <string name="settings">Settings</string>

@@ -58,6 +58,7 @@ class MoodViewModel(
                     is Resource.Error -> {
                         _moodsMomentObject.value = null
                         loadedParams = null
+                        reloadWhenOnline({ loadedParams == null }) { getMood(params) }
                     }
                 }
             }

@@ -35,6 +35,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.ProxyConfig
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRedirect
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -63,6 +64,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -273,11 +275,12 @@ class Ytmusic {
      * request that tells a whole stream from one capped after its first MiB: a HEAD or an opening
      * range passes on both (desktop Limusic's validate_stream, KNOWN-ISSUES KI-11). No client
      * headers, because the player sends none either. A HEAD when there is no length to aim at.
+     * Null when no answer came back at all (the network), which says nothing about the stream.
      */
     suspend fun servesToTheEnd(
         url: String,
         contentLength: Long?,
-    ): Boolean =
+    ): Boolean? =
         try {
             if (contentLength == null || contentLength <= 0) {
                 httpClient.head(url).status.isSuccess()
@@ -289,9 +292,14 @@ class Ytmusic {
                     }.status
                     .isSuccess()
             }
-        } catch (e: Exception) {
-            Logger.w(TAG, "stream probe failed: ${e.message?.substringBefore('?')}")
+        } catch (e: ResponseException) {
+            Logger.w(TAG, "stream probe refused: ${e.response.status}")
             false
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.w(TAG, "stream probe got no answer: ${e.javaClass.simpleName} ${e.message?.substringBefore('?')}")
+            null
         }
 
     fun getLiveHlsUrl(videoId: String): String? = extractor.liveHlsUrl(videoId)

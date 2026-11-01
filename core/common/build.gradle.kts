@@ -15,6 +15,7 @@ kotlin {
         namespace = "com.simohypers.limusic.common"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     // Source set declarations.
@@ -32,6 +33,8 @@ kotlin {
                 implementation(libs.kermit.io)
                 api(libs.kotlinx.datetime)
                 api(libs.uri)
+                // Connectivity's StateFlow; already on every module's classpath through Ktor.
+                api(libs.coroutines.core)
             }
         }
 

@@ -1446,6 +1446,7 @@ class YouTube {
 
         val refusals = mutableListOf<PlayerResponse.PlayabilityStatus>()
         var streamRefused = false
+        var probeUnanswered = false
         for (client in listOf(STREAM_WEB_REMIX, YouTubeClient.VISIONOS, YouTubeClient.TVHTML5_SIMPLY)) {
             val response =
                 when (client) {
@@ -1497,10 +1498,18 @@ class YouTube {
             // ponytail: probes the best audio, not the itag the quality setting will pick. Every URL
             // of one response shares its signature, n and client, which is what a cap follows.
             val withPot = web && poTokens != null
-            if (!ytMusic.servesToTheEnd(audio.url!!, audio.contentLength)) {
-                Logger.w(TAG, "${client.clientName} stream for $videoId refused before its end (itag ${audio.itag}, PoToken $withPot)")
-                streamRefused = true
-                continue
+            when (ytMusic.servesToTheEnd(audio.url!!, audio.contentLength)) {
+                true -> {}
+                false -> {
+                    Logger.w(TAG, "${client.clientName} stream for $videoId refused before its end (itag ${audio.itag}, PoToken $withPot)")
+                    streamRefused = true
+                    continue
+                }
+                // The network went while asking: no verdict on the stream, so not a refusal either.
+                null -> {
+                    probeUnanswered = true
+                    continue
+                }
             }
             ExtractSource.record(videoId, client.clientName + if (withPot) " · PoToken" else "")
             Logger.i(TAG, "$videoId: ${client.clientName} plays to the end (itag ${audio.itag}, PoToken $withPot)")
@@ -1524,6 +1533,11 @@ class YouTube {
         }
 
         if (!answered) throw lastError ?: RuntimeException("No URL found")
+        // Every answer that did come was an OK whose stream then could not be reached: the network
+        // failed on the way, and the caller should hear that rather than "unplayable".
+        if (probeUnanswered && refusals.isEmpty() && !streamRefused) {
+            throw lastError ?: java.io.IOException("No answer from googlevideo for $videoId")
+        }
         // A bot check is about the IP and outranks everything. Otherwise the last refusal, unless a
         // client did answer and only its stream failed: then "not available" would be untrue.
         val refusal =

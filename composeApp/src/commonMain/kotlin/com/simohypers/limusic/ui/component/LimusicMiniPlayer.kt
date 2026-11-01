@@ -1,5 +1,8 @@
 package com.simohypers.limusic.ui.component
 
+import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.waiting_for_network
+import org.jetbrains.compose.resources.stringResource
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -69,6 +72,7 @@ fun LimusicMiniPlayer(
     val nowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
     val control by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val waitingForNetwork by sharedViewModel.waitingForNetwork.collectAsStateWithLifecycle()
     val song = nowPlaying?.songEntity
     val remoteDevice = rememberRemoteDevice()
     val progress = if (timeline.total > 0L && timeline.current >= 0L) timeline.current.toFloat() / timeline.total else 0f
@@ -154,6 +158,13 @@ fun LimusicMiniPlayer(
                     )
                     if (remoteDevice != null) {
                         PlayingOnLabel(remoteDevice, playing = control.isPlaying, style = typo().bodySmall)
+                    } else if (waitingForNetwork) {
+                        Text(
+                            text = stringResource(Res.string.waiting_for_network),
+                            style = typo().bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                        )
                     } else {
                         Text(
                             text = song?.artistName?.joinToString(", ").orEmpty(),

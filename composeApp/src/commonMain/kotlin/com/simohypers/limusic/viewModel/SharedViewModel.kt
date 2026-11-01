@@ -60,6 +60,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.simohypers.limusic.common.Connectivity
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -205,6 +206,15 @@ class SharedViewModel(
             ),
         )
     val timeline: StateFlow<TimeLine> = _timeline
+
+    /**
+     * The song is meant to be playing, has run out of audio, and Android sees no working network:
+     * the player keeps trying and plays on by itself once one is back (PlaybackLoadErrorPolicy).
+     */
+    val waitingForNetwork: StateFlow<Boolean> =
+        combine(_timeline, Connectivity.state) { timeline, network -> timeline.loading && !network.validated }
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private var _nowPlayingScreenData =
         MutableStateFlow<NowPlayingScreenData>(

@@ -158,6 +158,9 @@ class PodcastViewModel(
                             } else {
                                 _uiState.value = PodcastUIState.Error(resource.message ?: "Unknown error")
                             }
+                            if (_uiState.value is PodcastUIState.Error) {
+                                reloadWhenOnline({ _uiState.value is PodcastUIState.Error }) { getPodcastBrowse(id) }
+                            }
                         }
                     }
                 }

@@ -100,8 +100,10 @@ class ArtistViewModel(
                             Success(data.toArtistScreenData())
                     }
 
-                    is Resource.Error ->
+                    is Resource.Error -> {
                         _artistScreenState.value = Error(browse.message ?: "Error")
+                        reloadWhenOnline({ _artistScreenState.value is Error }) { browseArtist(channelId) }
+                    }
 
                     else -> {
                         _artistScreenState.value = Error("Error")

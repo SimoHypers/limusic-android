@@ -672,6 +672,14 @@ internal class CrossfadeExoPlayerAdapter(
                     cachedIsLoading = false
                 }
 
+                // The track failed. Play loads it again from where it stopped, asking for its stream
+                // afresh; it used to do nothing here, and only a skip got music going again.
+                InternalState.ERROR -> {
+                    Logger.i(TAG, "Play after an error: loading the track again at ${cachedPosition}ms")
+                    internalPlayWhenReady = true
+                    loadAndPlayTrackInternal(localCurrentMediaItemIndex, cachedPosition.coerceAtLeast(0L), shouldPlay = true)
+                }
+
                 else -> {
                     Logger.d(TAG, "Play: Called in invalid state: $internalState")
                 }
@@ -1626,6 +1634,7 @@ internal class CrossfadeExoPlayerAdapter(
 
             InternalState.PLAYING -> {
                 listeners.forEach { it.onPlaybackStateChanged(PlayerConstants.STATE_READY) }
+                cachedIsLoading = false
                 listeners.forEach { it.onIsLoadingChanged(false) }
                 listeners.forEach { it.onIsPlayingChanged(true) }
             }
@@ -2242,8 +2251,17 @@ internal class CrossfadeExoPlayerAdapter(
 
                 Logger.d(TAG, "Starting crossfade to track $nextIndex")
 
-                // Get or create secondary player
-                val cachedPlayerEntry = precachedPlayers.remove(nextVideoId)
+                // Get or create secondary player. A precache that already failed holds nothing to
+                // play, and its error went out before this listener was on it: the fade would hang.
+                val cachedPlayerEntry =
+                    precachedPlayers.remove(nextVideoId)?.let { cached ->
+                        if (cached.player.playerError == null) {
+                            cached
+                        } else {
+                            cached.player.release()
+                            null
+                        }
+                    }
                 val nextPlayer: ExoPlayer
                 val nextFilter: CrossfadeFilterAudioProcessor?
                 if (cachedPlayerEntry?.player != null) {
@@ -3053,6 +3071,16 @@ internal class CrossfadeExoPlayerAdapter(
                                 if (pos >= 0) cachedPosition = pos
                                 if (dur > 0) cachedDuration = dur
                                 if (buf >= 0) cachedBufferedPosition = buf
+
+                                // Out of audio and meant to be playing: a load that has not come
+                                // through yet, or is waiting for a network. Checked here as well as
+                                // in onIsLoadingChanged, which misses a precached player swapped in
+                                // mid-load and a play pressed while the load kept retrying.
+                                val stalled = player.playbackState == Player.STATE_BUFFERING && player.playWhenReady
+                                if (stalled != cachedIsLoading && !isCrossfading) {
+                                    cachedIsLoading = stalled
+                                    listeners.forEach { it.onIsLoadingChanged(stalled) }
+                                }
 
                                 // Check if should trigger crossfade.
                                 // Add a preparation buffer (3s) so that if the next track

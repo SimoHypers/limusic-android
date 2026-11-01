@@ -120,6 +120,7 @@ import org.koin.compose.koinInject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.lyrics
 import limusic.composeapp.generated.resources.now_playing
+import limusic.composeapp.generated.resources.waiting_for_network
 import limusic.composeapp.generated.resources.share
 
 private val ArtworkShape get() = rounded(16.dp)
@@ -244,9 +245,18 @@ private fun ClassicLayout(
                     onSliderChangeFinished = actions.onSliderChangeFinished,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                val waitingForNetwork by sharedViewModel.waitingForNetwork.collectAsStateWithLifecycle()
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(state.timelineState.elapsedLabel(state.sliderValue / 100f), style = typo().bodySmall, modifier = Modifier.weight(1f))
-                    Text(state.timelineState.lengthLabel(), style = typo().bodySmall)
+                    if (waitingForNetwork) {
+                        Text(stringResource(Res.string.waiting_for_network), style = typo().bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Text(
+                        state.timelineState.lengthLabel(),
+                        style = typo().bodySmall,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
                 AnimatedVisibility(
                     visible = view == ClassicView.PLAYER || pillsShown,
