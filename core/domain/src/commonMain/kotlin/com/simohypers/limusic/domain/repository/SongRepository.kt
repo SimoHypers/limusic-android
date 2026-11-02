@@ -6,6 +6,7 @@ import com.simohypers.limusic.domain.data.entities.SongInfoEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.download.CollectionDownload
 import com.simohypers.limusic.domain.data.model.download.DownloadCount
+import com.simohypers.limusic.domain.data.model.library.HistoryDay
 import com.simohypers.limusic.domain.data.model.download.DownloadProgress
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
@@ -141,6 +142,12 @@ interface SongRepository {
         limit: Int,
         offset: Int,
     ): List<SongEntity>
+
+    /** Songs this phone played, the last played first, each once. */
+    suspend fun getPlayedSongs(limit: Int): List<SongEntity>
+
+    /** The account's YouTube Music history in YouTube's day buckets, or null when it can't be read. */
+    suspend fun getHistory(): List<HistoryDay>?
 
     suspend fun insertSongInfo(songInfo: SongInfoEntity)
 

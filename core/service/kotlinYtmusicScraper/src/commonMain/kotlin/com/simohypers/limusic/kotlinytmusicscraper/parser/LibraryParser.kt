@@ -39,6 +39,31 @@ fun parseLibraryPage(
     return LibraryPage(cards, rows, token)
 }
 
+/** One day bucket of `FEmusic_history`: YouTube's own name for it ("Today", "Last week") and its rows. */
+data class HistoryShelf(
+    val title: String,
+    val rows: List<MusicResponsiveListItemRenderer>,
+)
+
+/**
+ * Desktop's `parse_history`: one `musicShelfRenderer` per bucket, rows newest first. Only a
+ * shelf's own `contents` are read, so nothing nested inside a row counts twice; a bucket with no
+ * row that decodes is dropped.
+ */
+fun parseHistory(
+    root: JsonElement,
+    json: Json,
+): List<HistoryShelf> =
+    root.findAll("musicShelfRenderer").mapNotNull { shelf ->
+        val obj = shelf as? JsonObject ?: return@mapNotNull null
+        val title = obj["title"]?.findAll("text")?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }?.joinToString("")
+        val rows =
+            obj["contents"]?.findAll("musicResponsiveListItemRenderer").orEmpty().mapNotNull {
+                runCatching { json.decodeFromJsonElement(MusicResponsiveListItemRenderer.serializer(), it) }.getOrNull()
+            }
+        if (title.isNullOrBlank() || rows.isEmpty()) null else HistoryShelf(title, rows)
+    }
+
 internal fun JsonElement.stringAt(key: String) = ((this as? JsonObject)?.get(key) as? JsonPrimitive)?.contentOrNull
 
 /** Every value under [key], at any depth; a match is not searched further. */

@@ -196,6 +196,11 @@ interface DatabaseDao {
     @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
     suspend fun getAllSongs(limit: Int): List<SongEntity>
 
+    // A play stamps inLibrary and counts the play; a row saved some other way (a like from search,
+    // a download from a playlist) gets a fresh inLibrary too but no count, so the count tells plays.
+    @Query("SELECT * FROM song WHERE totalPlayTime > 0 ORDER BY inLibrary DESC LIMIT :limit")
+    suspend fun getPlayedSongs(limit: Int): List<SongEntity>
+
     @Query("SELECT * FROM song WHERE liked = 1 ORDER BY favoriteAt DESC LIMIT :limit OFFSET :offset")
     suspend fun getLikedSongs(
         limit: Int,

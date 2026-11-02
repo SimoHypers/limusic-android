@@ -26,6 +26,8 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.PlaylistItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.Run
 import com.simohypers.limusic.kotlinytmusicscraper.models.savedToLibrary
 import com.simohypers.limusic.kotlinytmusicscraper.parser.LibraryPage
+import com.simohypers.limusic.kotlinytmusicscraper.parser.HistoryShelf
+import com.simohypers.limusic.kotlinytmusicscraper.parser.parseHistory
 import com.simohypers.limusic.kotlinytmusicscraper.parser.parseLibraryPage
 import com.simohypers.limusic.kotlinytmusicscraper.models.SearchSuggestions
 import com.simohypers.limusic.kotlinytmusicscraper.models.SectionListRenderer
@@ -2006,6 +2008,12 @@ class YouTube {
                     ytMusic.nextCtoken(WEB_REMIX, continuation)
                 }
             parseLibraryPage(response.body<JsonObject>(), ytMusic.normalJson)
+        }
+
+    /** The account's play history (`FEmusic_history`), in YouTube's day buckets. One response, no pages. */
+    suspend fun history(): Result<List<HistoryShelf>> =
+        runCatching {
+            parseHistory(ytMusic.browse(WEB_REMIX, "FEmusic_history", setLogin = true).body<JsonObject>(), ytMusic.normalJson)
         }
 
     suspend fun getMixedForYou() =

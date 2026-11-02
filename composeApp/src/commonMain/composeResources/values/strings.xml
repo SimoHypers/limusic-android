@@ -912,4 +912,20 @@
     <string name="empty_followed_title">No followed artists</string>
     <string name="empty_followed_hint">Tap Follow on an artist\'s page and they show up here.</string>
     <string name="no_match_for">Nothing matches "%1$s"</string>
+    <!-- History -->
+    <string name="history">History</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="shuffle_all">Shuffle all</string>
+    <string name="history_source_youtube">YouTube Music</string>
+    <string name="history_source_phone">This phone</string>
+    <string name="history_subtitle_youtube">Your YouTube Music history, from every device</string>
+    <string name="history_subtitle_phone">What this phone played, last played first</string>
+    <plurals name="history_matching">
+        <item quantity="one">%1$d matching song</item>
+        <item quantity="other">%1$d matching songs</item>
+    </plurals>
+    <string name="history_empty_youtube">Nothing in your YouTube Music history yet.</string>
+    <string name="history_empty_phone">Songs you play on this phone show up here.</string>
+    <string name="history_failed">Couldn\'t load your YouTube Music history.</string>
 </resources>

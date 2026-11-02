@@ -14,6 +14,7 @@ import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.entities.SongInfoEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.download.DownloadCount
+import com.simohypers.limusic.domain.data.model.library.HistoryDay
 import com.simohypers.limusic.domain.data.model.download.DownloadProgress
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
 import com.simohypers.limusic.domain.manager.DataStoreManager
@@ -334,6 +335,18 @@ internal class SongRepositoryImpl(
         limit: Int,
         offset: Int,
     ) = localDataSource.getRecentSongs(limit, offset)
+
+    override suspend fun getPlayedSongs(limit: Int) = withContext(Dispatchers.IO) { localDataSource.getPlayedSongs(limit) }
+
+    override suspend fun getHistory(): List<HistoryDay>? =
+        withContext(Dispatchers.IO) {
+            youTube
+                .history()
+                .onFailure { Logger.w(TAG, "History failed: ${it.message}") }
+                .getOrNull()
+                ?.map { day -> HistoryDay(day.title, day.rows.mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }.toListTrack()) }
+                ?.filter { it.tracks.isNotEmpty() }
+        }
 
     override suspend fun insertSongInfo(songInfo: SongInfoEntity) =
         withContext(Dispatchers.IO) {

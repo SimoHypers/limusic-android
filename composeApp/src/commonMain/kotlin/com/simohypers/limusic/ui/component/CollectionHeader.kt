@@ -21,6 +21,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import com.simohypers.limusic.ui.icon.Close
+import limusic.composeapp.generated.resources.search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -254,5 +267,46 @@ fun CollectionAuthorLine(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+/**
+ * A list's search field in place of its top bar: back and ✕ both close it. Focused as it opens,
+ * so the keyboard is up without a second tap.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CollectionSearchRow(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        RippleIconButton(imageVector = LimusicIcons.ArrowBackIosNew, tint = ink, onClick = onClose)
+        SearchBar(
+            modifier = Modifier.height(50.dp).padding(horizontal = 12.dp).weight(1f),
+            colors = SearchBarDefaults.colors().copy(containerColor = Color.Transparent),
+            inputField = {
+                CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
+                    SearchBarDefaults.InputField(
+                        query = query,
+                        onQueryChange = onQueryChange,
+                        onSearch = {},
+                        expanded = false,
+                        onExpandedChange = {},
+                        placeholder = { Text(stringResource(Res.string.search), style = typo().bodyMedium) },
+                        modifier = Modifier.focusRequester(focus),
+                    )
+                }
+            },
+            expanded = false,
+            onExpandedChange = {},
+            windowInsets = WindowInsets(0, 0, 0, 0),
+        ) {}
+        IconButton(onClick = onClose) { Icon(LimusicIcons.Close, null, tint = ink) }
     }
 }

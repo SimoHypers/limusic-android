@@ -91,6 +91,9 @@ import com.simohypers.limusic.expect.ui.PlatformBackHandler
 import com.simohypers.limusic.extension.barBlurStyle
 import com.simohypers.limusic.ui.component.AudioPlayingIndicator
 import com.simohypers.limusic.ui.component.CollectionHero
+import com.simohypers.limusic.ui.component.CollectionSearchRow
+import com.simohypers.limusic.ui.component.dateBucket
+import com.simohypers.limusic.ui.component.label
 import com.simohypers.limusic.ui.component.CollectionTitle
 import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
@@ -130,9 +133,6 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.number
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.artists
 import limusic.composeapp.generated.resources.artists_count
@@ -153,11 +153,8 @@ import limusic.composeapp.generated.resources.followed
 import limusic.composeapp.generated.resources.kicker_collection
 import limusic.composeapp.generated.resources.kicker_on_this_phone
 import limusic.composeapp.generated.resources.kicker_your_top_songs
-import limusic.composeapp.generated.resources.liked_earlier
 import limusic.composeapp.generated.resources.liked_songs
 import limusic.composeapp.generated.resources.liked_songs_count
-import limusic.composeapp.generated.resources.liked_this_month
-import limusic.composeapp.generated.resources.liked_this_week
 import limusic.composeapp.generated.resources.most_played
 import limusic.composeapp.generated.resources.no_match_for
 import limusic.composeapp.generated.resources.play_count
@@ -169,8 +166,6 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.format.TextStyle
-import java.util.Locale
 
 /**
  * Liked songs, Downloaded songs, Most played, Followed and one artist's liked songs: the album page's
@@ -413,58 +408,14 @@ private fun LazyListScope.likedSections(
     val today = now().date
     var start = 0
     while (start < rows.size) {
-        val bucket = likedWhen(rows[start].song.favoriteAt, today)
+        val bucket = dateBucket(rows[start].song.favoriteAt, today)
         var end = start + 1
-        while (end < rows.size && likedWhen(rows[end].song.favoriteAt, today) == bucket) end++
+        while (end < rows.size && dateBucket(rows[end].song.favoriteAt, today) == bucket) end++
         item(key = "when:$bucket", contentType = "label") { SectionLabel(bucket.label(today)) }
         items(rows.subList(start, end), key = { it.key }, contentType = { "song" }) { rowContent(it) }
         start = end
     }
 }
-
-internal sealed interface LikedWhen {
-    data object Week : LikedWhen
-
-    data object Month : LikedWhen
-
-    data class InMonth(
-        val year: Int,
-        val month: Int,
-    ) : LikedWhen
-
-    data object Earlier : LikedWhen
-}
-
-// ponytail: "this week" is the last seven days, not the calendar week, so Monday doesn't empty it.
-internal fun likedWhen(
-    at: LocalDateTime?,
-    today: LocalDate,
-): LikedWhen {
-    // SimpMusic stamps likes that predate favoriteAt with this placeholder date.
-    if (at == null || at == REMOVED_SONG_DATE_TIME) return LikedWhen.Earlier
-    val day = at.date
-    return when {
-        today.toEpochDays() - day.toEpochDays() < 7 -> LikedWhen.Week
-        day.year == today.year && day.month == today.month -> LikedWhen.Month
-        else -> LikedWhen.InMonth(day.year, day.month.number)
-    }
-}
-
-@Composable
-private fun LikedWhen.label(today: LocalDate): String =
-    when (this) {
-        LikedWhen.Week -> stringResource(Res.string.liked_this_week)
-        LikedWhen.Month -> stringResource(Res.string.liked_this_month)
-        LikedWhen.Earlier -> stringResource(Res.string.liked_earlier)
-        is LikedWhen.InMonth -> {
-            val name =
-                java.time.Month
-                    .of(month)
-                    .getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault())
-                    .replaceFirstChar { it.titlecase(Locale.getDefault()) }
-            if (year == today.year) name else "$name $year"
-        }
-    }
 
 @Composable
 private fun SectionLabel(text: String) {
@@ -924,41 +875,18 @@ private fun PageScaffold(
             )
         }
         AnimatedVisibility(visible = chrome.searching, enter = SearchBarEnter, exit = SearchBarExit) {
-            val focus = remember { FocusRequester() }
-            LaunchedEffect(Unit) { focus.requestFocus() }
             Box(
                 Modifier
                     .fillMaxWidth()
                     .onGloballyPositioned { chrome.searchHeightPx = it.size.height }
                     .hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).windowInsetsPadding(WindowInsets.statusBars),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RippleIconButton(imageVector = LimusicIcons.ArrowBackIosNew, tint = ink, onClick = chrome::closeSearch)
-                    SearchBar(
-                        modifier = Modifier.height(50.dp).padding(horizontal = 12.dp).weight(1f),
-                        colors = SearchBarDefaults.colors().copy(containerColor = Color.Transparent),
-                        inputField = {
-                            CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
-                                SearchBarDefaults.InputField(
-                                    query = chrome.query,
-                                    onQueryChange = { chrome.query = it },
-                                    onSearch = {},
-                                    expanded = false,
-                                    onExpandedChange = {},
-                                    placeholder = { Text(stringResource(Res.string.search), style = typo().bodyMedium) },
-                                    modifier = Modifier.focusRequester(focus),
-                                )
-                            }
-                        },
-                        expanded = false,
-                        onExpandedChange = {},
-                        windowInsets = WindowInsets(0, 0, 0, 0),
-                    ) {}
-                    IconButton(onClick = chrome::closeSearch) { Icon(LimusicIcons.Close, null, tint = ink) }
-                }
+                CollectionSearchRow(
+                    query = chrome.query,
+                    onQueryChange = { chrome.query = it },
+                    onClose = chrome::closeSearch,
+                    modifier = Modifier.padding(16.dp).windowInsetsPadding(WindowInsets.statusBars),
+                )
             }
         }
     }

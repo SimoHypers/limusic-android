@@ -58,4 +58,23 @@ class LibraryParserTest {
     fun lastPageHasNoToken() {
         assertEquals(null, parseLibraryPage(json.parseToJsonElement("""{"contents":{}}"""), json).continuation)
     }
+
+    // Shaped like FEmusic_history: a shelf per day, its title in runs, rows in its contents.
+    @Test
+    fun historyKeepsEachDayAndItsRows() {
+        fun row(title: String) =
+            """{"musicResponsiveListItemRenderer":{"flexColumns":[{"musicResponsiveListItemFlexColumnRenderer":{"text":{"runs":[{"text":"$title"}]}}}],"thumbnail":$thumb}}"""
+        val days =
+            parseHistory(
+                json.parseToJsonElement(
+                    """{"contents":{"singleColumnBrowseResultsRenderer":{"tabs":[{"tabRenderer":{"content":{"sectionListRenderer":{"contents":[
+                    {"musicShelfRenderer":{"title":{"runs":[{"text":"Today"}]},"contents":[${row("a")},${row("b")}]}},
+                    {"musicShelfRenderer":{"title":{"runs":[{"text":"Yesterday"}]},"contents":[${row("c")}]}},
+                    {"musicShelfRenderer":{"title":{"runs":[{"text":"Last week"}]},"contents":[]}}
+                    ]}}}}]}}}""",
+                ),
+                json,
+            )
+        assertEquals(listOf("Today" to 2, "Yesterday" to 1), days.map { it.title to it.rows.size })
+    }
 }
