@@ -515,7 +515,7 @@ fun SearchScreen(
                                                         color = Color(item.stripeColor),
                                                         artworkUrl = moodArtwork[item.params],
                                                         modifier = Modifier.width(300.dp),
-                                                    ) { navController.navigate(MoodDestination(item.params)) }
+                                                    ) { navController.navigate(MoodDestination(item.params, item.stripeColor, moodArtwork[item.params], section.title)) }
                                                 }
                                             }
                                         }
@@ -533,7 +533,7 @@ fun SearchScreen(
                                                     start = if (column == 0) 16.dp else 0.dp,
                                                     end = if (column == moodGridColumns - 1) 16.dp else 0.dp,
                                                 )
-                                            val open = { navController.navigate(MoodDestination(item.params)) }
+                                            val open = { navController.navigate(MoodDestination(item.params, item.stripeColor, moodArtwork[item.params], section.title)) }
                                             if (kind == MoodKind.MOODS) {
                                                 MoodsMoodTile(item.title, Color(item.stripeColor), moodArtwork[item.params], tileMargin, open)
                                             } else {

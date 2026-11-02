@@ -47,10 +47,13 @@ fun NavGraphBuilder.homeScreenGraph(
         )
     }
     composable<MoodDestination> { entry ->
-        val params = entry.toRoute<MoodDestination>().params
+        val route = entry.toRoute<MoodDestination>()
         MoodScreen(
             navController = navController,
-            params = params,
+            params = route.params,
+            color = route.color,
+            artwork = route.artwork,
+            kicker = route.kicker,
         )
     }
     composable<ListenTogetherDestination> {

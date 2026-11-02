@@ -950,4 +950,10 @@
         <item quantity="one">%1$d month ago</item>
         <item quantity="other">%1$d months ago</item>
     </plurals>
+    <!-- Mood page -->
+    <plurals name="playlists_count">
+        <item quantity="one">%1$d playlist</item>
+        <item quantity="other">%1$d playlists</item>
+    </plurals>
+    <string name="mood_failed">Couldn\'t load this page.</string>
 </resources>
