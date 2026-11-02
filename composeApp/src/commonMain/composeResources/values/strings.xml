@@ -956,4 +956,5 @@
         <item quantity="other">%1$d playlists</item>
     </plurals>
     <string name="mood_failed">Couldn\'t load this page.</string>
+    <string name="go_to_artist">Go to artist</string>
 </resources>

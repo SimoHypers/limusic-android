@@ -1,5 +1,9 @@
 package com.simohypers.limusic.ui.component
 
+import limusic.composeapp.generated.resources.go_to_artist
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -892,244 +896,126 @@ private fun NowPlayingBottomSheetContent(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val thumb = uiState.songUIState.thumbnails
-                        AsyncImage(
-                            model =
-                                ImageRequest
-                                    .Builder(LocalPlatformContext.current)
-                                    .data(thumb)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .diskCacheKey(thumb)
-                                    .crossfade(550)
-                                    .build(),
-                            placeholder = rememberHolderPainter(),
-                            error = rememberHolderPainter(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier =
-                                Modifier
-                                    .align(Alignment.CenterVertically)
-                                    .size(48.dp)
-                                    .clip(MaterialTheme.shapes.small),
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                            Text(
-                                text = uiState.songUIState.title,
-                                style = typo().labelMedium,
-                                // typo() bakes a colour into the style, computed from the app's own
-                                // scheme — on this always-dark sheet that reads as washed out next
-                                // to the ActionButton rows below, which take their colour from here.
-                                color = rememberSurfaceDarkColors().content,
-                                maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .wrapContentHeight(Alignment.CenterVertically)
-                                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                        .focusable(),
-                            )
-                            Text(
-                                text =
-                                    uiState.songUIState.listArtists
-                                        .toListName()
-                                        .connectArtists(),
-                                style = typo().bodySmall,
-                                color = rememberSurfaceDarkColors().subtitle,
-                                maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .wrapContentHeight(Alignment.CenterVertically)
-                                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                        .focusable(),
-                            )
-                        }
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                    val song = uiState.songUIState
+                    val colors = rememberSurfaceDarkColors()
+                    SongMenuHeader(
+                        thumbnail = song.thumbnails,
+                        title = song.title,
+                        subtitle =
+                            listOfNotNull(
+                                song.listArtists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                                song.album?.name?.takeIf { it.isNotBlank() },
+                            ).joinToString(" • "),
+                        liked = song.liked,
+                        onLike = { viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike) },
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                     if (queuePosition != null) {
                         QueueItemActions(position = queuePosition, onDone = hideModalBottomSheet)
                     }
-                    Crossfade(targetState = onDelete != null) {
-                        if (it) {
-                            ActionButton(
-                                icon = LimusicIcons.Delete,
-                                text = Res.string.delete_song_from_playlist,
-                            ) {
+                    // What the menu is opened for most of the time, one tap each and no row to find:
+                    // two by two, so every label has the width for one line.
+                    val downloaded = song.downloadState == DownloadState.STATE_DOWNLOADED
+                    val downloading =
+                        song.downloadState == DownloadState.STATE_DOWNLOADING || song.downloadState == DownloadState.STATE_PREPARING
+                    val tiles =
+                        listOfNotNull(
+                            // A queue row is already in the queue: its own rows above move it instead.
+                            QuickAction(LimusicIcons.PlayCircle, stringResource(Res.string.play_next)) {
+                                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
                                 hideModalBottomSheet()
-                                onDelete?.invoke()
+                            }.takeIf { queuePosition == null },
+                            QuickAction(LimusicIcons.QueueMusic, stringResource(Res.string.add_to_queue)) {
+                                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
+                                hideModalBottomSheet()
+                            }.takeIf { queuePosition == null },
+                            QuickAction(LimusicIcons.PlaylistAdd, stringResource(Res.string.save_to_playlist)) {
+                                viewModel.resetPlaylists()
+                                addToAPlaylist = true
+                            },
+                            // Stays open: the tile turning to Downloading is the answer to the tap.
+                            QuickAction(
+                                icon =
+                                    when {
+                                        downloaded -> LimusicIcons.DownloadForOffline
+                                        downloading -> LimusicIcons.Downloading
+                                        else -> LimusicIcons.DownloadForOfflineOutlined
+                                    },
+                                label =
+                                    stringResource(
+                                        when {
+                                            downloaded -> Res.string.downloaded
+                                            downloading -> Res.string.downloading
+                                            else -> Res.string.download
+                                        },
+                                    ),
+                                filled = downloaded,
+                            ) {
+                                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
+                            },
+                        )
+                    Column(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        tiles.chunked(2).forEach { two ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                two.forEach { QuickTile(it, Modifier.weight(1f)) }
+                                if (two.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
                     }
-                    Crossfade(targetState = onLibraryDelete != null) {
-                        if (it) {
-                            ActionButton(
-                                icon = LimusicIcons.Delete,
-                                text = Res.string.delete,
-                            ) {
-                                hideModalBottomSheet()
-                                onLibraryDelete?.invoke()
-                            }
-                        }
-                    }
-                    CheckBoxActionButton(
-                        defaultChecked = uiState.songUIState.liked,
-                        isHeartIcon = true,
-                        onChangeListener = {
-                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
-                        },
-                    )
-                    // A YouTube rating: nothing to send it to while signed out.
-                    if (uiState.loggedIn) {
-                        ActionButton(
-                            icon = LimusicIcons.ThumbDown,
-                            text = if (uiState.songUIState.disliked) Res.string.remove_dislike else Res.string.dislike,
-                        ) {
-                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleDislike)
-                            hideModalBottomSheet()
-                        }
-                    }
-                    ActionButton(
-                        icon =
-                            when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> LimusicIcons.DownloadForOfflineOutlined
-                                DownloadState.STATE_DOWNLOADING -> LimusicIcons.Downloading
-                                DownloadState.STATE_DOWNLOADED -> LimusicIcons.DownloadForOffline
-                                DownloadState.STATE_PREPARING -> LimusicIcons.Downloading
-                                else -> LimusicIcons.DownloadForOfflineOutlined
-                            },
-                        // The old baseline_downloaded.xml carried #FF00A0CB baked in; the shared
-                        // symbol is neutral, so the "done" state has to say the colour out loud.
-                        iconColor =
-                            if (uiState.songUIState.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                Color(0xFF00A0CB)
-                            } else {
-                                Color.Unspecified
-                            },
-                        text =
-                            when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> Res.string.download
-                                DownloadState.STATE_DOWNLOADING -> Res.string.downloading
-                                DownloadState.STATE_DOWNLOADED -> Res.string.downloaded
-                                DownloadState.STATE_PREPARING -> Res.string.downloading
-                                else -> Res.string.download
-                            },
-                    ) {
-                        viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
-                    }
-                    ActionButton(
-                        icon = LimusicIcons.PlaylistAdd,
-                        text = Res.string.add_to_a_playlist,
-                    ) {
-                        viewModel.resetPlaylists()
-                        addToAPlaylist = true
-                    }
-                    // A queue row is already in the queue: its own rows above move it instead.
-                    if (queuePosition == null) {
-                        ActionButton(
-                            icon = LimusicIcons.PlayCircle,
-                            text = Res.string.play_next,
-                        ) {
-                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
-                        }
-                        ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) {
-                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
-                        }
-                    }
-                    ActionButton(
-                        icon = LimusicIcons.PeopleAlt,
-                        text = Res.string.artists,
-                    ) {
-                        artist = true
-                    }
-                    ActionButton(
-                        icon = LimusicIcons.Album,
-                        // "Go to album" with the album's name under it. A track can carry an album
-                        // ID with no title (the row it was parsed from links an album but never
-                        // spells its name out): it still navigates, just without the name. The
-                        // parser leaves the name empty instead of inventing one, because a made-up
-                        // title would travel out to MediaSession and into external scrobblers.
-                        text = if (uiState.songUIState.album == null) Res.string.no_album else Res.string.go_to_album,
-                        subtitle =
-                            uiState.songUIState.album
-                                ?.name
-                                ?.takeIf { it.isNotBlank() },
-                        enable = uiState.songUIState.album != null,
-                    ) {
-                        uiState.songUIState.album?.id?.let { id ->
-                            onNavigateToOtherScreen()
-                            navController.navigate(AlbumDestination(browseId = id))
-                        }
-                    }
+                    // Desktop's TrackMenu order from here.
                     ActionButton(
                         icon = LimusicIcons.Sensors,
                         text = Res.string.start_radio,
                     ) {
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.StartRadio(
-                                videoId = uiState.songUIState.videoId,
-                                name = "\"${uiState.songUIState.title}\" ${runBlocking { getString(Res.string.radio) }}",
+                                videoId = song.videoId,
+                                name = "\"${song.title}\" ${runBlocking { getString(Res.string.radio) }}",
                             ),
                         )
                         hideModalBottomSheet()
                     }
-                    Crossfade(targetState = setSleepTimerEnable) {
-                        val sleepTimerState = uiState.sleepTimer
-                        if (it) {
-                            // timeRemaining > 0 → countdown mode, -1 → end-of-song mode, 0 → off
-                            val isEndOfSong = sleepTimerState.timeRemaining == -1
-                            val isRunning = sleepTimerState.timeRemaining > 0 || isEndOfSong
-                            Crossfade(targetState = isRunning) { running ->
-                                if (running) {
-                                    ActionButton(
-                                        icon = LimusicIcons.AccessAlarm,
-                                        textString =
-                                            if (isEndOfSong) {
-                                                stringResource(Res.string.sleep_timer_end_of_song)
-                                            } else {
-                                                stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
-                                            },
-                                        text = null,
-                                        textColor = seed,
-                                        iconColor = seed,
-                                    ) {
-                                        sleepTimerWarning = true
-                                    }
-                                } else {
-                                    ActionButton(
-                                        icon = LimusicIcons.AccessAlarm,
-                                        text = Res.string.sleep_timer_off,
-                                    ) {
-                                        sleepTimer = true
-                                    }
-                                }
+                    // One linked artist opens straight away; the picker is only for a song with several.
+                    val linkedArtists = song.listArtists.filter { !it.id.isNullOrBlank() }
+                    if (linkedArtists.isNotEmpty()) {
+                        ActionButton(
+                            icon = LimusicIcons.PeopleAlt,
+                            text = Res.string.go_to_artist,
+                            subtitle = linkedArtists.toListName().connectArtists(),
+                        ) {
+                            val only = linkedArtists.singleOrNull()?.id
+                            if (only != null) {
+                                hideModalBottomSheet()
+                                onNavigateToOtherScreen()
+                                navController.navigate(ArtistDestination(channelId = only))
+                            } else {
+                                artist = true
                             }
                         }
                     }
-                    Crossfade(targetState = setSleepTimerEnable) {
-                        if (it) {
-                            ActionButton(
-                                icon = LimusicIcons.Speed,
-                                text =
-                                    if (crossfadeEnabled != DataStoreManager.TRUE) {
-                                        Res.string.playback_speed_pitch
-                                    } else {
-                                        Res.string.playback_speed_pitch_disabled
-                                    },
-                                enable = crossfadeEnabled != DataStoreManager.TRUE,
-                            ) {
-                                changePlaybackSpeedPitch = true
-                            }
+                    // A track can carry an album id with no title (its row links an album but never
+                    // spells the name out): it still opens, just without the name under the row.
+                    song.album?.id?.let { albumId ->
+                        ActionButton(
+                            icon = LimusicIcons.Album,
+                            text = Res.string.go_to_album,
+                            subtitle = song.album.name.takeIf { it.isNotBlank() },
+                        ) {
+                            hideModalBottomSheet()
+                            onNavigateToOtherScreen()
+                            navController.navigate(AlbumDestination(browseId = albumId))
+                        }
+                    }
+                    // A YouTube rating: nothing to send it to while signed out.
+                    if (uiState.loggedIn) {
+                        ActionButton(
+                            icon = LimusicIcons.ThumbDown,
+                            text = if (song.disliked) Res.string.remove_dislike else Res.string.dislike,
+                        ) {
+                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleDislike)
+                            hideModalBottomSheet()
                         }
                     }
                     ActionButton(
@@ -1138,16 +1024,188 @@ private fun NowPlayingBottomSheetContent(
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
                     }
+                    // The player's own rows.
+                    if (setSleepTimerEnable) {
+                        val sleepTimerState = uiState.sleepTimer
+                        // timeRemaining > 0 → countdown mode, -1 → end-of-song mode, 0 → off
+                        val isEndOfSong = sleepTimerState.timeRemaining == -1
+                        val isRunning = sleepTimerState.timeRemaining > 0 || isEndOfSong
+                        if (isRunning) {
+                            val accent = MaterialTheme.colorScheme.primary
+                            ActionButton(
+                                icon = LimusicIcons.AccessAlarm,
+                                textString =
+                                    if (isEndOfSong) {
+                                        stringResource(Res.string.sleep_timer_end_of_song)
+                                    } else {
+                                        stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
+                                    },
+                                text = null,
+                                textColor = accent,
+                                iconColor = accent,
+                            ) {
+                                sleepTimerWarning = true
+                            }
+                        } else {
+                            ActionButton(
+                                icon = LimusicIcons.AccessAlarm,
+                                text = Res.string.sleep_timer_off,
+                            ) {
+                                sleepTimer = true
+                            }
+                        }
+                        ActionButton(
+                            icon = LimusicIcons.Speed,
+                            text =
+                                if (crossfadeEnabled != DataStoreManager.TRUE) {
+                                    Res.string.playback_speed_pitch
+                                } else {
+                                    Res.string.playback_speed_pitch_disabled
+                                },
+                            enable = crossfadeEnabled != DataStoreManager.TRUE,
+                        ) {
+                            changePlaybackSpeedPitch = true
+                        }
+                    }
                     if (onShowInfo != null) {
                         ActionButton(icon = LimusicIcons.Info, text = Res.string.song_info) {
                             hideModalBottomSheet()
                             onShowInfo()
                         }
                     }
+                    // Removing comes last, as on desktop, in the error colour.
+                    if (onDelete != null) {
+                        ActionButton(
+                            icon = LimusicIcons.Delete,
+                            text = Res.string.delete_song_from_playlist,
+                            textColor = MaterialTheme.colorScheme.error,
+                            iconColor = MaterialTheme.colorScheme.error,
+                        ) {
+                            hideModalBottomSheet()
+                            onDelete.invoke()
+                        }
+                    }
+                    if (onLibraryDelete != null) {
+                        ActionButton(
+                            icon = LimusicIcons.Delete,
+                            text = Res.string.delete,
+                            textColor = MaterialTheme.colorScheme.error,
+                            iconColor = MaterialTheme.colorScheme.error,
+                        ) {
+                            hideModalBottomSheet()
+                            onLibraryDelete.invoke()
+                        }
+                    }
                     EndOfModalBottomSheet()
                 }
             }
         }
+    }
+}
+
+/** The song at the top of its menu, with Like as a heart at the right instead of a row. */
+@Composable
+private fun SongMenuHeader(
+    thumbnail: String?,
+    title: String,
+    subtitle: String,
+    liked: Boolean,
+    onLike: () -> Unit,
+) {
+    val colors = rememberSurfaceDarkColors()
+    // Flips on the tap; the song's own state catches up once the write lands.
+    var checked by remember(liked) { mutableStateOf(liked) }
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AsyncImage(
+            model =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(thumbnail)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumbnail)
+                    .crossfade(550)
+                    .build(),
+            placeholder = rememberHolderPainter(),
+            error = rememberHolderPainter(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(52.dp).clip(rounded(10.dp)),
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                text = title,
+                style = typo().labelMedium,
+                color = colors.content,
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately).focusable(),
+            )
+            if (subtitle.isNotBlank()) {
+                Text(
+                    text = subtitle,
+                    style = typo().bodySmall,
+                    color = colors.subtitle,
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately).focusable(),
+                )
+            }
+        }
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            HeartCheckBox(size = 28, checked = checked, tint = colors.content) {
+                checked = !checked
+                onLike()
+            }
+        }
+    }
+}
+
+private class QuickAction(
+    val icon: ImageVector,
+    val label: String,
+    // Downloaded: the circle fills with the accent, as a done state.
+    val filled: Boolean = false,
+    val onClick: () -> Unit,
+)
+
+/** One of the song menu's big actions: the icon in an accent-tinted circle, the label beside it. */
+@Composable
+private fun QuickTile(
+    action: QuickAction,
+    modifier: Modifier,
+) {
+    val colors = rememberSurfaceDarkColors()
+    val accent = MaterialTheme.colorScheme.primary
+    Row(
+        modifier
+            .height(56.dp)
+            .clip(rounded(16.dp))
+            .background(colors.content.copy(alpha = 0.06f))
+            .clickable(onClick = action.onClick)
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.size(36.dp).clip(CircleShape).background(if (action.filled) accent else accent.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                action.icon,
+                contentDescription = null,
+                tint = if (action.filled) MaterialTheme.colorScheme.onPrimary else accent,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(
+            action.label,
+            style = typo().labelSmall,
+            color = colors.content,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
