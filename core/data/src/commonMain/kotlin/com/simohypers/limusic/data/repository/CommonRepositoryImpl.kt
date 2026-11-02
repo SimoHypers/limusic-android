@@ -220,6 +220,8 @@ internal class CommonRepositoryImpl(
             localDataSource.deleteNotification(id)
         }
 
+    override suspend fun clearNotifications() = withContext(Dispatchers.IO) { localDataSource.deleteAllNotifications() }
+
     override suspend fun writeTextToFile(
         text: String,
         filePath: String,

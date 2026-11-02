@@ -192,9 +192,6 @@
     <string name="new_singles">ซิงเกิลใหม่</string>
     <string name="new_albums">อัลบั้มใหม่</string>
     <string name="notification">การแจ้งเตือน</string>
-    <string name="month_s_ago">%1$d เดือนที่แล้ว</string>
-    <string name="day_s_ago">%1$d วันที่แล้ว</string>
-    <string name="hour_s_ago">%1$d ชั่วโมงที่แล้ว</string>
     <string name="no_notification">ยังไม่มีการแจ้งเตือน</string>
     <string name="created_at">สร้างขึ้นเมื่อ %1$s</string>
     <string name="unknown">ไม่รู้จัก</string>

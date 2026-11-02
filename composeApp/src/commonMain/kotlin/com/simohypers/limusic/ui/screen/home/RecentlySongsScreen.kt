@@ -65,6 +65,7 @@ import com.simohypers.limusic.ui.component.Chip
 import com.simohypers.limusic.ui.component.CollectionSearchRow
 import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
+import com.simohypers.limusic.ui.component.PinnedHeading
 import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.component.RoundAccentButton
 import com.simohypers.limusic.ui.component.RoundIconButton
@@ -270,7 +271,10 @@ fun RecentlySongsScreen(
                         else ->
                             shownGroups.forEachIndexed { i, group ->
                                 stickyHeader(key = "day:$i:${group.title ?: group.bucket}", contentType = "day") {
-                                    DayHeading(group.title ?: group.bucket?.label(today).orEmpty(), group.rows.size)
+                                    PinnedHeading(
+                                        group.title ?: group.bucket?.label(today).orEmpty(),
+                                        pluralStringResource(Res.plurals.liked_songs_count, group.rows.size, group.rows.size),
+                                    )
                                 }
                                 items(group.rows, key = { it.first }, contentType = { "song" }) { (key, track) ->
                                     // Wrapped: SongFullWidthItems puts its modifier on two nodes.
@@ -412,37 +416,6 @@ private fun CoverStrip(covers: List<String>) {
                         .clip(rounded(12.dp)),
             )
         }
-    }
-}
-
-/** Pinned while its day scrolls by: the day, a hairline, and how many songs it holds. */
-@Composable
-private fun DayHeading(
-    title: String,
-    count: Int,
-) {
-    // Opaque and drawn over the rows: an animated row passing under it would otherwise show through.
-    Row(
-        Modifier
-            .zIndex(1f)
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            style = typo().headlineMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Box(Modifier.weight(1f).padding(horizontal = 12.dp).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
-        Text(
-            pluralStringResource(Res.plurals.liked_songs_count, count, count),
-            style = typo().bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

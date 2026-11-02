@@ -179,9 +179,6 @@
     <string name="new_singles">Nous singles</string>
     <string name="new_albums">Nous àlbums</string>
     <string name="notification">Notificació</string>
-    <string name="month_s_ago">Fa %1$d mesos(s)</string>
-    <string name="day_s_ago">Fa %1$d mesos(s)</string>
-    <string name="hour_s_ago">Fa %1$d mesos(s)</string>
     <string name="no_notification">Sense notificació</string>
     <string name="created_at">Creat a %1$s</string>
     <string name="unknown">Desconegut</string>

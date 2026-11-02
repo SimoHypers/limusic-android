@@ -1031,6 +1031,9 @@ interface DatabaseDao {
     @Query("DELETE FROM notification WHERE id = :id")
     suspend fun deleteNotification(id: Long)
 
+    @Query("DELETE FROM notification")
+    suspend fun deleteAllNotifications()
+
     @Query("DELETE FROM notification WHERE channelId = :channelId")
     suspend fun deleteNotificationsByChannelId(channelId: String)
 

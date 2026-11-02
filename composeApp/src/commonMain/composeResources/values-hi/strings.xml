@@ -182,9 +182,6 @@
     <string name="new_singles">नए सिंगल्स</string>
     <string name="new_albums">नए एल्बम</string>
     <string name="notification">सूचना</string>
-    <string name="month_s_ago">%1$d महीने पहले</string>
-    <string name="day_s_ago">%1$d दिन पहले</string>
-    <string name="hour_s_ago">%1$d घंटे पहले</string>
     <string name="no_notification">कोई सूचना नहीं</string>
     <string name="created_at">%1$s को बनाया गया</string>
     <string name="unknown">अज्ञात</string>

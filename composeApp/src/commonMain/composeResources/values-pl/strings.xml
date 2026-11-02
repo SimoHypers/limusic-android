@@ -178,9 +178,6 @@
     <string name="new_singles">Nowe single</string>
     <string name="new_albums">Nowe albumy</string>
     <string name="notification">Powiadomienie</string>
-    <string name="month_s_ago">%1$d miesięcy temu</string>
-    <string name="day_s_ago">%1$d dni temu</string>
-    <string name="hour_s_ago">%1$d godz. temu</string>
     <string name="no_notification">Brak powiadomienia</string>
     <string name="created_at">Utworzono: %1$s</string>
     <string name="unknown">Nieznane</string>

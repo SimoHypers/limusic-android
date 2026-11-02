@@ -178,9 +178,6 @@
     <string name="new_singles">Нови сигнали</string>
     <string name="new_albums">Нови албуми</string>
     <string name="notification">Известия</string>
-    <string name="month_s_ago">Преди %1$d месеца(и)</string>
-    <string name="day_s_ago">Преди %1$d ден(и)</string>
-    <string name="hour_s_ago">Преди %1$d час(а)</string>
     <string name="no_notification">Няма известия</string>
     <string name="created_at">Създадено на %1$s</string>
     <string name="unknown">Непознато</string>

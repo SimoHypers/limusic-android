@@ -652,6 +652,8 @@ internal class LocalDataSource(
 
     suspend fun deleteNotification(id: Long) = databaseDao.deleteNotification(id)
 
+    suspend fun deleteAllNotifications() = databaseDao.deleteAllNotifications()
+
     suspend fun deleteNotificationsByChannelId(channelId: String) = databaseDao.deleteNotificationsByChannelId(channelId)
 
     suspend fun getTranslatedLyrics(

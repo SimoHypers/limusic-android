@@ -209,9 +209,6 @@
     <string name="new_singles">ニューシングル</string>
     <string name="new_albums">ニューアルバム</string>
     <string name="notification">通知</string>
-    <string name="month_s_ago">%1$dか月前</string>
-    <string name="day_s_ago">%1$d日前</string>
-    <string name="hour_s_ago">%1$d時間前</string>
     <string name="no_notification">通知なし</string>
     <string name="created_at">%1$s に作成</string>
     <string name="unknown">不明</string>

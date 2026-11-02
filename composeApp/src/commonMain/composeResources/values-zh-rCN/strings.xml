@@ -179,9 +179,6 @@
     <string name="new_singles">新单曲</string>
     <string name="new_albums">新专辑</string>
     <string name="notification">通知</string>
-    <string name="month_s_ago">%1$d 个月前</string>
-    <string name="day_s_ago">%1$d 天前</string>
-    <string name="hour_s_ago">%1$d 小时前</string>
     <string name="no_notification">无通知</string>
     <string name="created_at">创建于 %1$s</string>
     <string name="unknown">未知</string>

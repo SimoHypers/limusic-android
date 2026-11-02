@@ -210,9 +210,6 @@
     <string name="new_singles">Nouveaux Singles</string>
     <string name="new_albums">Nouveaux Albums</string>
     <string name="notification">Notification</string>
-    <string name="month_s_ago">Il y a %1$d mois</string>
-    <string name="day_s_ago">Il y a %1$d jour(s)</string>
-    <string name="hour_s_ago">Il y a %1$d heure(s)</string>
     <string name="no_notification">Aucune notification</string>
     <string name="created_at">Créé le %1$s</string>
     <string name="unknown">Inconnu</string>

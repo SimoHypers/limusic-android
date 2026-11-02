@@ -174,9 +174,6 @@
     <string name="new_singles">الفردي الجديد</string>
     <string name="new_albums">ألبوم جديد</string>
     <string name="notification">إشعار</string>
-    <string name="month_s_ago">منذ %1$d اشهر</string>
-    <string name="day_s_ago">منذ %1$d يوم</string>
-    <string name="hour_s_ago">منذ %1$d ساعة</string>
     <string name="no_notification">لا إشعارات</string>
     <string name="created_at">تم الانشاء في %1$s</string>
     <string name="unknown">غير معروف</string>

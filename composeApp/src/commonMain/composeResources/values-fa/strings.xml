@@ -180,9 +180,6 @@
     <string name="new_singles">تک‌آهنگ‌های جدید</string>
     <string name="new_albums">آلبوم‌های جدید</string>
     <string name="notification">آگاه‌ساز</string>
-    <string name="month_s_ago">%1$d ماه پیش</string>
-    <string name="day_s_ago">%1$d روز پیش</string>
-    <string name="hour_s_ago">%1$d ساعت پیش</string>
     <string name="no_notification">هیچ آگاه‌سازی وجود ندارد</string>
     <string name="created_at">ایجاد شده در %1$s</string>
     <string name="unknown">ناشناخته</string>

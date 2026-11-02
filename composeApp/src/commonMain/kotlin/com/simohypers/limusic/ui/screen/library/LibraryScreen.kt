@@ -1,5 +1,9 @@
 package com.simohypers.limusic.ui.screen.library
 
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -142,6 +146,9 @@ fun LibraryScreen(
     val libraryOverview by viewModel.libraryOverview.collectAsStateWithLifecycle()
     val unsyncedCount by viewModel.unsyncedCount.collectAsStateWithLifecycle()
     val syncing by viewModel.syncing.collectAsStateWithLifecycle()
+    val newReleases by viewModel.newReleases.collectAsStateWithLifecycle()
+    // Each time Library shows, so coming back from New releases clears the dot.
+    LaunchedEffect(Unit) { viewModel.checkNewReleases() }
 
     val selection = rememberTrackSelection()
     val hazeState =
@@ -472,8 +479,21 @@ fun LibraryScreen(
                 navController.navigate(RecentlySongsDestination)
             }
             // New releases from the artists you follow; moved here from Home, next to where they live.
-            RippleIconButton(imageVector = LimusicIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(NotificationDestination)
+            Box {
+                RippleIconButton(imageVector = LimusicIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
+                    navController.navigate(NotificationDestination)
+                }
+                // Releases found since New releases was last opened.
+                if (newReleases) {
+                    Box(
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 10.dp, end = 10.dp)
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                    )
+                }
             }
             ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
         }

@@ -181,9 +181,6 @@
     <string name="new_singles">Single terbaru</string>
     <string name="new_albums">Album baru</string>
     <string name="notification">Pemberitahuan</string>
-    <string name="month_s_ago">%1$d bulan yang lalu</string>
-    <string name="day_s_ago">%1$d hari yang lalu</string>
-    <string name="hour_s_ago">%1$d jam yang lalu</string>
     <string name="no_notification">Tidak ada pemberitahuan</string>
     <string name="created_at">Dibuat pada %1$s</string>
     <string name="unknown">Tak diketahui</string>

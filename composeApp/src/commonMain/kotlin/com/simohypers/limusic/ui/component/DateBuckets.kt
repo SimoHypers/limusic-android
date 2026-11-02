@@ -1,6 +1,22 @@
 package com.simohypers.limusic.ui.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.common.Config.REMOVED_SONG_DATE_TIME
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -73,3 +89,32 @@ fun DateBucket.label(today: LocalDate): String =
             if (year == today.year) name else "$name $year"
         }
     }
+
+/**
+ * A date heading for a LazyColumn's stickyHeader: the name, a hairline, and [trailing] ("12 songs")
+ * at the right. Opaque and drawn over the rows, or an animated row passing under it shows through.
+ */
+@Composable
+fun PinnedHeading(
+    title: String,
+    trailing: String,
+) {
+    Row(
+        Modifier
+            .zIndex(1f)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            title,
+            style = typo().headlineMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Box(Modifier.weight(1f).padding(horizontal = 12.dp).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+        Text(trailing, style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

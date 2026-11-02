@@ -15,12 +15,13 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toInstant
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.custom_order
-import limusic.composeapp.generated.resources.day_s_ago
-import limusic.composeapp.generated.resources.hour_s_ago
-import limusic.composeapp.generated.resources.month_s_ago
+import limusic.composeapp.generated.resources.days_ago
+import limusic.composeapp.generated.resources.hours_ago
+import limusic.composeapp.generated.resources.months_ago
 import limusic.composeapp.generated.resources.live_badge
 import limusic.composeapp.generated.resources.na_na
 import limusic.composeapp.generated.resources.newer_first
@@ -88,9 +89,9 @@ fun LocalDateTime.formatTimeAgo(): String {
     val hoursDiff = (nowInstant - thisInstant).inWholeHours
 
     return when {
-        monthsDiff >= 1 -> stringResource(Res.string.month_s_ago, monthsDiff)
-        daysDiff >= 1 -> stringResource(Res.string.day_s_ago, daysDiff)
-        hoursDiff >= 2 -> stringResource(Res.string.hour_s_ago, hoursDiff)
+        monthsDiff >= 1 -> pluralStringResource(Res.plurals.months_ago, monthsDiff, monthsDiff)
+        daysDiff >= 1 -> pluralStringResource(Res.plurals.days_ago, daysDiff, daysDiff)
+        hoursDiff >= 2 -> pluralStringResource(Res.plurals.hours_ago, hoursDiff.toInt(), hoursDiff.toInt())
         else -> stringResource(Res.string.recently)
     }
 }
@@ -205,6 +206,9 @@ fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =
  * (`...=w2880-h1200-...` -> `...=w1200-h1200-...`). Only the size spec after the last `=` is
  * touched. Returns the url unchanged when it has no `w`/`h` spec or is already square.
  */
+/** A YouTube image URL asked for at [px] square, so a small stored thumbnail doesn't blur. */
+fun String.sizedThumbnail(px: Int) = replace(Regex("=w\\d+-h\\d+"), "=w$px-h$px")
+
 fun String.toSquareThumbnailUrl(): String {
     val eq = lastIndexOf('=')
     if (eq < 0 || eq == lastIndex) return this

@@ -273,9 +273,6 @@
     <string name="new_singles">New singles</string>
     <string name="new_albums">New albums</string>
     <string name="notification">Notification</string>
-    <string name="month_s_ago">%1$d month(s) ago</string>
-    <string name="day_s_ago">%1$d day(s) ago</string>
-    <string name="hour_s_ago">%1$d hour(s) ago</string>
     <string name="no_notification">No notification</string>
     <string name="created_at">Created at %1$s</string>
     <string name="unknown">Unknown</string>
@@ -928,4 +925,29 @@
     <string name="history_empty_youtube">Nothing in your YouTube Music history yet.</string>
     <string name="history_empty_phone">Songs you play on this phone show up here.</string>
     <string name="history_failed">Couldn\'t load your YouTube Music history.</string>
+    <!-- New releases -->
+    <string name="new_releases">New releases</string>
+    <string name="new_single">New single</string>
+    <string name="new_album">New album</string>
+    <string name="release_single">Single</string>
+    <string name="new_tag">New</string>
+    <string name="clear_all">Clear all</string>
+    <plurals name="releases_count">
+        <item quantity="one">%1$d release</item>
+        <item quantity="other">%1$d releases</item>
+    </plurals>
+    <string name="releases_empty_title">No new releases yet</string>
+    <string name="releases_empty_hint">When an artist you follow puts out an album or a single, it shows up here. Checked about twice a day.</string>
+    <plurals name="hours_ago">
+        <item quantity="one">%1$d hour ago</item>
+        <item quantity="other">%1$d hours ago</item>
+    </plurals>
+    <plurals name="days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    <plurals name="months_ago">
+        <item quantity="one">%1$d month ago</item>
+        <item quantity="other">%1$d months ago</item>
+    </plurals>
 </resources>

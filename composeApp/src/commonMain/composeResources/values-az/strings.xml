@@ -168,9 +168,6 @@
     <string name="new_singles">Yeni seçmələr</string>
     <string name="new_albums">Yeni albomlar</string>
     <string name="notification">Bildiriş</string>
-    <string name="month_s_ago">%1$d ay əvvəl</string>
-    <string name="day_s_ago">%1$d gün əvvəl</string>
-    <string name="hour_s_ago">%1$d saat əvvəl</string>
     <string name="no_notification">Bildiriş yoxdur</string>
     <string name="created_at">Yaradıldı: %1$s</string>
     <string name="unknown">Naməlum</string>

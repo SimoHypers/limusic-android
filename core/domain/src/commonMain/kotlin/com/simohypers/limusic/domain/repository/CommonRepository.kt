@@ -41,6 +41,12 @@ interface CommonRepository {
 
     suspend fun deleteNotification(id: Long)
 
+    /**
+     * Empties New releases. What the release check has seen is kept apart, so nothing cleared
+     * comes back as new.
+     */
+    suspend fun clearNotifications()
+
     suspend fun writeTextToFile(text: String, filePath: String): Boolean
 
     suspend fun getCookiesFromInternalDatabase(url: String, packageName: String): CookieItem

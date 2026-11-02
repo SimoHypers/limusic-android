@@ -208,9 +208,6 @@
     <string name="new_singles">Nya singlar</string>
     <string name="new_albums">Nya album</string>
     <string name="notification">Avisering</string>
-    <string name="month_s_ago">%1$d månad(er) sedan</string>
-    <string name="day_s_ago">%1$d dag(ar) sedan</string>
-    <string name="hour_s_ago">%1$d timme/timmar sedan</string>
     <string name="no_notification">Inga aviseringar</string>
     <string name="created_at">Skapad %1$s</string>
     <string name="unknown">Okänd</string>

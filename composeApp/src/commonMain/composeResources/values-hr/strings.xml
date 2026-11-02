@@ -200,9 +200,6 @@
     <string name="new_singles">Nevo singles</string>
     <string name="new_albums">Nevo albums</string>
     <string name="notification">Obavijest</string>
-    <string name="month_s_ago">%1$d month(s) ago</string>
-    <string name="day_s_ago">%1$d day(s) ago</string>
-    <string name="hour_s_ago">%1$d hour(s) ago</string>
     <string name="no_notification">Ne notification</string>
     <string name="created_at">Stvorid at %1$s</string>
     <string name="unknown">Nepoznato</string>

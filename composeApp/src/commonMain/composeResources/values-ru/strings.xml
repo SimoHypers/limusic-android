@@ -212,9 +212,6 @@
     <string name="new_singles">Новые синглы</string>
     <string name="new_albums">Новые альбомы</string>
     <string name="notification">Уведомление</string>
-    <string name="month_s_ago">%1$d мес. назад</string>
-    <string name="day_s_ago">%1$d дн назад</string>
-    <string name="hour_s_ago">%1$d час. назад</string>
     <string name="no_notification">Нет уведомлений</string>
     <string name="created_at">Создано: %1$s</string>
     <string name="unknown">Нет данных</string>

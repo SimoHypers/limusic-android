@@ -89,6 +89,7 @@ import com.simohypers.limusic.domain.utils.connectArtists
 import com.simohypers.limusic.domain.utils.toTrack
 import com.simohypers.limusic.expect.ui.PlatformBackHandler
 import com.simohypers.limusic.extension.barBlurStyle
+import com.simohypers.limusic.extension.sizedThumbnail
 import com.simohypers.limusic.ui.component.AudioPlayingIndicator
 import com.simohypers.limusic.ui.component.CollectionHero
 import com.simohypers.limusic.ui.component.CollectionSearchRow
@@ -269,7 +270,7 @@ private fun SongsPage(
                             art = {
                                 val photo = artist?.thumbnails
                                 if (type is LibraryDynamicPlaylistType.ArtistLiked && photo != null) {
-                                    Cover(photo.sized(544), Modifier.fillMaxSize())
+                                    Cover(photo.sizedThumbnail(544), Modifier.fillMaxSize())
                                 } else {
                                     HeroArt(
                                         // The newest downloads whatever the sort: a Title sort would
@@ -580,7 +581,7 @@ private fun FollowedPage(
                             onBack = { navController.navigateUp() },
                             art = {
                                 HeroArt(
-                                    covers = remember(list) { list.mapNotNull { it.thumbnails?.sized(544) }.distinct().take(4) },
+                                    covers = remember(list) { list.mapNotNull { it.thumbnails?.sizedThumbnail(544) }.distinct().take(4) },
                                     icon = LimusicIcons.PeopleAlt,
                                     loading = artists == null,
                                 )
@@ -629,7 +630,7 @@ private fun ArtistCell(
         modifier = modifier.clip(rounded(16.dp)).clickable(onClick = onClick).padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Cover(artist.thumbnails?.sized(360), Modifier.fillMaxWidth().aspectRatio(1f).clip(CircleShape))
+        Cover(artist.thumbnails?.sizedThumbnail(360), Modifier.fillMaxWidth().aspectRatio(1f).clip(CircleShape))
         Text(
             artist.name,
             style = typo().labelMedium,
@@ -775,8 +776,6 @@ private fun lengthText(seconds: Long): String? {
     ).joinToString(" ")
 }
 
-/** A YouTube image URL asked for at [px] square, so a small stored thumbnail doesn't blur. */
-private fun String.sized(px: Int) = replace(Regex("=w\\d+-h\\d+"), "=w$px-h$px")
 
 // The page's top: the hero scrolls away into a blurred bar with the title, and search swaps both
 // for a field. Same behaviour as the playlist page.

@@ -211,9 +211,6 @@
     <string name="new_singles">Нові сингли</string>
     <string name="new_albums">Нові альбоми</string>
     <string name="notification">Сповіщення</string>
-    <string name="month_s_ago">%1$d міс. тому</string>
-    <string name="day_s_ago">%1$d дн. тому</string>
-    <string name="hour_s_ago">%1$d год. тому</string>
     <string name="no_notification">Немає сповіщень</string>
     <string name="created_at">Створено: %1$s</string>
     <string name="unknown">Невідомо</string>

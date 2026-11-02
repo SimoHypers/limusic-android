@@ -1,5 +1,6 @@
 package com.simohypers.limusic.viewModel
 
+import com.simohypers.limusic.domain.data.entities.NotificationEntity
 import androidx.lifecycle.viewModelScope
 import com.simohypers.limusic.common.Config
 import com.simohypers.limusic.common.LibraryChipType
@@ -124,6 +125,25 @@ class LibraryViewModel(
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist.asStateFlow()
 
     /** Counts and newest artwork for the four All tab tiles; null until the first read lands. */
+    private val _newReleases = MutableStateFlow(false)
+
+    /** Whether the release check found anything since New releases was last opened. */
+    val newReleases: StateFlow<Boolean> = _newReleases.asStateFlow()
+
+    fun checkNewReleases() {
+        viewModelScope.launch {
+            val latest =
+                commonRepository
+                    .getAllNotifications()
+                    .first()
+                    .orEmpty()
+                    .filter { it.type != NotificationEntity.TYPE_BLOG }
+                    .maxOfOrNull { it.time }
+            val seen = dataStoreManager.releasesSeenAt()
+            _newReleases.value = latest != null && (seen == null || latest > seen)
+        }
+    }
+
     private val _libraryOverview: MutableStateFlow<LibraryOverview?> = MutableStateFlow(null)
     val libraryOverview: StateFlow<LibraryOverview?> get() = _libraryOverview.asStateFlow()
 

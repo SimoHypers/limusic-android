@@ -208,9 +208,6 @@
     <string name="new_singles">最新單曲</string>
     <string name="new_albums">最新專輯</string>
     <string name="notification">通知</string>
-    <string name="month_s_ago">%1$d個月前</string>
-    <string name="day_s_ago">%1$d天前</string>
-    <string name="hour_s_ago">%1$d小時前</string>
     <string name="no_notification">沒有通知</string>
     <string name="created_at">建立於：%1$s</string>
     <string name="unknown">未知</string>

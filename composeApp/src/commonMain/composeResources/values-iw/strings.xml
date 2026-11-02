@@ -173,9 +173,6 @@
     <string name="new_singles">סינגלים חדשים</string>
     <string name="new_albums">אלבומים חדשים</string>
     <string name="notification">התראה</string>
-    <string name="month_s_ago">לפני %1$d חודש(ים)</string>
-    <string name="day_s_ago">לפני %1$d ימים</string>
-    <string name="hour_s_ago">לפני %1$d שעות</string>
     <string name="no_notification">אין התראה</string>
     <string name="created_at">נוצר ב: %1$s</string>
     <string name="unknown">לא ידוע</string>
