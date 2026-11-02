@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.simohypers.limusic.domain.utils.PlaylistSort
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.PLAYLIST_SORTS
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.album
@@ -43,10 +44,13 @@ fun PlaylistSortSheet(
     onSort: (PlaylistSort) -> Unit,
     onReverse: (Boolean) -> Unit,
     onDismiss: () -> Unit,
+    options: List<PlaylistSort> = PLAYLIST_SORTS,
+    // What Default means on this list ("Recently downloaded"); a playlist calls it Default.
+    defaultLabel: StringResource = Res.string.sort_default,
 ) {
     SettingSheet(title = stringResource(Res.string.sort_by), onDismiss = onDismiss) { colors ->
         Column {
-            PLAYLIST_SORTS.forEach { option ->
+            options.forEach { option ->
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -55,7 +59,7 @@ fun PlaylistSortSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(selected = option == sort, onClick = null, modifier = Modifier.padding(12.dp))
-                    Text(stringResource(option.label()), style = typo().bodyMedium, color = colors.content)
+                    Text(stringResource(if (option == PlaylistSort.DEFAULT) defaultLabel else option.label()), style = typo().bodyMedium, color = colors.content)
                 }
             }
         }

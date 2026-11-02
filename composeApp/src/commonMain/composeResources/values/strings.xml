@@ -30,7 +30,7 @@
     <string name="live_badge">LIVE</string>
     <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>
-    <string name="most_played">Most Played</string>
+    <string name="most_played">Most played</string>
     <string name="no_playlists_downloaded">No playlists downloaded</string>
     <string name="your_playlists">Your Local Playlists</string>
     <string name="no_playlists_added">No playlists added</string>
@@ -885,4 +885,31 @@
     <string name="devices_unlink_phone_hint">It stops controlling your computer. Link it again with a new code.</string>
     <string name="link_playing_on">Playing on %1$s</string>
     <string name="link_paused_on">Paused on %1$s</string>
+    <!-- Liked songs, Downloaded songs, Most played, Followed -->
+    <string name="kicker_collection">Collection</string>
+    <string name="kicker_on_this_phone">On this phone</string>
+    <string name="kicker_your_top_songs">Your top songs</string>
+    <string name="liked_this_week">This week</string>
+    <string name="liked_this_month">This month</string>
+    <string name="liked_earlier">Earlier</string>
+    <plurals name="play_count">
+        <item quantity="one">%1$d play</item>
+        <item quantity="other">%1$d plays</item>
+    </plurals>
+    <plurals name="artists_count">
+        <item quantity="one">%1$d artist</item>
+        <item quantity="other">%1$d artists</item>
+    </plurals>
+    <string name="sort_recently_downloaded">Recently downloaded</string>
+    <string name="empty_liked_title">No liked songs yet</string>
+    <string name="empty_liked_hint">Tap the heart on a song and it lands here.</string>
+    <string name="empty_downloads_title">Nothing downloaded yet</string>
+    <string name="empty_downloads_hint">Tap the download button on a song, playlist or album to keep it on this phone.</string>
+    <string name="empty_most_played_title">Nothing played twice yet</string>
+    <string name="empty_most_played_hint">Songs you play more than once show up here, ranked by plays.</string>
+    <string name="empty_artist_liked_title">No liked songs by this artist</string>
+    <string name="empty_artist_liked_hint">Songs of theirs you like show up here.</string>
+    <string name="empty_followed_title">No followed artists</string>
+    <string name="empty_followed_hint">Tap Follow on an artist\'s page and they show up here.</string>
+    <string name="no_match_for">Nothing matches "%1$s"</string>
 </resources>

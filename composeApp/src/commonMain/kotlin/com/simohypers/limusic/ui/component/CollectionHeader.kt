@@ -62,20 +62,26 @@ fun CollectionHero(
     onBack: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {},
     placeholder: Painter = rememberHolderPainter(),
+    // Drawn in place of [thumbnail], filling the hero: a list with no cover of its own makes one.
+    art: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val screen = getScreenSizeInfo()
     // Half the screen, as SimpMusic had it; the floor keeps room for the title block in landscape.
     Box(Modifier.fillMaxWidth().height(max((screen.hDP / 2).dp, 320.dp))) {
-        AsyncImage(
-            model = thumbnail,
-            placeholder = placeholder,
-            error = placeholder,
-            fallback = placeholder,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (art != null) {
+            art()
+        } else {
+            AsyncImage(
+                model = thumbnail,
+                placeholder = placeholder,
+                error = placeholder,
+                fallback = placeholder,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         // 70% of the cover: a short ramp is steep, and a steep ramp reads as an edge.
         Box(
             Modifier
@@ -115,7 +121,8 @@ fun CollectionTitle(
     kicker: String,
     title: String,
     playing: Boolean,
-    onPlay: () -> Unit,
+    // Null hides both buttons: an empty list has nothing to play.
+    onPlay: (() -> Unit)?,
     onShuffle: (() -> Unit)?,
 ) {
     Text(
@@ -126,12 +133,14 @@ fun CollectionTitle(
     TitleRow(
         title = { CollectionTitleText(title) },
     ) {
-        if (onShuffle != null) RoundIconButton(LimusicIcons.Shuffle, stringResource(Res.string.shuffle), onShuffle)
-        RoundAccentButton(
-            if (playing) LimusicIcons.Pause else LimusicIcons.PlayArrow,
-            stringResource(if (playing) Res.string.pause else Res.string.play),
-            onPlay,
-        )
+        if (onPlay != null) {
+            if (onShuffle != null) RoundIconButton(LimusicIcons.Shuffle, stringResource(Res.string.shuffle), onShuffle)
+            RoundAccentButton(
+                if (playing) LimusicIcons.Pause else LimusicIcons.PlayArrow,
+                stringResource(if (playing) Res.string.pause else Res.string.play),
+                onPlay,
+            )
+        }
     }
 }
 

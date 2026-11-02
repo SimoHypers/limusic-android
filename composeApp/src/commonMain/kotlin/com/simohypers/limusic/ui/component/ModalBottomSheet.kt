@@ -2207,7 +2207,8 @@ fun ArtistModalBottomSheet(
  */
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
-    shareLink: String,
+    // Null for a list with no YouTube page behind it (Liked songs on the phone, Downloads).
+    shareLink: String?,
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onStartRadio: (() -> Unit)?,
@@ -2267,9 +2268,11 @@ fun PlaylistBottomSheet(
                     if (onSelectTracks != null) {
                         ActionButton(icon = LimusicIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
                     }
-                    val shareTitle = stringResource(Res.string.share)
-                    ActionButton(icon = LimusicIcons.Share, text = Res.string.share) {
-                        shareUrl(shareTitle, shareLink)
+                    if (shareLink != null) {
+                        val shareTitle = stringResource(Res.string.share)
+                        ActionButton(icon = LimusicIcons.Share, text = Res.string.share) {
+                            shareUrl(shareTitle, shareLink)
+                        }
                     }
                     if (onRemoveShortcut != null) {
                         ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }

@@ -134,6 +134,8 @@ fun SongFullWidthItems(
     rightView: @Composable (() -> Unit)? = null,
     forceDark: Boolean = LocalForceDarkText.current,
     padding: PaddingValues = PaddingValues(start = 23.dp, end = 15.dp, top = 6.dp, bottom = 6.dp),
+    // Before the cover, inside the row's tap and tint: a chart's rank.
+    leadingView: @Composable (() -> Unit)? = null,
 ) {
     val contentColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val subtitleColor = if (forceDark) Color(0xC4FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant
@@ -275,6 +277,7 @@ fun SongFullWidthItems(
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                 }
+                leadingView?.invoke()
                 // A track number needs less room than a cover.
                 Box(
                     modifier = Modifier.size(if (index == null) 48.dp else 32.dp, 48.dp),

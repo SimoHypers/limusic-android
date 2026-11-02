@@ -311,7 +311,7 @@ fun DownloadsHeader(
     }
 }
 
-private fun Long.sizeText(): String {
+internal fun Long.sizeText(): String {
     val mb = bytesToMB()
     return if (mb < 1024) "$mb MB" else "${(mb * 10 / 1024) / 10.0} GB"
 }
