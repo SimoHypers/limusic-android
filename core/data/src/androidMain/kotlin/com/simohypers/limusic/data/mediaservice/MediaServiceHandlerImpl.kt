@@ -824,6 +824,14 @@ internal class MediaServiceHandlerImpl(
                     if (sinceDiscordPositionMs >= 1_000) {
                         sinceDiscordPositionMs = 0
                         discord.setPosition(player.currentPosition)
+                        // The adapter announces READY as it calls play(), before a fresh stream knows
+                        // its length, and never again for that track: without this, Discord's card
+                        // has no bar and Last.fm falls back to the 4-minute cap until a pause.
+                        // Not mid-crossfade, where the length is still the outgoing track's.
+                        player.duration.takeIf { it > 0 && !_controlState.value.isCrossfading }?.let {
+                            discord.setDuration(it)
+                            lastfmScrobbler.onDuration(it)
+                        }
                     }
                 }
             }
