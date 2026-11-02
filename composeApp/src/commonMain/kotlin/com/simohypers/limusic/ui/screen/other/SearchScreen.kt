@@ -77,6 +77,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -650,7 +651,9 @@ fun SearchScreen(
                 Modifier
                     .align(Alignment.TopCenter)
                     .offset { IntOffset(0, -titleCollapse().roundToInt()) }
-                    .onGloballyPositioned { searchBarHeightPx = it.size.height },
+                    .onGloballyPositioned { searchBarHeightPx = it.size.height }
+                    // Blocks taps on the bar's empty parts from reaching the results beneath, as on Home.
+                    .pointerInput(Unit) {},
         ) {
             // Animate only the background so scrolling keeps the search input and its focus.
             AnimatedVisibility(

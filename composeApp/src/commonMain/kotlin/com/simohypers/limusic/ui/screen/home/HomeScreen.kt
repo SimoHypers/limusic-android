@@ -80,6 +80,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
@@ -594,7 +595,10 @@ fun HomeScreen(
                             },
                         ).onGloballyPositioned { coordinates ->
                             topAppBarHeightPx = coordinates.size.height
-                        },
+                        }
+                        // An overlay: without a hit target, a tap on its empty parts lands on the row
+                        // scrolled beneath. TopAppBar's Surface does the same.
+                        .pointerInput(Unit) {},
             ) {
                 AnimatedVisibility(
                     visible = isScrollingUp,

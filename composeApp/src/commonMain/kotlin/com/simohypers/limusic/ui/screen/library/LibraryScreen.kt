@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -439,7 +440,9 @@ fun LibraryScreen(
             .background(Color.Transparent)
             .hazeBlur(HazeInput.Sources(hazeState), ultraThinBarStyle()).onGloballyPositioned { coordinates ->
                 topAppBarHeight = with(density) { coordinates.size.height.toDp() }
-            },
+            }
+            // Blocks taps on the bar's empty parts from reaching the list beneath, as on Home.
+            .pointerInput(Unit) {},
     ) {
         LimusicTabTopBar(title = stringResource(Res.string.library)) {
             // Only with something to push: what was liked, followed or saved while signed out
