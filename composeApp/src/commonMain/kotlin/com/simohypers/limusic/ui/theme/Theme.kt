@@ -294,8 +294,8 @@ private val SoftRippleConfiguration =
     )
 
 /**
- * Wraps immersive screens — artist, album, playlist, local playlist, podcast and the players — which
- * always draw over dark artwork and must therefore render dark even on the light theme.
+ * Wraps the Apple Music player, the fullscreen video player and views over a dark scrim, so they
+ * render dark even on the light theme. Classic, M3 Expressive and the collection pages follow it.
  *
  * [LocalForceDarkText] alone is not enough: it only recolors text through [typo]. Icons, buttons and
  * every other Material default read [LocalContentColor] and [MaterialTheme.colorScheme], which at

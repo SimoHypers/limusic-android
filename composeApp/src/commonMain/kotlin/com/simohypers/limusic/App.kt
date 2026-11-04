@@ -86,7 +86,6 @@ import com.simohypers.limusic.ui.screen.MiniPlayer
 import com.simohypers.limusic.ui.screen.player.NowPlayingScreen
 import com.simohypers.limusic.ui.screen.player.NowPlayingScreenContent
 import com.simohypers.limusic.ui.theme.AppTheme
-import com.simohypers.limusic.ui.theme.ForceDarkContent
 import com.simohypers.limusic.ui.theme.desktopPanelDark
 import com.simohypers.limusic.ui.theme.desktopWindowDark
 import com.simohypers.limusic.ui.theme.desktopWindowLight
@@ -539,15 +538,13 @@ fun App(
                                                 },
                                             ),
                                     ) {
-                                        ForceDarkContent {
-                                            NowPlayingScreenContent(
-                                                navController = navController,
-                                                sharedViewModel = viewModel,
-                                                isExpanded = true,
-                                                dismissIcon = LimusicIcons.ArrowForwardIos,
-                                            ) {
-                                                isShowNowPlaylistScreen = false
-                                            }
+                                        NowPlayingScreenContent(
+                                            navController = navController,
+                                            sharedViewModel = viewModel,
+                                            isExpanded = true,
+                                            dismissIcon = LimusicIcons.ArrowForwardIos,
+                                        ) {
+                                            isShowNowPlaylistScreen = false
                                         }
                                     }
                                 }
@@ -562,12 +559,10 @@ fun App(
                 }
 
                 if (isShowNowPlaylistScreen && !isTabletLandscape) {
-                    ForceDarkContent {
-                        NowPlayingScreen(
-                            navController = navController,
-                        ) {
-                            isShowNowPlaylistScreen = false
-                        }
+                    NowPlayingScreen(
+                        navController = navController,
+                    ) {
+                        isShowNowPlaylistScreen = false
                     }
                 }
 

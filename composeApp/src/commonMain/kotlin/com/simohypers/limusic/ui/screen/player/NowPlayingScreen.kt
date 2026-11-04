@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +80,7 @@ import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentLimusic
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentM3Expressive
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentState
 import com.simohypers.limusic.ui.screen.player.content.PlayerBackdropColor
+import com.simohypers.limusic.ui.theme.ForceDarkContent
 import com.simohypers.limusic.ui.screen.player.content.fullscreenCanvas
 import com.simohypers.limusic.ui.screen.player.content.toAudioQualityLabel
 import com.simohypers.limusic.viewModel.NowPlayingBottomSheetUIEvent
@@ -125,7 +127,7 @@ fun NowPlayingScreen(
         onDismissRequest = {
             onDismiss()
         },
-        containerColor = Color.Black,
+        containerColor = MaterialTheme.colorScheme.background,
         dragHandle = {},
         scrimColor = Color.Black.copy(alpha = .5f),
         sheetState = sheetState,
@@ -808,6 +810,7 @@ fun NowPlayingScreenContent(
     }
 
     // Classic (the stored value is still SPOTIFY) is the Limusic player; the other two are SimpMusic's.
+    // Classic and M3 Expressive follow light/dark; Apple Music's white-on-cover look stays dark.
     when (nowPlayingStyle) {
         DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE ->
             NowPlayingContentM3Expressive(
@@ -816,10 +819,12 @@ fun NowPlayingScreenContent(
             )
 
         DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC ->
-            NowPlayingContentAppleMusic(
-                state = state,
-                actions = actions,
-            )
+            ForceDarkContent {
+                NowPlayingContentAppleMusic(
+                    state = state,
+                    actions = actions,
+                )
+            }
 
         else ->
             NowPlayingContentLimusic(

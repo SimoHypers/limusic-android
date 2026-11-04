@@ -120,6 +120,7 @@ import com.simohypers.limusic.ui.screen.player.content.applemusic.AudioOutputShe
 import com.simohypers.limusic.ui.screen.player.content.expressive.ExpressiveTransportRow
 import com.simohypers.limusic.ui.screen.player.content.expressive.WavySeekBar
 import com.simohypers.limusic.ui.theme.LocalArtworkColors
+import com.simohypers.limusic.ui.theme.LocalIsDarkTheme
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.UIEvent
 import kotlinx.coroutines.Dispatchers
@@ -199,7 +200,7 @@ internal fun NowPlayingExpressiveTheme(
     val derivedScheme =
         rememberDynamicColorScheme(
             seedColor = animatedSeedColor,
-            isDark = true,
+            isDark = LocalIsDarkTheme.current,
             isAmoled = false,
             style = PaletteStyle.Vibrant,
         )
@@ -386,12 +387,12 @@ private fun NowPlayingM3ExpressiveLayout(
                         Text(
                             text = stringResource(Res.string.now_playing_upper),
                             style = typo().bodyMedium,
-                            color = Color.White,
+                            color = colorScheme.onSurface,
                         )
                         Text(
                             text = state.screenData.playlistName,
                             style = typo().labelMedium,
-                            color = Color.White,
+                            color = colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             modifier =
@@ -502,7 +503,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                 LyricText(
                                     text = lineText,
                                     style = typo().labelSmall,
-                                    color = Color.White,
+                                    color = colorScheme.onSurface,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier =
@@ -739,7 +740,7 @@ internal fun ExpressiveTrackInfoRow(
             Text(
                 text = state.screenData.nowPlayingTitle,
                 style = typo().titleMedium,
-                color = Color.White,
+                color = colorScheme.onSurface,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -905,9 +906,9 @@ internal fun ColumnScope.ExpressivePlaybackControls(
                         brush =
                             Brush.horizontalGradient(
                                 0f to labelColor.copy(alpha = 0.45f),
-                                // The sweep head is PURE white, not the resting label colour — the label
-                                // colour is an adaptive grey, and a grey gleam reads as no gleam at all.
-                                0.5f to Color.White,
+                                // The sweep head is PURE white (black on light), not the resting label
+                                // colour: the label is an adaptive grey, and a grey gleam reads as none.
+                                0.5f to if (LocalIsDarkTheme.current) Color.White else Color.Black,
                                 1f to labelColor.copy(alpha = 0.45f),
                                 startX = shimmerHead,
                                 endX = shimmerHead + shimmerSpan,

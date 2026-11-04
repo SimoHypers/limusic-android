@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -14,6 +15,7 @@ import com.simohypers.limusic.domain.data.model.streams.TimeLine
 import com.simohypers.limusic.domain.data.player.GenericCastState
 import com.simohypers.limusic.domain.mediaservice.handler.ControlState
 import com.simohypers.limusic.extension.GradientOffset
+import com.simohypers.limusic.ui.theme.LocalIsDarkTheme
 import com.simohypers.limusic.viewModel.NowPlayingScreenData
 import com.simohypers.limusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.StateFlow
@@ -36,10 +38,12 @@ internal fun NowPlayingScreenData.fullscreenCanvas(): NowPlayingScreenData.Canva
 /**
  * Colour of the secondary text in the track and time rows. Over animated artwork the page is a mesh
  * of the sleeve's own colours and can be bright, which turns the body grey into a smudge, so the text
- * becomes a veil of white instead. Unspecified elsewhere: the style's own text style decides.
+ * becomes a veil of white instead, on a dark theme only. Unspecified elsewhere: the style's own
+ * text style decides.
  */
+@Composable
 internal fun NowPlayingContentState.secondaryTextColor(): Color =
-    if (screenData.canvasData?.isAnimatedArtwork() == true) Color.White.copy(alpha = 0.7f) else Color.Unspecified
+    if (LocalIsDarkTheme.current && screenData.canvasData?.isAnimatedArtwork() == true) Color.White.copy(alpha = 0.7f) else Color.Unspecified
 
 // Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
 // next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
