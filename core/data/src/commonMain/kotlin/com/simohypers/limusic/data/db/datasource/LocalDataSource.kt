@@ -251,6 +251,12 @@ internal class LocalDataSource(
         videoId: String,
     ) = databaseDao.updateLiked(liked, videoId)
 
+    // Chunked under SQLite's 999-variable limit on older Androids.
+    suspend fun adoptLiked(
+        videoIds: List<String>,
+        liked: Boolean,
+    ) = videoIds.chunked(900).forEach { databaseDao.adoptLiked(it, if (liked) 1 else 0) }
+
     suspend fun updateLikeStatus(
         likeStatus: String,
         videoId: String,

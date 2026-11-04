@@ -5,8 +5,8 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.SongItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.WatchEndpoint
 import com.simohypers.limusic.kotlinytmusicscraper.models.getContinuation
+import com.simohypers.limusic.kotlinytmusicscraper.models.likeStatus
 import com.simohypers.limusic.kotlinytmusicscraper.models.response.BrowseResponse
-import com.simohypers.limusic.kotlinytmusicscraper.models.response.LikeStatus
 import com.simohypers.limusic.logger.Logger
 
 fun BrowseResponse.fromPlaylistToTrack(): List<SongItem> =
@@ -406,14 +406,7 @@ fun MusicShelfRenderer.Content.toSongItem(): SongItem? {
                 ?.thumbnail
                 ?.musicThumbnailRenderer
                 ?.thumbnail,
-        likeStatus =
-            menu
-                ?.menuRenderer
-                ?.topLevelButtons
-                ?.firstOrNull()
-                ?.likeButtonRenderer
-                ?.toLikeStatus()
-                ?: LikeStatus.INDIFFERENT,
+        likeStatus = menu.likeStatus(),
         badges = this.musicResponsiveListItemRenderer?.badges?.toSongBadges(),
         musicVideoType = this.musicResponsiveListItemRenderer?.musicVideoType,
     )

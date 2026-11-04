@@ -12,6 +12,7 @@ import com.simohypers.limusic.domain.data.model.searchResult.songs.Thumbnail
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.SectionListRenderer
+import com.simohypers.limusic.kotlinytmusicscraper.models.likeStatus
 import com.simohypers.limusic.kotlinytmusicscraper.models.response.BrowseResponse
 import com.simohypers.limusic.kotlinytmusicscraper.models.response.SearchResponse
 import com.simohypers.limusic.kotlinytmusicscraper.pages.PodcastItem
@@ -315,7 +316,7 @@ internal fun parsePlaylistData(
                         renderer?.badges?.any {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } == true,
-                    likeStatus = "INDIFFERENT",
+                    likeStatus = renderer?.menu.likeStatus()?.name,
                     thumbnails =
                         content.musicResponsiveListItemRenderer
                             ?.thumbnail

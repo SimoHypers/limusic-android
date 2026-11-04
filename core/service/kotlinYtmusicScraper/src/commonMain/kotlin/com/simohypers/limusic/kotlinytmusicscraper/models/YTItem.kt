@@ -42,7 +42,8 @@ data class SongItem(
     val endpoint: WatchEndpoint? = null,
     val thumbnails: Thumbnails? = null,
     val badges: List<SongBadges>? = null,
-    val likeStatus: LikeStatus = LikeStatus.INDIFFERENT,
+    /** The account's like as the row states it; null when the row states none. */
+    val likeStatus: LikeStatus? = null,
     val setVideoId: String? = null,
     /**
      * YouTube's own `MUSIC_VIDEO_TYPE_*` for this track, or null when the response carried no

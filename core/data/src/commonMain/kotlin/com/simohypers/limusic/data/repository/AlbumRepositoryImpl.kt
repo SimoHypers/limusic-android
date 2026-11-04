@@ -142,7 +142,9 @@ internal class AlbumRepositoryImpl(
                 youTube
                     .album(browseId, withSongs = true)
                     .onSuccess { result ->
-                        emit(Resource.Success(parseAlbumData(result)))
+                        val album = parseAlbumData(result)
+                        librarySync.adoptLikes(album.tracks)
+                        emit(Resource.Success(album))
                     }.onFailure { e ->
                         Logger.d(TAG, "getAlbumData -> error: ${e.message}")
                         emit(Resource.Error(e.message.toString()))

@@ -248,6 +248,14 @@ interface DatabaseDao {
         favoriteAt: LocalDateTime? = if (liked == 1) now() else null,
     )
 
+    /** The stored songs among [videoIds] whose heart isn't [liked] take it; see LibrarySync.adoptLikes. */
+    @Query("UPDATE song SET liked = :liked, favoriteAt = :favoriteAt WHERE videoId IN (:videoIds) AND liked != :liked")
+    suspend fun adoptLiked(
+        videoIds: List<String>,
+        liked: Int,
+        favoriteAt: LocalDateTime? = if (liked == 1) now() else null,
+    )
+
     /** YouTube's rating string; only "DISLIKE" is read back (the heart is [updateLiked]). */
     @Query("UPDATE song SET likeStatus = :likeStatus WHERE videoId = :videoId")
     suspend fun updateLikeStatus(

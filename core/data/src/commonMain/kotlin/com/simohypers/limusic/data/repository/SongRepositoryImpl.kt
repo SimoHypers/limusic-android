@@ -347,6 +347,7 @@ internal class SongRepositoryImpl(
                 .getOrNull()
                 ?.map { day -> HistoryDay(day.title, day.rows.mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }.toListTrack()) }
                 ?.filter { it.tracks.isNotEmpty() }
+                ?.also { days -> librarySync.adoptLikes(days.flatMap { it.tracks }) }
         }
 
     override suspend fun insertSongInfo(songInfo: SongInfoEntity) =
@@ -463,12 +464,9 @@ internal class SongRepositoryImpl(
                                     } ?: emptyList()
                             newContinuation =
                                 values.getPlaylistContinuation()
-                            emit(
-                                Pair<ArrayList<Track>?, String?>(
-                                    dataMore.toListTrack(),
-                                    newContinuation,
-                                ),
-                            )
+                            val tracks = dataMore.toListTrack()
+                            librarySync.adoptLikes(tracks)
+                            emit(Pair<ArrayList<Track>?, String?>(tracks, newContinuation))
                         }.onFailure {
                             if (it is CancellationException) throw it
                             Logger.e(TAG, "getContinueTrack -> Error: ${it.message}")
@@ -523,6 +521,7 @@ internal class SongRepositoryImpl(
             val page = youTube.libraryPage(LIBRARY_SONGS, continuation).getOrNull() ?: return@withContext null
             // The shelf opens with a "Shuffle all" row, which has no video and drops out here.
             val songs = page.rows.mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }.toListTrack()
+            librarySync.adoptLikes(songs)
             // A page with nothing on it ends the list even if it carries a token.
             songs to page.continuation?.takeIf { songs.isNotEmpty() }
         }

@@ -62,3 +62,16 @@ data class Menu(
         }
     }
 }
+
+/**
+ * The signed-in account's like on this row's track, off the row's own like button. Null when the
+ * row has none (search rows, radio panels) or YouTube takes no like on it, so a row that states
+ * nothing never reads as "not liked".
+ */
+fun Menu?.likeStatus(): LikeStatus? =
+    this
+        ?.menuRenderer
+        ?.topLevelButtons
+        ?.firstNotNullOfOrNull { it.likeButtonRenderer }
+        ?.takeIf { it.likesAllowed }
+        ?.toLikeStatus()

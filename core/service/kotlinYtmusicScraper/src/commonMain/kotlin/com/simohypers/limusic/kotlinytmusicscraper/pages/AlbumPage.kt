@@ -8,6 +8,7 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.MusicTwoRowItemRendere
 import com.simohypers.limusic.kotlinytmusicscraper.models.SongItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.Thumbnail
 import com.simohypers.limusic.kotlinytmusicscraper.models.Thumbnails
+import com.simohypers.limusic.kotlinytmusicscraper.models.likeStatus
 import com.simohypers.limusic.kotlinytmusicscraper.models.oddElements
 import com.simohypers.limusic.kotlinytmusicscraper.models.splitBySeparator
 import com.simohypers.limusic.kotlinytmusicscraper.utils.parseTime
@@ -108,6 +109,7 @@ data class AlbumPage(
                             ?.text
                             ?.parseTime() ?: return null,
                     thumbnail = album.thumbnail,
+                    likeStatus = renderer.menu.likeStatus(),
                     thumbnails =
                         Thumbnails(
                             thumbnails =

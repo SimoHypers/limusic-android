@@ -305,6 +305,7 @@ internal class PlaylistRepositoryImpl(
                         Logger.d("Repository", "playlist final data: ${listContent.size}")
                         if (finalContinueParam != null) {
                             parsePlaylistData(header, listContent, radioId, viewString)?.let { playlist ->
+                                librarySync.adoptLikes(playlist.tracks)
                                 emit(
                                     Resource.Success(
                                         Pair(
@@ -439,6 +440,7 @@ internal class PlaylistRepositoryImpl(
                         }
                         Logger.d("getPlaylistData", "playlist final data: ${listContent.size}")
                         parsePlaylistData(header, data ?: emptyList(), playlistId, viewString)?.let { playlist ->
+                            librarySync.adoptLikes(playlist.tracks + listContent)
                             emit(
                                 Resource.Success<PlaylistBrowse>(
                                     playlist.copy(
@@ -567,6 +569,7 @@ internal class PlaylistRepositoryImpl(
                                 .savedToLibrary()
                         try {
                             parsePlaylistData(header, data ?: emptyList(), playlistId, viewString)?.let { playlist ->
+                                librarySync.adoptLikes(playlist.tracks + listContent)
                                 emit(
                                     Resource.Success<Pair<PlaylistBrowse, String?>>(
                                         Pair(

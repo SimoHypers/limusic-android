@@ -121,7 +121,8 @@ fun Track.toSongEntity(): SongEntity {
         videoType = this.videoType ?: "",
         category = this.category,
         resultType = this.resultType,
-        liked = false,
+        // A row that states the account's like (playlist, album) is stored with it.
+        liked = this.likeStatus == "LIKE",
         totalPlayTime = 0,
         downloadState = 0,
     )

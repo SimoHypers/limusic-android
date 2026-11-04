@@ -43,7 +43,7 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                 durationSeconds = songItem.duration ?: 0,
                 isAvailable = false,
                 isExplicit = songItem.explicit,
-                likeStatus = "INDIFFERENT",
+                likeStatus = songItem.likeStatus?.name,
                 thumbnails = songItem.thumbnails?.thumbnails?.toListThumbnail() ?: listOf(),
                 title = songItem.title,
                 videoId = songItem.id,

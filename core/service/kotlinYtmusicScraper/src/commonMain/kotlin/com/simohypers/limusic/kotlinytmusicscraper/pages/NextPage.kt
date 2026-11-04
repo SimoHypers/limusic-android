@@ -8,6 +8,7 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.PlaylistPanelRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.PlaylistPanelVideoRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.SongItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.WatchEndpoint
+import com.simohypers.limusic.kotlinytmusicscraper.models.likeStatus
 import com.simohypers.limusic.kotlinytmusicscraper.models.oddElements
 import com.simohypers.limusic.kotlinytmusicscraper.models.splitBySeparator
 import com.simohypers.limusic.kotlinytmusicscraper.utils.parseTime
@@ -88,6 +89,7 @@ object NextPage {
                     ?.parseTime(),
             thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: "",
             explicit = false,
+            likeStatus = renderer.menu.likeStatus(),
             endpoint =
                 renderer.flexColumns
                     .firstOrNull()

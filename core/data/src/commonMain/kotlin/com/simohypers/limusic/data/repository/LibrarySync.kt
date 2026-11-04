@@ -2,6 +2,7 @@ package com.simohypers.limusic.data.repository
 
 import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.extension.getFullDataFromDB
+import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.TRUE
 import com.simohypers.limusic.domain.utils.isRadioPlaylistId
@@ -37,6 +38,24 @@ internal class LibrarySync(
         val keys = read()
         val next = if (unsynced) keys + key else keys - key
         if (next != keys) dataStoreManager.putString(KEY, next.joinToString("\n"))
+    }
+
+    /**
+     * Signed in, a playlist, album, history or Liked songs page states the account's like on each
+     * row, which is fresher than the phone's copy, so the songs already stored take it. Search and
+     * radio rows state nothing and are left alone. A like still waiting for Sync keeps the phone's.
+     * Rows not stored yet take theirs as they are stored (toSongEntity); reading the set here
+     * first seeds it before any of those land, so the seed only holds the phone's own likes.
+     *
+     * ponytail: no guard against a heart tapped while the page was loading; the page's older
+     * answer can win that race, and the next play's check (refreshLikeFromYouTube) corrects it.
+     */
+    suspend fun adoptLikes(tracks: List<Track>) {
+        if (!loggedIn()) return
+        val unsynced = mutex.withLock { read() }
+        val (liked, notLiked) = tracks.filter { it.likeStatus != null }.partition { it.likeStatus == "LIKE" }
+        localDataSource.adoptLiked(liked.map { it.videoId }, true)
+        localDataSource.adoptLiked(notLiked.map { it.videoId }.filterNot { song(it) in unsynced }, false)
     }
 
     fun keys(): Flow<Set<String>> =
