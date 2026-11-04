@@ -1,5 +1,9 @@
 package com.simohypers.limusic.ui.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.draw.rotate
+import androidx.compose.runtime.produceState
+import com.simohypers.limusic.ui.icon.ArrowForwardIos
 import limusic.composeapp.generated.resources.go_to_artist
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -758,7 +762,6 @@ private fun NowPlayingBottomSheetContent(
         }
 
     var addToAPlaylist by remember { mutableStateOf(false) }
-    var artist by remember { mutableStateOf(false) }
     var sleepTimer by remember { mutableStateOf(false) }
     var sleepTimerWarning by remember { mutableStateOf(false) }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
@@ -805,15 +808,6 @@ private fun NowPlayingBottomSheetContent(
                 viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(it.browseId))
             },
             videoId = uiState.songUIState.videoId,
-        )
-    }
-    if (artist) {
-        ArtistModalBottomSheet(
-            isBottomSheetVisible = true,
-            artists = uiState.songUIState.listArtists,
-            navController = navController,
-            onNavigateToOtherScreen = onNavigateToOtherScreen,
-            onDismiss = { artist = false },
         )
     }
 
@@ -977,21 +971,46 @@ private fun NowPlayingBottomSheetContent(
                         )
                         hideModalBottomSheet()
                     }
-                    // One linked artist opens straight away; the picker is only for a song with several.
+                    // One linked artist opens straight away; with several the row opens in place and
+                    // lists them under it.
                     val linkedArtists = song.listArtists.filter { !it.id.isNullOrBlank() }
+                    val goToArtist = { id: String ->
+                        hideModalBottomSheet()
+                        onNavigateToOtherScreen()
+                        navController.navigate(ArtistDestination(channelId = id))
+                    }
+                    var artistsOpen by remember { mutableStateOf(false) }
                     if (linkedArtists.isNotEmpty()) {
+                        val chevron by animateFloatAsState(if (artistsOpen) -90f else 90f)
                         ActionButton(
                             icon = LimusicIcons.PeopleAlt,
                             text = Res.string.go_to_artist,
                             subtitle = linkedArtists.toListName().connectArtists(),
+                            trailing =
+                                if (linkedArtists.size > 1) {
+                                    {
+                                        Icon(
+                                            LimusicIcons.ArrowForwardIos,
+                                            contentDescription = null,
+                                            tint = rememberSurfaceDarkColors().subtitle,
+                                            modifier = Modifier.size(14.dp).rotate(chevron),
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
                         ) {
                             val only = linkedArtists.singleOrNull()?.id
-                            if (only != null) {
-                                hideModalBottomSheet()
-                                onNavigateToOtherScreen()
-                                navController.navigate(ArtistDestination(channelId = only))
-                            } else {
-                                artist = true
+                            if (only != null) goToArtist(only) else artistsOpen = !artistsOpen
+                        }
+                        AnimatedVisibility(artistsOpen) {
+                            val photos by produceState(emptyMap<String, String?>(), linkedArtists) {
+                                value = viewModel.localArtistPhotos(linkedArtists.mapNotNull { it.id })
+                            }
+                            Column {
+                                linkedArtists.forEach { a ->
+                                    ArtistPickRow(a.name, photos[a.id]) { a.id?.let(goToArtist) }
+                                }
                             }
                         }
                     }
@@ -1258,6 +1277,8 @@ fun ActionButton(
     iconColor: Color = Color.Unspecified,
     enable: Boolean = true,
     subtitle: String? = null,
+    // At the row's end, e.g. a chevron for a row that opens in place.
+    trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val c = rememberSurfaceDarkColors()
@@ -1273,7 +1294,7 @@ fun ActionButton(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 32.dp),
         ) {
             Image(
                 imageVector = icon,
@@ -1289,7 +1310,7 @@ fun ActionButton(
                         ColorFilter.tint(c.disabled)
                     },
             )
-            Column(Modifier.padding(start = 10.dp)) {
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text(
                     text = if (text != null) stringResource(text) else textString ?: "",
                     style = typo().labelSmall,
@@ -1306,6 +1327,7 @@ fun ActionButton(
                     )
                 }
             }
+            trailing?.invoke()
         }
     }
 }
@@ -2176,83 +2198,44 @@ private fun PlaylistPickCover(url: String?) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * One of a song's artists under the song menu's "Go to artist", lined up with the rows' text: their
+ * photo when the phone has it, else their initial in the accent.
+ */
 @Composable
-fun ArtistModalBottomSheet(
-    isBottomSheetVisible: Boolean,
-    artists: List<Artist>,
-    navController: NavController,
-    onNavigateToOtherScreen: () -> Unit,
-    onDismiss: () -> Unit,
+private fun ArtistPickRow(
+    name: String,
+    photo: String?,
+    onClick: () -> Unit,
 ) {
-    AppThemeContent {
-        val coroutineScope = rememberCoroutineScope()
-        val modelBottomSheetState =
-            rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val hideModalBottomSheet: () -> Unit =
-            {
-                coroutineScope.launch {
-                    modelBottomSheetState.hide()
-                    onDismiss()
-                }
-            }
-        if (isBottomSheetVisible) {
-            ModalBottomSheet(
-                onDismissRequest = onDismiss,
-                sheetState = modelBottomSheetState,
-                containerColor = Color.Transparent,
-                contentColor = Color.Transparent,
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    shape = rounded(topStart = 20.dp, topEnd = 20.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Card(
-                            modifier = Modifier.width(60.dp).height(4.dp),
-                            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                            shape = RoundedCornerShape(50),
-                        ) {}
-                        Spacer(modifier = Modifier.height(5.dp))
-                        LazyColumn {
-                            items(artists) { artist ->
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                val id = artist.id
-                                                if (!id.isNullOrBlank()) {
-                                                    onNavigateToOtherScreen()
-                                                    navController.navigate(ArtistDestination(id))
-                                                }
-                                            },
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(20.dp).align(Alignment.CenterStart),
-                                    ) {
-                                        Image(
-                                            imageVector = LimusicIcons.PeopleAlt,
-                                            contentDescription = "",
-                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                        )
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Text(text = artist.name, style = typo().labelSmall)
-                                    }
-                                }
-                            }
-                            item { EndOfModalBottomSheet() }
-                        }
-                    }
-                }
+    val c = rememberSurfaceDarkColors()
+    val accent = MaterialTheme.colorScheme.primary
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(start = 78.dp, end = 32.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(32.dp).clip(CircleShape).background(accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+            if (photo != null) {
+                AsyncImage(model = photo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            } else {
+                // Two chars when the first is half of a surrogate pair, so an emoji stays whole.
+                val trimmed = name.trim()
+                Text(
+                    trimmed.take(if (trimmed.firstOrNull()?.isHighSurrogate() == true) 2 else 1).uppercase(),
+                    style = typo().labelSmall,
+                    color = accent,
+                )
             }
         }
+        Text(
+            name,
+            style = typo().labelSmall,
+            color = c.content,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f).padding(start = 12.dp),
+        )
+        Icon(LimusicIcons.ArrowForwardIos, contentDescription = null, tint = c.subtitle, modifier = Modifier.size(14.dp))
     }
 }
 

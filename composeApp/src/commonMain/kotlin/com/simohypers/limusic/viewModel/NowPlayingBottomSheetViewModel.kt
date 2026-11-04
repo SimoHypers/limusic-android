@@ -15,6 +15,7 @@ import com.simohypers.limusic.domain.mediaservice.handler.PlayerEvent
 import com.simohypers.limusic.domain.mediaservice.handler.PlaylistType
 import com.simohypers.limusic.domain.mediaservice.handler.QueueData
 import com.simohypers.limusic.domain.mediaservice.handler.SleepTimerState
+import com.simohypers.limusic.domain.repository.ArtistRepository
 import com.simohypers.limusic.domain.repository.LocalPlaylistRepository
 import com.simohypers.limusic.domain.repository.PlaylistRepository
 import com.simohypers.limusic.domain.repository.SongRepository
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -58,6 +60,7 @@ class NowPlayingBottomSheetViewModel(
     private val songRepository: SongRepository,
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
+    private val artistRepository: ArtistRepository by inject()
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
@@ -113,6 +116,10 @@ class NowPlayingBottomSheetViewModel(
             listYouTubePlaylistJob.join()
         }
     }
+
+    /** The photos the phone already has for these artists (page opened, or followed); nothing is fetched. */
+    suspend fun localArtistPhotos(ids: List<String>): Map<String, String?> =
+        ids.associateWith { artistRepository.getArtistById(it).firstOrNull()?.thumbnails }
 
     fun resetPlaylists() {
         viewModelScope.launch {
