@@ -63,8 +63,6 @@
     <string name="delete_playlist">Usuń playlistę</string>
     <string name="add_to_a_playlist">Dodaj do playlisty</string>
     <string name="share">Udostępnij</string>
-    <string name="move_up">Przenieś w górę</string>
-    <string name="move_down">Przenieś w dół</string>
     <string name="delete_from_queue">Usuń z kolejki</string>
     <string name="more">Więcej</string>
     <string name="singles">Single</string>

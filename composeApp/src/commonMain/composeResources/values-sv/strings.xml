@@ -69,8 +69,6 @@
     <string name="delete_playlist">Ta bort spellista</string>
     <string name="add_to_a_playlist">Lägg till i spellista</string>
     <string name="share">Dela</string>
-    <string name="move_up">Flytta uppåt</string>
-    <string name="move_down">Flytta nedåt</string>
     <string name="delete_from_queue">Ta bort från kön</string>
     <string name="more">Mer</string>
     <string name="singles">Singlar</string>

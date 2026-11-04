@@ -69,8 +69,6 @@
     <string name="delete_playlist">प्लेलिस्ट हटाएं</string>
     <string name="add_to_a_playlist">प्लेलिस्ट में जोड़ें</string>
     <string name="share">साझा करें</string>
-    <string name="move_up">ऊपर ले जाएं</string>
-    <string name="move_down">नीचे ले जाएं</string>
     <string name="delete_from_queue">कतार से हटाएं</string>
     <string name="more">और अधिक</string>
     <string name="singles">सिंगल्स</string>

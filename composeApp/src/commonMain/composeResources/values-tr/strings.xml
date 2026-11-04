@@ -63,8 +63,6 @@
     <string name="delete_playlist">Oynatma listesini sil</string>
     <string name="add_to_a_playlist">Oynatma listesine ekle</string>
     <string name="share">Paylaş</string>
-    <string name="move_up">Yukarı taşı</string>
-    <string name="move_down">Aşağı taşı</string>
     <string name="delete_from_queue">Kuyruktan Sil</string>
     <string name="more">Daha fazla</string>
     <string name="singles">Tekli</string>

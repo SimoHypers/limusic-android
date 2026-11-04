@@ -72,8 +72,6 @@
     <string name="delete_playlist">Видалити список</string>
     <string name="add_to_a_playlist">Додати до списку</string>
     <string name="share">Поділитися</string>
-    <string name="move_up">Перемістити вгору</string>
-    <string name="move_down">Перемістити вниз</string>
     <string name="delete_from_queue">Видалити з черги</string>
     <string name="more">Більше</string>
     <string name="singles">Сингли</string>

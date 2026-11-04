@@ -63,8 +63,6 @@
     <string name="delete_playlist">Изтрий плейлиста</string>
     <string name="add_to_a_playlist">Добави към плейлиста</string>
     <string name="share">Сподели</string>
-    <string name="move_up">Премести нагоре</string>
-    <string name="move_down">Премести надолу</string>
     <string name="delete_from_queue">Изтриване от опашката</string>
     <string name="more">Още</string>
     <string name="singles">Сингли</string>

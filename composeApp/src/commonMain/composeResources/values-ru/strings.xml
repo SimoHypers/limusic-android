@@ -72,8 +72,6 @@
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="add_to_a_playlist">Добавить в плейлист</string>
     <string name="share">Поделиться</string>
-    <string name="move_up">Переместить вверх</string>
-    <string name="move_down">Переместить вниз</string>
     <string name="delete_from_queue">Удалить из очереди</string>
     <string name="more">Еще</string>
     <string name="play_all">Воспроизвести все</string>

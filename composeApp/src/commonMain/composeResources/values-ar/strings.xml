@@ -61,8 +61,6 @@
     <string name="delete_playlist">حذف قائمة التشغيل</string>
     <string name="add_to_a_playlist">إضافة إلى قائمة تشغيل</string>
     <string name="share">مشاركة</string>
-    <string name="move_up">تحريك للأعلى</string>
-    <string name="move_down">تحريك للأسفل</string>
     <string name="delete_from_queue">حذف من قائمة الانتظار</string>
     <string name="more">المزيد</string>
     <string name="singles">أحادية</string>

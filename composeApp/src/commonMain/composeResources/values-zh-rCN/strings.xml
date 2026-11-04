@@ -63,8 +63,6 @@
     <string name="delete_playlist">删除歌单</string>
     <string name="add_to_a_playlist">添加到歌单</string>
     <string name="share">分享</string>
-    <string name="move_up">上移</string>
-    <string name="move_down">下移</string>
     <string name="delete_from_queue">从队列移除</string>
     <string name="more">更多</string>
     <string name="singles">单个</string>

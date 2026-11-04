@@ -1,79 +1,31 @@
 package com.simohypers.limusic.ui.icon
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
-@Suppress("CheckReturnValue")
-val LimusicIcons.ThumbDown: ImageVector
-  get() {
-    if (_ThumbDown != null) {
-      return _ThumbDown!!
-    }
-    _ThumbDown =
-      ImageVector.Builder(
-          name = "ThumbDown",
-          defaultWidth = 24.dp,
-          defaultHeight = 24.dp,
-          viewportWidth = 24f,
-          viewportHeight = 24f,
-        )
-        .apply {
-          path(
-            fill = SolidColor(Color.Black),
-            fillAlpha = 1f,
-            stroke = null,
-            strokeAlpha = 1f,
-            strokeLineWidth = 1f,
-            strokeLineCap = StrokeCap.Butt,
-            strokeLineJoin = StrokeJoin.Bevel,
-            strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
-          ) {
-            moveTo(3f, 16f)
-            quadTo(2.2f, 16f, 1.6f, 15.4f)
-            reflectiveQuadTo(1f, 14f)
-            verticalLineTo(12f)
-            quadTo(1f, 11.83f, 1.04f, 11.63f)
-            reflectiveQuadTo(1.15f, 11.25f)
-            lineToRelative(3f, -7.05f)
-            quadTo(4.38f, 3.7f, 4.9f, 3.35f)
-            reflectiveQuadTo(6f, 3f)
-            horizontalLineToRelative(8f)
-            quadToRelative(0.83f, 0f, 1.41f, 0.59f)
-            reflectiveQuadTo(16f, 5f)
-            verticalLineTo(15.18f)
-            quadToRelative(0f, 0.4f, -0.16f, 0.76f)
-            reflectiveQuadTo(15.4f, 16.58f)
-            lineToRelative(-5.42f, 5.4f)
-            quadTo(9.6f, 22.33f, 9.09f, 22.4f)
-            quadTo(8.58f, 22.48f, 8.1f, 22.23f)
-            quadTo(7.63f, 21.98f, 7.41f, 21.53f)
-            quadTo(7.2f, 21.08f, 7.33f, 20.6f)
-            lineTo(8.45f, 16f)
-            horizontalLineTo(3f)
-            close()
-            moveTo(20f, 3f)
-            quadToRelative(0.83f, 0f, 1.41f, 0.59f)
-            reflectiveQuadTo(22f, 5f)
-            verticalLineToRelative(9f)
-            quadToRelative(0f, 0.82f, -0.59f, 1.41f)
-            reflectiveQuadTo(20f, 16f)
-            quadToRelative(-0.82f, 0f, -1.41f, -0.59f)
-            reflectiveQuadTo(18f, 14f)
-            verticalLineTo(5f)
-            quadTo(18f, 4.17f, 18.59f, 3.59f)
-            reflectiveQuadTo(20f, 3f)
-            close()
-          }
-        }
-        .build()
-    return _ThumbDown!!
-  }
+// Material Symbols thumb_down, filled and unfilled, as media3-session ships them (Apache 2.0).
+// One pair, so the Dislike row only fills in when pressed instead of changing shape.
+val LimusicIcons.ThumbDown: ImageVector by lazy {
+    thumbDown(
+        "ThumbDown",
+        "M240,120L640,120L640,640L360,920L310,870Q303,863 298.5,851Q294,839 294,828L294,814L338,640L120,640Q88,640 64,616Q40,592 40,560L40,480Q40,473 41.5,465Q43,457 46,450L166,168Q175,148 196,134Q217,120 240,120ZM720,640L720,120L880,120L880,640L720,640Z",
+    )
+}
 
-private var _ThumbDown: ImageVector? = null
+val LimusicIcons.ThumbDownOutlined: ImageVector by lazy {
+    thumbDown(
+        "ThumbDownOutlined",
+        "M240,120L680,120L680,640L400,920L350,870Q343,863 338.5,851Q334,839 334,828L334,814L378,640L120,640Q88,640 64,616Q40,592 40,560L40,480Q40,473 42,465Q44,457 46,450L166,168Q175,148 196,134Q217,120 240,120ZM600,200L240,200Q240,200 240,200Q240,200 240,200L120,480L120,560Q120,560 120,560Q120,560 120,560L480,560L426,780L600,606L600,200ZM600,606L600,606L600,560L600,560Q600,560 600,560Q600,560 600,560L600,480L600,200Q600,200 600,200Q600,200 600,200L600,200L600,606ZM680,640L680,560L800,560L800,200L680,200L680,120L880,120L880,640L680,640Z",
+    )
+}
+
+private fun thumbDown(
+    name: String,
+    pathData: String,
+) = ImageVector
+    .Builder(name, 24.dp, 24.dp, 960f, 960f)
+    .addPath(addPathNodes(pathData), fill = SolidColor(Color.Black))
+    .build()

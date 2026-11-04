@@ -60,8 +60,6 @@
     <string name="delete_playlist">מחיקת רשימת השמעה</string>
     <string name="add_to_a_playlist">הוסף לרשימת ההשמעה</string>
     <string name="share">שיתוף</string>
-    <string name="move_up">הזזה למעלה</string>
-    <string name="move_down">הזזה למטה</string>
     <string name="delete_from_queue">מחק מהתור</string>
     <string name="more">הצג עוד</string>
     <string name="singles">יחידים</string>

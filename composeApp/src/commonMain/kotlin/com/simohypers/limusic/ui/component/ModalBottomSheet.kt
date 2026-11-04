@@ -156,8 +156,6 @@ import com.simohypers.limusic.ui.icon.Edit
 import com.simohypers.limusic.ui.icon.FavoriteBorder
 import com.simohypers.limusic.ui.icon.GridView
 import com.simohypers.limusic.ui.icon.Info
-import com.simohypers.limusic.ui.icon.KeyboardDoubleArrowDown
-import com.simohypers.limusic.ui.icon.KeyboardDoubleArrowUp
 import com.simohypers.limusic.ui.icon.PeopleAlt
 import com.simohypers.limusic.ui.icon.PlayArrow
 import com.simohypers.limusic.ui.icon.PlayCircle
@@ -175,6 +173,7 @@ import com.simohypers.limusic.ui.icon.Speed
 import com.simohypers.limusic.ui.icon.Sync
 import com.simohypers.limusic.ui.icon.Tune
 import com.simohypers.limusic.ui.icon.ThumbDown
+import com.simohypers.limusic.ui.icon.ThumbDownOutlined
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.theme.AppThemeContent
@@ -231,9 +230,7 @@ import limusic.composeapp.generated.resources.like
 import limusic.composeapp.generated.resources.liked
 import limusic.composeapp.generated.resources.list_all_cookies_of_this_page
 import limusic.composeapp.generated.resources.merging_audio_and_video
-import limusic.composeapp.generated.resources.move_down
 import limusic.composeapp.generated.resources.move_to_play_next
-import limusic.composeapp.generated.resources.move_up
 import limusic.composeapp.generated.resources.no_album
 import limusic.composeapp.generated.resources.new_playlist
 import limusic.composeapp.generated.resources.no_results_found
@@ -670,7 +667,7 @@ data class QueuePosition(
 )
 
 /**
- * The rows only a queue track has: move it up, down or to play next, or take it out of the queue.
+ * The rows only a queue track has: move it to play next, or take it out of the queue.
  *
  * They act by POSITION, and a radio trims its played history off the front while the sheet can be
  * open, which moves every row. If the track is no longer at its position they do nothing rather
@@ -684,11 +681,6 @@ private fun QueueItemActions(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val index = position.index
-    val queueSize =
-        musicServiceHandler.queueData.value
-            ?.data
-            ?.listTracks
-            ?.size ?: 0
     val current = musicServiceHandler.currentOrderIndex()
     val act: (suspend () -> Unit) -> Unit = { action ->
         val stillThere =
@@ -699,16 +691,6 @@ private fun QueueItemActions(
                 ?.videoId == position.videoId
         if (stillThere) coroutineScope.launch { action() }
         onDone()
-    }
-    if (index > 0) {
-        ActionButton(icon = LimusicIcons.KeyboardDoubleArrowUp, text = Res.string.move_up) {
-            act { musicServiceHandler.moveInQueue(index, index - 1) }
-        }
-    }
-    if (index < queueSize - 1) {
-        ActionButton(icon = LimusicIcons.KeyboardDoubleArrowDown, text = Res.string.move_down) {
-            act { musicServiceHandler.moveInQueue(index, index + 1) }
-        }
     }
     // Hidden on the playing track and on the one already next: there is nowhere to move them.
     if (current >= 0 && index != current && index != current + 1) {
@@ -732,7 +714,7 @@ fun NowPlayingBottomSheet(
     onNavigateToOtherScreen: () -> Unit = {},
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
-    /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
+    /** Set when opened from a queue row: adds its Play next and Remove from queue rows under the tiles. */
     queuePosition: QueuePosition? = null,
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
     /** Set from the full player: adds a "Song info" row. */
@@ -883,9 +865,6 @@ private fun NowPlayingBottomSheetContent(
                         liked = song.liked,
                         onLike = { viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike) },
                     )
-                    if (queuePosition != null) {
-                        QueueItemActions(position = queuePosition, onDone = hideModalBottomSheet)
-                    }
                     // What the menu is opened for most of the time, one tap each and no row to find:
                     // two by two, so every label has the width for one line.
                     val downloaded = song.downloadState == DownloadState.STATE_DOWNLOADED
@@ -893,7 +872,7 @@ private fun NowPlayingBottomSheetContent(
                         song.downloadState == DownloadState.STATE_DOWNLOADING || song.downloadState == DownloadState.STATE_PREPARING
                     val tiles =
                         listOfNotNull(
-                            // A queue row is already in the queue: its own rows above move it instead.
+                            // A queue row is already in the queue: its own rows below move it instead.
                             QuickAction(LimusicIcons.PlayCircle, stringResource(Res.string.play_next)) {
                                 viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
                                 hideModalBottomSheet()
@@ -937,6 +916,9 @@ private fun NowPlayingBottomSheetContent(
                                 if (two.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
+                    }
+                    if (queuePosition != null) {
+                        QueueItemActions(position = queuePosition, onDone = hideModalBottomSheet)
                     }
                     // Desktop's TrackMenu order from here.
                     ActionButton(
@@ -1009,12 +991,12 @@ private fun NowPlayingBottomSheetContent(
                     }
                     // A YouTube rating: nothing to send it to while signed out.
                     if (uiState.loggedIn) {
+                        // Stays open, like desktop's: the thumb filling in is the answer to the tap.
                         ActionButton(
-                            icon = LimusicIcons.ThumbDown,
+                            icon = if (song.disliked) LimusicIcons.ThumbDown else LimusicIcons.ThumbDownOutlined,
                             text = if (song.disliked) Res.string.remove_dislike else Res.string.dislike,
                         ) {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleDislike)
-                            hideModalBottomSheet()
                         }
                     }
                     ActionButton(

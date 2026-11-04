@@ -63,8 +63,6 @@
     <string name="delete_playlist">ลบเพลย์ลิสต์</string>
     <string name="add_to_a_playlist">เพิ่มลงในเพลย์ลิสต์</string>
     <string name="share">แบ่งปัน</string>
-    <string name="move_up">เลื่อนขึ้น</string>
-    <string name="move_down">เลื่อนลง</string>
     <string name="delete_from_queue">ลบออกจากคิว</string>
     <string name="more">ดูเพิ่มเติม</string>
     <string name="singles">ซิงเกิล</string>

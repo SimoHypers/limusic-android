@@ -60,8 +60,6 @@
     <string name="delete_playlist">Səsləndirmə siyahısın sil</string>
     <string name="add_to_a_playlist">Pleylistə əlavə et</string>
     <string name="share">Paylaş</string>
-    <string name="move_up">Yuxarı köçür</string>
-    <string name="move_down">Aşağı köçür</string>
     <string name="delete_from_queue">Növbədən sil</string>
     <string name="more">Daha çox</string>
     <string name="singles">Seçmələr</string>

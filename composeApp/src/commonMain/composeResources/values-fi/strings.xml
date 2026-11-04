@@ -60,8 +60,6 @@
     <string name="delete_playlist">Poista soittolista</string>
     <string name="add_to_a_playlist">Lisää soittolistaan</string>
     <string name="share">Jaa</string>
-    <string name="move_up">Siirrä ylös</string>
-    <string name="move_down">Siirrä alas</string>
     <string name="delete_from_queue">Poista jonosta</string>
     <string name="more">Lisää</string>
     <string name="singles">Singlet</string>

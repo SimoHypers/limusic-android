@@ -63,8 +63,6 @@
     <string name="delete_playlist">حذف لیست پخش</string>
     <string name="add_to_a_playlist">افزودن به فهرست پخش</string>
     <string name="share">هم‌رسانی</string>
-    <string name="move_up">بالا بردن</string>
-    <string name="move_down">پایین بردن</string>
     <string name="delete_from_queue">پاک‌کردن از صف</string>
     <string name="more">بیشتر</string>
     <string name="singles">تک‌آهنگ‌ها</string>

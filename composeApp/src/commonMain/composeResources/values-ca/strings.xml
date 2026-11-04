@@ -63,8 +63,6 @@
     <string name="delete_playlist">Suprimeix la llista de reproducció</string>
     <string name="add_to_a_playlist">Afegeix a una llista de reproducció</string>
     <string name="share">Compartir</string>
-    <string name="move_up">Mou cap amunt</string>
-    <string name="move_down">Moure cap avall</string>
     <string name="delete_from_queue">Suprimeix de la cua</string>
     <string name="more">Més</string>
     <string name="singles">Singles</string>
