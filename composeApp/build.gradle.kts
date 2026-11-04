@@ -161,6 +161,8 @@ buildkonfig {
         val secrets = Properties().apply { rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) } }
         buildConfigField(STRING, "lastfmApiKey", secrets.getProperty("LASTFM_API_KEY") ?: "")
         buildConfigField(STRING, "lastfmSecret", secrets.getProperty("LASTFM_SECRET") ?: "")
+        // A local test server for the updater (http://127.0.0.1:PORT over adb reverse). Debug builds only.
+        buildConfigField(STRING, "updateBase", secrets.getProperty("limusic.updateBase") ?: "")
     }
 }
 

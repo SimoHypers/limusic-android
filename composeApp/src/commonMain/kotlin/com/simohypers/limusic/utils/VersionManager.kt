@@ -18,9 +18,6 @@ object VersionManager {
 
     fun getVersionName(): String = removeDevSuffix(versionName ?: String())
 
-    /** True when [tag] names a release newer than this build. */
-    fun isBehind(tag: String): Boolean = isNewerRelease(current = getVersionName(), tag = tag)
-
     private fun removeDevSuffix(versionName: String): String {
         return if (versionName.endsWith("-dev")) {
             versionName.replace("-dev", "")
@@ -30,32 +27,40 @@ object VersionManager {
     }
 }
 
-/**
- * True when release [tag] should be offered to a build running [current]. GitHub tags carry a leading
- * "v" ("v2.3.0") and F-Droid's do not ("2.3.0"). It is offered unless it is this very version or this
- * build is already ahead of it (dev and beta builds run ahead of the latest release). A hotfix
- * ("2.3.0-hf") has the same numbers as the release it fixes, so only its name tells it apart.
- */
-internal fun isNewerRelease(
-    current: String,
-    tag: String,
-): Boolean {
-    val release = tag.trim().removePrefix("v")
-    return release != current && compareVersions(current, release) <= 0
-}
+/** A release candidate or other prerelease: anything with a `-` suffix (`1.1.0-rc.2`). */
+fun isPrerelease(version: String): Boolean = version.contains('-')
 
-/** Dotted versions compared number by number, so "2.10.0" is newer than "2.9.0". A suffix such as "-hf" is ignored. */
-internal fun compareVersions(
+/** `x.y.z` with an optional prerelease suffix, as release tags are named (the leading "v" removed). */
+fun isVersion(version: String): Boolean = Regex("""\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?""").matches(version)
+
+/**
+ * Orders versions as desktop's version.ts does: `x.y.z` numerically, a release above its own
+ * prereleases (1.1.0 > 1.1.0-rc.2), and two prereleases of one version by suffix, numbers compared
+ * as numbers (rc.10 > rc.9).
+ */
+fun compareVersions(
     a: String,
     b: String,
 ): Int {
-    val x = versionNumbers(a)
-    val y = versionNumbers(b)
-    for (i in 0 until maxOf(x.size, y.size)) {
-        val diff = x.getOrElse(i) { 0 }.compareTo(y.getOrElse(i) { 0 })
+    val (ac, sa) = a.split('-', limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+    val (bc, sb) = b.split('-', limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+    val pa = ac.split('.').map { it.toIntOrNull() ?: 0 }
+    val pb = bc.split('.').map { it.toIntOrNull() ?: 0 }
+    for (i in 0 until 3) {
+        val diff = pa.getOrElse(i) { 0 }.compareTo(pb.getOrElse(i) { 0 })
         if (diff != 0) return diff
     }
-    return 0
+    if (sa == sb) return 0
+    if (sa.isEmpty()) return 1
+    if (sb.isEmpty()) return -1
+    // ponytail: numeric collation, not semver's full identifier rules; right for rc.N / beta.N
+    val ta = Regex("""\d+|\D+""").findAll(sa).map { it.value }.toList()
+    val tb = Regex("""\d+|\D+""").findAll(sb).map { it.value }.toList()
+    for (i in 0 until minOf(ta.size, tb.size)) {
+        val x = ta[i].toLongOrNull()
+        val y = tb[i].toLongOrNull()
+        val diff = if (x != null && y != null) x.compareTo(y) else ta[i].compareTo(tb[i])
+        if (diff != 0) return diff
+    }
+    return ta.size.compareTo(tb.size)
 }
-
-private fun versionNumbers(version: String): List<Int> = version.substringBefore('-').split('.').map { it.trim().toIntOrNull() ?: 0 }

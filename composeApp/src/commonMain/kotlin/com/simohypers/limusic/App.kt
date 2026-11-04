@@ -46,6 +46,7 @@ import com.materialkolor.ktx.themeColorOrNull
 import com.simohypers.limusic.expect.ui.toImageBitmap
 import com.simohypers.limusic.expect.ui.toReadableBitmap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
@@ -66,6 +67,7 @@ import com.simohypers.limusic.expect.currentOrientation
 import com.simohypers.limusic.extension.copy
 import com.simohypers.limusic.ui.component.AppNavigationRail
 import com.simohypers.limusic.ui.component.BusyPill
+import com.simohypers.limusic.ui.component.UpdateBanner
 import com.simohypers.limusic.ui.icon.ArrowForwardIos
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.HomeDestination
@@ -90,6 +92,7 @@ import com.simohypers.limusic.ui.theme.desktopPanelDark
 import com.simohypers.limusic.ui.theme.desktopWindowDark
 import com.simohypers.limusic.ui.theme.desktopWindowLight
 import com.simohypers.limusic.ui.theme.typo
+import com.simohypers.limusic.updater.Updater
 import com.simohypers.limusic.utils.isAppLinkAvailable
 import com.simohypers.limusic.utils.libraryTabOf
 import com.simohypers.limusic.viewModel.SharedViewModel
@@ -559,6 +562,12 @@ fun App(
                             .align(Alignment.BottomCenter)
                             .padding(bottom = innerPadding.calculateBottomPadding() + 12.dp),
                     )
+                    UpdateBanner(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 8.dp)
+                            .padding(bottom = innerPadding.calculateBottomPadding() + 8.dp),
+                    )
                 }
 
                 if (isShowNowPlaylistScreen && !isTabletLandscape) {
@@ -566,6 +575,14 @@ fun App(
                         navController = navController,
                     ) {
                         isShowNowPlaylistScreen = false
+                    }
+                }
+
+                // Desktop's quiet update check: on open, then every six hours while the app stays up.
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        Updater.checkQuiet()
+                        delay(Updater.INTERVAL)
                     }
                 }
 
