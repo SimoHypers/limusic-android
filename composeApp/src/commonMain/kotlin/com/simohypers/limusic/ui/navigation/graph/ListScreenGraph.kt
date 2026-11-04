@@ -71,11 +71,11 @@ fun NavGraphBuilder.listScreenGraph(
     composable<BrowseDestination> { entry ->
         val data = entry.toRoute<BrowseDestination>()
         BrowseScreen(
-            innerPadding = innerPadding,
             navController = navController,
             browseId = data.browseId,
             params = data.params,
             title = data.title,
+            kicker = data.kicker,
         )
     }
     composable<PlaylistDestination> { entry ->

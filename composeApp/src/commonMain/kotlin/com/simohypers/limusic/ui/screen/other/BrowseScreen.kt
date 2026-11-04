@@ -1,21 +1,9 @@
 package com.simohypers.limusic.ui.screen.other
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,379 +11,179 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.kmpalette.loader.rememberNetworkLoader
-import com.kmpalette.rememberDominantColorState
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.home.Content
+import com.simohypers.limusic.domain.utils.connectArtists
+import com.simohypers.limusic.domain.utils.toListName
 import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.domain.utils.toTrack
-import com.simohypers.limusic.Platform
-import com.simohypers.limusic.extension.angledGradientBackground
-import com.simohypers.limusic.extension.artworkScrimBrush
-import com.simohypers.limusic.extension.barBlurStyle
-import com.simohypers.limusic.extension.rgbFactor
-import com.simohypers.limusic.getPlatform
-import com.simohypers.limusic.ui.component.AmbientGlowHeight
+import com.simohypers.limusic.extension.sizedThumbnail
 import com.simohypers.limusic.ui.component.CenterLoadingBox
 import com.simohypers.limusic.ui.component.EndOfPage
-import com.simohypers.limusic.ui.component.HomeContentCard
 import com.simohypers.limusic.ui.component.MoodMomentAndGenreHomeItem
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
-import com.simohypers.limusic.ui.component.RippleIconButton
-import com.simohypers.limusic.ui.component.artworkTintHttpClient
 import com.simohypers.limusic.ui.component.homeCardAspectRatio
-import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.LimusicIcons
+import com.simohypers.limusic.ui.component.openHomeItem
+import com.simohypers.limusic.ui.component.pageDestination
 import com.simohypers.limusic.ui.navigation.destination.home.MoodDestination
-import com.simohypers.limusic.ui.theme.desktopPanelDark
+import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
+import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
+import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
+import com.simohypers.limusic.ui.screen.home.CoverCard
+import com.simohypers.limusic.ui.screen.home.HeroTopBar
+import com.simohypers.limusic.ui.screen.home.MoodHero
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.BrowseUIState
 import com.simohypers.limusic.viewModel.BrowseViewModel
-import dev.chrisbanes.haze.HazeInput
-import dev.chrisbanes.haze.blur.hazeBlur
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
-import io.ktor.http.Url
+import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.albums_count
+import limusic.composeapp.generated.resources.artists_count
+import limusic.composeapp.generated.resources.items_count
+import limusic.composeapp.generated.resources.liked_songs_count
+import limusic.composeapp.generated.resources.mood_failed
+import limusic.composeapp.generated.resources.playlists_count
+import limusic.composeapp.generated.resources.retry
+import limusic.composeapp.generated.resources.videos_count
+import org.jetbrains.compose.resources.PluralStringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-
-private val RowGap = 10.dp
-
-// The thumbnail height a justified row aims for; rows land a little above or below it.
-private val TargetThumbnailHeight = 180.dp
-
-// The home cards' own 10dp start + 10dp end padding, outside the thumbnail.
-private val CardHorizontalPadding = 20.dp
-
-// The width a mood button asks for, as the old grid's cells did.
-private val MoodCellWidth = 170.dp
 
 /**
  * The page a home section's "More" endpoint opens when YouTube names no album, playlist, artist or
- * podcast behind it. Every shelf is flattened into justified rows — each card keeps its own shape
- * (16:9 video, square otherwise), every thumbnail in a row is the same height, and the number of
- * cards per row follows the shapes in it — drawn with Home's own cards, so an item opens and plays
- * exactly as it does on Home. The glow and the bar are Mix for you's.
+ * podcast behind it: the Mood page's hero over a two-column cover grid of every shelf, flattened.
+ * An item opens and plays as it does on Home.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseScreen(
-    innerPadding: PaddingValues,
     navController: NavController,
     browseId: String,
     params: String?,
     title: String?,
+    kicker: String?,
     viewModel: BrowseViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val hazeState = rememberHazeState()
+    LaunchedEffect(browseId, params) { viewModel.getBrowsePage(browseId, params) }
+
+    val page = (uiState as? BrowseUIState.Success)?.page
+    val contents = page?.contents.orEmpty()
+    val name = page?.title ?: title.orEmpty()
+    // A page that is mostly videos keeps their 16:9 shape; every other page has square covers.
+    val ratio = if (contents.count { it.homeCardAspectRatio() != 1f } * 2 > contents.size) 16f / 9f else 1f
     val listState = rememberLazyListState()
-    // Mix for you's bar rule: transparent only while pixel 0 is on screen.
-    val isAtTop by remember {
-        derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 }
-    }
-    var track by remember { mutableStateOf<Track?>(null) }
-    var bottomSheetShow by remember { mutableStateOf(false) }
+    var sheetTrack by remember { mutableStateOf<Track?>(null) }
 
-    // Mix for you's ambient top glow, tinted from this page's first item instead of its first mix.
-    // The client is remembered, as WrappedScreen does, rather than built on every recomposition.
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val isLightTheme = backgroundColor.luminance() > 0.5f
-    val pageBackground =
-        if (getPlatform() == Platform.Desktop) {
-            if (isLightTheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
-        } else {
-            backgroundColor
-        }
-    var topHeaderColor by remember { mutableStateOf(backgroundColor) }
-    val animatedColor by animateColorAsState(topHeaderColor, tween(500))
-    val networkLoader = rememberNetworkLoader(artworkTintHttpClient)
-    val dominantColorState =
-        rememberDominantColorState(
-            defaultColor = backgroundColor,
-            defaultOnColor = backgroundColor,
-            loader = networkLoader,
-        )
-    val firstThumbnail =
-        (uiState as? BrowseUIState.Success)
-            ?.page
-            ?.contents
-            ?.firstOrNull()
-            ?.thumbnails
-            ?.lastOrNull()
-            ?.url
-    LaunchedEffect(firstThumbnail) {
-        firstThumbnail?.let { dominantColorState.updateFrom(Url(it)) }
-    }
-    LaunchedEffect(dominantColorState, isLightTheme) {
-        snapshotFlow { dominantColorState.color }.collect {
-            topHeaderColor = if (isLightTheme) lerp(it, Color.White, 0.85f) else it.rgbFactor(0.3f)
-        }
+    sheetTrack?.let {
+        NowPlayingBottomSheet(onDismiss = { sheetTrack = null }, song = it.toSongEntity(), navController = navController)
     }
 
-    LaunchedEffect(browseId, params) {
-        viewModel.getBrowsePage(browseId, params)
-    }
-
-    if (bottomSheetShow) {
-        NowPlayingBottomSheet(
-            onDismiss = { bottomSheetShow = false },
-            song = track?.toSongEntity(),
-            navController = navController,
-        )
-    }
-
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .hazeSource(hazeState),
-        ) {
-            // Drawn before the list and scrolled away with it, as on Mix for you: the draw-phase
-            // translation tracks the first row and parks once it has passed.
-            Box(
-                Modifier
-                    .graphicsLayer {
-                        translationY =
-                            if (listState.firstVisibleItemIndex == 0) {
-                                -listState.firstVisibleItemScrollOffset.toFloat()
-                            } else {
-                                -size.height
-                            }
-                    }.fillMaxWidth()
-                    .height(AmbientGlowHeight)
-                    .angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(artworkScrimBrush(pageBackground)),
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+            item(key = "hero", contentType = "hero") {
+                MoodHero(
+                    color = MaterialTheme.colorScheme.primary,
+                    artwork = contents.firstOrNull()?.cover(),
+                    kicker = kicker,
+                    title = name,
+                    count = if (contents.isEmpty()) null else pluralStringResource(contents.countPlural(), contents.size, contents.size),
                 )
             }
-            Crossfade(targetState = uiState) { state ->
-                when (state) {
-                    is BrowseUIState.Success -> {
-                        BoxWithConstraints(Modifier.fillMaxSize()) {
-                            val cardRows =
-                                remember(state.page.contents, maxWidth) {
-                                    justifyRows(state.page.contents, maxWidth)
-                                }
-                            val moodColumns = maxOf(1, ((maxWidth + RowGap) / (MoodCellWidth + RowGap)).toInt())
-                            val moodRows =
-                                remember(state.page.moods, moodColumns) {
-                                    state.page.moods.chunked(moodColumns)
-                                }
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier.fillMaxSize(),
-                                // Padding rather than a spacer item, so the first item is a real row and
-                                // the glow hands off once a row has scrolled by, as on Mix for you.
-                                contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 64.dp),
-                                verticalArrangement = Arrangement.spacedBy(RowGap),
-                            ) {
-                                items(moodRows) { row ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(RowGap),
-                                    ) {
-                                        row.forEach { mood ->
-                                            Box(Modifier.weight(1f)) {
-                                                MoodMomentAndGenreHomeItem(
-                                                    title = mood.title,
-                                                    stripeColor = mood.stripeColor,
-                                                    fillMaxWidth = true,
-                                                ) {
-                                                    navController.navigate(MoodDestination(mood.params))
-                                                }
-                                            }
-                                        }
-                                        repeat(moodColumns - row.size) {
-                                            Spacer(Modifier.weight(1f))
-                                        }
-                                    }
-                                }
-                                items(cardRows) { row ->
-                                    Row(horizontalArrangement = Arrangement.spacedBy(RowGap)) {
-                                        row.forEach { card ->
-                                            Box(Modifier.width(card.width)) {
-                                                HomeContentCard(
-                                                    temp = card.content,
-                                                    navController = navController,
-                                                    viewModel = viewModel,
-                                                    onLongClick = {
-                                                        track = it.toTrack()
-                                                        bottomSheetShow = true
-                                                    },
-                                                    fillMaxWidth = true,
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                                item {
-                                    EndOfPage()
-                                }
+            when (val state = uiState) {
+                BrowseUIState.Loading ->
+                    item(key = "loading") {
+                        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                            CenterLoadingBox(Modifier.size(80.dp))
+                        }
+                    }
+
+                is BrowseUIState.Error ->
+                    item(key = "failed") {
+                        Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.mood_failed),
+                                style = typo().bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                            TextButton(onClick = { viewModel.getBrowsePage(browseId, params) }) {
+                                Text(stringResource(Res.string.retry), color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
 
-                    is BrowseUIState.Error -> {
-                        LaunchedEffect(state) {
-                            viewModel.makeToast(state.message)
+                is BrowseUIState.Success -> {
+                    // Only Moods & genres holds these.
+                    items(state.page.moods.chunked(2), contentType = { "moods" }) { two ->
+                        Row(
+                            Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            two.forEach { mood ->
+                                Box(Modifier.weight(1f)) {
+                                    MoodMomentAndGenreHomeItem(mood.title, mood.stripeColor, fillMaxWidth = true) {
+                                        navController.navigate(MoodDestination(mood.params, mood.stripeColor))
+                                    }
+                                }
+                            }
+                            if (two.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
-
-                    BrowseUIState.Loading -> {
-                        CenterLoadingBox(
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(15.dp),
-                        )
+                    items(contents.chunked(2), contentType = { "cards" }) { two ->
+                        Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            two.forEach { content ->
+                                val destination = content.pageDestination()
+                                val round = destination is ArtistDestination
+                                CoverCard(
+                                    cover = content.cover(),
+                                    title = content.title,
+                                    subtitle = content.description?.takeIf { it.isNotBlank() } ?: content.artists.toListName().connectArtists(),
+                                    modifier = Modifier.weight(1f),
+                                    ratio = if (round) 1f else ratio,
+                                    round = round,
+                                    // A song or video has the song menu, as on Home.
+                                    onLongClick = if (destination == null) ({ sheetTrack = content.toTrack() }) else null,
+                                ) { content.openHomeItem(navController, viewModel) }
+                            }
+                            if (two.size == 1) Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
+            item(key = "end") { EndOfPage() }
         }
-        // Transparent while the list sits at pixel zero, frosted the moment it scrolls — Mix for
-        // you's crossfade and frost recipe.
-        AnimatedContent(
-            targetState = isAtTop,
-            transitionSpec = {
-                fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
-            },
-        ) { atTop ->
-            Column(
-                Modifier.then(
-                    if (atTop) {
-                        Modifier.background(Color.Transparent)
-                    } else {
-                        Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(pageBackground, 0.3f))
-                    },
-                ),
-            ) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = (uiState as? BrowseUIState.Success)?.page?.title ?: title.orEmpty(),
-                            style = typo().titleMedium,
-                            maxLines = 1,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
-                        )
-                    },
-                    navigationIcon = {
-                        Box(Modifier.padding(horizontal = 5.dp)) {
-                            RippleIconButton(
-                                LimusicIcons.ArrowBackIosNew,
-                                Modifier
-                                    .size(32.dp),
-                                true,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            ) {
-                                navController.navigateUp()
-                            }
-                        }
-                    },
-                    colors =
-                        TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                        ),
-                )
-            }
-        }
+        HeroTopBar(listState, name) { navController.navigateUp() }
     }
 }
 
-private data class JustifiedCard(
-    val content: Content,
-    val width: Dp,
-)
+private fun Content.cover() = thumbnails.lastOrNull()?.url?.sizedThumbnail(544)
 
-/**
- * Packs [contents] into rows that fill [rowWidth] exactly, each card keeping its own thumbnail shape,
- * so every thumbnail in a row is the same height and the number of cards per row follows the shapes
- * in it. A row closes when the next card would take its height below [TargetThumbnailHeight] —
- * with or without that card, whichever lands closer. The last row keeps the target height instead
- * of stretching to fill.
- */
-// ponytail: greedy one-pass line breaking; a globally balanced break (Knuth–Plass style) only if
-// uneven row heights ever show.
-private fun justifyRows(
-    contents: List<Content>,
-    rowWidth: Dp,
-): List<List<JustifiedCard>> {
-    val target = TargetThumbnailHeight.value
-    val rows = mutableListOf<List<JustifiedCard>>()
-    var current = emptyList<Pair<Content, Float>>()
-
-    // The thumbnail height at which these cards exactly fill the row.
-    fun heightOf(row: List<Pair<Content, Float>>): Float {
-        val fixed = CardHorizontalPadding.value * row.size + RowGap.value * (row.size - 1)
-        return ((rowWidth.value - fixed) / row.sumOf { it.second.toDouble() }.toFloat()).coerceAtLeast(1f)
-    }
-
-    fun close(
-        row: List<Pair<Content, Float>>,
-        height: Float,
-    ) {
-        rows.add(row.map { (content, ratio) -> JustifiedCard(content, (CardHorizontalPadding.value + ratio * height).dp) })
-    }
-
-    for (content in contents) {
-        val candidate = current + (content to content.homeCardAspectRatio())
-        val height = heightOf(candidate)
-        when {
-            height > target -> {
-                current = candidate
-            }
-
-            current.isNotEmpty() && heightOf(current) - target < target - height -> {
-                close(current, heightOf(current))
-                current = listOf(candidate.last())
-            }
-
-            else -> {
-                close(candidate, height)
-                current = emptyList()
-            }
+/** "12 playlists" when the page holds one kind of thing, "12 items" when it mixes them. */
+private fun List<Content>.countPlural(): PluralStringResource =
+    map {
+        when (it.pageDestination()) {
+            is ArtistDestination -> Res.plurals.artists_count
+            is PlaylistDestination -> Res.plurals.playlists_count
+            is AlbumDestination -> Res.plurals.albums_count
+            null -> if (it.homeCardAspectRatio() != 1f) Res.plurals.videos_count else Res.plurals.liked_songs_count
+            else -> Res.plurals.items_count
         }
-    }
-    if (current.isNotEmpty()) close(current, minOf(target, heightOf(current)))
-    return rows
-}
+    }.distinct().singleOrNull() ?: Res.plurals.items_count

@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -103,25 +105,18 @@ fun MoodScreen(
     val sections = moodData?.items.orEmpty().filter { it.contents.isNotEmpty() }
     val title = moodData?.header.orEmpty()
     val listState = rememberLazyListState()
-    val density = LocalDensity.current
-    // The bar fills in once the name has scrolled up to it.
-    val barPx = with(density) { WindowInsets.statusBars.getTop(this) + 64.dp.roundToPx() }
-    val heroPx = with(density) { HERO.roundToPx() }
-    val pastHero by remember(barPx, heroPx) {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > heroPx - barPx - 40 }
-    }
     val open = { content: Content -> openMoodItem(content, navController, viewModel) }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             item(key = "hero", contentType = "hero") {
+                val playlists = sections.sumOf { s -> s.contents.count { it.videoId == null } }
                 MoodHero(
                     color = color?.let { Color(it) } ?: MaterialTheme.colorScheme.primary,
                     artwork = artwork ?: sections.firstOrNull()?.contents?.firstOrNull()?.cover(),
                     kicker = kicker,
                     title = title,
-                    playlists = sections.sumOf { s -> s.contents.count { it.videoId == null } },
-                    loaded = moodData != null,
+                    count = if (playlists > 0) pluralStringResource(Res.plurals.playlists_count, playlists, playlists) else null,
                 )
             }
             when {
@@ -152,7 +147,9 @@ fun MoodScreen(
                         }
                         items(section.contents.chunked(2), key = { "s$s:${it.first().id()}" }, contentType = { "cards" }) { two ->
                             Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                two.forEach { content -> MoodCard(content, Modifier.weight(1f)) { open(content) } }
+                                two.forEach { content ->
+                                    CoverCard(content.cover(), content.title, content.subtitle, Modifier.weight(1f)) { open(content) }
+                                }
                                 if (two.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
@@ -161,51 +158,65 @@ fun MoodScreen(
             item(key = "end") { EndOfPage() }
         }
 
-        // Back floats on the hero; once the name has gone under it, a bar with the name takes over.
-        AnimatedVisibility(visible = pastHero, enter = fadeIn(), exit = fadeOut()) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .height(64.dp)
-                    .padding(horizontal = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RippleIconButton(LimusicIcons.ArrowBackIosNew, Modifier.size(32.dp), true, MaterialTheme.colorScheme.onSurface) {
-                    navController.navigateUp()
-                }
-                Text(
-                    title,
-                    style = typo().titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
-        }
-        if (!pastHero) {
-            PillIconButton(
-                LimusicIcons.ArrowBackIosNew,
-                Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(12.dp).size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurface,
-            ) { navController.navigateUp() }
-        }
+        HeroTopBar(listState, title) { navController.navigateUp() }
     }
 }
 
-private val HERO = 300.dp
+internal val HERO = 300.dp
+
+/** Back floats on a [MoodHero]; once the name has gone under the top, a bar with the name takes over. */
+@Composable
+internal fun HeroTopBar(
+    listState: LazyListState,
+    title: String,
+    onBack: () -> Unit,
+) {
+    val density = LocalDensity.current
+    // The bar fills in once the name has scrolled up to it.
+    val barPx = with(density) { WindowInsets.statusBars.getTop(this) + 64.dp.roundToPx() }
+    val heroPx = with(density) { HERO.roundToPx() }
+    val pastHero by remember(barPx, heroPx) {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > heroPx - barPx - 40 }
+    }
+    AnimatedVisibility(visible = pastHero, enter = fadeIn(), exit = fadeOut()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .height(64.dp)
+                .padding(horizontal = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RippleIconButton(LimusicIcons.ArrowBackIosNew, Modifier.size(32.dp), true, MaterialTheme.colorScheme.onSurface, onClick = onBack)
+            Text(
+                title,
+                style = typo().titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+    }
+    if (!pastHero) {
+        PillIconButton(
+            LimusicIcons.ArrowBackIosNew,
+            Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(12.dp).size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurface,
+            onClick = onBack,
+        )
+    }
+}
 
 /** The tile, grown: its colour as a wash, its artwork faint in it, the page colour rising from below. */
 @Composable
-private fun MoodHero(
+internal fun MoodHero(
     color: Color,
     artwork: String?,
     kicker: String?,
     title: String,
-    playlists: Int,
-    loaded: Boolean,
+    count: String?,
 ) {
     val background = MaterialTheme.colorScheme.background
     // Clipped: a blur draws past its bounds, and the overflow sat as a strip under the first heading.
@@ -238,9 +249,9 @@ private fun MoodHero(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (loaded && playlists > 0) {
+            if (count != null) {
                 Text(
-                    pluralStringResource(Res.plurals.playlists_count, playlists, playlists),
+                    count,
                     style = typo().bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -250,39 +261,48 @@ private fun MoodHero(
     }
 }
 
+/** A cover over its title and line, filling a grid cell; round and centred for an artist. */
 @Composable
-private fun MoodCard(
-    content: Content,
+internal fun CoverCard(
+    cover: String?,
+    title: String,
+    subtitle: String,
     modifier: Modifier,
+    ratio: Float = 1f,
+    round: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val holder = rememberHolderPainter()
-    Column(modifier.clip(rounded(16.dp)).clickable(onClick = onClick).padding(4.dp)) {
+    val align = if (round) TextAlign.Center else TextAlign.Start
+    Column(modifier.clip(rounded(16.dp)).combinedClickable(onLongClick = onLongClick, onClick = onClick).padding(4.dp)) {
         AsyncImage(
-            model = content.cover(),
+            model = cover,
             placeholder = holder,
             error = holder,
             fallback = holder,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(rounded(14.dp)),
+            modifier = Modifier.fillMaxWidth().aspectRatio(ratio).clip(if (round) CircleShape else rounded(14.dp)),
         )
         Text(
-            content.title,
+            title,
             style = typo().titleSmall,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 8.dp, start = 2.dp, end = 2.dp),
+            textAlign = align,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, start = 2.dp, end = 2.dp),
         )
-        if (content.subtitle.isNotBlank()) {
+        if (subtitle.isNotBlank()) {
             Text(
-                content.subtitle,
+                subtitle,
                 style = typo().bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 2.dp, end = 2.dp, bottom = 8.dp),
+                textAlign = align,
+                modifier = Modifier.fillMaxWidth().padding(start = 2.dp, end = 2.dp, bottom = 8.dp),
             )
         }
     }

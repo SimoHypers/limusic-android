@@ -8,4 +8,6 @@ data class BrowseDestination(
     val params: String? = null,
     /** The home section's own title, shown when the page names none. */
     val title: String? = null,
+    /** The section's small line over its title, shown over the name. */
+    val kicker: String? = null,
 )

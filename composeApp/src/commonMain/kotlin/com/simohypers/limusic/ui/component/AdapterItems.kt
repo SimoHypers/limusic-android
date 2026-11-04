@@ -218,7 +218,7 @@ fun HomeSectionHeader(
                 Modifier
                     .focusable(true)
                     .clip(rounded(8.dp))
-                    .clickable { navController.navigateToMoreEndpoint(moreEndpoint, data.title) }
+                    .clickable { navController.navigateToMoreEndpoint(moreEndpoint, data.title, data.subtitle) }
             } else {
                 Modifier
             },
@@ -269,7 +269,7 @@ fun HomeSectionHeader(
         }
         if (moreEndpoint != null) {
             TextButton(
-                onClick = { navController.navigateToMoreEndpoint(moreEndpoint, data.title) },
+                onClick = { navController.navigateToMoreEndpoint(moreEndpoint, data.title, data.subtitle) },
                 colors =
                     ButtonDefaults
                         .textButtonColors()
@@ -293,8 +293,7 @@ fun HomeSectionHeader(
 
 /**
  * One shelf item, drawn as the card its ids call for, with Home's click handling: a song or video
- * starts its radio, anything else opens its page. Shared by Home's rows and the "More" page, so an
- * item behaves the same in both.
+ * starts its radio, anything else opens its page.
  */
 @Composable
 fun HomeContentCard(
@@ -302,72 +301,41 @@ fun HomeContentCard(
     navController: NavController,
     viewModel: BaseViewModel,
     onLongClick: (Content) -> Unit,
-    // Every card fills its grid cell, as on the "More" page; Home's rows keep the fixed sizes.
-    fillMaxWidth: Boolean = false,
 ) {
-    val browseId = temp.browseId
-    val playlistId = temp.playlistId
-    if ((playlistId != null && temp.videoId == null) || (playlistId != null && temp.videoId == "")) {
-        if (playlistId.startsWith("UC")) {
-            HomeItemArtist(onClick = {
-                navController.navigate(
-                    ArtistDestination(
-                        channelId = playlistId,
-                    ),
-                )
-            }, data = temp, fillMaxWidth = fillMaxWidth)
-        } else {
-            HomeItemContentPlaylist(onClick = {
-                navController.navigate(
-                    PlaylistDestination(
-                        playlistId = playlistId,
-                    ),
-                )
-            }, data = temp, fillMaxWidth = fillMaxWidth, onPlay = temp.hoverPlay(viewModel))
-        }
-    } else if ((browseId != null && temp.videoId == null) || (browseId != null && temp.videoId == "")) {
-        if (browseId.startsWith("UC")) {
-            HomeItemArtist(onClick = {
-                navController.navigate(
-                    ArtistDestination(
-                        channelId = browseId,
-                    ),
-                )
-            }, data = temp, fillMaxWidth = fillMaxWidth)
-        } else if (browseId.startsWith("MPSP")) {
-            HomeItemContentPlaylist(onClick = {
-                navController.navigate(
-                    PodcastDestination(
-                        podcastId = browseId,
-                    ),
-                )
-            }, data = temp, fillMaxWidth = fillMaxWidth, onPlay = temp.hoverPlay(viewModel))
-        } else {
-            HomeItemContentPlaylist(onClick = {
-                navController.navigate(
-                    AlbumDestination(
-                        browseId = browseId,
-                    ),
-                )
-            }, data = temp, fillMaxWidth = fillMaxWidth, onPlay = temp.hoverPlay(viewModel))
-        }
-    } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
-        HomeItemVideo(
-            onClick = { temp.playRadio(viewModel) },
-            onLongClick = { onLongClick(temp) },
-            data = temp,
-            fillMaxWidth = fillMaxWidth,
-            onPlay = temp.hoverPlay(viewModel),
-        )
-    } else {
-        HomeItemSong(
-            onClick = { temp.playRadio(viewModel) },
-            onLongClick = { onLongClick(temp) },
-            data = temp,
-            fillMaxWidth = fillMaxWidth,
-            onPlay = temp.hoverPlay(viewModel),
-        )
+    val page = temp.pageDestination()
+    val open = { temp.openHomeItem(navController, viewModel) }
+    when {
+        page is ArtistDestination -> HomeItemArtist(onClick = open, data = temp)
+        page != null -> HomeItemContentPlaylist(onClick = open, data = temp, onPlay = temp.hoverPlay(viewModel))
+        temp.homeCardAspectRatio() != 1f ->
+            HomeItemVideo(onClick = open, onLongClick = { onLongClick(temp) }, data = temp, onPlay = temp.hoverPlay(viewModel))
+        else -> HomeItemSong(onClick = open, onLongClick = { onLongClick(temp) }, data = temp, onPlay = temp.hoverPlay(viewModel))
     }
+}
+
+/**
+ * The page a Home item opens, from its ids: an artist (`UC`), playlist, podcast (`MPSP`) or album.
+ * Null for a song or video, which plays instead.
+ */
+fun Content.pageDestination(): Any? {
+    if (!videoId.isNullOrEmpty()) return null
+    playlistId?.let { return if (it.startsWith("UC")) ArtistDestination(channelId = it) else PlaylistDestination(playlistId = it) }
+    browseId?.let {
+        return when {
+            it.startsWith("UC") -> ArtistDestination(channelId = it)
+            it.startsWith("MPSP") -> PodcastDestination(podcastId = it)
+            else -> AlbumDestination(browseId = it)
+        }
+    }
+    return null
+}
+
+/** A tap on a Home item: its page, or for a song or video, its radio. */
+fun Content.openHomeItem(
+    navController: NavController,
+    viewModel: BaseViewModel,
+) {
+    pageDestination()?.let { navController.navigate(it) } ?: playRadio(viewModel)
 }
 
 /**
@@ -444,12 +412,11 @@ internal fun BoxScope.HoverPlayButton(
 
 /**
  * The thumbnail shape [HomeContentCard] draws for [this]: 16:9 for the video card, square for every
- * other card. It mirrors the card's dispatch, so a layout can size a row before drawing it.
+ * other card, so a layout can size a row before drawing it.
  */
 fun Content.homeCardAspectRatio(): Float {
-    val opensPage = (playlistId != null || browseId != null) && videoId.isNullOrEmpty()
     val wide = thumbnails.firstOrNull()?.width != thumbnails.firstOrNull()?.height
-    return if (!opensPage && wide) 16f / 9f else 1f
+    return if (pageDestination() == null && wide) 16f / 9f else 1f
 }
 
 internal fun Content.playRadio(viewModel: BaseViewModel) {
@@ -478,6 +445,7 @@ internal fun Content.playRadio(viewModel: BaseViewModel) {
 fun NavController.navigateToMoreEndpoint(
     endpoint: MoreEndpoint,
     title: String?,
+    kicker: String? = null,
 ) {
     when (endpoint.pageType) {
         MoreEndpoint.PAGE_TYPE_ALBUM, MoreEndpoint.PAGE_TYPE_AUDIOBOOK -> {
@@ -497,7 +465,7 @@ fun NavController.navigateToMoreEndpoint(
         }
 
         else -> {
-            navigate(BrowseDestination(browseId = endpoint.browseId, params = endpoint.params, title = title))
+            navigate(BrowseDestination(browseId = endpoint.browseId, params = endpoint.params, title = title, kicker = kicker?.takeIf { it.isNotBlank() }))
         }
     }
 }
