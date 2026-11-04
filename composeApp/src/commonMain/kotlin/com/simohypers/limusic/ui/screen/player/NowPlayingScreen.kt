@@ -289,6 +289,10 @@ fun NowPlayingScreenContent(
                 } else {
                     artworkPagerState.scrollToPage(target)
                 }
+                // A pager off screen (Classic's Queue or Lyrics view, Apple's Queue tab) has no
+                // layout to slide through, so the slide moves nothing and the page stays on the old
+                // track, its cover shown on return. A snap only sets the position, which holds.
+                if (artworkPagerState.currentPage != target) artworkPagerState.scrollToPage(target)
             } finally {
                 isAnimatingFromPlayer = false
             }
