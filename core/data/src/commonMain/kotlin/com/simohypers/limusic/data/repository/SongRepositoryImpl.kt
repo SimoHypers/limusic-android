@@ -50,12 +50,16 @@ import com.simohypers.limusic.kotlinytmusicscraper.pages.PlaylistPage
 import com.simohypers.limusic.common.Config
 import com.simohypers.limusic.domain.repository.PlaylistRepository
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.delay
+import com.simohypers.limusic.domain.data.player.PlaybackRefusals
 import kotlin.time.Clock
 
 private const val TAG = "SongRepositoryImpl"
-private const val LIKED_MUSIC_SYNCED = "liked_music_synced"
+private const val LIKED_MUSIC_NEXT = "liked_music_next"
 private const val LIKED_MUSIC_WALKED = "liked_music_walked"
 private const val LIKED_MUSIC_SYNC_EVERY_MS = 30 * 60 * 1000L
+private const val LIKED_MUSIC_BACKOFF_MS = 6 * 60 * 60 * 1000L
+private const val LIKED_MUSIC_PAGE_GAP_MS = 1500L
 private const val LIKED_MUSIC_MAX_PAGES = 50
 
 internal class SongRepositoryImpl(
@@ -563,18 +567,21 @@ internal class SongRepositoryImpl(
      * account reads the whole list, stores what the phone lacks, and unlikes what is no longer in
      * it. After that, unlikes made elsewhere come in through page rows and the play check.
      *
-     * The time is written before the fetch, so a failing sync waits its 30 minutes too.
-     * ponytail: capped at 50 pages (5000 likes); past that a first walk stops short and never
-     * unlikes, the same cap desktop's crawl has.
+     * Kept gentle for big libraries: pages 1.5 s apart, like someone scrolling; nothing while a bot
+     * check or a 429 has playback blocked; the next sync's time is written before the fetch, and a
+     * failed page pushes it 6 hours out, so a list that keeps failing is not retried every 30 min.
+     * ponytail: capped at 50 pages (5000 likes), desktop's cap. Past it the list isn't whole, so
+     * nothing is unliked, but it still counts as walked, or every sync would read 50 pages again.
      */
     override suspend fun syncLikedMusic() {
-        if (!librarySync.loggedIn() || !likedMusicSync.tryLock()) return
+        if (!librarySync.loggedIn() || PlaybackRefusals.blocked.value != null || !likedMusicSync.tryLock()) return
         try {
             val account = "${dataStoreManager.authUser.first()}|${dataStoreManager.pageId.first()}|${dataStoreManager.getString("AccountName").first()}"
             val now = Clock.System.now().toEpochMilliseconds()
-            val (at, syncedFor) = dataStoreManager.getString(LIKED_MUSIC_SYNCED).first()?.split(' ', limit = 2).orEmpty() + listOf("", "")
-            if (syncedFor == account && now - (at.toLongOrNull() ?: 0) < LIKED_MUSIC_SYNC_EVERY_MS) return
-            dataStoreManager.putString(LIKED_MUSIC_SYNCED, "$now $account")
+            val (nextAt, syncedFor) = dataStoreManager.getString(LIKED_MUSIC_NEXT).first()?.split(' ', limit = 2).orEmpty() + listOf("", "")
+            if (syncedFor == account && now < (nextAt.toLongOrNull() ?: 0)) return
+            suspend fun nextSyncIn(ms: Long) = dataStoreManager.putString(LIKED_MUSIC_NEXT, "${now + ms} $account")
+            nextSyncIn(LIKED_MUSIC_SYNC_EVERY_MS)
             val walked = dataStoreManager.getString(LIKED_MUSIC_WALKED).first() == account
             val likedBefore = withContext(Dispatchers.IO) { localDataSource.likedSongIds() }.toSet()
             val seen = mutableSetOf<String>()
@@ -586,7 +593,7 @@ internal class SongRepositoryImpl(
                     .data
                     ?.let { it.first.tracks to it.second }
             repeat(LIKED_MUSIC_MAX_PAGES) {
-                val (tracks, next) = page ?: return
+                val (tracks, next) = page ?: return nextSyncIn(LIKED_MUSIC_BACKOFF_MS)
                 withContext(Dispatchers.IO) {
                     localDataSource.insertSongs(tracks.map { it.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME) })
                 }
@@ -598,8 +605,10 @@ internal class SongRepositoryImpl(
                     Logger.d(TAG, "Liked Music walked: ${seen.size} likes")
                     return
                 }
+                delay(LIKED_MUSIC_PAGE_GAP_MS)
                 page = getContinueTrack("LM", next, fromPlaylist = true).first().let { (rows, token) -> rows?.let { it to token } }
             }
+            dataStoreManager.putString(LIKED_MUSIC_WALKED, account)
         } finally {
             likedMusicSync.unlock()
         }
