@@ -33,6 +33,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +61,7 @@ import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.extension.bytesToMB
 import com.simohypers.limusic.extension.isScrollingUp
 import com.simohypers.limusic.ui.component.ArtistFullWidthItems
+import com.simohypers.limusic.ui.component.CenterLoadingBox
 import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
 import com.simohypers.limusic.ui.component.SongFullWidthItems
@@ -222,13 +225,28 @@ private fun <T> LibraryList(
     LaunchedEffect(state) {
         snapshotFlow { state.firstVisibleItemIndex }.collect { onScrolling(it <= 1 || isScrollingUp) }
     }
+    // The loader stands in until the first list lands; after that a refresh keeps the list and
+    // shows the pull indicator, below the top bar like the Library grids.
+    val firstLoad = last == null && data is LocalResource.Loading
+    val refreshState = rememberPullToRefreshState()
     PullToRefreshBox(
-        isRefreshing = data is LocalResource.Loading,
+        isRefreshing = data is LocalResource.Loading && !firstLoad,
         onRefresh = onReload,
         modifier = Modifier.fillMaxSize(),
+        state = refreshState,
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = refreshState,
+                isRefreshing = data is LocalResource.Loading && !firstLoad,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = contentPadding.calculateTopPadding()),
+            )
+        },
     ) {
         LazyColumn(state = state, contentPadding = contentPadding) {
             content(list)
+            if (firstLoad) {
+                item { CenterLoadingBox(Modifier.fillMaxWidth().padding(32.dp)) }
+            }
             if (data !is LocalResource.Loading && list.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
