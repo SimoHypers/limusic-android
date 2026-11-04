@@ -50,6 +50,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -114,6 +116,9 @@ import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.LocalForceDarkText
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.HomeViewModel
+import com.simohypers.limusic.viewModel.Shortcut
+import com.simohypers.limusic.ui.screen.home.ItemMenu
+import com.simohypers.limusic.ui.screen.home.menuShortcut
 import com.simohypers.limusic.viewModel.base.BaseViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -482,19 +487,22 @@ fun HomeItemContentPlaylist(
     onPlay: (() -> Unit)? = null,
     // In place of the line the item would show under its title.
     subtitle: String? = null,
+    // What a long press opens the ⋮ menu on, desktop's right-click; null for no long press.
+    menu: Shortcut? = data.menuShortcut(),
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(thumbSize)
     val (hoverModifier, hovered) = rememberCardHover(enabled = onPlay != null)
+    // A count, not a flag: a second long press while the first menu still waits on a fetch gets a fresh one.
+    var menuRequest by remember { mutableIntStateOf(0) }
+    if (menu != null && menuRequest > 0) key(menuRequest) { ItemMenu(menu, onClose = { menuRequest = 0 }) }
     Box(
         Modifier
             .then(hoverModifier)
             .wrapContentSize()
             .focusable(true)
             .clip(rounded(8.dp))
-            .clickable {
-                onClick()
-            },
+            .combinedClickable(onLongClick = if (menu != null) ({ menuRequest++ }) else null, onClick = onClick),
     ) {
         Column(
             modifier =
@@ -1040,14 +1048,15 @@ fun HomeItemArtist(
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(LocalHomeCardSize.current)
+    val channelId = (data.pageDestination() as? ArtistDestination)?.channelId
+    var menuOpen by remember { mutableStateOf(false) }
+    if (menuOpen && channelId != null) ArtistMenu(channelId, onClose = { menuOpen = false })
     Box(
         Modifier
             .fillMaxSize()
             .focusable(true)
             .clip(rounded(8.dp))
-            .clickable {
-                onClick()
-            },
+            .combinedClickable(onLongClick = if (channelId != null) ({ menuOpen = true }) else null, onClick = onClick),
     ) {
         Column(
             modifier =

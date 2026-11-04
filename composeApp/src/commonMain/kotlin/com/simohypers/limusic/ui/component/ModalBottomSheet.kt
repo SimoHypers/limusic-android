@@ -38,6 +38,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -164,6 +165,8 @@ import com.simohypers.limusic.ui.icon.QueueMusic
 import com.simohypers.limusic.ui.icon.Remove
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Sensors
+import com.simohypers.limusic.ui.icon.Check
+import com.simohypers.limusic.ui.icon.PersonAdd
 import com.simohypers.limusic.ui.icon.Share
 import com.simohypers.limusic.ui.icon.Shuffle
 import com.simohypers.limusic.ui.icon.SelectAll
@@ -245,6 +248,9 @@ import limusic.composeapp.generated.resources.processing
 import limusic.composeapp.generated.resources.queue
 import limusic.composeapp.generated.resources.radio
 import limusic.composeapp.generated.resources.remove_shortcut
+import limusic.composeapp.generated.resources.add_to_shortcuts
+import limusic.composeapp.generated.resources.unfollow
+import limusic.composeapp.generated.resources.follow
 import limusic.composeapp.generated.resources.save_to_playlist
 import limusic.composeapp.generated.resources.search
 import limusic.composeapp.generated.resources.set
@@ -2012,8 +2018,8 @@ private fun ArtistPickRow(
 @ExperimentalMaterial3Api
 /**
  * The ⋮ menu of a YouTube playlist or an album, in Limusic desktop's order. A null action hides
- * its row: a radio has no radio of its own, only your own playlists can be edited, and only a
- * Home shortcut's menu can take it off Home.
+ * its row: a radio has no radio of its own and only your own playlists can be edited. The
+ * shortcut row says Add or Remove, whichever applies; neither shows on the page's own menu.
  */
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
@@ -2026,6 +2032,7 @@ fun PlaylistBottomSheet(
     onEditPlaylist: (() -> Unit)? = null,
     onDeletePlaylist: (() -> Unit)? = null,
     onRemoveShortcut: (() -> Unit)? = null,
+    onAddShortcut: (() -> Unit)? = null,
     onPlay: () -> Unit,
     onShufflePlay: () -> Unit,
     // Only from the page itself: a Home shortcut's menu has no rows to pick.
@@ -2084,9 +2091,7 @@ fun PlaylistBottomSheet(
                             shareUrl(shareTitle, shareLink)
                         }
                     }
-                    if (onRemoveShortcut != null) {
-                        ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
-                    }
+                    ShortcutRow(onAddShortcut, onRemoveShortcut, run)
                     if (onEditPlaylist != null) {
                         ActionButton(icon = LimusicIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
                     }
@@ -2111,6 +2116,19 @@ fun PlaylistBottomSheet(
  * (there is no YouTube playlist behind it), plus Move to YouTube Music when [onMoveToYouTube] is
  * given (signed in).
  */
+/** Desktop's Add to shortcuts / Remove from shortcuts row: whichever of the two is given. */
+@Composable
+internal fun ShortcutRow(
+    onAdd: (() -> Unit)?,
+    onRemove: (() -> Unit)?,
+    run: (() -> Unit) -> Unit,
+) {
+    when {
+        onRemove != null -> ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemove) }
+        onAdd != null -> ActionButton(icon = LimusicIcons.GridView, text = Res.string.add_to_shortcuts) { run(onAdd) }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistBottomSheet(
@@ -2122,9 +2140,66 @@ fun LocalPlaylistBottomSheet(
     onMoveToYouTube: (() -> Unit)?,
     onDelete: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onAddShortcut: (() -> Unit)? = null,
     onPlay: () -> Unit,
     onShufflePlay: () -> Unit,
     onSelectTracks: (() -> Unit)? = null,
+) {
+    MenuSheet(onDismiss) { run ->
+        PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
+        ActionButton(icon = LimusicIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
+        ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
+        ActionButton(icon = LimusicIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
+        if (onSelectTracks != null) {
+            ActionButton(icon = LimusicIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
+        }
+        ShortcutRow(onAddShortcut, onRemoveShortcut, run)
+        ActionButton(icon = LimusicIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
+        if (onMoveToYouTube != null) {
+            ActionButton(icon = LimusicIcons.Cloud, text = Res.string.move_to_youtube_music) { run(onMoveToYouTube) }
+        }
+        val danger = MaterialTheme.colorScheme.error
+        ActionButton(
+            icon = LimusicIcons.Delete,
+            text = Res.string.delete_playlist,
+            textColor = danger,
+            iconColor = danger,
+        ) { run(onDelete) }
+    }
+}
+
+/**
+ * An artist card's menu, desktop's card rows that Android has: radio, follow, share. A null action
+ * greys its row out, so the sheet keeps its size while the artist loads.
+ */
+@Composable
+fun ArtistBottomSheet(
+    onDismiss: () -> Unit,
+    followed: Boolean,
+    onStartRadio: (() -> Unit)?,
+    onFollow: (() -> Unit)?,
+    shareLink: String,
+) {
+    MenuSheet(onDismiss) { run ->
+        ActionButton(icon = LimusicIcons.Sensors, text = Res.string.start_radio, enable = onStartRadio != null) {
+            onStartRadio?.let(run)
+        }
+        ActionButton(
+            icon = if (followed) LimusicIcons.Check else LimusicIcons.PersonAdd,
+            text = if (followed) Res.string.unfollow else Res.string.follow,
+            enable = onFollow != null,
+        ) { onFollow?.let(run) }
+        val shareTitle = stringResource(Res.string.share)
+        ActionButton(icon = LimusicIcons.Share, text = Res.string.share) { shareUrl(shareTitle, shareLink) }
+    }
+}
+
+/** The ⋮ menus' frame: the card on the menu colour, a handle, then the rows. [content]'s run does an action, then closes. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MenuSheet(
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.(run: (() -> Unit) -> Unit) -> Unit,
 ) {
     AppThemeContent {
         val coroutineScope = rememberCoroutineScope()
@@ -2158,27 +2233,7 @@ fun LocalPlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    PlayActionRow(onPlay = { run(onPlay) }, onShufflePlay = { run(onShufflePlay) })
-                    ActionButton(icon = LimusicIcons.PlayCircle, text = Res.string.play_next) { run(onPlayNext) }
-                    ActionButton(icon = LimusicIcons.QueueMusic, text = Res.string.add_to_queue) { run(onAddToQueue) }
-                    ActionButton(icon = LimusicIcons.PlaylistAdd, text = Res.string.save_to_playlist) { run(onSaveToPlaylist) }
-                    if (onSelectTracks != null) {
-                        ActionButton(icon = LimusicIcons.SelectAll, text = Res.string.select_tracks) { run(onSelectTracks) }
-                    }
-                    if (onRemoveShortcut != null) {
-                        ActionButton(icon = LimusicIcons.GridView, text = Res.string.remove_shortcut) { run(onRemoveShortcut) }
-                    }
-                    ActionButton(icon = LimusicIcons.Edit, text = Res.string.edit_playlist) { run(onEditPlaylist) }
-                    if (onMoveToYouTube != null) {
-                        ActionButton(icon = LimusicIcons.Cloud, text = Res.string.move_to_youtube_music) { run(onMoveToYouTube) }
-                    }
-                    val danger = MaterialTheme.colorScheme.error
-                    ActionButton(
-                        icon = LimusicIcons.Delete,
-                        text = Res.string.delete_playlist,
-                        textColor = danger,
-                        iconColor = danger,
-                    ) { run(onDelete) }
+                    content(run)
                     EndOfModalBottomSheet()
                 }
             }

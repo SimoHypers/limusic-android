@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.screen.home.toShortcut
 import com.simohypers.limusic.ui.theme.rounded
 import com.simohypers.limusic.extension.shimmer
 import androidx.compose.runtime.setValue
@@ -181,6 +182,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                             // being pinned to thumbSize and cropped by a narrower cell.
                             fillMaxWidth = true,
                             subtitle = subtitleOf(item),
+                            menu = item.toShortcut(),
                         )
                     }
 

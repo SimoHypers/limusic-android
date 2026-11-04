@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.library
 
+import com.simohypers.limusic.ui.component.ArtistMenu
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -626,8 +627,10 @@ private fun ArtistCell(
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    if (menuOpen) ArtistMenu(artist.channelId, onClose = { menuOpen = false })
     Column(
-        modifier = modifier.clip(rounded(16.dp)).clickable(onClick = onClick).padding(8.dp),
+        modifier = modifier.clip(rounded(16.dp)).combinedClickable(onLongClick = { menuOpen = true }, onClick = onClick).padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Cover(artist.thumbnails?.sizedThumbnail(360), Modifier.fillMaxWidth().aspectRatio(1f).clip(CircleShape))

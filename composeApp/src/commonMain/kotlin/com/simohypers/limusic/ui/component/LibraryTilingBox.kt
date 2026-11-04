@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.component
 
+import com.simohypers.limusic.ui.screen.home.toShortcut
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -284,6 +285,7 @@ fun PlaylistShelf(
                 onClick = { navController.openLibraryItem(item) },
                 data = item,
                 thumbSize = ShelfThumb,
+                menu = item.toShortcut(),
             )
         }
         if (loading) {

@@ -1,5 +1,11 @@
 package com.simohypers.limusic.ui.screen.other
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import com.simohypers.limusic.viewModel.Shortcut
+import com.simohypers.limusic.ui.screen.home.menuShortcut
+import com.simohypers.limusic.ui.screen.home.ItemMenu
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,6 +80,8 @@ fun MoreAlbumsScreen(
     val albums = (uiState as? MoreAlbumsUIState.Success)?.albumItems.orEmpty()
     val title = stringResource(if (singles) Res.string.singles else Res.string.albums)
     val listState = rememberLazyListState()
+    var menuFor by remember { mutableStateOf<Shortcut?>(null) }
+    menuFor?.let { ItemMenu(it, onClose = { menuFor = null }) }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -119,12 +127,14 @@ fun MoreAlbumsScreen(
                     items(albums.chunked(2), contentType = { "cards" }) { two ->
                         Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             two.forEach { album ->
+                                val menu = album.menuShortcut()
                                 CoverCard(
                                     cover = album.thumbnails.lastOrNull()?.url?.sizedThumbnail(544),
                                     title = album.title,
                                     subtitle = album.year,
                                     modifier = Modifier.weight(1f),
                                     explicit = album.isExplicit,
+                                    onLongClick = menu?.let { { menuFor = it } },
                                 ) { navController.navigate(AlbumDestination(browseId = album.browseId)) }
                             }
                             if (two.size == 1) Spacer(Modifier.weight(1f))

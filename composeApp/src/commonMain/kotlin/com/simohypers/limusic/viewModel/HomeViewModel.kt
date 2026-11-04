@@ -15,6 +15,7 @@ import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.viewModel.base.BaseViewModel
 import org.koin.core.component.inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -83,9 +84,8 @@ class HomeViewModel(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     val shortcuts: StateFlow<List<Shortcut>> =
-        dataStoreManager
-            .getString(SHORTCUTS_KEY)
-            .map(Shortcut::parse)
+        Shortcut
+            .flow(dataStoreManager)
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Live counts for the Library collections pinned to Shortcuts. */
@@ -100,7 +100,7 @@ class HomeViewModel(
             .map(HomeLayout::parse)
             .stateIn(viewModelScope, SharingStarted.Eagerly, HomeLayout())
 
-    // One lock for both stores: each edit reads, changes and writes back a whole blob.
+    // Each edit reads, changes and writes back the whole blob. Shortcuts keep their own lock.
     private val storeLock = Mutex()
 
     init {
@@ -227,26 +227,8 @@ class HomeViewModel(
         }
     }
 
-    /** Pins [shortcut], or takes it off when it is already there. A full grid takes nothing. */
-    fun toggleShortcut(shortcut: Shortcut) =
-        editShortcuts { list ->
-            when {
-                list.any { it.sameAs(shortcut) } -> list.filterNot { it.sameAs(shortcut) }
-                list.size < Shortcut.MAX -> list + shortcut
-                else -> list
-            }
-        }
-
-    fun removeShortcut(shortcut: Shortcut) = editShortcuts { list -> list.filterNot { it.sameAs(shortcut) } }
-
-    private fun editShortcuts(change: (List<Shortcut>) -> List<Shortcut>) {
-        viewModelScope.launch {
-            // Read the store, not [shortcuts]: two quick taps would both see the list before either write.
-            storeLock.withLock {
-                val now = Shortcut.parse(dataStoreManager.getString(SHORTCUTS_KEY).first())
-                dataStoreManager.putString(SHORTCUTS_KEY, Shortcut.encode(change(now)))
-            }
-        }
+    fun toggleShortcut(shortcut: Shortcut) {
+        viewModelScope.launch { Shortcut.toggle(dataStoreManager, shortcut) }
     }
 
     /** Edit Home's changes land as they are made: Home behind the sheet is the preview. */
@@ -269,7 +251,6 @@ class HomeViewModel(
     }
 
     companion object {
-        private const val SHORTCUTS_KEY = "home_shortcuts"
         private const val HOME_LAYOUT_KEY = "home_layout"
 
         // Home params
@@ -301,11 +282,43 @@ data class Shortcut(
     /** [COLLECTION] is one of Library's four; its [id] is the LibraryDynamicPlaylistType params. */
     enum class Kind { COLLECTION, LOCAL_PLAYLIST, PLAYLIST, OWN_PLAYLIST, ALBUM, PODCAST }
 
-    fun sameAs(other: Shortcut) = kind == other.kind && id == other.id
+    // One playlist whether it came from your library or a feed card, with or without YouTube's VL.
+    fun sameAs(other: Shortcut) = kind.group() == other.kind.group() && id.removePrefix("VL") == other.id.removePrefix("VL")
+
+    private fun Kind.group() = if (this == Kind.OWN_PLAYLIST) Kind.PLAYLIST else this
 
     companion object {
         const val MAX = 8
+        private const val KEY = "home_shortcuts"
         private val json = Json { ignoreUnknownKeys = true }
+
+        // Home and every card menu write the one list, so the lock is the list's, not a view model's.
+        private val lock = Mutex()
+
+        fun flow(store: DataStoreManager): Flow<List<Shortcut>> = store.getString(KEY).map(::parse)
+
+        /** Pins [shortcut], or takes it off when it is already there. A full grid takes nothing. */
+        suspend fun toggle(
+            store: DataStoreManager,
+            shortcut: Shortcut,
+        ) = edit(store) { list ->
+            when {
+                list.any { it.sameAs(shortcut) } -> list.filterNot { it.sameAs(shortcut) }
+                list.size < MAX -> list + shortcut
+                else -> list
+            }
+        }
+
+        suspend fun remove(
+            store: DataStoreManager,
+            shortcut: Shortcut,
+        ) = edit(store) { list -> list.filterNot { it.sameAs(shortcut) } }
+
+        // Reads the store, not a collected copy: two quick taps would both see the list before either write.
+        private suspend fun edit(
+            store: DataStoreManager,
+            change: (List<Shortcut>) -> List<Shortcut>,
+        ) = lock.withLock { store.putString(KEY, encode(change(parse(store.getString(KEY).first())))) }
 
         fun parse(raw: String?): List<Shortcut> = raw?.let { runCatching { json.decodeFromString<List<Shortcut>>(it) }.getOrNull() }.orEmpty()
 

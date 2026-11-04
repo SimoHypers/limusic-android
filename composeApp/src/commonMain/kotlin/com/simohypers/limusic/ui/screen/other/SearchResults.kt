@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.component.ArtistMenu
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -340,7 +341,8 @@ private fun TopResultCard(
             else -> {}
         }
     }
-    // Artists have no menu sheet outside their page; their card is play and open only.
+    var artistMenu by remember { mutableStateOf(false) }
+    // The ⋮ button and a long press on the card, as desktop's ⋯ and right-click.
     val menu: (() -> Unit)? =
         when (top) {
             is SongsResult -> ({ onSongMenu(top.toTrack()) })
@@ -348,12 +350,14 @@ private fun TopResultCard(
                 loadAlbum()
                 albumMenu = true
             })
+            is ArtistsResult -> ({ artistMenu = true })
             else -> null
         }
     if (albumMenu && album != null && albumViewModel != null) {
         val uiState by albumViewModel.uiState.collectAsStateWithLifecycle()
         AlbumMenu(albumViewModel, uiState, album.browseId, onClose = { albumMenu = false })
     }
+    if (artistMenu && top is ArtistsResult) ArtistMenu(top.browseId, onClose = { artistMenu = false })
 
     val card = MaterialTheme.colorScheme.surfaceContainerHigh
     val shape = rounded(20.dp)
@@ -385,7 +389,7 @@ private fun TopResultCard(
         }
         Column {
             Row(
-                Modifier.fillMaxWidth().clickable(onClick = open).padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp),
+                Modifier.fillMaxWidth().combinedClickable(onLongClick = menu, onClick = open).padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 val coverShape = if (top is ArtistsResult) CircleShape else rounded(12.dp)
@@ -451,8 +455,10 @@ private fun ArtistCircle(
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    if (menuOpen) ArtistMenu(artist.browseId, onClose = { menuOpen = false })
     Column(
-        modifier.clip(rounded(8.dp)).clickable(onClick = onClick).padding(10.dp),
+        modifier.clip(rounded(8.dp)).combinedClickable(onLongClick = { menuOpen = true }, onClick = onClick).padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AsyncImage(

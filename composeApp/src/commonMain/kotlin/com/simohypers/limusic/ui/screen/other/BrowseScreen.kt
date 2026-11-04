@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.other
 
+import com.simohypers.limusic.ui.screen.home.ContentMenu
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -91,10 +92,12 @@ fun BrowseScreen(
     val ratio = if (contents.count { it.homeCardAspectRatio() != 1f } * 2 > contents.size) 16f / 9f else 1f
     val listState = rememberLazyListState()
     var sheetTrack by remember { mutableStateOf<Track?>(null) }
+    var cardMenu by remember { mutableStateOf<Content?>(null) }
 
     sheetTrack?.let {
         NowPlayingBottomSheet(onDismiss = { sheetTrack = null }, song = it.toSongEntity(), navController = navController)
     }
+    cardMenu?.let { ContentMenu(it, onClose = { cardMenu = null }) }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -159,8 +162,8 @@ fun BrowseScreen(
                                     modifier = Modifier.weight(1f),
                                     ratio = if (round) 1f else ratio,
                                     round = round,
-                                    // A song or video has the song menu, as on Home.
-                                    onLongClick = if (destination == null) ({ sheetTrack = content.toTrack() }) else null,
+                                    // A song or video has the song menu, as on Home; the rest their own.
+                                    onLongClick = if (destination == null) ({ sheetTrack = content.toTrack() }) else ({ cardMenu = content }),
                                 ) { content.openHomeItem(navController, viewModel) }
                             }
                             if (two.size == 1) Spacer(Modifier.weight(1f))

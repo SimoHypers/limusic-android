@@ -1,5 +1,7 @@
 package com.simohypers.limusic.ui.screen.home
 
+import androidx.compose.foundation.combinedClickable
+import com.simohypers.limusic.viewModel.Shortcut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -107,6 +109,10 @@ fun NotificationScreen(
     val isNew = { r: Release -> seenBefore.let { it == null || r.foundAt > it } }
     val openAlbum = { r: Release -> navController.navigate(AlbumDestination(browseId = r.browseId)) }
     val openArtist = { r: Release -> navController.navigate(ArtistDestination(channelId = r.channelId)) }
+    var menuFor by remember { mutableStateOf<Release?>(null) }
+    menuFor?.let { r ->
+        ItemMenu(Shortcut(Shortcut.Kind.ALBUM, r.browseId, r.title, r.artist, r.thumbnail), onClose = { menuFor = null })
+    }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Row(
@@ -140,7 +146,13 @@ fun NotificationScreen(
                 else -> {
                     val featured = list.first()
                     item(key = "featured", contentType = "featured") {
-                        FeaturedRelease(featured, isNew(featured), onOpen = { openAlbum(featured) }, onArtist = { openArtist(featured) })
+                        FeaturedRelease(
+                            featured,
+                            isNew(featured),
+                            onOpen = { openAlbum(featured) },
+                            onArtist = { openArtist(featured) },
+                            onLongClick = { menuFor = featured },
+                        )
                     }
                     val rest = list.drop(1)
                     var start = 0
@@ -157,7 +169,7 @@ fun NotificationScreen(
                                 Modifier.animateItem().padding(horizontal = 12.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
-                                two.forEach { r -> ReleaseCell(r, isNew(r), Modifier.weight(1f)) { openAlbum(r) } }
+                                two.forEach { r -> ReleaseCell(r, isNew(r), Modifier.weight(1f), onLongClick = { menuFor = r }) { openAlbum(r) } }
                                 if (two.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
@@ -196,6 +208,7 @@ private fun FeaturedRelease(
     new: Boolean,
     onOpen: () -> Unit,
     onArtist: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val background = MaterialTheme.colorScheme.background
     val shape = rounded(20.dp)
@@ -206,7 +219,7 @@ private fun FeaturedRelease(
             .fillMaxWidth()
             .clip(shape)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
-            .clickable(onClick = onOpen),
+            .combinedClickable(onLongClick = onLongClick, onClick = onOpen),
     ) {
         // Below Android 12 there is no blur, and a sharp cover behind the text is just noise.
         if (cover != null && isLyricsBlurSupported()) {
@@ -267,9 +280,10 @@ private fun ReleaseCell(
     release: Release,
     new: Boolean,
     modifier: Modifier,
+    onLongClick: () -> Unit,
     onClick: () -> Unit,
 ) {
-    Column(modifier.clip(rounded(16.dp)).clickable(onClick = onClick).padding(4.dp)) {
+    Column(modifier.clip(rounded(16.dp)).combinedClickable(onLongClick = onLongClick, onClick = onClick).padding(4.dp)) {
         Box {
             Cover(release.thumbnail?.sizedThumbnail(544), Modifier.fillMaxWidth().aspectRatio(1f).clip(rounded(14.dp)))
             if (new) NewTag(Modifier.align(Alignment.TopStart).padding(8.dp))

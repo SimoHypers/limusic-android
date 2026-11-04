@@ -1069,6 +1069,18 @@ class SharedViewModel(
     /** Bumped when one of your YouTube playlists is edited or deleted, so Library refetches its list. */
     val youTubePlaylistsVersion: StateFlow<Int> = _youTubePlaylistsVersion
 
+    /** Home's Shortcuts, for the card menus' Add to / Remove from shortcuts row on any page. */
+    val shortcuts: StateFlow<List<Shortcut>> =
+        Shortcut.flow(dataStoreManager).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun toggleShortcut(shortcut: Shortcut) {
+        viewModelScope.launch { Shortcut.toggle(dataStoreManager, shortcut) }
+    }
+
+    fun removeShortcut(shortcut: Shortcut) {
+        viewModelScope.launch { Shortcut.remove(dataStoreManager, shortcut) }
+    }
+
     fun youTubePlaylistsChanged() {
         _youTubePlaylistsVersion.value++
     }

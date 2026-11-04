@@ -1,5 +1,7 @@
 package com.simohypers.limusic.ui.screen.home
 
+import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
+import com.simohypers.limusic.ui.component.ArtistMenu
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -53,6 +55,15 @@ import com.simohypers.limusic.domain.data.model.browse.playlist.PlaylistState
 import com.simohypers.limusic.domain.data.model.library.LibraryOverview
 import com.simohypers.limusic.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.simohypers.limusic.domain.data.type.PlaylistType
+import com.simohypers.limusic.domain.data.type.HomeContentType
+import com.simohypers.limusic.domain.data.model.home.Content
+import com.simohypers.limusic.domain.data.model.browse.artist.ResultAlbum
+import com.simohypers.limusic.domain.data.model.browse.artist.ResultPlaylist
+import com.simohypers.limusic.domain.data.model.browse.artist.ResultSingle
+import com.simohypers.limusic.domain.utils.toListName
+import com.simohypers.limusic.ui.component.pageDestination
+import com.simohypers.limusic.viewModel.SharedViewModel
+import org.koin.compose.koinInject
 import com.simohypers.limusic.domain.utils.connectArtists
 import com.simohypers.limusic.domain.utils.isRadioPlaylistId
 import com.simohypers.limusic.ui.component.AlbumMenu
@@ -103,13 +114,14 @@ import limusic.composeapp.generated.resources.most_played
 import limusic.composeapp.generated.resources.playlist
 import limusic.composeapp.generated.resources.playlists
 import limusic.composeapp.generated.resources.remove_shortcut
+import limusic.composeapp.generated.resources.add_to_shortcuts
 import limusic.composeapp.generated.resources.shortcuts
 import limusic.composeapp.generated.resources.shortcuts_desc
 import limusic.composeapp.generated.resources.you
 
 /**
  * Desktop's Shortcuts: what you pinned from your library, two wide tiles to a row. "Add" opens
- * [ShortcutPicker]; a long press opens [ShortcutMenu].
+ * [ShortcutPicker]; a long press opens [ItemMenu].
  */
 @Composable
 fun ShortcutsSection(
@@ -183,33 +195,33 @@ fun ShortcutsSection(
         )
     }
     menuFor?.let { shortcut ->
-        key(menuRequest) {
-            ShortcutMenu(
-                shortcut = shortcut,
-                onRemove = { viewModel.removeShortcut(shortcut) },
-                onClose = { menuFor = null },
-            )
-        }
+        key(menuRequest) { ItemMenu(shortcut, onClose = { menuFor = null }) }
     }
 }
 
 /**
- * A long press: the shortcut's own ⋮ menu, the one its page shows, plus Remove from shortcuts. It
- * opens at once from what the shortcut knows while the page's view model loads behind it (one per
- * shortcut, kept with Home); rows that need the tracks wait for them. A collection or a podcast
- * has no ⋮ menu, so it gets Remove alone.
+ * A long press on a shortcut or a card: the ⋮ menu its page shows, plus Add to or Remove from
+ * shortcuts. It opens at once from what the card knows while the page's view model loads behind it
+ * (one per item, kept with the screen); rows that need the tracks wait for them. A collection or a
+ * podcast has no ⋮ menu, so it gets the shortcut row alone.
  */
 @Composable
-private fun ShortcutMenu(
-    shortcut: Shortcut,
-    onRemove: () -> Unit,
+fun ItemMenu(
+    item: Shortcut,
     onClose: () -> Unit,
 ) {
-    val vmKey = "shortcut:${shortcut.kind}:${shortcut.id}"
-    when (shortcut.kind) {
+    val sharedViewModel: SharedViewModel = koinInject()
+    val shortcuts by sharedViewModel.shortcuts.collectAsStateWithLifecycle()
+    val pinned = shortcuts.any { it.sameAs(item) }
+    val onRemove = { sharedViewModel.removeShortcut(item) }
+    val onRemoveShortcut = onRemove.takeIf { pinned }
+    // A full grid takes nothing, so it isn't offered.
+    val onAddShortcut = { sharedViewModel.toggleShortcut(item) }.takeIf { !pinned && shortcuts.size < Shortcut.MAX }
+    val vmKey = "menu:${item.kind}:${item.id}"
+    when (item.kind) {
         Shortcut.Kind.PLAYLIST, Shortcut.Kind.OWN_PLAYLIST -> {
             val viewModel: PlaylistViewModel = koinViewModel(key = vmKey)
-            val id = shortcut.id.removePrefix("VL")
+            val id = item.id.removePrefix("VL")
             // Also retries one that failed last time: the view model outlives the menu.
             LaunchedEffect(Unit) { if (viewModel.uiState.value.data == null) viewModel.getData(id) }
             PlaylistMenu(
@@ -217,16 +229,17 @@ private fun ShortcutMenu(
                 placeholder =
                     PlaylistState(
                         id = id,
-                        title = shortcut.title,
+                        title = item.title,
                         isRadio = id.isRadioPlaylistId(),
-                        author = Author(id = "", name = shortcut.subtitle.orEmpty()),
-                        thumbnail = shortcut.thumbnail,
+                        author = Author(id = "", name = item.subtitle.orEmpty()),
+                        thumbnail = item.thumbnail,
                         year = "",
                     ),
-                isYourYouTubePlaylist = shortcut.kind == Shortcut.Kind.OWN_PLAYLIST,
+                isYourYouTubePlaylist = item.kind == Shortcut.Kind.OWN_PLAYLIST,
                 onClose = onClose,
                 onDeleted = onRemove,
-                onRemoveShortcut = onRemove,
+                onRemoveShortcut = onRemoveShortcut,
+                onAddShortcut = onAddShortcut,
             )
         }
 
@@ -234,41 +247,115 @@ private fun ShortcutMenu(
             val viewModel: AlbumViewModel = koinViewModel(key = vmKey)
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(Unit) {
-                if (viewModel.uiState.value.loadState != LocalPlaylistState.PlaylistLoadState.Success) viewModel.updateBrowseId(shortcut.id)
+                if (viewModel.uiState.value.loadState != LocalPlaylistState.PlaylistLoadState.Success) viewModel.updateBrowseId(item.id)
             }
-            AlbumMenu(viewModel, uiState, shortcut.id, onClose = onClose, onRemoveShortcut = onRemove)
+            AlbumMenu(viewModel, uiState, item.id, onClose = onClose, onRemoveShortcut = onRemoveShortcut, onAddShortcut = onAddShortcut)
         }
 
         Shortcut.Kind.LOCAL_PLAYLIST -> {
             val viewModel: LocalPlaylistViewModel = koinViewModel(key = vmKey)
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            val id = shortcut.id.toLongOrNull()
+            val id = item.id.toLongOrNull()
             LaunchedEffect(Unit) { if (id != null && uiState.id != id) viewModel.updatePlaylistState(id) }
             // A local read, a few milliseconds: the menu waits for it rather than guess the Sync row.
             if (id != null && uiState.id == id) {
-                LocalPlaylistMenu(viewModel, uiState, onClose = onClose, onDeleted = onRemove, onRemoveShortcut = onRemove)
+                LocalPlaylistMenu(
+                    viewModel,
+                    uiState,
+                    onClose = onClose,
+                    onDeleted = onRemove,
+                    onRemoveShortcut = onRemoveShortcut,
+                    onAddShortcut = onAddShortcut,
+                )
             }
         }
 
         Shortcut.Kind.COLLECTION, Shortcut.Kind.PODCAST -> {
-            SettingSheet(title = shortcut.displayTitle(), onDismiss = onClose) { colors ->
+            val toggle = onRemoveShortcut ?: onAddShortcut
+            // Not pinned and the grid is full: nothing to offer.
+            if (toggle == null) {
+                LaunchedEffect(Unit) { onClose() }
+                return
+            }
+            SettingSheet(title = item.displayTitle(), onDismiss = onClose) { colors ->
                 Row(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .clip(rounded(10.dp))
                             .clickable {
-                                onRemove()
+                                toggle()
                                 onClose()
                             }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(LimusicIcons.GridView, contentDescription = null, tint = colors.content)
                     Spacer(Modifier.width(12.dp))
-                    Text(stringResource(Res.string.remove_shortcut), style = typo().labelSmall, color = colors.content)
+                    Text(
+                        stringResource(if (pinned) Res.string.remove_shortcut else Res.string.add_to_shortcuts),
+                        style = typo().labelSmall,
+                        color = colors.content,
+                    )
                 }
             }
         }
+    }
+}
+
+/** A feed card's long press: [ArtistMenu] for an artist, else [ItemMenu]. A song or video has the song menu. */
+@Composable
+fun ContentMenu(
+    content: Content,
+    onClose: () -> Unit,
+) {
+    val artist = (content.pageDestination() as? ArtistDestination)?.channelId
+    val item = content.menuShortcut()
+    when {
+        artist != null -> ArtistMenu(artist, onClose)
+        item != null -> ItemMenu(item, onClose)
+        else -> LaunchedEffect(Unit) { onClose() }
+    }
+}
+
+/**
+ * What a card's long press opens [ItemMenu] on, from what the card holds. Null when the card has no
+ * such menu: a song or video has the song menu, an artist [ArtistMenu], a mood tile nothing. A
+ * playlist from search or a feed is taken as someone else's (its menu still finds out once it
+ * loads); Library's grids, which know yours, pass [toShortcut] instead.
+ */
+@Composable
+fun HomeContentType.menuShortcut(): Shortcut? {
+    val thumb =
+        when (this) {
+            is Content -> thumbnails.lastOrNull()?.url
+            is ResultAlbum -> thumbnails.lastOrNull()?.url
+            is ResultSingle -> thumbnails.lastOrNull()?.url
+            is ResultPlaylist -> thumbnails.lastOrNull()?.url
+            is PlaylistsResult -> thumbnails.lastOrNull()?.url
+            else -> null
+        }
+    return when (this) {
+        is Content ->
+            when (val page = pageDestination()) {
+                is PlaylistDestination -> Shortcut(Shortcut.Kind.PLAYLIST, page.playlistId, title, description, thumb)
+                is AlbumDestination ->
+                    Shortcut(Shortcut.Kind.ALBUM, page.browseId, title, artists.toListName().connectArtists().ifBlank { null }, thumb)
+                is PodcastDestination -> Shortcut(Shortcut.Kind.PODCAST, page.podcastId, title, description, thumb)
+                else -> null
+            }
+        is PlaylistsResult ->
+            Shortcut(
+                if (playlistType() == PlaylistType.Type.PODCAST) Shortcut.Kind.PODCAST else Shortcut.Kind.PLAYLIST,
+                browseId,
+                title,
+                author,
+                thumb,
+            )
+        is ResultAlbum -> Shortcut(Shortcut.Kind.ALBUM, browseId, title, year, thumb)
+        is ResultSingle -> Shortcut(Shortcut.Kind.ALBUM, browseId, title, year, thumb)
+        is ResultPlaylist -> Shortcut(Shortcut.Kind.PLAYLIST, id, title, author, thumb)
+        is PlaylistType -> toShortcut()
+        else -> null
     }
 }
 
@@ -505,7 +592,7 @@ private fun LibraryDynamicPlaylistType.toShortcut() = Shortcut(Shortcut.Kind.COL
 
 /** What a Library card says about [this], as a Shortcut; the kinds match `openLibraryItem`. */
 @Composable
-private fun PlaylistType.toShortcut(): Shortcut? =
+fun PlaylistType.toShortcut(): Shortcut? =
     when (this) {
         is LocalPlaylistEntity -> Shortcut(Shortcut.Kind.LOCAL_PLAYLIST, id.toString(), title, stringResource(Res.string.you), thumbnail)
         is PlaylistsResult -> Shortcut(Shortcut.Kind.OWN_PLAYLIST, browseId, title, author, thumbnails.lastOrNull()?.url)

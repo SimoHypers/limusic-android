@@ -752,6 +752,9 @@
     <string name="add_shortcut">Add a shortcut</string>
     <string name="shortcuts_desc">Whatever you reach for most, one tap from Home. Pick from your library.</string>
     <string name="remove_shortcut">Remove from shortcuts</string>
+    <string name="add_to_shortcuts">Add to shortcuts</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
     <string name="playback_refused">YouTube won't play this song: %1$s</string>
     <string name="play">Play</string>
     <string name="shuffle_play">Shuffle play</string>

@@ -18,6 +18,8 @@ import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.expect.ui.persistPickedImage
 import com.simohypers.limusic.viewModel.AlbumUIState
 import com.simohypers.limusic.viewModel.AlbumViewModel
+import com.simohypers.limusic.viewModel.ArtistScreenState
+import com.simohypers.limusic.viewModel.ArtistViewModel
 import com.simohypers.limusic.viewModel.LocalPlaylistState
 import com.simohypers.limusic.viewModel.LocalPlaylistUIEvent
 import com.simohypers.limusic.viewModel.LocalPlaylistViewModel
@@ -76,6 +78,7 @@ fun PlaylistMenu(
     onClose: () -> Unit,
     onDeleted: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onAddShortcut: (() -> Unit)? = null,
     onSelectTracks: (() -> Unit)? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
@@ -117,6 +120,7 @@ fun PlaylistMenu(
                 },
             onDeletePlaylist = if (own) ({ deleting = true }) else null,
             onRemoveShortcut = onRemoveShortcut,
+            onAddShortcut = onAddShortcut,
             onPlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.PlayAll) } },
             onShufflePlay = { viewModel.afterLoad { viewModel.onUIEvent(PlaylistUIEvent.Shuffle) } },
             onSelectTracks = onSelectTracks,
@@ -167,6 +171,7 @@ fun AlbumMenu(
     browseId: String,
     onClose: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onAddShortcut: (() -> Unit)? = null,
     onSelectTracks: (() -> Unit)? = null,
 ) {
     val sharedViewModel: SharedViewModel = koinInject()
@@ -192,6 +197,7 @@ fun AlbumMenu(
                 viewModel.afterLoad(onDone = { fetching = false }) { saveTracks = it.listTrack }
             },
             onRemoveShortcut = onRemoveShortcut,
+            onAddShortcut = onAddShortcut,
             onPlay = { viewModel.afterLoad { album -> album.listTrack.firstOrNull()?.let(viewModel::playTrack) } },
             onShufflePlay = { viewModel.afterLoad { viewModel.shuffle() } },
             onSelectTracks = onSelectTracks,
@@ -207,6 +213,7 @@ fun LocalPlaylistMenu(
     onClose: () -> Unit,
     onDeleted: () -> Unit,
     onRemoveShortcut: (() -> Unit)? = null,
+    onAddShortcut: (() -> Unit)? = null,
     // The playlist is on YouTube now and gone from here; by default that is a delete.
     onMoved: (youTubeId: String) -> Unit = { onDeleted() },
     onSelectTracks: (() -> Unit)? = null,
@@ -238,6 +245,7 @@ fun LocalPlaylistMenu(
             onMoveToYouTube = { moving = true }.takeIf { signedIn == DataStoreManager.TRUE && uiState.ytPlaylistId == null },
             onDelete = { deleting = true },
             onRemoveShortcut = onRemoveShortcut,
+            onAddShortcut = onAddShortcut,
             onPlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick) },
             onShufflePlay = { viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick) },
             onSelectTracks = onSelectTracks,
@@ -284,6 +292,30 @@ fun LocalPlaylistMenu(
             }
         }
     }
+}
+
+/**
+ * An artist card's long press. It opens at once; the artist page loads behind it (a view model per
+ * artist, kept with the screen), and radio and follow grey out until it is in.
+ */
+@Composable
+fun ArtistMenu(
+    channelId: String,
+    onClose: () -> Unit,
+) {
+    val viewModel: ArtistViewModel = koinViewModel(key = "menu:artist:$channelId")
+    val state by viewModel.artistScreenState.collectAsStateWithLifecycle()
+    val followed by viewModel.followed.collectAsStateWithLifecycle()
+    // Also retries one that failed last time: the view model outlives the menu.
+    LaunchedEffect(Unit) { if (viewModel.artistScreenState.value !is ArtistScreenState.Success) viewModel.browseArtist(channelId) }
+    val loaded = state is ArtistScreenState.Success
+    ArtistBottomSheet(
+        onDismiss = onClose,
+        followed = followed,
+        onStartRadio = state.data.radioParam?.takeIf { loaded }?.let { { viewModel.onRadioClick(it) } },
+        onFollow = { viewModel.updateFollowed(if (followed) 0 else 1, channelId) }.takeIf { loaded },
+        shareLink = "https://music.youtube.com/channel/$channelId",
+    )
 }
 
 @Composable

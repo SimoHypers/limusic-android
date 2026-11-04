@@ -731,11 +731,20 @@ fun ArtistFullWidthItems(
             is ArtistsResult -> Pair(data.artist, data.thumbnails.lastOrNull()?.url)
             else -> Pair("", null)
         }
+    val channelId =
+        when (data) {
+            is ArtistEntity -> data.channelId
+            is ArtistsResult -> data.browseId
+            else -> null
+        }
+    var menuOpen by remember { mutableStateOf(false) }
+    if (menuOpen && channelId != null) ArtistMenu(channelId, onClose = { menuOpen = false })
     Box(
         modifier
-            .clickable {
-                onClickListener?.invoke()
-            },
+            .combinedClickable(
+                onLongClick = if (channelId != null) ({ menuOpen = true }) else null,
+                onClick = { onClickListener?.invoke() },
+            ),
     ) {
         Row(
             Modifier

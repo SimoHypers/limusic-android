@@ -1,5 +1,10 @@
 package com.simohypers.limusic.ui.screen.home
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import com.simohypers.limusic.domain.utils.toSongEntity
+import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
+import com.simohypers.limusic.viewModel.Shortcut
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -108,6 +113,18 @@ fun MoodScreen(
     val title = moodData?.header.orEmpty()
     val listState = rememberLazyListState()
     val open = { content: Content -> openMoodItem(content, navController, viewModel) }
+    var sheetTrack by remember { mutableStateOf<Track?>(null) }
+    var menuFor by remember { mutableStateOf<Shortcut?>(null) }
+    sheetTrack?.let { NowPlayingBottomSheet(onDismiss = { sheetTrack = null }, song = it.toSongEntity(), navController = navController) }
+    menuFor?.let { ItemMenu(it, onClose = { menuFor = null }) }
+    val longPress = { content: Content ->
+        val track = content.toTrack()
+        if (track != null) {
+            sheetTrack = track
+        } else {
+            menuFor = Shortcut(Shortcut.Kind.PLAYLIST, content.playlistBrowseId, content.title, content.subtitle, content.cover())
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -150,7 +167,13 @@ fun MoodScreen(
                         items(section.contents.chunked(2), key = { "s$s:${it.first().id()}" }, contentType = { "cards" }) { two ->
                             Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 two.forEach { content ->
-                                    CoverCard(content.cover(), content.title, content.subtitle, Modifier.weight(1f)) { open(content) }
+                                    CoverCard(
+                                        content.cover(),
+                                        content.title,
+                                        content.subtitle,
+                                        Modifier.weight(1f),
+                                        onLongClick = { longPress(content) },
+                                    ) { open(content) }
                                 }
                                 if (two.size == 1) Spacer(Modifier.weight(1f))
                             }
@@ -340,37 +363,41 @@ private fun openMoodItem(
     navController: NavController,
     viewModel: MoodViewModel,
 ) {
-    val videoId = content.videoId
-    if (videoId == null) {
+    val track = content.toTrack()
+    if (track == null) {
         navController.navigate(PlaylistDestination(playlistId = content.playlistBrowseId))
         return
     }
-    val track =
-        Track(
-            album = null,
-            artists = listOf(Artist(id = null, name = content.subtitle)),
-            duration = null,
-            durationSeconds = null,
-            isAvailable = true,
-            isExplicit = false,
-            likeStatus = null,
-            thumbnails = content.thumbnails,
-            title = content.title,
-            videoId = videoId,
-            videoType = null,
-            category = null,
-            feedbackTokens = null,
-            resultType = null,
-        )
     viewModel.setQueueData(
         QueueData.Data(
             listTracks = arrayListOf(track),
             firstPlayedTrack = track,
-            playlistId = "RDAMVM$videoId",
+            playlistId = "RDAMVM${track.videoId}",
             playlistName = "\"${content.title}\" Radio",
             playlistType = PlaylistType.RADIO,
             continuation = null,
         ),
     )
     viewModel.loadMediaItem(track, type = Config.SONG_CLICK)
+}
+
+/** A song from a "Songs" section as a Track; null for a playlist. */
+private fun Content.toTrack(): Track? {
+    val videoId = videoId ?: return null
+    return Track(
+        album = null,
+        artists = listOf(Artist(id = null, name = subtitle)),
+        duration = null,
+        durationSeconds = null,
+        isAvailable = true,
+        isExplicit = false,
+        likeStatus = null,
+        thumbnails = thumbnails,
+        title = title,
+        videoId = videoId,
+        videoType = null,
+        category = null,
+        feedbackTokens = null,
+        resultType = null,
+    )
 }
