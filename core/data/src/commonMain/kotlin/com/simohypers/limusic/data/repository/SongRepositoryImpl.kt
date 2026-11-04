@@ -11,6 +11,7 @@ import com.simohypers.limusic.data.mapping.toWatchEndpoint
 import com.simohypers.limusic.domain.data.entities.QueueEntity
 import com.simohypers.limusic.domain.data.entities.DownloadState
 import com.simohypers.limusic.domain.data.entities.SongEntity
+import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.domain.data.entities.SongInfoEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.download.DownloadCount
@@ -531,6 +532,11 @@ internal class SongRepositoryImpl(
         val epoch = likeEpoch
         val info = withContext(Dispatchers.IO) { youTube.getWatchInfo(videoId) }.getOrNull() ?: return null
         val row = info.row?.toTrack()
+        // The same answer fills a song stored without links, at no extra request.
+        if (row != null && localDataSource.getSong(videoId)?.missesLinks() == true) {
+            linkLookups.add(videoId)
+            localDataSource.insertSong(row.toSongEntity())
+        }
         val status = info.likeStatus ?: return row
         // A like still on its way up wins over what YouTube says now.
         if (epoch != likeEpoch || librarySync.isUnsynced(LibrarySync.song(videoId))) return row
@@ -539,6 +545,20 @@ internal class SongRepositoryImpl(
         if (song.liked != liked) localDataSource.updateLiked(if (liked) 1 else 0, videoId)
         if ((song.likeStatus == LikeStatus.DISLIKE.name) != (status == LikeStatus.DISLIKE)) localDataSource.updateLikeStatus(status.name, videoId)
         return row
+    }
+
+    // Songs this run already asked about, so a video (which has no album) is asked once, not on
+    // every menu. ponytail: unsynchronised set; a race costs one duplicate request at most.
+    private val linkLookups = mutableSetOf<String>()
+
+    private fun SongEntity.missesLinks() = artistId.orEmpty().none { it.isNotBlank() } || albumId.isNullOrBlank()
+
+    override suspend fun fillMissingLinks(videoId: String) {
+        val song = localDataSource.getSong(videoId) ?: return
+        if (!song.missesLinks() || !linkLookups.add(videoId)) return
+        val row = withContext(Dispatchers.IO) { youTube.getWatchInfo(videoId) }.getOrNull()?.row ?: return
+        // An existing row takes only the repairs: links where it had none, an album where it had none.
+        localDataSource.insertSong(row.toTrack().toSongEntity())
     }
 
     override fun downloadToFile(

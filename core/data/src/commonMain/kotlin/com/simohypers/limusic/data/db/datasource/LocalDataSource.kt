@@ -205,7 +205,7 @@ internal class LocalDataSource(
             }
             val artistName = song.artistName
             if (!artistName.isNullOrEmpty()) {
-                databaseDao.refreshArtists(
+                databaseDao.refreshArtistsKeepingLinks(
                     videoId = song.videoId,
                     artistName = artistName,
                     artistId = song.artistId,

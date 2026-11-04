@@ -162,6 +162,9 @@ class NowPlayingBottomSheetViewModel(
                         }
                     }
                 }
+                // A song stored from a card that named its artists in plain text gains its links
+                // here; the flow above redraws the menu with Go to artist / Go to album.
+                songRepository.fillMissingLinks(it)
             }
         }
     }

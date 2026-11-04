@@ -286,7 +286,7 @@ interface DatabaseDao {
                 }
                 val artistName = song.artistName
                 if (!artistName.isNullOrEmpty()) {
-                    refreshArtists(
+                    refreshArtistsKeepingLinks(
                         videoId = song.videoId,
                         artistName = artistName,
                         artistId = song.artistId,
@@ -294,6 +294,21 @@ interface DatabaseDao {
                 }
             }
         }
+    }
+
+    /**
+     * [refreshArtists], except that a list with fewer artist links never replaces one with more.
+     * Some cards name their artists as one plain run ("Daryl Hall, John Oates", no id), and seeing
+     * the song on one of them must not cost the song menu its Go to artist.
+     */
+    suspend fun refreshArtistsKeepingLinks(
+        videoId: String,
+        artistName: List<String>,
+        artistId: List<String>?,
+    ) {
+        val links = artistId.orEmpty().count { it.isNotBlank() }
+        if (links < getSong(videoId)?.artistId.orEmpty().count { it.isNotBlank() }) return
+        refreshArtists(videoId, artistName, artistId)
     }
 
     /**
@@ -327,12 +342,13 @@ interface DatabaseDao {
      * never learns the corrected list on its own.
      *
      * The WHERE clause is the safety catch, exactly as in [refreshAlbumIfPlaceholder]: the update
-     * only lands when the stored list actually differs from the fresh one, so repeatedly seeing
-     * the same track costs nothing and a caller cannot rewrite a row with what it already holds.
+     * only lands when the stored list actually differs from the fresh one (names or links), so
+     * repeatedly seeing the same track costs nothing and a caller cannot rewrite a row with what
+     * it already holds. Call it through [refreshArtistsKeepingLinks].
      */
     @Query(
         "UPDATE song SET artistName = :artistName, artistId = :artistId " +
-            "WHERE videoId = :videoId AND artistName IS NOT :artistName",
+            "WHERE videoId = :videoId AND (artistName IS NOT :artistName OR artistId IS NOT :artistId)",
     )
     suspend fun refreshArtists(
         videoId: String,

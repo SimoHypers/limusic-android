@@ -176,6 +176,12 @@ interface SongRepository {
      */
     suspend fun refreshLikeFromYouTube(videoId: String): Track?
 
+    /**
+     * The stored song names no linked artist or no album (a card sent its artists as plain text):
+     * fill them from the song's own queue row on YouTube. One request, once per song per run.
+     */
+    suspend fun fillMissingLinks(videoId: String)
+
     fun downloadToFile(
         track: Track,
         path: String,
