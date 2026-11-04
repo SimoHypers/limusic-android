@@ -65,6 +65,7 @@ import limusic.composeapp.generated.resources.clear_player_cache
 import limusic.composeapp.generated.resources.clear_thumbnail_cache
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.log_out_confirm_message
+import limusic.composeapp.generated.resources.proxy_saved_restart_to_apply
 import limusic.composeapp.generated.resources.restore_failed
 import limusic.composeapp.generated.resources.restore_in_progress
 import limusic.composeapp.generated.resources.romanization_japanese_dict_failed
@@ -654,6 +655,7 @@ class SettingsViewModel(
             dataStoreManager.setUsingProxy(usingProxy)
             getUsingProxy()
             getProxy()
+            proxyNeedsRestart()
         }
     }
 
@@ -708,6 +710,7 @@ class SettingsViewModel(
             dataStoreManager.setProxyType(proxyType)
             dataStoreManager.setProxyHost(host)
             dataStoreManager.setProxyPort(port)
+            proxyNeedsRestart()
         }
     }
 
@@ -719,8 +722,12 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setProxyUsername(username)
             dataStoreManager.setProxyPassword(password)
+            proxyNeedsRestart()
         }
     }
+
+    /** Every client reads the proxy once, at startup (CommonRepositoryImpl, getJVMProxy). */
+    private suspend fun proxyNeedsRestart() = makeToast(getString(Res.string.proxy_saved_restart_to_apply))
 
     fun getThumbCacheSize(context: PlatformContext) {
         viewModelScope.launch {

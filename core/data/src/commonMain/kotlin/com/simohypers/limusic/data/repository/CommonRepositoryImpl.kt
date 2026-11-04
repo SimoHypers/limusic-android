@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -113,8 +114,12 @@ internal class CommonRepositoryImpl(
                         dataStoreManager.proxyPassword,
                     ) { (enabled, baseData), username, password ->
                         enabled to baseData.copy(username = username, password = password)
-                    }.distinctUntilChanged().collectLatest { (usingProxy, data) ->
-                        if (usingProxy) {
+                    }.first().let { (usingProxy, data) ->
+                        // Read once, at startup, like the player and downloads (getJVMProxy): a stream
+                        // URL only plays from the IP that looked it up, so a live switch here sent
+                        // lookups one way and streams the other until a restart. Settings says
+                        // "restart to apply", as on desktop. No host is no proxy.
+                        if (usingProxy && data.host.isNotBlank()) {
                             withContext(Dispatchers.IO) {
                                 // Set SOCKS proxy authenticator if credentials are provided
                                 if (data.type == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS &&

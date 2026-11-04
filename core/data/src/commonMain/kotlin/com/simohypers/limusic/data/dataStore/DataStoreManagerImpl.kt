@@ -771,9 +771,11 @@ internal class DataStoreManagerImpl(
     override fun getJVMProxy(): ProxyConfiguration? =
         runBlocking {
             try {
-                if (usingProxy.first() == TRUE) {
+                // A switch turned on with no host is no proxy: "" resolves to localhost, and the
+                // player then sent every stream to [::1]:8000.
+                val proxyHost = proxyHost.first()
+                if (usingProxy.first() == TRUE && proxyHost.isNotBlank()) {
                     val proxyType = proxyType.first()
-                    val proxyHost = proxyHost.first()
                     val proxyPort = proxyPort.first()
                     val proxyUsername = proxyUsername.first()
                     val proxyPassword = proxyPassword.first()

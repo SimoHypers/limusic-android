@@ -1007,4 +1007,5 @@
     <string name="session_expired_sign_in_again">That account\'s session has expired. Sign in with it again.</string>
     <string name="sign_in_failed">Sign-in didn\'t complete. Try signing in again.</string>
     <string name="account">Account</string>
+    <string name="proxy_saved_restart_to_apply">Proxy saved, restart to apply</string>
 </resources>
