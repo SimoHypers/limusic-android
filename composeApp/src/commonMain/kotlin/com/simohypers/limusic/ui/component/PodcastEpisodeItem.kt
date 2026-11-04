@@ -1,135 +1,93 @@
 package com.simohypers.limusic.ui.component
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.simohypers.limusic.domain.data.model.podcast.PodcastBrowse
-import com.simohypers.limusic.ui.icon.MoreVert
 import com.simohypers.limusic.ui.icon.LimusicIcons
+import com.simohypers.limusic.ui.icon.MoreVert
+import com.simohypers.limusic.ui.theme.rounded
 import com.simohypers.limusic.ui.theme.typo
-import org.jetbrains.compose.resources.painterResource
-import limusic.composeapp.generated.resources.Res
 
+/**
+ * One episode of a podcast page: its thumbnail in its own shape, the title on up to two lines over
+ * "date • duration", and two lines of the episode's description across the row's full width.
+ */
 @Composable
 fun PodcastEpisodeFullWidthItem(
     modifier: Modifier = Modifier,
     episode: PodcastBrowse.EpisodeItem,
+    playing: Boolean = false,
     onClick: (String) -> Unit,
     onMoreClickListener: (() -> Unit)? = null,
 ) {
-    Box(
-        modifier =
-            modifier
-                .clickable { onClick(episode.videoId) }
-                .animateContentSize(),
+    val thumb = episode.thumbnail.lastOrNull()
+    // Square podcast art and 16:9 video episodes both keep their shape, within reason.
+    val ratio = thumb?.let { if (it.height > 0) it.width.toFloat() / it.height else null }?.coerceIn(1f, 16f / 9f) ?: 1f
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clickable { onClick(episode.videoId) }
+            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
     ) {
-        Row(
-            Modifier
-                .padding(vertical = 10.dp, horizontal = 15.dp)
-                .fillMaxWidth(),
-        ) {
-            Spacer(modifier = Modifier.width(10.dp))
-            Box(modifier = Modifier.size(50.dp)) {
-                AsyncImage(
-                    model =
-                        ImageRequest
-                            .Builder(LocalPlatformContext.current)
-                            .data(episode.thumbnail.lastOrNull()?.url)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(episode.thumbnail.lastOrNull()?.url)
-                            .crossfade(true)
-                            .build(),
-                    placeholder = rememberHolderPainter(),
-                    error = rememberHolderPainter(),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            Column(
-                Modifier
-                    .weight(1f)
-                    .padding(start = 20.dp, end = 10.dp)
-                    .align(Alignment.CenterVertically),
-            ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AsyncImage(
+                model = thumb?.url,
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
+                fallback = rememberHolderPainter(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.height(56.dp).aspectRatio(ratio).clip(rounded(10.dp)),
+            )
+            Column(Modifier.weight(1f).padding(start = 12.dp, end = 4.dp)) {
                 Text(
                     text = episode.title,
                     style = typo().labelMedium,
-                    maxLines = 1,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (playing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 )
-
-                Text(
-                    text = "${episode.createdDay ?: ""}${if (!episode.durationString.isNullOrEmpty()) " • ${episode.durationString}" else ""}",
-                    style = typo().bodyMedium,
-                    maxLines = 1,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                )
-
-                val description = episode.description
-                if (description != null) {
+                val meta = listOfNotNull(episode.createdDay, episode.durationString).filter { it.isNotBlank() }
+                if (meta.isNotEmpty()) {
                     Text(
-                        text = description,
-                        style = typo().bodyMedium,
+                        text = meta.joinToString(" • "),
+                        style = typo().bodySmall,
                         maxLines = 1,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                ).focusable(),
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 }
             }
-
             if (onMoreClickListener != null) {
-                RippleIconButton(imageVector = LimusicIcons.MoreVert, fillMaxSize = false) {
+                RippleIconButton(imageVector = LimusicIcons.MoreVert, fillMaxSize = false, tint = MaterialTheme.colorScheme.onSurface) {
                     onMoreClickListener.invoke()
                 }
             }
+        }
+        episode.description?.takeIf { it.isNotBlank() }?.let {
+            Text(
+                text = it,
+                style = typo().bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp, end = 12.dp),
+            )
         }
     }
 }

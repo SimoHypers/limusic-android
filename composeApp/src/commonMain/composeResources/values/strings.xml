@@ -967,6 +967,11 @@
         <item quantity="other">%1$d playlists</item>
     </plurals>
     <string name="mood_failed">Couldn\'t load this page.</string>
+    <string name="podcast">Podcast</string>
+    <plurals name="episodes_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
     <plurals name="albums_count">
         <item quantity="one">%1$d album</item>
         <item quantity="other">%1$d albums</item>

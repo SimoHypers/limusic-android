@@ -1,6 +1,5 @@
 package com.simohypers.limusic.ui.screen.other
 
-import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -13,136 +12,106 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import com.simohypers.limusic.ui.component.rememberHolderPainter
-import com.simohypers.limusic.expect.ui.toImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.toBitmap
-import com.kmpalette.rememberPaletteState
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.domain.utils.toTrack
-import com.simohypers.limusic.extension.angledGradientBackground
-import com.simohypers.limusic.extension.artworkScrimBrush
-import com.simohypers.limusic.extension.getColorFromPalette
-import com.simohypers.limusic.extension.rememberPaletteColor
+import com.simohypers.limusic.extension.barBlurStyle
 import com.simohypers.limusic.ui.component.CenterLoadingBox
+import com.simohypers.limusic.ui.component.CollectionAuthorLine
+import com.simohypers.limusic.ui.component.CollectionHero
+import com.simohypers.limusic.ui.component.CollectionTitle
 import com.simohypers.limusic.ui.component.DescriptionView
 import com.simohypers.limusic.ui.component.EndOfPage
 import com.simohypers.limusic.ui.component.HeartCheckBox
 import com.simohypers.limusic.ui.component.NowPlayingBottomSheet
 import com.simohypers.limusic.ui.component.PodcastEpisodeFullWidthItem
 import com.simohypers.limusic.ui.component.RippleIconButton
+import com.simohypers.limusic.ui.component.pillSurface
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.PlayCircle
-import com.simohypers.limusic.ui.icon.Share
-import com.simohypers.limusic.ui.icon.Shuffle
 import com.simohypers.limusic.ui.icon.LimusicIcons
+import com.simohypers.limusic.ui.icon.Share
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
+import com.simohypers.limusic.ui.theme.rounded
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.PodcastUIEvent
 import com.simohypers.limusic.viewModel.PodcastUIState
 import com.simohypers.limusic.viewModel.PodcastViewModel
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
+import com.simohypers.limusic.viewModel.SharedViewModel
+import com.simohypers.limusic.viewModel.UIEvent
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import limusic.composeapp.generated.resources.Res
-import limusic.composeapp.generated.resources.album_length
-import limusic.composeapp.generated.resources.no_description
-import limusic.composeapp.generated.resources.podcasts
+import limusic.composeapp.generated.resources.episodes_count
+import limusic.composeapp.generated.resources.podcast
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * A podcast, laid out like an album page: the cover fading into the page with the title block over
+ * its foot, one Play (newest episode down), save and share in the pill, then the episodes.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PodcastScreen(
     viewModel: PodcastViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
     podcastId: String,
     navController: NavController,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val playingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
 
     val lazyState = rememberLazyListState()
-    val firstItemVisible by remember {
-        derivedStateOf {
-            lazyState.firstVisibleItemIndex == 0
-        }
-    }
-    var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
+    val pastHero by remember { derivedStateOf { lazyState.firstVisibleItemIndex > 0 } }
+    val hazeState = rememberHazeState()
+    val background = MaterialTheme.colorScheme.background
+    var menuTrack by remember { mutableStateOf<Track?>(null) }
 
-    var currentTrack by rememberSaveable {
-        mutableStateOf<Track?>(null)
-    }
-    var shouldShowMoreBottomSheet by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = firstItemVisible) {
-        shouldHideTopBar = !firstItemVisible
+    LaunchedEffect(podcastId) {
+        if ((uiState as? PodcastUIState.Success)?.id != podcastId) viewModel.getPodcastBrowse(podcastId)
     }
 
-    val paletteState = rememberPaletteState()
-    var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-
-    LaunchedEffect(bitmap) {
-        val bm = bitmap
-        if (bm != null) {
-            paletteState.generate(bm)
-        }
-    }
-
-    // Background gradient from the artwork, held and faded (see UIExt.rememberPaletteColor).
-    val gradientColors = listOf(rememberPaletteColor(paletteState.palette) { it.getColorFromPalette() }, Color.Black)
-
-    LaunchedEffect(key1 = podcastId) {
-        if ((uiState as? PodcastUIState.Success)?.id == podcastId) {
-            return@LaunchedEffect
-        }
-        viewModel.getPodcastBrowse(podcastId)
+    menuTrack?.let {
+        NowPlayingBottomSheet(onDismiss = { menuTrack = null }, navController = navController, song = it.toSongEntity())
     }
 
     Crossfade(targetState = uiState) { state ->
@@ -150,269 +119,84 @@ fun PodcastScreen(
             is PodcastUIState.Success -> {
                 val data = state.data
                 val id = state.id
+                val isThisPlaying = playingVideoId.isNotEmpty() && queueData?.data?.playlistId == id
                 LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(Color.Black),
+                    modifier = Modifier.fillMaxSize().background(background).hazeSource(hazeState),
                     state = lazyState,
                 ) {
                     item(contentType = "header") {
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight()
-                                    .background(Color.Transparent),
-                        ) {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth(),
-                            ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(260.dp)
-                                            .clip(rounded(8.dp))
-                                            .angledGradientBackground(gradientColors, 25f),
-                                )
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp)
-                                            .align(Alignment.BottomCenter)
-                                            .background(artworkScrimBrush(Color.Black)),
-                                )
-                            }
-                            Column(
-                                Modifier.background(Color.Transparent),
-                            ) {
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .wrapContentWidth()
-                                            .padding(16.dp)
-                                            .windowInsetsPadding(WindowInsets.statusBars),
-                                ) {
-                                    RippleIconButton(
-                                        imageVector = LimusicIcons.ArrowBackIosNew,
+                        Column {
+                            CollectionHero(
+                                thumbnail = data.thumbnail.lastOrNull()?.url,
+                                onBack = { navController.navigateUp() },
+                                actions = {
+                                    Row(
+                                        modifier = Modifier.height(48.dp).pillSurface(rounded(24.dp)).padding(horizontal = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        navController.navigateUp()
-                                    }
-                                }
-                                Column(
-                                    horizontalAlignment = Alignment.Start,
-                                ) {
-                                    AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(LocalPlatformContext.current)
-                                                .data(data.thumbnail.lastOrNull()?.url)
-                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                .diskCacheKey(data.thumbnail.lastOrNull()?.url)
-                                                .crossfade(true)
-                                                .build(),
-                                        placeholder = rememberHolderPainter(),
-                                        error = rememberHolderPainter(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillHeight,
-                                        onSuccess = {
-                                            bitmap = it.result.image.toImageBitmap()
-                                        },
-                                        modifier =
-                                            Modifier
-                                                .height(250.dp)
-                                                .wrapContentWidth()
-                                                .align(Alignment.CenterHorizontally)
-                                                .clip(rounded(8.dp)),
-                                    )
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(),
-                                    ) {
-                                        Column(Modifier.padding(horizontal = 32.dp)) {
-                                            Spacer(modifier = Modifier.size(25.dp))
-                                            Text(
-                                                text = data.title,
-                                                style = typo().titleLarge,
-                                                color = Color.White,
-                                                maxLines = 2,
-                                            )
-                                            Column(
-                                                modifier = Modifier.padding(vertical = 8.dp),
-                                            ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    AsyncImage(
-                                                        model =
-                                                            ImageRequest
-                                                                .Builder(LocalPlatformContext.current)
-                                                                .data(data.authorThumbnail)
-                                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                                .diskCacheKey(data.authorThumbnail)
-                                                                .crossfade(true)
-                                                                .build(),
-                                                        placeholder = rememberHolderPainter(),
-                                                        error = rememberHolderPainter(),
-                                                        contentDescription = null,
-                                                        modifier =
-                                                            Modifier
-                                                                .size(25.dp)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                ),
-                                                    )
-                                                    Spacer(modifier = Modifier.size(8.dp))
-                                                    CompositionLocalProvider(
-                                                        LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                                                    ) {
-                                                        TextButton(
-                                                            modifier =
-                                                                Modifier
-                                                                    .wrapContentHeight()
-                                                                    .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-                                                            contentPadding = PaddingValues(vertical = 1.dp),
-                                                            onClick = {
-                                                                val authorId = data.author.id
-                                                                if (authorId.isNullOrEmpty().not()) {
-                                                                    navController.navigate(
-                                                                        ArtistDestination(
-                                                                            authorId,
-                                                                        ),
-                                                                    )
-                                                                }
-                                                            },
-                                                        ) {
-                                                            Text(
-                                                                text = data.author.name,
-                                                                style = typo().labelSmall,
-                                                                color = Color.White,
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                                Spacer(modifier = Modifier.size(8.dp))
-                                                Text(
-                                                    text = stringResource(Res.string.podcasts),
-                                                    style = typo().bodyMedium,
-                                                )
-                                            }
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                // Play button
-                                                RippleIconButton(
-                                                    imageVector = LimusicIcons.PlayCircle,
-                                                    fillMaxSize = true,
-                                                    modifier = Modifier.size(36.dp),
-                                                ) {
-                                                    viewModel.onUIEvent(PodcastUIEvent.PlayAll(id))
-                                                }
-
-                                                // Favorite
-                                                HeartCheckBox(
-                                                    size = 32,
-                                                    checked = isFavorite,
-                                                    onStateChange = {
-                                                        viewModel.onUIEvent(
-                                                            PodcastUIEvent.ToggleFavorite(
-                                                                id,
-                                                                !isFavorite,
-                                                            ),
-                                                        )
-                                                    },
-                                                )
-
-                                                Spacer(Modifier.weight(1f))
-
-                                                // Shuffle
-                                                RippleIconButton(
-                                                    modifier = Modifier.size(36.dp),
-                                                    imageVector = LimusicIcons.Shuffle,
-                                                    fillMaxSize = true,
-                                                ) {
-                                                    viewModel.onUIEvent(PodcastUIEvent.Shuffle(id))
-                                                }
-
-                                                Spacer(Modifier.size(5.dp))
-
-                                                // More options
-                                                RippleIconButton(
-                                                    modifier = Modifier.size(36.dp),
-                                                    imageVector = LimusicIcons.Share,
-                                                    fillMaxSize = true,
-                                                ) {
-                                                    viewModel.onUIEvent(PodcastUIEvent.Share(id))
-                                                }
-                                            }
-
-                                            // Description
-                                            val uriHandler = LocalUriHandler.current
-                                            DescriptionView(
-                                                modifier = Modifier.padding(top = 8.dp),
-                                                text = data.description ?: stringResource(Res.string.no_description),
-                                                limitLine = 3,
-                                                onTimeClicked = {},
-                                                onURLClicked = { url ->
-                                                    uriHandler.openUri(url)
-                                                },
-                                            )
-
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        Res.string.album_length,
-                                                        data.listEpisode.size.toString(),
-                                                        "",
-                                                    ),
-                                                color = Color.White,
-                                                style = typo().bodyMedium,
-                                                modifier = Modifier.padding(vertical = 8.dp),
-                                            )
+                                        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                                            HeartCheckBox(
+                                                size = 28,
+                                                checked = isFavorite,
+                                                tint = MaterialTheme.colorScheme.onSurface,
+                                            ) { viewModel.onUIEvent(PodcastUIEvent.ToggleFavorite(id, !isFavorite)) }
+                                        }
+                                        IconButton(onClick = { viewModel.onUIEvent(PodcastUIEvent.Share(id)) }, modifier = Modifier.size(40.dp)) {
+                                            Icon(LimusicIcons.Share, null, tint = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
-                                }
+                                },
+                            ) {
+                                CollectionTitle(
+                                    kicker = stringResource(Res.string.podcast),
+                                    title = data.title,
+                                    playing = isThisPlaying,
+                                    onPlay =
+                                        if (data.listEpisode.isEmpty()) {
+                                            null
+                                        } else {
+                                            {
+                                                if (isThisPlaying) {
+                                                    sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                } else {
+                                                    viewModel.onUIEvent(PodcastUIEvent.PlayAll(id))
+                                                }
+                                            }
+                                        },
+                                    onShuffle = null,
+                                )
+                                CollectionAuthorLine(
+                                    name = data.author.name,
+                                    thumbnail = data.authorThumbnail,
+                                    meta = listOf(pluralStringResource(Res.plurals.episodes_count, data.listEpisode.size, data.listEpisode.size)),
+                                    onClick = data.author.id?.takeIf { it.isNotEmpty() }?.let { channelId -> { navController.navigate(ArtistDestination(channelId)) } },
+                                )
                             }
+                            data.description?.takeIf { it.isNotBlank() }?.let { text ->
+                                DescriptionView(
+                                    text = text,
+                                    limitLine = 2,
+                                    onTimeClicked = {},
+                                    onURLClicked = { url -> uriHandler.openUri(url) },
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
                         }
                     }
-
-                    // Podcast episodes
-                    items(count = data.listEpisode.size, key = { index ->
-                        val item = data.listEpisode.getOrNull(index)
-                        (item?.videoId ?: "") + "item_$index"
-                    }) { index ->
-                        val episode = data.listEpisode.getOrNull(index)
-                        if (episode != null) {
-                            PodcastEpisodeFullWidthItem(
-                                episode = episode,
-                                onClick = {
-                                    viewModel.onUIEvent(
-                                        PodcastUIEvent.EpisodeClick(
-                                            episode.videoId,
-                                            id,
-                                        ),
-                                    )
-                                },
-                                onMoreClickListener = {
-                                    currentTrack = episode.toTrack()
-                                    shouldShowMoreBottomSheet = true
-                                },
-                            )
-                        }
+                    itemsIndexed(data.listEpisode, key = { index, episode -> episode.videoId + "item_$index" }) { _, episode ->
+                        PodcastEpisodeFullWidthItem(
+                            episode = episode,
+                            playing = episode.videoId == playingVideoId,
+                            onClick = { viewModel.onUIEvent(PodcastUIEvent.EpisodeClick(episode.videoId, id)) },
+                            onMoreClickListener = { menuTrack = episode.toTrack() },
+                        )
                     }
-
-                    item {
-                        EndOfPage()
-                    }
+                    item { EndOfPage() }
                 }
-                // Animated TopAppBar when scrolling
+                // The album page's bar: the title takes over once the hero has scrolled away.
                 AnimatedVisibility(
-                    visible = shouldHideTopBar,
+                    visible = pastHero,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically(),
                 ) {
@@ -426,57 +210,32 @@ fun PodcastScreen(
                                     Modifier
                                         .fillMaxWidth()
                                         .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                        .focusable(),
                             )
                         },
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
-                                RippleIconButton(
-                                    LimusicIcons.ArrowBackIosNew,
-                                    Modifier.size(32.dp),
-                                    true,
-                                ) {
+                                RippleIconButton(LimusicIcons.ArrowBackIosNew, Modifier.size(32.dp), true, MaterialTheme.colorScheme.onSurface) {
                                     navController.navigateUp()
                                 }
                             }
                         },
-                        colors =
-                            TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Transparent,
-                            ),
-                        modifier = Modifier.angledGradientBackground(gradientColors, 90f),
-                    )
-                }
-
-                if (shouldShowMoreBottomSheet) {
-                    val song = currentTrack?.toSongEntity() ?: return@Crossfade
-                    NowPlayingBottomSheet(
-                        onDismiss = { shouldShowMoreBottomSheet = false },
-                        navController = navController,
-                        song = song,
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                        modifier = Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(background, 0.55f)),
                     )
                 }
             }
 
             is PodcastUIState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CenterLoadingBox(
-                        modifier =
-                            Modifier
-                                .fillMaxSize(),
-                    )
-                }
+                CenterLoadingBox(modifier = Modifier.fillMaxSize())
             }
 
             is PodcastUIState.Error -> {
-                viewModel.makeToast("Error: ${state.message}")
-                navController.navigateUp()
+                LaunchedEffect(state) {
+                    viewModel.makeToast("Error: ${state.message}")
+                    navController.navigateUp()
+                }
             }
         }
     }
