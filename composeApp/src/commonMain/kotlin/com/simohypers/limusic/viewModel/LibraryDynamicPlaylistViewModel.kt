@@ -37,13 +37,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 /** The Downloaded songs order, kept on the phone like a playlist's local sort. */
-data class DownloadSort(
-    val sort: PlaylistSort = PlaylistSort.DEFAULT,
-    val desc: Boolean = false,
-) {
-    val isDefault get() = sort == PlaylistSort.DEFAULT && !desc
-}
-
 /** What Downloaded songs offers: its own newest-first order, Title and Artist, each reversible. */
 val DOWNLOAD_SORTS = listOf(PlaylistSort.DEFAULT, PlaylistSort.TITLE, PlaylistSort.ARTIST)
 
@@ -71,18 +64,14 @@ class LibraryDynamicPlaylistViewModel(
     // app moves them, and each move reads the list again.
     private val overview = commonRepository.getLibraryOverview().shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
 
-    val downloadSort: StateFlow<DownloadSort> =
+    val downloadSort: StateFlow<ListSort> =
         dataStoreManager
             .getString(DOWNLOAD_SORT_KEY)
-            .map { stored ->
-                val (name, dir) = stored?.split(":")?.let { it[0] to it.getOrNull(1) } ?: return@map DownloadSort()
-                PlaylistSort.entries.firstOrNull { it.name == name && it in DOWNLOAD_SORTS }?.let { DownloadSort(it, dir == "desc") } ?: DownloadSort()
-            }.stateIn(viewModelScope, SharingStarted.Eagerly, DownloadSort())
+            .map { ListSort.parse(it, DOWNLOAD_SORTS) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, ListSort())
 
-    fun setDownloadSort(sort: DownloadSort) {
-        viewModelScope.launch {
-            dataStoreManager.putString(DOWNLOAD_SORT_KEY, if (sort.isDefault) "" else sort.sort.name + if (sort.desc) ":desc" else "")
-        }
+    fun setDownloadSort(sort: ListSort) {
+        viewModelScope.launch { dataStoreManager.putString(DOWNLOAD_SORT_KEY, sort.stored()) }
     }
 
     /** Null until the first read lands, so the page can tell "loading" from "empty". */
@@ -150,7 +139,7 @@ class LibraryDynamicPlaylistViewModel(
 
     private fun List<SongEntity>.newestLikedFirst() = sortedByDescending { it.favoriteAt ?: REMOVED_SONG_DATE_TIME }
 
-    private fun List<SongEntity>.sortedBy(sort: DownloadSort): List<SongEntity> {
+    private fun List<SongEntity>.sortedBy(sort: ListSort): List<SongEntity> {
         if (sort.isDefault) return this
         val byId = associateBy { it.videoId }
         return sortTracks(map { it.toTrack() }, sort.sort, baseNewestFirst = true, desc = sort.desc).mapNotNull { byId[it.videoId] }

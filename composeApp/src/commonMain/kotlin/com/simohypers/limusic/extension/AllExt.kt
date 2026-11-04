@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import com.simohypers.limusic.domain.data.model.browse.artist.ArtistBrowse
 import com.simohypers.limusic.domain.data.model.streams.TimeLine
 import com.simohypers.limusic.domain.extension.now
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.toTrack
 import kotlin.math.roundToLong
 import com.simohypers.limusic.viewModel.ArtistScreenData
@@ -18,16 +17,12 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import limusic.composeapp.generated.resources.Res
-import limusic.composeapp.generated.resources.custom_order
 import limusic.composeapp.generated.resources.days_ago
 import limusic.composeapp.generated.resources.hours_ago
 import limusic.composeapp.generated.resources.months_ago
 import limusic.composeapp.generated.resources.live_badge
 import limusic.composeapp.generated.resources.na_na
-import limusic.composeapp.generated.resources.newer_first
-import limusic.composeapp.generated.resources.older_first
 import limusic.composeapp.generated.resources.recently
-import limusic.composeapp.generated.resources.title
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -256,14 +251,6 @@ fun String.isTwoLetterCode(): Boolean {
     val regex = "^[A-Za-z]{2}$".toRegex()
     return regex.matches(this)
 }
-
-fun FilterState.displayNameRes(): StringResource =
-    when (this) {
-        FilterState.NewerFirst -> Res.string.newer_first
-        FilterState.OlderFirst -> Res.string.older_first
-        FilterState.Title -> Res.string.title
-        FilterState.CustomOrder -> Res.string.custom_order
-    }
 
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this

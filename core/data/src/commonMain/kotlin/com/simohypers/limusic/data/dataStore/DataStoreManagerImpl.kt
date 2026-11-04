@@ -12,7 +12,6 @@ import com.simohypers.limusic.common.SUPPORTED_LANGUAGE
 import com.simohypers.limusic.domain.data.model.network.ProxyConfiguration
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.FALSE
-import com.simohypers.limusic.domain.manager.DataStoreManager.Values.LOCAL_PLAYLIST_FILTER_OLDER_FIRST
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.PROXY_TYPE_HTTP
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.PROXY_TYPE_SOCKS
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.REPEAT_ALL
@@ -922,19 +921,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val localPlaylistFilter: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[LOCAL_PLAYLIST_FILTER] ?: LOCAL_PLAYLIST_FILTER_OLDER_FIRST
-        }
-
-    override suspend fun setLocalPlaylistFilter(filter: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[LOCAL_PLAYLIST_FILTER] = filter
-            }
-        }
-    }
-
     override val killServiceOnExit: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[KILL_SERVICE_ON_EXIT] ?: FALSE
@@ -1304,7 +1290,6 @@ internal class DataStoreManagerImpl(
         val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
         val VISITOR_DATA = stringPreferencesKey("visitor_data")
 
-        val LOCAL_PLAYLIST_FILTER = stringPreferencesKey("local_playlist_filter")
         val PREFERRED_AUDIO_LANGUAGE = stringPreferencesKey("preferred_audio_language")
 
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")

@@ -10,17 +10,12 @@ import android.content.Context
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
-import com.simohypers.limusic.common.ASC
-import com.simohypers.limusic.common.CUSTOM_ORDER
 import com.simohypers.limusic.common.Config.ALBUM_CLICK
 import com.simohypers.limusic.common.Config.PLAYLIST_CLICK
 import com.simohypers.limusic.common.Config.RADIO_CLICK
 import com.simohypers.limusic.common.Config.RECOVER_TRACK_QUEUE
-import com.simohypers.limusic.common.DESC
 import com.simohypers.limusic.common.LOCAL_PLAYLIST_ID
 import com.simohypers.limusic.common.MERGING_DATA_TYPE
-import com.simohypers.limusic.common.TITLE
-import com.simohypers.limusic.data.db.Converters
 import com.simohypers.limusic.data.lastfm.LastfmScrobbler
 import com.simohypers.limusic.domain.data.entities.NewFormatEntity
 import com.simohypers.limusic.domain.data.entities.SongEntity
@@ -75,7 +70,6 @@ import com.simohypers.limusic.domain.mediaservice.player.MediaPlayerListener
 import com.simohypers.limusic.domain.repository.LocalPlaylistRepository
 import com.simohypers.limusic.domain.repository.SongRepository
 import com.simohypers.limusic.domain.repository.StreamRepository
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.MusicVideoType
 import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.domain.utils.toTrack
@@ -1271,44 +1265,14 @@ internal class MediaServiceHandlerImpl(
         token: String,
         fromNext: Boolean,
     ): Pair<List<Track>, String?>? =
+        // A phone playlist queues whole; a token from an older build has nothing to fetch.
         if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
-            localPage(playlistId.removePrefix(LOCAL_PLAYLIST_ID).toLongOrNull() ?: return null, token)
+            null
         } else {
             songRepository.getContinueTrack(playlistId, token, fromPlaylist = !fromNext).lastOrNull()?.let { (list, more) ->
                 list?.let { it to more }
             }
         }
-
-    /** A page of a playlist on the phone, in the screen's sort order; the token says which and where. */
-    private suspend fun localPage(
-        id: Long,
-        token: String,
-    ): Pair<List<Track>, String?>? {
-        val converters = Converters()
-        val (pairs, more) =
-            when {
-                token.startsWith(ASC) || token.startsWith(DESC) -> {
-                    val prefix = if (token.startsWith(ASC)) ASC else DESC
-                    val since = converters.fromTimestamp(token.removePrefix(prefix).toLongOrNull() ?: return null) ?: return null
-                    val filter = if (prefix == ASC) FilterState.OlderFirst else FilterState.NewerFirst
-                    val pairs = localPlaylistRepository.getPlaylistPairSongByTime(id, filter, since).lastOrNull() ?: return null
-                    pairs to pairs.lastOrNull()?.inPlaylist?.let { prefix + converters.dateToTimestamp(it) }
-                }
-
-                token.startsWith(CUSTOM_ORDER) || token.startsWith(TITLE) -> {
-                    val prefix = if (token.startsWith(CUSTOM_ORDER)) CUSTOM_ORDER else TITLE
-                    val offset = token.removePrefix(prefix).toIntOrNull() ?: return null
-                    val filter = if (prefix == CUSTOM_ORDER) FilterState.CustomOrder else FilterState.Title
-                    val pairs = localPlaylistRepository.getPlaylistPairSongByOffset(id, offset, filter).lastOrNull() ?: return null
-                    pairs to prefix + (offset + 1)
-                }
-
-                else -> return null
-            }
-        if (pairs.isEmpty()) return null
-        val songs = songRepository.getSongsByListVideoId(pairs.map { it.songId }).first().associateBy { it.videoId }
-        return pairs.mapNotNull { songs[it.songId]?.toTrack() } to more
-    }
 
     /** One page of a radio: `next` on [playlistId] around [videoId]. Null when it failed or was empty. */
     private suspend fun radioPage(

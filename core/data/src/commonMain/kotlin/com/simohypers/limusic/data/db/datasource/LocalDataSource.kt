@@ -26,7 +26,6 @@ import com.simohypers.limusic.domain.data.entities.SongInfoEntity
 import com.simohypers.limusic.domain.data.entities.TranslatedLyricsEntity
 import com.simohypers.limusic.domain.data.entities.YourYouTubePlaylistList
 import com.simohypers.limusic.domain.extension.now
-import com.simohypers.limusic.domain.utils.FilterState
 import kotlinx.datetime.LocalDateTime
 
 /** SQLite caps bind parameters per statement; stay well under it when deleting in bulk. */
@@ -537,43 +536,7 @@ internal class LocalDataSource(
         limit = limit,
     )
 
-    suspend fun getPlaylistPairSongByOffset(
-        playlistId: Long,
-        offset: Int,
-        filterState: FilterState,
-    ) = if (filterState == FilterState.CustomOrder) {
-        databaseDao.getPlaylistPairSongByOffset(
-            playlistId,
-            offset * 50,
-        )
-    } else if (filterState == FilterState.Title) {
-        databaseDao.getPlaylistPairSongByTitle(
-            playlistId,
-            offset * 50,
-        )
-    } else {
-        null
-    }
-
-    suspend fun getPlaylistPairSongByTime(
-        playlistId: Long,
-        filterState: FilterState,
-        localDateTime: LocalDateTime,
-    ) = if (filterState == FilterState.OlderFirst) {
-        databaseDao.getPlaylistPairSongByOlderFirst(
-            playlistId,
-            localDateTime,
-        )
-    } else if (filterState == FilterState.NewerFirst) {
-        databaseDao.getPlaylistPairSongByNewerFirst(
-            playlistId,
-            localDateTime,
-        )
-    } else {
-        null
-    }
-
-    suspend fun getNewestPlaylistPairSong(playlistId: Long) = databaseDao.getNewestPlaylistPairSong(playlistId)
+    fun playlistPairsFlow(playlistId: Long) = databaseDao.playlistPairsFlow(playlistId)
 
     suspend fun moveSongInPlaylist(
         playlistId: Long,

@@ -875,38 +875,6 @@ interface DatabaseDao {
     ): List<PairSongLocalPlaylist>
 
     @Query(
-        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
-            "ASC LIMIT 50 OFFSET :offset",
-    )
-    suspend fun getPlaylistPairSongByOffset(
-        playlistId: Long,
-        offset: Int,
-    ): List<PairSongLocalPlaylist>
-
-    @Query(
-        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND inPlaylist > :cutPoint ORDER BY position " +
-            "ASC LIMIT 50",
-    )
-    suspend fun getPlaylistPairSongByOlderFirst(
-        playlistId: Long,
-        cutPoint: LocalDateTime,
-    ): List<PairSongLocalPlaylist>
-
-    @Query(
-        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND inPlaylist < :cutPoint ORDER BY position " +
-            "DESC LIMIT 50",
-    )
-    suspend fun getPlaylistPairSongByNewerFirst(
-        playlistId: Long,
-        cutPoint: LocalDateTime,
-    ): List<PairSongLocalPlaylist>
-
-    @Query(
-        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position DESC LIMIT 1",
-    )
-    suspend fun getNewestPlaylistPairSong(playlistId: Long): PairSongLocalPlaylist?
-
-    @Query(
         "UPDATE pair_song_local_playlist SET position = :newPosition WHERE playlistId = :playlistId AND songId = :videoId",
     )
     suspend fun editPositionOfSongInPlaylist(
@@ -919,6 +887,11 @@ interface DatabaseDao {
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position ASC",
     )
     suspend fun getAllPlaylistPairSongByPosition(playlistId: Long): List<PairSongLocalPlaylist>
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position ASC",
+    )
+    fun playlistPairsFlow(playlistId: Long): Flow<List<PairSongLocalPlaylist>>
 
     @Query(
         "UPDATE pair_song_local_playlist SET position = position + 1 WHERE playlistId = :playlistId AND position >= :from AND position < :to",
@@ -976,15 +949,6 @@ interface DatabaseDao {
         playlistId: Long,
         from: Int,
         to: Int,
-    ): List<PairSongLocalPlaylist>
-
-    @Query(
-        "SELECT p.* FROM pair_song_local_playlist p JOIN song s ON p.songId = s.videoId WHERE" +
-            " p.playlistId = :playlistId ORDER BY s.title ASC LIMIT 50 OFFSET :offset",
-    )
-    suspend fun getPlaylistPairSongByTitle(
-        playlistId: Long,
-        offset: Int,
     ): List<PairSongLocalPlaylist>
 
     @Query(

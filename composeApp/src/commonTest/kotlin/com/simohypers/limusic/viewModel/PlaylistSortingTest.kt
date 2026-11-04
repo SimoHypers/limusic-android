@@ -1,5 +1,7 @@
 package com.simohypers.limusic.viewModel
 
+import com.simohypers.limusic.domain.data.entities.PairSongLocalPlaylist
+import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.searchResult.songs.Album
 import com.simohypers.limusic.domain.data.model.searchResult.songs.Artist
@@ -18,6 +20,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDateTime
 
 // Desktop's ui/src/lib/sort.check.ts, case for case.
 class PlaylistSortingTest {
@@ -132,5 +135,54 @@ class PlaylistSortingTest {
         assertTrue(storedExactly(NEWEST, true) && storedExactly(OLDEST, true))
         assertEquals(DEFAULT, fetchSort(PLAYS))
         for (s in PlaylistSort.entries - PLAYS) assertEquals(s, fetchSort(s))
+    }
+
+    // Phone playlists: rows know when they were added, and a drag has put the newest song first.
+    private fun row(
+        rowId: Int,
+        id: String,
+        title: String,
+        day: Int,
+        plays: Long = 0,
+    ) = SongEntity(
+        videoId = id,
+        title = title,
+        totalPlayTime = plays,
+        duration = "",
+        durationSeconds = 0,
+        isAvailable = true,
+        isExplicit = false,
+        likeStatus = "",
+        videoType = "",
+        category = null,
+        resultType = null,
+    ) to PairSongLocalPlaylist(id = rowId, playlistId = 1, songId = id, position = rowId, inPlaylist = LocalDateTime(2026, 1, day, 0, 0))
+
+    private val stored = listOf(row(0, "c", "Cherry", 3, plays = 2), row(1, "a", "Apple", 1), row(2, "b", "Banana", 2, plays = 5), row(3, "a", "Apple", 4))
+
+    private fun phone(
+        sort: PlaylistSort,
+        desc: Boolean = false,
+    ) = sortPhonePlaylist(stored, ListSort(sort, desc)).joinToString("") { it.second.id.toString() }
+
+    @Test
+    fun phonePlaylists() {
+        assertSame(stored, sortPhonePlaylist(stored, ListSort()), "Custom order is the stored order")
+        assertEquals("3210", phone(DEFAULT, desc = true))
+        assertEquals("3021", phone(NEWEST), "by add date, not by position")
+        assertEquals("1203", phone(OLDEST))
+        assertEquals("1320", phone(TITLE), "the same song twice keeps both rows")
+        assertEquals("2013", phone(PLAYS))
+    }
+
+    @Test
+    fun storedSortRoundTrips() {
+        for (sort in PLAYLIST_SORTS) {
+            for (desc in listOf(false, true)) assertEquals(ListSort(sort, desc), ListSort.parse(ListSort(sort, desc).stored()))
+        }
+        assertEquals("", ListSort().stored())
+        assertEquals(ListSort(), ListSort.parse(null))
+        assertEquals(ListSort(), ListSort.parse("older_first"), "the old global setting's values mean nothing")
+        assertEquals(ListSort(), ListSort.parse("ALBUM", DOWNLOAD_SORTS), "a sort the list does not offer")
     }
 }

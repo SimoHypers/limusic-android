@@ -1,19 +1,8 @@
 package com.simohypers.limusic.viewModel
 
 import androidx.lifecycle.viewModelScope
-import androidx.paging.LoadState
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.filter
-import androidx.paging.insertFooterItem
-import com.simohypers.limusic.common.ASC
-import com.simohypers.limusic.common.CUSTOM_ORDER
 import com.simohypers.limusic.common.Config
-import com.simohypers.limusic.common.DESC
 import com.simohypers.limusic.common.LOCAL_PLAYLIST_ID
-import com.simohypers.limusic.common.TITLE
-import com.simohypers.limusic.data.db.Converters
 import com.simohypers.limusic.domain.data.entities.DownloadState
 import com.simohypers.limusic.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.simohypers.limusic.domain.data.entities.DownloadState.STATE_NOT_DOWNLOADED
@@ -30,7 +19,6 @@ import com.simohypers.limusic.domain.mediaservice.handler.QueueData
 import com.simohypers.limusic.domain.repository.LocalPlaylistRepository
 import com.simohypers.limusic.domain.repository.SongRepository
 import com.simohypers.limusic.domain.repository.collectionDownload
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.collectLatestResource
 import com.simohypers.limusic.domain.utils.collectResource
 import com.simohypers.limusic.domain.utils.toArrayListTrack
@@ -38,8 +26,8 @@ import com.simohypers.limusic.domain.utils.toSongEntity
 import com.simohypers.limusic.domain.utils.toTrack
 import com.simohypers.limusic.logger.LogLevel
 import com.simohypers.limusic.logger.Logger
-import com.simohypers.limusic.pagination.PagingActions
 import com.simohypers.limusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -55,6 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -90,15 +79,7 @@ class LocalPlaylistViewModel(
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
 ) : BaseViewModel() {
-    private val converter = Converters()
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
-
-    private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
-    val offset: StateFlow<Int> = _offset
-
-    fun setOffset(offset: Int) {
-        _offset.value = offset
-    }
 
     var loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -119,27 +100,36 @@ class LocalPlaylistViewModel(
                 }
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), CollectionDownload())
 
-    private fun setFilter(filterState: FilterState) {
-        _uiState.update {
-            it.copy(
-                filterState = filterState,
-            )
-        }
+    // Each phone playlist keeps its own sort; YouTube playlists use playlist_sort_<id>.
+    private fun sortKey(id: Long) = "playlist_sort_local_$id"
+
+    fun setSort(sort: ListSort) {
+        val id = uiState.value.id
+        if (id == 0L || sort == uiState.value.sort) return
+        _uiState.update { it.copy(sort = sort) }
+        viewModelScope.launch { dataStoreManager.putString(sortKey(id), sort.stored()) }
     }
+
+    /**
+     * The whole playlist in the picked sort, read again on every add, removal or move. Null until
+     * the first read lands. Only the page collects it, so a Home shortcut's menu reads nothing.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tracks: StateFlow<List<Pair<SongEntity, PairSongLocalPlaylist>>?> =
+        combine(
+            _uiState
+                .map { it.id }
+                .distinctUntilChanged()
+                .flatMapLatest { id -> if (id == 0L) flowOf(null) else localPlaylistRepository.playlistTracks(id) },
+            _uiState.map { it.sort }.distinctUntilChanged(),
+        ) { rows, sort -> rows?.let { sortPhonePlaylist(it, sort) } }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private var newUpdateJob: Job? = null
 
     init {
         viewModelScope.launch {
-            setFilter(
-                when (dataStoreManager.localPlaylistFilter.first()) {
-                    DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST -> FilterState.OlderFirst
-                    DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST -> FilterState.NewerFirst
-                    DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE -> FilterState.Title
-                    DataStoreManager.LOCAL_PLAYLIST_FILTER_CUSTOM_ORDER -> FilterState.CustomOrder
-                    else -> FilterState.OlderFirst
-                },
-            )
             // A song added to a downloaded playlist downloads too.
             val listTrackStringJob =
                 launch {
@@ -174,12 +164,6 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private val _tracksPagingState: MutableStateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> =
-        MutableStateFlow(
-            PagingData.empty(),
-        )
-    val tracksPagingState: StateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> get() = _tracksPagingState
-
     private val _searchQuery: MutableStateFlow<String> = MutableStateFlow("")
     val searchQuery: StateFlow<String> get() = _searchQuery
 
@@ -188,14 +172,8 @@ class LocalPlaylistViewModel(
     }
 
     /**
-     * Results for the search box, entirely separate from [tracksPagingState].
-     *
-     * Deliberately not a filter over the paged list: PagingData.filter only sees pages already
-     * loaded, so on a long playlist a track would be findable or not depending on how far the
-     * user had scrolled. This queries the database instead and returns a plain list.
-     *
-     * Below two characters it emits nothing — a single letter matches most of a playlist, which
-     * is neither useful to read nor cheap to fetch.
+     * Results for the search box, a database query matching title or artist. Below two characters
+     * it emits nothing: a single letter matches most of a playlist.
      */
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchResults: StateFlow<List<Pair<SongEntity, PairSongLocalPlaylist>>> =
@@ -210,75 +188,6 @@ class LocalPlaylistViewModel(
                     localPlaylistRepository.searchTracks(uiState.value.id, query)
                 }
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-    private val lazyTrackPagingItems: MutableStateFlow<LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>?> = MutableStateFlow(null)
-
-    fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>) {
-        lazyTrackPagingItems.value = lazyPagingItems
-        Logger.d(tag, "setLazyTrackPagingItems: ${lazyTrackPagingItems.value?.itemCount}")
-    }
-
-    private val modifications = MutableStateFlow<List<PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>>>(emptyList())
-
-    private fun getTracksPagingState(
-        id: Long,
-        filterState: FilterState,
-    ) {
-        viewModelScope.launch {
-            Logger.d("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
-            modifications.value = listOf()
-            localPlaylistRepository
-                .getTracksPaging(
-                    id,
-                    filterState,
-                ).distinctUntilChanged()
-                .cachedIn(viewModelScope)
-                .combine(modifications) { pagingData, modifications ->
-                    modifications.fold(pagingData) { data, actions ->
-                        applyActions(data, actions)
-                    }
-                }.collect {
-                    _tracksPagingState.value = it
-                }
-        }
-    }
-
-    private fun applyActions(
-        pagingData: PagingData<Pair<SongEntity, PairSongLocalPlaylist>>,
-        actions: PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>,
-    ): PagingData<Pair<SongEntity, PairSongLocalPlaylist>> =
-        when (actions) {
-            is PagingActions.Insert -> {
-                val loadState = lazyTrackPagingItems.value?.loadState
-                val list =
-                    lazyTrackPagingItems.value
-                        ?.itemSnapshotList
-                        ?.toList()
-                        ?.filterNotNull()
-                        ?.map { it.first.videoId }
-                        ?: emptyList()
-                Logger.d(tag, "applyActions: $loadState")
-                if (loadState?.refresh is LoadState.NotLoading &&
-                    loadState.append is LoadState.NotLoading &&
-                    !list.contains(actions.item.first.videoId)
-                ) {
-                    pagingData
-                        .insertFooterItem(item = actions.item)
-                } else {
-                    pagingData
-                }
-            }
-
-            is PagingActions.Remove -> {
-                pagingData.filter {
-                    actions.item.first.videoId != it.first.videoId
-                }
-            }
-        }
-
-    private fun onApplyActions(actions: PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>) {
-        modifications.value += actions
-    }
-
     fun getSuggestions(playlistId: Long) {
         loading.value = true
         viewModelScope.launch {
@@ -452,7 +361,6 @@ class LocalPlaylistViewModel(
         song: SongEntity,
     ) {
         viewModelScope.launch {
-            val pair = localPlaylistRepository.getPlaylistPairOfSong(id, song.videoId).lastOrNull() ?: return@launch
             localPlaylistRepository
                 .removeTrackFromLocalPlaylist(
                     id,
@@ -463,7 +371,6 @@ class LocalPlaylistViewModel(
                 ).collectLatestResource(
                     onSuccess = {
                         makeToast(it)
-                        onApplyActions(PagingActions.Remove(song to pair))
                         updatePlaylistState(id)
                     },
                     onError = {
@@ -528,15 +435,7 @@ class LocalPlaylistViewModel(
                         getString(Res.string.added_to_youtube_playlist),
                         getString(Res.string.can_t_add_to_youtube_playlist),
                     ).collectLatestResource(
-                        onSuccess = {
-                            makeToast(it)
-                            viewModelScope.launch {
-                                localPlaylistRepository.getPlaylistPairOfSong(id, track.videoId).lastOrNull()?.let { pair ->
-                                    // Add to UI
-                                    onApplyActions(PagingActions.Insert(track.toSongEntity() to pair))
-                                }
-                            }
-                        },
+                        onSuccess = { makeToast(it) },
                         onError = {
                             makeToast(it)
                         },
@@ -547,62 +446,10 @@ class LocalPlaylistViewModel(
 
     fun onUIEvent(ev: LocalPlaylistUIEvent) {
         when (ev) {
-            is LocalPlaylistUIEvent.ChangeFilter -> {
-                viewModelScope.launch {
-                    dataStoreManager.setLocalPlaylistFilter(
-                        when (ev.filterState) {
-                            FilterState.OlderFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST
-                            FilterState.NewerFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST
-                            FilterState.Title -> DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE
-                            FilterState.CustomOrder -> DataStoreManager.LOCAL_PLAYLIST_FILTER_CUSTOM_ORDER
-                        },
-                    )
-                }
-                setFilter(ev.filterState)
-                Logger.d("PlaylistScreen", "new filterState: ${ev.filterState}")
-                getTracksPagingState(uiState.value.id, ev.filterState)
-            }
-
             is LocalPlaylistUIEvent.ItemClick -> {
-                val loadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
-                val clickedSong = loadedList.find { it?.first?.videoId == ev.videoId }?.first ?: return
-
-                setQueueData(
-                    QueueData.Data(
-                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
-                        firstPlayedTrack = clickedSong.toTrack(),
-                        playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = uiState.value.title,
-                        playlistType = PlaylistType.LOCAL_PLAYLIST,
-                        continuation =
-                            if (offset.value > 0) {
-                                when (uiState.value.filterState) {
-                                    FilterState.OlderFirst -> {
-                                        ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                    }
-
-                                    FilterState.NewerFirst -> {
-                                        DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                    }
-
-                                    FilterState.CustomOrder -> {
-                                        CUSTOM_ORDER + offset.value.toString()
-                                    }
-
-                                    FilterState.Title -> {
-                                        TITLE + offset.value.toString()
-                                    }
-                                }
-                            } else {
-                                null
-                            },
-                    ),
-                )
-                loadMediaItem(
-                    clickedSong,
-                    Config.PLAYLIST_CLICK,
-                    loadedList.map { it?.first }.indexOf(clickedSong),
-                )
+                val list = tracks.value ?: return
+                val index = list.indexOfFirst { it.first.videoId == ev.videoId }
+                if (index >= 0) play(list.map { it.first.toTrack() }, index)
             }
 
             is LocalPlaylistUIEvent.SuggestionsItemClick -> {
@@ -633,66 +480,13 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.PlayClick -> {
-                val loadedList =
-                    lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: run {
-                        // No page open (the ⋮ menu of a Home shortcut): every track, in playlist order.
-                        withFullTracks { tracks ->
-                            setQueueData(
-                                QueueData.Data(
-                                    listTracks = ArrayList(tracks),
-                                    firstPlayedTrack = tracks.first(),
-                                    playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                                    playlistName = uiState.value.title,
-                                    playlistType = PlaylistType.LOCAL_PLAYLIST,
-                                    continuation = null,
-                                ),
-                            )
-                            loadMediaItem(tracks.first(), Config.PLAYLIST_CLICK, 0)
-                        }
-                        return
-                    }
-
-                val firstPlayTrack = loadedList.firstOrNull()?.first?.toTrack()
-                setQueueData(
-                    QueueData.Data(
-                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
-                        firstPlayedTrack = firstPlayTrack,
-                        playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = uiState.value.title,
-                        playlistType = PlaylistType.LOCAL_PLAYLIST,
-                        continuation =
-                            if (offset.value > 0) {
-                                if (offset.value > 0) {
-                                    when (uiState.value.filterState) {
-                                        FilterState.OlderFirst -> {
-                                            ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                        }
-
-                                        FilterState.NewerFirst -> {
-                                            DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                        }
-
-                                        FilterState.CustomOrder -> {
-                                            CUSTOM_ORDER + offset.value.toString()
-                                        }
-
-                                        FilterState.Title -> {
-                                            TITLE + offset.value.toString()
-                                        }
-                                    }
-                                } else {
-                                    null
-                                }
-                            } else {
-                                null
-                            },
-                    ),
-                )
-                loadMediaItem(
-                    firstPlayTrack,
-                    Config.PLAYLIST_CLICK,
-                    0,
-                )
+                val list = tracks.value
+                if (list != null) {
+                    if (list.isNotEmpty()) play(list.map { it.first.toTrack() }, 0)
+                } else {
+                    // No page open (the ⋮ menu of a Home shortcut): every track, in stored order.
+                    withFullTracks { play(it, 0) }
+                }
             }
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
@@ -712,11 +506,31 @@ class LocalPlaylistViewModel(
         }
     }
 
+    /** The whole list from [index], in the order on screen. */
+    private fun play(
+        tracks: List<Track>,
+        index: Int,
+    ) {
+        setQueueData(
+            QueueData.Data(
+                listTracks = ArrayList(tracks),
+                firstPlayedTrack = tracks[index],
+                playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                playlistName = uiState.value.title,
+                playlistType = PlaylistType.LOCAL_PLAYLIST,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(tracks[index], Config.PLAYLIST_CLICK, index)
+    }
+
+    /** [refresh]: a newly opened playlist, which comes up in its own saved sort. */
     fun updatePlaylistState(
         id: Long,
         refresh: Boolean = false,
     ) {
         viewModelScope.launch {
+            val saved = if (refresh) ListSort.parse(dataStoreManager.getString(sortKey(id)).first()) else null
             localPlaylistRepository.getLocalPlaylist(id).collectLatestResource(
                 onSuccess = { pl ->
                     if (pl != null) {
@@ -730,10 +544,8 @@ class LocalPlaylistViewModel(
                                 syncState = pl.syncState,
                                 ytPlaylistId = pl.youtubePlaylistId,
                                 trackCount = pl.tracks?.size ?: 0,
+                                sort = saved ?: it.sort,
                             )
-                        }
-                        if (refresh) {
-                            getTracksPagingState(id, _uiState.value.filterState)
                         }
                     }
                 },
@@ -787,29 +599,6 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private val _allTracks = MutableStateFlow<List<Track>?>(null)
-
-    /**
-     * Every track in the order on screen, for track selection, whose Select all and action order
-     * need the whole list while the page itself is paged. Null until [loadAllTracks] has run.
-     */
-    val allTracks: StateFlow<List<Track>?> = _allTracks
-
-    fun loadAllTracks() {
-        val id = uiState.value.id
-        val filter = uiState.value.filterState
-        viewModelScope.launch {
-            // Every order but Title is the stored position, newest first just read backwards.
-            val tracks = localPlaylistRepository.getFullPlaylistTracks(id).toArrayListTrack()
-            _allTracks.value =
-                when (filter) {
-                    FilterState.NewerFirst -> tracks.reversed()
-                    FilterState.Title -> tracks.sortedBy { it.title }
-                    else -> tracks
-                }
-        }
-    }
-
     /** The selection bar's Remove: [deleteItem] for each, with one toast and one refresh. */
     fun deleteItems(
         tracks: List<Track>,
@@ -820,7 +609,6 @@ class LocalPlaylistViewModel(
             var failed = false
             tracks.forEach { track ->
                 val song = songRepository.getSongById(track.videoId).lastOrNull() ?: track.toSongEntity()
-                val pair = localPlaylistRepository.getPlaylistPairOfSong(id, track.videoId).lastOrNull()
                 localPlaylistRepository
                     .removeTrackFromLocalPlaylist(
                         id,
@@ -829,7 +617,7 @@ class LocalPlaylistViewModel(
                         getString(Res.string.removed_from_YouTube_playlist),
                         getString(Res.string.can_t_delete_from_youtube_playlist),
                     ).collectLatestResource(
-                        onSuccess = { if (pair != null) onApplyActions(PagingActions.Remove(song to pair)) },
+                        onSuccess = {},
                         // Gone from the phone; only the synced YouTube copy refused it.
                         onError = { failed = true },
                     )
@@ -907,10 +695,6 @@ class LocalPlaylistViewModel(
 }
 
 sealed class LocalPlaylistUIEvent {
-    data class ChangeFilter(
-        val filterState: FilterState,
-    ) : LocalPlaylistUIEvent()
-
     data class ItemClick(
         val videoId: String,
     ) : LocalPlaylistUIEvent()
@@ -936,7 +720,7 @@ data class LocalPlaylistState(
     val page: Int = 0,
     val isLoadedFull: Boolean = false,
     val loadState: PlaylistLoadState = PlaylistLoadState.Loading,
-    val filterState: FilterState = FilterState.OlderFirst,
+    val sort: ListSort = ListSort(),
     val suggestions: SuggestionSongs? = null,
 ) {
     sealed class SuggestionState {

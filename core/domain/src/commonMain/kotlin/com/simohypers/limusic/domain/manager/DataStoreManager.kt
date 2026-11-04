@@ -264,10 +264,6 @@ interface DataStoreManager {
 
     suspend fun setVisitorData(visitorData: String)
 
-    val localPlaylistFilter: Flow<String>
-
-    suspend fun setLocalPlaylistFilter(filter: String)
-
     val killServiceOnExit: Flow<String>
 
     suspend fun setKillServiceOnExit(kill: Boolean)
@@ -487,11 +483,6 @@ interface DataStoreManager {
 
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"
-
-        const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
-        const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
-        const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
-        const val LOCAL_PLAYLIST_FILTER_CUSTOM_ORDER = "custom_order"
 
         // Auto Backup Frequency
         const val AUTO_BACKUP_FREQUENCY_DAILY = "daily"

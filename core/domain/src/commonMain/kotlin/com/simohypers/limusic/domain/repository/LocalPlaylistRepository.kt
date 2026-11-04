@@ -1,15 +1,12 @@
 package com.simohypers.limusic.domain.repository
 
-import androidx.paging.PagingData
 import com.simohypers.limusic.domain.data.entities.LocalPlaylistEntity
 import com.simohypers.limusic.domain.data.entities.PairSongLocalPlaylist
 import com.simohypers.limusic.domain.data.entities.SetVideoIdEntity
 import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.LocalResource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalDateTime
 
 interface LocalPlaylistRepository {
     fun getLocalPlaylist(id: Long): Flow<LocalResource<LocalPlaylistEntity?>>
@@ -36,18 +33,6 @@ interface LocalPlaylistRepository {
     fun getPlaylistPairSongByListPosition(
         playlistId: Long,
         listPosition: List<Int>,
-    ): Flow<List<PairSongLocalPlaylist>?>
-
-    fun getPlaylistPairSongByOffset(
-        playlistId: Long,
-        offset: Int,
-        filterState: FilterState,
-    ): Flow<List<PairSongLocalPlaylist>?>
-
-    fun getPlaylistPairSongByTime(
-        playlistId: Long,
-        filterState: FilterState,
-        localDateTime: LocalDateTime,
     ): Flow<List<PairSongLocalPlaylist>?>
 
     fun getPlaylistPairOfSong(
@@ -93,23 +78,15 @@ interface LocalPlaylistRepository {
 
     fun listTrackFlow(id: Long): Flow<List<String>>
 
-    /**
-     * Search one local playlist by song title or artist name.
-     *
-     * A plain list, not [PagingData]: a search box already bounds its own result, and paging is
-     * for a list whose end is unknown. Keeping it separate also leaves the paged reader — which
-     * carries in-place reordering and removal — untouched.
-     */
+    /** Search one local playlist by song title or artist name, in stored order. */
     fun searchTracks(
         id: Long,
         query: String,
         limit: Int = 200,
     ): Flow<List<Pair<SongEntity, PairSongLocalPlaylist>>>
 
-    fun getTracksPaging(
-        id: Long,
-        filter: FilterState,
-    ): Flow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>>
+    /** Every row of the playlist in stored (Custom order) position, again on each add, removal or move. */
+    fun playlistTracks(id: Long): Flow<List<Pair<SongEntity, PairSongLocalPlaylist>>>
 
     suspend fun getFullPlaylistTracks(id: Long): List<SongEntity>
 

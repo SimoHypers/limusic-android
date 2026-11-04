@@ -135,12 +135,10 @@ import com.simohypers.limusic.domain.data.model.searchResult.playlists.Playlists
 import com.simohypers.limusic.domain.data.model.searchResult.songs.Artist
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.MediaPlayerHandler
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.connectArtists
 import com.simohypers.limusic.domain.utils.toListName
 import com.simohypers.limusic.expect.copyToClipboard
 import com.simohypers.limusic.expect.shareUrl
-import com.simohypers.limusic.extension.displayNameRes
 import com.simohypers.limusic.extension.greyScale
 import com.simohypers.limusic.ui.icon.AccessAlarm
 import com.simohypers.limusic.ui.icon.Add
@@ -2199,95 +2197,6 @@ fun LocalPlaylistBottomSheet(
                         textColor = danger,
                         iconColor = danger,
                     ) { run(onDelete) }
-                    EndOfModalBottomSheet()
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SortPlaylistBottomSheet(
-    selectedState: FilterState,
-    onDismiss: () -> Unit,
-    onSortChanged: (FilterState) -> Unit,
-) {
-    AppThemeContent {
-        val modelBottomSheetState =
-            rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val filterOptions =
-            remember {
-                listOf(
-                    FilterState.CustomOrder,
-                    FilterState.NewerFirst,
-                    FilterState.OlderFirst,
-                    FilterState.Title,
-                )
-            }
-
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = modelBottomSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Card(
-                        modifier = Modifier.width(60.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-                    Text(
-                        stringResource(Res.string.sort_by),
-                        style = typo().labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier =
-                            Modifier
-                                .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
-                                .align(Alignment.Start),
-                    )
-                    LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                        items(filterOptions, key = { it.hashCode() }) { filterOption ->
-                            val isSelected = filterOption == selectedState
-                            Row(
-                                Modifier
-                                    .padding(vertical = 4.dp)
-                                    .clickable {
-                                        onSortChanged(filterOption)
-                                        onDismiss()
-                                    }.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = stringResource(filterOption.displayNameRes()),
-                                    style = typo().labelMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (isSelected) seed else rememberSurfaceDarkColors().content,
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                if (isSelected) {
-                                    Image(
-                                        imageVector = LimusicIcons.Done,
-                                        contentDescription = "Selected",
-                                        colorFilter = ColorFilter.tint(seed),
-                                        modifier = Modifier.size(32.dp),
-                                    )
-                                } else {
-                                    Spacer(modifier = Modifier.size(32.dp))
-                                }
-                            }
-                        }
-                    }
                     EndOfModalBottomSheet()
                 }
             }

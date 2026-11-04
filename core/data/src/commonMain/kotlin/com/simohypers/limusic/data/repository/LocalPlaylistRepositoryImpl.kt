@@ -2,16 +2,11 @@
 
 package com.simohypers.limusic.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import com.simohypers.limusic.data.db.Converters
 import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.io.readLocalImageBytes
 import com.simohypers.limusic.data.extension.getFullDataFromDB
 import com.simohypers.limusic.data.mapping.toTrack
-import com.simohypers.limusic.data.paging.LocalPlaylistPagingSource
-import com.simohypers.limusic.data.paging.LocalPlaylistTimeBasedPagingSource
 import com.simohypers.limusic.data.parser.parseSetVideoId
 import com.simohypers.limusic.domain.data.entities.LocalPlaylistEntity
 import com.simohypers.limusic.domain.data.entities.PairSongLocalPlaylist
@@ -20,7 +15,6 @@ import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.domain.repository.LocalPlaylistRepository
-import com.simohypers.limusic.domain.utils.FilterState
 import com.simohypers.limusic.domain.utils.LocalResource
 import com.simohypers.limusic.domain.utils.wrapDataResource
 import com.simohypers.limusic.domain.utils.wrapMessageResource
@@ -42,7 +36,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
 
 private const val TAG = "LocalPlaylistRepositoryImpl"
 
@@ -98,78 +91,25 @@ internal class LocalPlaylistRepositoryImpl(
         query: String,
         limit: Int,
     ): Flow<List<Pair<SongEntity, PairSongLocalPlaylist>>> =
-        flow {
-            val pairs = localDataSource.searchPlaylistPairSong(id, query, limit)
-            if (pairs.isEmpty()) {
-                emit(emptyList())
-                return@flow
-            }
-            // Two steps, the same shape LocalPlaylistPagingSource uses: the join narrows the rows,
-            // then the songs are fetched by id. Re-sorted by the pair order afterwards because the
-            // id lookup returns them in whatever order the database finds them.
-            val byId = localDataSource.getSongByListVideoIdFull(pairs.map { it.songId }).associateBy { it.videoId }
-            emit(pairs.mapNotNull { pair -> byId[pair.songId]?.let { it to pair } })
-        }.flowOn(Dispatchers.IO)
+        flow { emit(withSongs(localDataSource.searchPlaylistPairSong(id, query, limit))) }.flowOn(Dispatchers.IO)
 
-    override fun getTracksPaging(
-        id: Long,
-        filter: FilterState,
-    ): Flow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> {
-        if (filter == FilterState.CustomOrder || filter == FilterState.Title) {
-            return Pager(
-                config = PagingConfig(pageSize = 100, prefetchDistance = 5),
-                pagingSourceFactory = {
-                    LocalPlaylistPagingSource(
-                        playlistId = id,
-                        filter = filter,
-                        localDataSource = localDataSource,
-                    )
-                },
-            ).flow
-        } else {
-            return Pager(
-                config = PagingConfig(pageSize = 100, prefetchDistance = 5),
-                pagingSourceFactory = {
-                    LocalPlaylistTimeBasedPagingSource(
-                        playlistId = id,
-                        filter = filter,
-                        localDataSource = localDataSource,
-                    )
-                },
-            ).flow
-        }
+    override fun playlistTracks(id: Long): Flow<List<Pair<SongEntity, PairSongLocalPlaylist>>> =
+        localDataSource.playlistPairsFlow(id).map { withSongs(it) }.flowOn(Dispatchers.IO)
+
+    /** The song behind each row, in the rows' order; the lookup caps at 1000 ids, so in chunks. */
+    private suspend fun withSongs(pairs: List<PairSongLocalPlaylist>): List<Pair<SongEntity, PairSongLocalPlaylist>> {
+        val byId =
+            pairs
+                .map { it.songId }
+                .distinct()
+                .chunked(500)
+                .flatMap { localDataSource.getSongByListVideoIdFull(it) }
+                .associateBy { it.videoId }
+        return pairs.mapNotNull { pair -> byId[pair.songId]?.let { it to pair } }
     }
 
-    override suspend fun getFullPlaylistTracks(id: Long): List<SongEntity> {
-        val playlist = localDataSource.getLocalPlaylist(id) ?: return emptyList()
-        Logger.d(TAG, "getFullPlaylistTracks: $playlist")
-        val tracks = mutableListOf<SongEntity>()
-        var currentPage = 0
-        while (true) {
-            val pairs =
-                localDataSource.getPlaylistPairSongByOffset(
-                    playlistId = id,
-                    filterState = FilterState.CustomOrder,
-                    offset = currentPage,
-                )
-            if (pairs.isNullOrEmpty()) {
-                break
-            }
-            val songs =
-                localDataSource
-                    .getSongByListVideoIdFull(
-                        pairs.map { it.songId },
-                    )
-            val idValue = songs.associateBy { it.videoId }
-            val sorted =
-                pairs.mapNotNull {
-                    idValue[it.songId]
-                }
-            tracks.addAll(sorted)
-            currentPage++
-        }
-        return tracks
-    }
+    override suspend fun getFullPlaylistTracks(id: Long): List<SongEntity> =
+        withSongs(localDataSource.getAllPlaylistPairSongByPosition(id)).map { it.first }
 
     override suspend fun getListTrackVideoId(id: Long): List<String> {
         val playlist = localDataSource.getLocalPlaylist(id)
@@ -646,30 +586,6 @@ internal class LocalPlaylistRepositoryImpl(
     ): Flow<List<PairSongLocalPlaylist>?> =
         flow {
             emit(localDataSource.getPlaylistPairSongByListPosition(playlistId, listPosition))
-        }.flowOn(Dispatchers.IO)
-
-    override fun getPlaylistPairSongByOffset(
-        playlistId: Long,
-        offset: Int,
-        filterState: FilterState,
-    ): Flow<List<PairSongLocalPlaylist>?> =
-        flow {
-            emit(localDataSource.getPlaylistPairSongByOffset(playlistId, offset, filterState))
-        }.flowOn(Dispatchers.IO)
-
-    override fun getPlaylistPairSongByTime(
-        playlistId: Long,
-        filterState: FilterState,
-        localDateTime: LocalDateTime,
-    ): Flow<List<PairSongLocalPlaylist>?> =
-        flow {
-            emit(
-                localDataSource.getPlaylistPairSongByTime(
-                    playlistId,
-                    filterState,
-                    localDateTime,
-                ),
-            )
         }.flowOn(Dispatchers.IO)
 
     override fun getPlaylistPairOfSong(
