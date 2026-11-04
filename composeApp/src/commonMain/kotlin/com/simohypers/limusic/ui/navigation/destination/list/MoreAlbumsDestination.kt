@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 data class MoreAlbumsDestination(
     val id: String,
     val type: String = ALBUM_TYPE,
+    // The artist page's name and photo, for the page's hero.
+    val artist: String? = null,
+    val artwork: String? = null,
 ) {
     companion object {
         const val ALBUM_TYPE = "album"

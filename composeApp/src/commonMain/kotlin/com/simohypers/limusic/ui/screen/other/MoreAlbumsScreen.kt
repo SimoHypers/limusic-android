@@ -1,183 +1,138 @@
 package com.simohypers.limusic.ui.screen.other
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.simohypers.limusic.logger.Logger
-import com.simohypers.limusic.extension.ultraThinBarStyle
+import com.simohypers.limusic.extension.sizedThumbnail
 import com.simohypers.limusic.ui.component.CenterLoadingBox
 import com.simohypers.limusic.ui.component.EndOfPage
-import com.simohypers.limusic.ui.component.HomeItemContentPlaylist
-import com.simohypers.limusic.ui.component.RippleIconButton
-import com.simohypers.limusic.ui.icon.ArrowBackIosNew
-import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.MoreAlbumsDestination
+import com.simohypers.limusic.ui.screen.home.CoverCard
+import com.simohypers.limusic.ui.screen.home.HeroTopBar
+import com.simohypers.limusic.ui.screen.home.MoodHero
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.MoreAlbumsUIState
 import com.simohypers.limusic.viewModel.MoreAlbumsViewModel
-import dev.chrisbanes.haze.HazeInput
-import dev.chrisbanes.haze.blur.hazeBlur
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
+import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.albums
+import limusic.composeapp.generated.resources.albums_count
+import limusic.composeapp.generated.resources.mood_failed
+import limusic.composeapp.generated.resources.retry
+import limusic.composeapp.generated.resources.singles
+import limusic.composeapp.generated.resources.singles_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * An artist's albums or singles, from the artist page's "More": the Mood page's hero built from the
+ * artist (their photo in the accent, their name over "Albums") over a two-column cover grid in
+ * YouTube's order, newest first.
+ */
 @Composable
 fun MoreAlbumsScreen(
-    innerPadding: PaddingValues,
     navController: NavController,
-    id: String? = null,
-    type: String? = null,
+    id: String?,
+    type: String?,
+    artist: String?,
+    artwork: String?,
     viewModel: MoreAlbumsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val hazeState = rememberHazeState()
-
-    LaunchedEffect(id, type) {
-        Logger.d("MoreAlbumsScreen", "id: $id, type: $type")
+    val singles = type == MoreAlbumsDestination.SINGLE_TYPE
+    val load = {
         if (id != null) {
-            if (type != null) {
-                when (type) {
-                    MoreAlbumsDestination.ALBUM_TYPE -> {
-                        viewModel.getAlbumMore(id)
-                    }
-
-                    MoreAlbumsDestination.SINGLE_TYPE -> {
-                        viewModel.getSingleMore(id)
-                    }
-                }
-            }
+            if (singles) viewModel.getSingleMore(id) else viewModel.getAlbumMore(id)
         }
     }
+    LaunchedEffect(id, type) { load() }
 
-    Crossfade(targetState = uiState) { state ->
-        when (state) {
-            is MoreAlbumsUIState.Success -> {
-                val data = state.albumItems
-                LazyVerticalGrid(
-                    // The cards fill their cells and bring their own 10dp inset, so 6dp here puts
-                    // the covers 16dp from the edges and 20dp apart, like the pages around it.
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .hazeSource(state = hazeState),
-                    contentPadding = PaddingValues(horizontal = 6.dp),
-                ) {
-                    item(
-                        span = { GridItemSpan(maxLineSpan) },
-                    ) {
-                        Spacer(
-                            Modifier
-                                .size(
-                                    innerPadding.calculateTopPadding() + 64.dp,
-                                ),
-                        )
+    val albums = (uiState as? MoreAlbumsUIState.Success)?.albumItems.orEmpty()
+    val title = stringResource(if (singles) Res.string.singles else Res.string.albums)
+    val listState = rememberLazyListState()
+
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+            item(key = "hero", contentType = "hero") {
+                MoodHero(
+                    color = MaterialTheme.colorScheme.primary,
+                    artwork = artwork ?: albums.firstOrNull()?.thumbnails?.lastOrNull()?.url,
+                    kicker = artist,
+                    title = title,
+                    sharp = artwork != null,
+                    count =
+                        if (albums.isEmpty()) {
+                            null
+                        } else {
+                            pluralStringResource(if (singles) Res.plurals.singles_count else Res.plurals.albums_count, albums.size, albums.size)
+                        },
+                )
+            }
+            when (uiState) {
+                MoreAlbumsUIState.Loading ->
+                    item(key = "loading") {
+                        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                            CenterLoadingBox(Modifier.size(80.dp))
+                        }
                     }
-                    items(data) { album ->
-                        val data = album
-                        HomeItemContentPlaylist(
-                            data = data,
-                            fillMaxWidth = true,
-                            onClick = {
-                                navController.navigate(
-                                    AlbumDestination(
-                                        browseId = album.browseId,
-                                    ),
-                                )
-                            },
-                        )
-                    }
-                    item(
-                        span = { GridItemSpan(maxLineSpan) },
-                    ) {
-                        EndOfPage()
-                    }
-                }
-                TopAppBar(
-                    modifier =
-                        Modifier
-                            .hazeBlur(HazeInput.Sources(hazeState), ultraThinBarStyle()),
-                    title = {
-                        Text(
-                            text = state.title,
-                            style = typo().titleMedium,
-                            maxLines = 1,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
-                        )
-                    },
-                    navigationIcon = {
-                        Box(Modifier.padding(horizontal = 5.dp)) {
-                            RippleIconButton(
-                                LimusicIcons.ArrowBackIosNew,
-                                Modifier
-                                    .size(32.dp),
-                                true,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            ) {
-                                navController.navigateUp()
+
+                is MoreAlbumsUIState.Error ->
+                    item(key = "failed") {
+                        Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.mood_failed),
+                                style = typo().bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                            TextButton(onClick = load) {
+                                Text(stringResource(Res.string.retry), color = MaterialTheme.colorScheme.primary)
                             }
                         }
-                    },
-                    colors =
-                        TopAppBarDefaults.topAppBarColors(
-                            Color.Transparent,
-                            Color.Unspecified,
-                            Color.Unspecified,
-                            Color.Unspecified,
-                            Color.Unspecified,
-                        ),
-                )
-            }
+                    }
 
-            is MoreAlbumsUIState.Error -> {
-                viewModel.makeToast(state.message)
+                is MoreAlbumsUIState.Success ->
+                    items(albums.chunked(2), contentType = { "cards" }) { two ->
+                        Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            two.forEach { album ->
+                                CoverCard(
+                                    cover = album.thumbnails.lastOrNull()?.url?.sizedThumbnail(544),
+                                    title = album.title,
+                                    subtitle = album.year,
+                                    modifier = Modifier.weight(1f),
+                                    explicit = album.isExplicit,
+                                ) { navController.navigate(AlbumDestination(browseId = album.browseId)) }
+                            }
+                            if (two.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
             }
-
-            MoreAlbumsUIState.Loading -> {
-                CenterLoadingBox(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(15.dp),
-                )
-            }
+            item(key = "end") { EndOfPage() }
         }
+        HeroTopBar(listState, title) { navController.navigateUp() }
     }
 }

@@ -750,6 +750,8 @@ private fun ArtistSections(
                             MoreAlbumsDestination(
                                 id = "MPAD${state.data.channelId}",
                                 type = MoreAlbumsDestination.SINGLE_TYPE,
+                                artist = state.data.title,
+                                artwork = state.data.imageUrl,
                             ),
                         )
                     } else {
@@ -791,6 +793,8 @@ private fun ArtistSections(
                             MoreAlbumsDestination(
                                 id = "MPAD${state.data.channelId}",
                                 type = MoreAlbumsDestination.ALBUM_TYPE,
+                                artist = state.data.title,
+                                artwork = state.data.imageUrl,
                             ),
                         )
                     } else {

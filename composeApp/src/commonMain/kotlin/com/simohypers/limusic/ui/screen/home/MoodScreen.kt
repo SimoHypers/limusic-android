@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +71,7 @@ import com.simohypers.limusic.ui.component.PillIconButton
 import com.simohypers.limusic.ui.component.RippleIconButton
 import com.simohypers.limusic.ui.component.rememberHolderPainter
 import com.simohypers.limusic.ui.icon.ArrowBackIosNew
+import com.simohypers.limusic.ui.icon.Explicit
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
 import com.simohypers.limusic.ui.theme.rounded
@@ -217,6 +219,8 @@ internal fun MoodHero(
     kicker: String?,
     title: String,
     count: String?,
+    // The artwork as itself, fading into the page, instead of a blurred texture.
+    sharp: Boolean = false,
 ) {
     val background = MaterialTheme.colorScheme.background
     // Clipped: a blur draws past its bounds, and the overflow sat as a strip under the first heading.
@@ -224,7 +228,14 @@ internal fun MoodHero(
         Box(Modifier.fillMaxSize().background(color.copy(alpha = 0.55f)))
         // Blurred to a texture: covers carry their own big lettering, which fought the name over it.
         // Below Android 12 there is no blur, so the colour carries the hero alone.
-        if (artwork != null && isLyricsBlurSupported()) {
+        if (artwork != null && sharp) {
+            AsyncImage(
+                model = artwork,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else if (artwork != null && isLyricsBlurSupported()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalPlatformContext.current).data(artwork).size(96).build(),
                 contentDescription = null,
@@ -261,7 +272,7 @@ internal fun MoodHero(
     }
 }
 
-/** A cover over its title and line, filling a grid cell; round and centred for an artist. */
+/** A cover over its title and line, filling a grid cell; round and centred for an artist. [explicit] puts an E before the line. */
 @Composable
 internal fun CoverCard(
     cover: String?,
@@ -270,6 +281,7 @@ internal fun CoverCard(
     modifier: Modifier,
     ratio: Float = 1f,
     round: Boolean = false,
+    explicit: Boolean = false,
     onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
@@ -294,16 +306,26 @@ internal fun CoverCard(
             textAlign = align,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, start = 2.dp, end = 2.dp),
         )
-        if (subtitle.isNotBlank()) {
-            Text(
-                subtitle,
-                style = typo().bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = align,
-                modifier = Modifier.fillMaxWidth().padding(start = 2.dp, end = 2.dp, bottom = 8.dp),
-            )
+        if (subtitle.isNotBlank() || explicit) {
+            Row(Modifier.fillMaxWidth().padding(start = 2.dp, end = 2.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (explicit) {
+                    Icon(
+                        LimusicIcons.Explicit,
+                        contentDescription = "Explicit",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 4.dp).size(14.dp),
+                    )
+                }
+                Text(
+                    subtitle,
+                    style = typo().bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = align,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }

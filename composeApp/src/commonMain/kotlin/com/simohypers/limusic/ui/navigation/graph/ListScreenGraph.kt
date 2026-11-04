@@ -62,10 +62,11 @@ fun NavGraphBuilder.listScreenGraph(
     composable<MoreAlbumsDestination> { entry ->
         val data = entry.toRoute<MoreAlbumsDestination>()
         MoreAlbumsScreen(
-            innerPadding = innerPadding,
             navController = navController,
-            type = data.type,
             id = data.id,
+            type = data.type,
+            artist = data.artist,
+            artwork = data.artwork,
         )
     }
     composable<BrowseDestination> { entry ->
