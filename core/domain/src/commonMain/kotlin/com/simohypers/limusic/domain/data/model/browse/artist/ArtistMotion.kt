@@ -48,7 +48,25 @@ private const val ARTIST_MOTION_TTL_MS = 7L * 24 * 60 * 60 * 1000
  * had none would be believed forever.
  */
 fun ArtistMotionEntity.isFresh(): Boolean =
-    Clock.System.now().toEpochMilliseconds() - fetchedAt < ARTIST_MOTION_TTL_MS
+    fetchedAt >= NAME_MATCH_SINCE_MS && Clock.System.now().toEpochMilliseconds() - fetchedAt < ARTIST_MOTION_TTL_MS
+
+// 2026-11-04 12:30 UTC, when the name check below shipped. Lookups before it took Apple Music's first
+// hit whatever its name (a podcast got a stranger's logo), so none of them is trusted.
+private const val NAME_MATCH_SINCE_MS = 1793795400000L
+
+/**
+ * Whether an Apple Music artist is the YouTube one: the same name, ignoring case, spaces and
+ * punctuation. The search ranks by relevance, so its first hit for a name it does not carry (a
+ * podcast, a small channel) is somebody else.
+ */
+fun sameArtistName(
+    youTube: String,
+    appleMusic: String?,
+): Boolean {
+    fun String.key() = lowercase().filter { it.isLetterOrDigit() }
+    val key = youTube.key()
+    return key.isNotEmpty() && key == appleMusic?.key()
+}
 
 /** Null when the row records that this artist has no animated artwork. */
 fun ArtistMotionEntity.toArtistMotion(): ArtistMotion? =

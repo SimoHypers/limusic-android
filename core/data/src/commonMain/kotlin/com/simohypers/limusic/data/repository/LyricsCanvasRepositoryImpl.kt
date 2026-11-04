@@ -2,6 +2,7 @@
 
 package com.simohypers.limusic.data.repository
 
+import com.simohypers.limusic.domain.data.model.browse.artist.sameArtistName
 import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.mapping.toLyrics
 import com.simohypers.limusic.domain.data.entities.LyricsEntity
@@ -316,9 +317,11 @@ internal class LyricsCanvasRepositoryImpl(
     override fun getArtistEditorial(artistName: String): Flow<Resource<ArtistEditorial>> =
         flow {
             appleMusic
-                .searchAMArtist(artistName, limit = 1)
+                .searchAMArtist(artistName, limit = 5)
                 .onSuccess { artists ->
-                    val id = artists.firstOrNull()?.id
+                    // Only an artist of that very name: the top hit for a name AM does not carry
+                    // is a stranger, whose logo would then title this artist's page.
+                    val id = artists.firstOrNull { sameArtistName(artistName, it.attributes?.name) }?.id
                     if (id == null) {
                         // A definitive answer, not a failure: the catalog was reached and holds no
                         // such artist. Handed back as an empty Success so the caller can remember

@@ -130,10 +130,10 @@ class ArtistViewModel(
         lyricsCanvasRepository.getArtistEditorial(artistName).collectLatest { res ->
             if (res !is Resource.Success) return@collectLatest
             val editorial = res.data ?: return@collectLatest
-            editorial.logo?.let { logo ->
-                _artistLogo.value = logo
-                artistRepository.updateArtistNameLogo(channelId, logo.logoUrl, logo.bgColorHex)
-            }
+            // Written even when there is none: it replaces a logo an older lookup got wrong.
+            val logo = editorial.logo
+            _artistLogo.value = logo
+            artistRepository.updateArtistNameLogo(channelId, logo?.logoUrl, logo?.bgColorHex)
             _artistMotion.value = editorial.motion
             artistRepository.upsertArtistMotion(editorial.motion.toEntity(channelId))
         }
