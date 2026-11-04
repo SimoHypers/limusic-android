@@ -1,5 +1,22 @@
 package com.simohypers.limusic.ui.component
 
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import limusic.composeapp.generated.resources.sleep_timer_hint
+import limusic.composeapp.generated.resources.sleep_timer_minutes
+import limusic.composeapp.generated.resources.sleep_timer_hour
+import limusic.composeapp.generated.resources.sleep_timer_end
+import limusic.composeapp.generated.resources.sleep_timer_custom
+import limusic.composeapp.generated.resources.sleep_timer_start
+import limusic.composeapp.generated.resources.sleep_timer_left
+import limusic.composeapp.generated.resources.sleep_timer_after_song
+import limusic.composeapp.generated.resources.sleep_timer_pauses_at
+import limusic.composeapp.generated.resources.sleep_timer_add_ten
+import limusic.composeapp.generated.resources.sleep_timer_turn_off
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.draw.rotate
 import androidx.compose.runtime.produceState
@@ -763,7 +780,6 @@ private fun NowPlayingBottomSheetContent(
 
     var addToAPlaylist by remember { mutableStateOf(false) }
     var sleepTimer by remember { mutableStateOf(false) }
-    var sleepTimerWarning by remember { mutableStateOf(false) }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
     var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
     val crossfadeEnabled by dataStoreManager.crossfadeEnabled.collectAsState(DataStoreManager.FALSE)
@@ -812,45 +828,11 @@ private fun NowPlayingBottomSheetContent(
     }
 
     if (sleepTimer) {
-        SleepTimerBottomSheet(onDismiss = { sleepTimer = false }) { minutes: Int ->
-            if (setSleepTimerEnable) {
-                viewModel.onUIEvent(
-                    NowPlayingBottomSheetUIEvent.SetSleepTimer(
-                        cancel = false,
-                        minutes = minutes,
-                    ),
-                )
-            }
-        }
-    }
-
-    if (sleepTimerWarning) {
-        AlertDialog(
-            containerColor = rememberSurfaceDarkColors().container,
-            onDismissRequest = { sleepTimerWarning = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    sleepTimerWarning = false
-                    viewModel.onUIEvent(
-                        NowPlayingBottomSheetUIEvent.SetSleepTimer(
-                            cancel = true,
-                        ),
-                    )
-                }) {
-                    Text(text = stringResource(Res.string.yes), style = typo().labelSmall)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { sleepTimerWarning = false }) {
-                    Text(text = stringResource(Res.string.cancel), style = typo().labelSmall)
-                }
-            },
-            title = {
-                Text(text = stringResource(Res.string.warning), style = typo().labelSmall)
-            },
-            text = {
-                Text(text = stringResource(Res.string.sleep_timer_warning), style = typo().bodyMedium)
-            },
+        SleepTimerBottomSheet(
+            timeRemaining = uiState.sleepTimer.timeRemaining,
+            onDismiss = { sleepTimer = false },
+            onSetTimer = { minutes -> viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.SetSleepTimer(cancel = false, minutes = minutes)) },
+            onTurnOff = { viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.SetSleepTimer(cancel = true)) },
         )
     }
 
@@ -1063,7 +1045,7 @@ private fun NowPlayingBottomSheetContent(
                                 textColor = accent,
                                 iconColor = accent,
                             ) {
-                                sleepTimerWarning = true
+                                sleepTimer = true
                             }
                         } else {
                             ActionButton(
@@ -1574,305 +1556,112 @@ fun PlaybackSpeedPitchBottomSheet(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REDESIGNED SleepTimerBottomSheet
-// Quick presets (5, 10, 15, 30, 45 min, 1 hour) + End of Song + Custom input
-// Passes END_OF_SONG_SENTINEL (Int.MAX_VALUE) for "End of Song" option.
-// ─────────────────────────────────────────────────────────────────────────────
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * The sleep timer. Off, it is a grid of lengths where one tap starts the timer and closes (Custom
+ * asks for minutes first). Running, it counts down instead, with +10 min and Turn off.
+ * [timeRemaining] is the service's: minutes left, -1 for end of song, 0 for off.
+ */
 @Composable
 fun SleepTimerBottomSheet(
+    timeRemaining: Int,
     onDismiss: () -> Unit,
-    /** Highlights and the Set button; the full player passes its cover colour. */
-    accent: Color = seed,
     onSetTimer: (minutes: Int) -> Unit,
+    onTurnOff: () -> Unit,
 ) {
-    AppThemeContent {
-        val coroutineScope = rememberCoroutineScope()
-        val modelBottomSheetState =
-            rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-        // -1 = nothing selected, Int.MAX_VALUE = End of Song, else = minutes
-        var selectedPreset by rememberSaveable { mutableIntStateOf(-1) }
-        var showCustomInput by rememberSaveable { mutableStateOf(false) }
-        var customMinutes by rememberSaveable { mutableStateOf("") }
-
-        data class Preset(
-            val label: String,
-            val minutes: Int,
-        )
-
-        val presets =
-            listOf(
-                Preset("5 min", 5),
-                Preset("10 min", 10),
-                Preset("15 min", 15),
-                Preset("30 min", 30),
-                Preset("45 min", 45),
-                Preset("1 hour", 60),
-            )
-
-        // Whether the Set button should be enabled
-        val isSetEnabled =
-            when {
-                selectedPreset == END_OF_SONG_SENTINEL -> true
-                selectedPreset > 0 && !showCustomInput -> true
-                showCustomInput && (customMinutes.toIntOrNull() ?: 0) > 0 -> true
-                else -> false
+    SettingSheet(title = stringResource(Res.string.sleep_timer_off), onDismiss = onDismiss) { colors ->
+        val accent = MaterialTheme.colorScheme.primary
+        if (timeRemaining != 0) {
+            val endOfSong = timeRemaining == -1
+            Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    if (endOfSong) stringResource(Res.string.sleep_timer_after_song) else stringResource(Res.string.sleep_timer_left, timeRemaining),
+                    style = typo().headlineMedium,
+                    color = accent,
+                )
+                if (!endOfSong) {
+                    // The service counts whole minutes, hence "around".
+                    val at = (Clock.System.now() + timeRemaining.minutes).toLocalDateTime(TimeZone.currentSystemDefault())
+                    Text(
+                        stringResource(Res.string.sleep_timer_pauses_at, "${at.hour.toString().padStart(2, '0')}:${at.minute.toString().padStart(2, '0')}"),
+                        style = typo().bodyMedium,
+                        color = colors.subtitle,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
-
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = modelBottomSheetState,
-            containerColor = Color.Transparent,
-            contentColor = Color.Transparent,
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                shape = rounded(topStart = 20.dp, topEnd = 20.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Drag handle
-                    Card(
-                        modifier = Modifier.width(40.dp).height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().disabled),
-                        shape = RoundedCornerShape(50),
-                    ) {}
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Title row with alarm icon
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Image(
-                            imageVector = LimusicIcons.AccessAlarm,
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(accent),
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(Res.string.sleep_timer_off),
-                            style = typo().titleMedium,
-                            color = rememberSurfaceDarkColors().content,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // ── Preset grid: 3 columns × 2 rows ──────────────────────
-                    val presetRows = presets.chunked(3)
-                    presetRows.forEach { row ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            row.forEach { preset ->
-                                val isSelected = selectedPreset == preset.minutes && !showCustomInput
-                                OutlinedButton(
-                                    onClick = {
-                                        selectedPreset = preset.minutes
-                                        showCustomInput = false
-                                        customMinutes = ""
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    shape = rounded(12.dp),
-                                    colors =
-                                        ButtonDefaults.outlinedButtonColors(
-                                            containerColor = if (isSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
-                                        ),
-                                    border =
-                                        BorderStroke(
-                                            width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) accent else rememberSurfaceDarkColors().disabled,
-                                        ),
-                                    contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                                ) {
-                                    Text(
-                                        text = preset.label,
-                                        style = typo().bodySmall,
-                                        color = if (isSelected) accent else rememberSurfaceDarkColors().subtitle,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    // ── End of Song + Custom row ─────────────────────────────
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        // End of Song
-                        val isEndSelected = selectedPreset == END_OF_SONG_SENTINEL && !showCustomInput
-                        OutlinedButton(
-                            onClick = {
-                                selectedPreset = END_OF_SONG_SENTINEL
-                                showCustomInput = false
-                                customMinutes = ""
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = rounded(12.dp),
-                            colors =
-                                ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isEndSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
-                                ),
-                            border =
-                                BorderStroke(
-                                    width = if (isEndSelected) 1.5.dp else 1.dp,
-                                    color = if (isEndSelected) accent else rememberSurfaceDarkColors().disabled,
-                                ),
-                            contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                        ) {
-                            Text(
-                                text = "End of song",
-                                style = typo().bodySmall,
-                                color = if (isEndSelected) accent else rememberSurfaceDarkColors().subtitle,
-                                fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            )
-                        }
-
-                        // Custom
-                        val isCustomSelected = showCustomInput
-                        OutlinedButton(
-                            onClick = {
-                                showCustomInput = true
-                                selectedPreset = -1
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = rounded(12.dp),
-                            colors =
-                                ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isCustomSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
-                                ),
-                            border =
-                                BorderStroke(
-                                    width = if (isCustomSelected) 1.5.dp else 1.dp,
-                                    color = if (isCustomSelected) accent else rememberSurfaceDarkColors().disabled,
-                                ),
-                            contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
-                        ) {
-                            Text(
-                                text = "Custom",
-                                style = typo().bodySmall,
-                                color = if (isCustomSelected) accent else rememberSurfaceDarkColors().subtitle,
-                                fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            )
-                        }
-                    }
-
-                    // ── Custom input (animated expand) ───────────────────────
-                    AnimatedVisibility(visible = showCustomInput) {
-                        Column {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = customMinutes,
-                                onValueChange = { value ->
-                                    if (value.all { it.isDigit() } && value.length <= 4) {
-                                        customMinutes = value
-                                    }
-                                },
-                                label = {
-                                    Text(
-                                        text = stringResource(Res.string.sleep_minutes),
-                                        style = typo().bodySmall,
-                                    )
-                                },
-                                suffix = {
-                                    Text(
-                                        text = "min",
-                                        style = typo().bodySmall,
-                                        color = rememberSurfaceDarkColors().disabled,
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = rounded(12.dp),
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // ── Set button ───────────────────────────────────────────
-                    Button(
-                        onClick = {
-                            when {
-                                selectedPreset == END_OF_SONG_SENTINEL -> {
-                                    onSetTimer(END_OF_SONG_SENTINEL)
-                                    coroutineScope.launch {
-                                        modelBottomSheetState.hide()
-                                        onDismiss()
-                                    }
-                                }
-                                showCustomInput -> {
-                                    val mins = customMinutes.toIntOrNull() ?: 0
-                                    if (mins > 0) {
-                                        onSetTimer(mins)
-                                        coroutineScope.launch {
-                                            modelBottomSheetState.hide()
-                                            onDismiss()
-                                        }
-                                    } else {
-                                        showToast(
-                                            runBlocking { getString(Res.string.sleep_timer_set_error) },
-                                            ToastGravity.Bottom,
-                                        )
-                                    }
-                                }
-                                selectedPreset > 0 -> {
-                                    onSetTimer(selectedPreset)
-                                    coroutineScope.launch {
-                                        modelBottomSheetState.hide()
-                                        onDismiss()
-                                    }
-                                }
-                                else -> {
-                                    showToast(
-                                        runBlocking { getString(Res.string.sleep_timer_set_error) },
-                                        ToastGravity.Bottom,
-                                    )
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = rounded(12.dp),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = accent,
-                                disabledContainerColor = accent.copy(alpha = 0.3f),
-                            ),
-                        enabled = isSetEnabled,
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.set),
-                            style = typo().labelSmall,
-                            // Plain black or white, whichever reads on the accent: a pale cover colour
-                            // needs black, the app's red and darker covers need white.
-                            color = if (accent.luminance() > 0.4f) Color.Black else Color.White,
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    EndOfModalBottomSheet()
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (!endOfSong) {
+                    SleepChip(stringResource(Res.string.sleep_timer_add_ten), accent, colors, Modifier.weight(1f)) { onSetTimer(timeRemaining + 10) }
+                }
+                Button(
+                    onClick = {
+                        onTurnOff()
+                        onDismiss()
+                    },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = rounded(14.dp),
+                ) { Text(stringResource(Res.string.sleep_timer_turn_off)) }
+            }
+            return@SettingSheet
+        }
+        var custom by rememberSaveable { mutableStateOf(false) }
+        var minutes by rememberSaveable { mutableStateOf("") }
+        val start = { m: Int ->
+            onSetTimer(m)
+            onDismiss()
+        }
+        Text(stringResource(Res.string.sleep_timer_hint), style = typo().bodySmall, color = colors.subtitle)
+        listOf(5, 10, 15, 30, 45, 60).chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { m ->
+                    val label = if (m == 60) stringResource(Res.string.sleep_timer_hour) else stringResource(Res.string.sleep_timer_minutes, m)
+                    SleepChip(label, accent, colors, Modifier.weight(1f)) { start(m) }
                 }
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SleepChip(stringResource(Res.string.sleep_timer_end), accent, colors, Modifier.weight(1f)) { start(END_OF_SONG_SENTINEL) }
+            SleepChip(stringResource(Res.string.sleep_timer_custom), accent, colors, Modifier.weight(1f), selected = custom) { custom = true }
+        }
+        AnimatedVisibility(custom) {
+            val focus = remember { FocusRequester() }
+            val value = minutes.toIntOrNull() ?: 0
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = minutes,
+                    onValueChange = { if (it.all(Char::isDigit) && it.length <= 4) minutes = it },
+                    label = { Text(stringResource(Res.string.sleep_minutes)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                )
+                LaunchedEffect(Unit) { focus.requestFocus() }
+                Button(enabled = value > 0, onClick = { start(value) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(Res.string.sleep_timer_start))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SleepChip(
+    label: String,
+    accent: Color,
+    colors: SurfaceDarkColors,
+    modifier: Modifier,
+    selected: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier
+            .height(48.dp)
+            .clip(rounded(14.dp))
+            .background(if (selected) accent.copy(alpha = 0.16f) else colors.content.copy(alpha = 0.06f))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, style = typo().labelSmall, color = if (selected) accent else colors.content)
     }
 }
 

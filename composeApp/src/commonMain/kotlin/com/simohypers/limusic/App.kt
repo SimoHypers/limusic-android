@@ -571,40 +571,9 @@ fun App(
                     }
                 }
 
-                if (sleepTimerState.isDone) {
-                    Logger.d("MainActivity", "Sleep Timer Done: $sleepTimerState")
-                    AlertDialog(
-                        properties =
-                            DialogProperties(
-                                dismissOnBackPress = false,
-                                dismissOnClickOutside = false,
-                            ),
-                        onDismissRequest = {
-                            viewModel.stopSleepTimer()
-                        },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.stopSleepTimer()
-                            }) {
-                                Text(
-                                    stringResource(Res.string.yes),
-                                    style = typo().bodySmall,
-                                )
-                            }
-                        },
-                        text = {
-                            Text(
-                                stringResource(Res.string.sleep_timer_off),
-                                style = typo().labelSmall,
-                            )
-                        },
-                        title = {
-                            Text(
-                                stringResource(Res.string.good_night),
-                                style = typo().bodySmall,
-                            )
-                        },
-                    )
+                // The fade and the pause are the whole ending; this only resets the timer to off.
+                LaunchedEffect(sleepTimerState.isDone) {
+                    if (sleepTimerState.isDone) viewModel.stopSleepTimer()
                 }
             },
         )
