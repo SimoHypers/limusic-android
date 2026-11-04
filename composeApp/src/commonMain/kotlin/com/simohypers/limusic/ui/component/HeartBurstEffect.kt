@@ -23,7 +23,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import kotlin.math.PI
@@ -101,13 +103,15 @@ fun Modifier.heartBurst(
  * likes; on a song already liked it just plays again, so unliking stays on the heart button.
  *
  * [onTap] keeps a single tap's own job where the area had one (showing the controls over a canvas
- * or a video). That tap then waits out the double-tap window before it fires.
+ * or a video). That tap then waits out the double-tap window before it fires. [onLongPress] is the
+ * song's menu, with a buzz so the hold is felt.
  */
 @Composable
 fun Modifier.doubleTapToLike(
     liked: Boolean,
     onLike: () -> Unit,
     onTap: (() -> Unit)? = null,
+    onLongPress: (() -> Unit)? = null,
 ): Modifier {
     val scope = rememberCoroutineScope()
     val heart = rememberVectorPainter(LimusicIcons.Favorite)
@@ -117,11 +121,22 @@ fun Modifier.doubleTapToLike(
     val latestLiked by rememberUpdatedState(liked)
     val latestOnLike by rememberUpdatedState(onLike)
     val latestOnTap by rememberUpdatedState(onTap)
+    val latestOnLongPress by rememberUpdatedState(onLongPress)
+    val haptics = LocalHapticFeedback.current
 
     return this
-        .pointerInput(onTap != null) {
+        .pointerInput(onTap != null, onLongPress != null) {
             detectTapGestures(
                 onTap = if (onTap != null) ({ latestOnTap?.invoke() }) else null,
+                onLongPress =
+                    if (onLongPress != null) {
+                        {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            latestOnLongPress?.invoke()
+                        }
+                    } else {
+                        null
+                    },
                 onDoubleTap = {
                     if (!latestLiked) latestOnLike()
                     burst.fire()

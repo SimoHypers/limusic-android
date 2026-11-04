@@ -48,8 +48,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -450,6 +452,10 @@ fun LyricsView(
     // that moment, and out-of-focus text is not readable. Dragged, not isScrollInProgress: the
     // latter is also true for the player's own animated scroll, which must stay blurred.
     val isDragging by listState.interactionSource.collectIsDraggedAsState()
+    // And it stays off after the finger lifts, while the user reads where they scrolled to, until
+    // the list goes back to the line being sung (the scroll on the next line, below).
+    var readingAhead by remember { mutableStateOf(false) }
+    LaunchedEffect(isDragging) { if (isDragging) readingAhead = true }
     val current by timeLine.collectAsStateWithLifecycle()
 
     // The listener's audio-delay correction, applied HERE rather than to the lyric rows: the rows
@@ -585,6 +591,8 @@ fun LyricsView(
             } else {
                 listState.animateScrollAndCentralizeItem(currentLineIndex)
             }
+            // Not reached when a drag or fling cancelled the scroll: the user is still reading.
+            readingAhead = false
         }
     }
 
@@ -827,7 +835,7 @@ fun LyricsView(
                                         .fillMaxWidth()
                                         .appleMusicLyricFocus(
                                             distanceFromCurrent,
-                                            blurEnabled = !isDragging,
+                                            blurEnabled = !isDragging && !readingAhead,
                                             hasActiveLine = currentLineIndex >= 0,
                                             allLinesCurrent = allLinesCurrent,
                                         ),

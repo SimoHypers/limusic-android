@@ -18,7 +18,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -48,7 +47,6 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -119,7 +117,7 @@ import limusic.composeapp.generated.resources.published_at
 import limusic.composeapp.generated.resources.rate_lyrics
 import limusic.composeapp.generated.resources.rich_synced
 import limusic.composeapp.generated.resources.share_lyrics
-import limusic.composeapp.generated.resources.show
+import limusic.composeapp.generated.resources.fullscreen_lyrics
 import limusic.composeapp.generated.resources.unsynced
 import limusic.composeapp.generated.resources.view_count
 
@@ -388,7 +386,7 @@ internal fun ExpressiveArtworkCardPage(
                                 modifier =
                                     Modifier
                                         .fillMaxSize()
-                                        .doubleTapToLike(liked, like, onTap = onToggleFullscreenOverlay),
+                                        .doubleTapToLike(liked, like, onTap = onToggleFullscreenOverlay, onLongPress = actions.onShowMoreSheet),
                             ) {
                                 Crossfade(targetState = showHideFullscreenOverlay) {
                                     if (it) {
@@ -546,7 +544,7 @@ internal fun ExpressiveArtworkCardPage(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .aspectRatio(state.expressiveCardSlotRatio())
-                        .doubleTapToLike(liked, like, onTap = if (pageHasCanvas) toggleControls else null),
+                        .doubleTapToLike(liked, like, onTap = if (pageHasCanvas) toggleControls else null, onLongPress = actions.onShowMoreSheet),
                 )
             }
         }
@@ -636,17 +634,13 @@ internal fun ExpressiveBelowTheFold(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                            TextButton(
-                                onClick = {
-                                    actions.onShowFullscreenLyrics()
-                                },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier =
-                                    Modifier
-                                        .height(20.dp)
-                                        .wrapContentWidth(),
-                            ) {
-                                Text(text = stringResource(Res.string.show), color = Color.White)
+                            IconButton(onClick = actions.onShowFullscreenLyrics) {
+                                Icon(
+                                    imageVector = LimusicIcons.Fullscreen,
+                                    contentDescription = stringResource(Res.string.fullscreen_lyrics),
+                                    tint = colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp),
+                                )
                             }
                         }
                     }

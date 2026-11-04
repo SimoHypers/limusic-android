@@ -78,6 +78,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -497,19 +498,17 @@ private fun NowPlayingM3ExpressiveLayout(
                                 animationSpec = tween(durationMillis = 300),
                                 label = "inlineLyricLineExpressive",
                             ) { lineText ->
+                                // Wraps to two lines instead of scrolling sideways.
                                 LyricText(
                                     text = lineText,
                                     style = typo().labelSmall,
                                     color = Color.White,
-                                    maxLines = 1,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 20.dp)
-                                            .basicMarquee(
-                                                iterations = Int.MAX_VALUE,
-                                                animationMode = MarqueeAnimationMode.Immediately,
-                                            ).focusable(),
+                                            .padding(horizontal = 20.dp),
                                 )
                             }
                         }
@@ -621,15 +620,12 @@ private fun NowPlayingM3ExpressiveLayout(
                                                             Modifier
                                                                 .fillMaxWidth()
                                                                 .padding(horizontal = 20.dp)
-                                                                .padding(bottom = 4.dp)
-                                                                .basicMarquee(
-                                                                    iterations = Int.MAX_VALUE,
-                                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                                ).focusable(),
+                                                                .padding(bottom = 4.dp),
                                                         text = lineText,
                                                         style = typo().bodyMedium,
                                                         color = Color.White,
-                                                        maxLines = 1,
+                                                        maxLines = 2,
+                                                        overflow = TextOverflow.Ellipsis,
                                                     )
                                                     val translatedLineText =
                                                         state.screenData.lyricsData
@@ -645,16 +641,13 @@ private fun NowPlayingM3ExpressiveLayout(
                                                                 Modifier
                                                                     .fillMaxWidth()
                                                                     .padding(horizontal = 20.dp)
-                                                                    .padding(bottom = 8.dp)
-                                                                    .basicMarquee(
-                                                                        iterations = Int.MAX_VALUE,
-                                                                        animationMode = MarqueeAnimationMode.Immediately,
-                                                                    ).focusable(),
+                                                                    .padding(bottom = 8.dp),
                                                             text = translatedLineText,
                                                             alignmentText = lineText,
                                                             style = typo().bodyMedium,
                                                             color = Color.Yellow,
-                                                            maxLines = 1,
+                                                            maxLines = 2,
+                                                            overflow = TextOverflow.Ellipsis,
                                                         )
                                                     }
                                                 }

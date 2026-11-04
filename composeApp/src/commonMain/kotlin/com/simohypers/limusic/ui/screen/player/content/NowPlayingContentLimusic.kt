@@ -23,7 +23,6 @@ import limusic.composeapp.generated.resources.share_lyrics
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
@@ -31,6 +30,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.verticalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,12 +68,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -186,7 +192,8 @@ private fun ClassicLayout(
         }
     }
     // On Queue and Lyrics the pills tuck away after a few seconds without a touch, to give the list
-    // and the lines room; any touch brings them back and starts the wait again.
+    // and the lines room; a tap or a list scrolling brings them back and starts the wait again. A
+    // drag that moves the sheet doesn't: the pills would grow under the finger while the page slides.
     var pillsShown by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     var hideJob by remember { mutableStateOf<Job?>(null) }
@@ -214,17 +221,29 @@ private fun ClassicLayout(
         Column(
             Modifier
                 .fillMaxSize()
-                // Every touch event on the page counts, a scroll's moves included. Seen before the
-                // children take it: lyric lines seek on a tap and the list scrolls, so a clickable
-                // would miss them.
+                // Seen after the children: a gesture none of whose moves was taken is a tap (a lyric
+                // line seeking counts), one whose moves were taken was a scroll or the sheet.
                 .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitPointerEvent(PointerEventPass.Initial)
-                            touched()
-                        }
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
+                        var dragged = false
+                        do {
+                            val change = awaitPointerEvent(PointerEventPass.Final).changes.firstOrNull() ?: break
+                            if (!change.pressed) break
+                            if (change.isConsumed) dragged = true
+                        } while (true)
+                        if (!dragged) touched()
                     }
-                }.statusBarsPadding()
+                }.nestedScroll(
+                    remember {
+                        object : NestedScrollConnection {
+                            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                                if (consumed.y != 0f) touched()
+                                return Offset.Zero
+                            }
+                        }
+                    },
+                ).statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
             Crossfade(targetState = view, animationSpec = tween(300), modifier = Modifier.weight(1f).fillMaxWidth(), label = "classicView") { shown ->
@@ -234,7 +253,9 @@ private fun ClassicLayout(
                     ClassicView.LYRICS -> LyricsView(sharedViewModel, state, actions, onClose = lyricsPageClose ?: actions.onDismiss)
                 }
             }
-            Column(Modifier.padding(horizontal = 24.dp)) {
+            // On the lyrics page only the header above closes it (M3 Expressive's fullscreen lyrics).
+            // Before the padding, so the side gutters hold too.
+            Column(Modifier.then(if (lyricsPageClose != null) Modifier.keepDragsFromSheet() else Modifier).padding(horizontal = 24.dp)) {
                 WavySeekBar(
                     progressFraction = state.sliderValue / 100f,
                     isPlaying = state.controllerState.isPlaying,
@@ -378,7 +399,8 @@ private fun LyricsView(
             }
         }
         NowPlayingSongHeader(state, actions)
-        ClassicLyricsBody(sharedViewModel, onOpenLyricsSettings = actions.onOpenLyricsSettings, modifier = Modifier.weight(1f))
+        // A drag on the lines scrolls them and never pulls the player down: only the header does.
+        ClassicLyricsBody(sharedViewModel, onOpenLyricsSettings = actions.onOpenLyricsSettings, modifier = Modifier.weight(1f).keepDragsFromSheet())
     }
     if (sharing && lyricsData != null) {
         ShareLyricsSheet(
@@ -391,6 +413,20 @@ private fun LyricsView(
             onDismiss = { sharing = false },
         )
     }
+}
+
+/**
+ * Drags here never reach the sheet the page sits in: a list inside scrolls and stops at its ends,
+ * and a vertical drag on anything else is taken before the sheet sees it.
+ */
+private fun Modifier.keepDragsFromSheet(): Modifier =
+    nestedScroll(KeepScrollFromSheet)
+        .pointerInput(Unit) { detectVerticalDragGestures { change, _ -> change.consume() } }
+
+private object KeepScrollFromSheet : NestedScrollConnection {
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset = available
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity = available
 }
 
 @Composable
@@ -511,7 +547,11 @@ private fun CurrentArtwork(
     // maxresdefault only exists for HD videos; hqdefault always does.
     var artworkUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
     Box(
-        Modifier.fillMaxSize().doubleTapToLike(state.controllerState.isLiked, onLike = { actions.onUIEvent(UIEvent.ToggleLike) }),
+        Modifier.fillMaxSize().doubleTapToLike(
+            state.controllerState.isLiked,
+            onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
+            onLongPress = actions.onShowMoreSheet,
+        ),
         contentAlignment = Alignment.Center,
     ) {
         if (!showVideo) {
@@ -611,20 +651,18 @@ private fun LyricLine(state: NowPlayingContentState) {
                 ?.stripRichSyncTimestamps()
                 .orEmpty()
         }
-    // Fixed height, so a song without synced lyrics keeps the same layout.
-    Box(Modifier.fillMaxWidth().height(24.dp), contentAlignment = Alignment.CenterStart) {
-        Crossfade(targetState = line, animationSpec = tween(300), label = "classicLyricLine") { text ->
-            LyricText(
-                text = text,
-                style = typo().labelSmall,
-                color = MaterialTheme.colorScheme.onBackground,
-                maxLines = 1,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
-            )
-        }
+    // Two lines that wrap instead of one that scrolls sideways; always two tall, so a short line,
+    // or a song without synced lyrics, keeps the same layout.
+    Crossfade(targetState = line, animationSpec = tween(300), label = "classicLyricLine") { text ->
+        LyricText(
+            text = text,
+            style = typo().labelSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 2,
+            minLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

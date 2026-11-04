@@ -1013,6 +1013,7 @@ private fun AppleMusicArtworkPage(
                                     state.controllerState.isLiked,
                                     onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
                                     onTap = onToggleVideoOverlay,
+                                    onLongPress = actions.onShowMoreSheet,
                                 ),
                     ) {
                         val ratio = state.videoAspectRatio
@@ -1183,6 +1184,7 @@ private fun AppleMusicArtworkPage(
                             state.controllerState.isLiked,
                             onLike = { actions.onUIEvent(UIEvent.ToggleLike) },
                             onTap = if (fullscreenCanvas) actions.onToggleControls else null,
+                            onLongPress = actions.onShowMoreSheet,
                         ),
                 )
             }

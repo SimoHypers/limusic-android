@@ -37,10 +37,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -204,6 +210,7 @@ fun rememberTrackSelection(): TrackSelection = remember { TrackSelection() }
  * fetches the rest. [from] names the album or playlist for the queue. [onRemove] only where the
  * list is yours to edit.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackSelectionBar(
     selection: TrackSelection,
@@ -362,17 +369,24 @@ fun TrackSelectionBar(
                                     val press = remember { MutableInteractionSource() }
                                     val pressed by press.collectIsPressedAsState()
                                     val scale by animateFloatAsState(if (pressed) 0.82f else 1f, label = "actionPress")
-                                    IconButton(onClick = { onClick(selection.tracks(rows)) }, enabled = !blocked, interactionSource = press) {
-                                        Icon(
-                                            icon,
-                                            label,
-                                            tint = tint,
-                                            modifier =
-                                                Modifier.size(22.dp).graphicsLayer {
-                                                    scaleX = scale
-                                                    scaleY = scale
-                                                },
-                                        )
+                                    // A hold names the icon over it and runs nothing: the tooltip eats the release.
+                                    TooltipBox(
+                                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                        tooltip = { PlainTooltip { Text(label) } },
+                                        state = rememberTooltipState(),
+                                    ) {
+                                        IconButton(onClick = { onClick(selection.tracks(rows)) }, enabled = !blocked, interactionSource = press) {
+                                            Icon(
+                                                icon,
+                                                label,
+                                                tint = tint,
+                                                modifier =
+                                                    Modifier.size(22.dp).graphicsLayer {
+                                                        scaleX = scale
+                                                        scaleY = scale
+                                                    },
+                                            )
+                                        }
                                     }
                                 }
                                 // Done with these rows once one of these runs: the bar closing is what says it

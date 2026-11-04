@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import java.text.Bidi
 
@@ -31,6 +32,8 @@ internal fun LyricText(
     alignmentText: String = text,
     color: Color = Color.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
+    minLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Clip,
     softWrap: Boolean = true,
 ) {
     val alignmentDirection = rememberLyricLayoutDirection(alignmentText)
@@ -44,6 +47,8 @@ internal fun LyricText(
             textAlign = if (alignmentDirection == LayoutDirection.Rtl) TextAlign.Right else TextAlign.Left,
             color = color,
             maxLines = maxLines,
+            minLines = minLines,
+            overflow = overflow,
             softWrap = softWrap,
         )
     }

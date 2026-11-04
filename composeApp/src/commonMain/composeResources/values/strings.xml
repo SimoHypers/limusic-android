@@ -650,6 +650,7 @@
     </plurals>
     <!-- Listen Together -->
     <string name="share_lyrics">Share lyrics</string>
+    <string name="fullscreen_lyrics">Fullscreen lyrics</string>
     <string name="share_lyrics_select_title">Select lines</string>
     <string name="share_lyrics_selected_count">%1$d lines selected</string>
     <string name="share_lyrics_continue">Continue</string>
