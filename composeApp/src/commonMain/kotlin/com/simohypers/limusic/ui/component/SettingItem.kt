@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -43,7 +45,8 @@ import com.simohypers.limusic.ui.theme.typo
 @Composable
 fun SettingItem(
     title: String = "Title",
-    subtitle: String = "Subtitle",
+    // The hint under the title; empty leaves the title alone.
+    subtitle: String = "",
     smallSubtitle: Boolean = false,
     isEnable: Boolean = true,
     onClick: (() -> Unit)? = null,
@@ -52,6 +55,8 @@ fun SettingItem(
     // A 40dp slot before the text (an icon or an avatar), and a chevron for rows that open a page.
     leading: @Composable (() -> Unit)? = null,
     navigates: Boolean = false,
+    // The setting's current choice, muted at the row's end, before the chevron.
+    value: String? = null,
 ) {
     // isEnable only greys the row out; it deliberately writes nothing.
     //
@@ -119,6 +124,7 @@ fun SettingItem(
                         },
                     color = MaterialTheme.colorScheme.onSurface,
                 )
+                if (subtitle.isNotEmpty()) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = subtitle,
@@ -139,11 +145,23 @@ fun SettingItem(
                     // English they were sized against, so any fixed cap just moves the problem to
                     // another language.
                 )
+                }
 
                 otherView?.let {
                     Spacer(Modifier.height(16.dp))
                     it.invoke()
                 }
+            }
+            if (value != null) {
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = value,
+                    style = typo().bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 170.dp),
+                )
             }
             if (switch != null) {
                 Spacer(Modifier.width(10.dp))

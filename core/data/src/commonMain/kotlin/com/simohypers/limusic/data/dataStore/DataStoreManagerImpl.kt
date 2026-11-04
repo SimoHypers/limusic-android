@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import com.simohypers.limusic.common.QUALITY as COMMON_QUALITY
+import com.simohypers.limusic.common.STREAM_QUALITY
 
 internal class DataStoreManagerImpl(
     private val settingsDataStore: DataStore<Preferences>,
@@ -87,7 +88,7 @@ internal class DataStoreManagerImpl(
     override val quality: Flow<String> =
         settingsDataStore.data.map { preferences ->
             // High by default: the best rendition YouTube gives this account (see StreamRepositoryImpl).
-            preferences[QUALITY] ?: COMMON_QUALITY.items[2].toString()
+            preferences[QUALITY] ?: STREAM_QUALITY.HIGH
         }
 
     override suspend fun setQuality(quality: String) {

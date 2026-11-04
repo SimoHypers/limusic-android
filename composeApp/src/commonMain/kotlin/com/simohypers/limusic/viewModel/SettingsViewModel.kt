@@ -9,6 +9,7 @@ import coil3.annotation.ExperimentalCoilApi
 import com.eygraber.uri.Uri
 import com.simohypers.limusic.common.Config
 import com.simohypers.limusic.common.QUALITY
+import com.simohypers.limusic.common.STREAM_QUALITY
 import com.simohypers.limusic.common.SELECTED_LANGUAGE
 import com.simohypers.limusic.common.VIDEO_QUALITY
 import com.simohypers.limusic.domain.data.entities.GoogleAccountEntity
@@ -879,7 +880,7 @@ class SettingsViewModel(
     fun getQuality() {
         viewModelScope.launch {
             dataStoreManager.quality.collect { quality ->
-                _quality.emit(QUALITY.normalize(quality))
+                _quality.emit(STREAM_QUALITY.normalize(quality))
             }
         }
     }
@@ -896,7 +897,7 @@ class SettingsViewModel(
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
             log("changeQuality: $qualityItem")
-            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
+            dataStoreManager.setQuality(qualityItem ?: STREAM_QUALITY.HIGH)
             getQuality()
         }
     }

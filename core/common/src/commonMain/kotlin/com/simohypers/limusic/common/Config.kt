@@ -348,6 +348,42 @@ object QUALITY {
     fun itagOf(saved: String?): Int = itags[items.indexOfFirst { it.toString() == normalize(saved) }]
 }
 
+/**
+ * Settings > Playback > Quality, the streaming audio quality. Download quality keeps [QUALITY]'s four
+ * labels. The two 256 kbps codecs are one choice here: High asks for Opus, its AAC twin answers when
+ * that is what the account gets, and without Premium the best stream there is plays.
+ *
+ * Stored as the label string, like [QUALITY]; "Name - detail" is split by the settings sheet.
+ */
+object STREAM_QUALITY {
+    val items: Array<CharSequence> =
+        arrayOf(
+            "Data saver - 66 kbps",
+            "Normal - 129 kbps",
+            "High - 256 kbps with Premium",
+        )
+
+    /** Parallel to [items]. */
+    val itags: Array<Int> = arrayOf(ITAG.AUDIO_OPUS_LOW, ITAG.AUDIO_OPUS_MEDIUM, ITAG.AUDIO_OPUS_HIGH)
+
+    /** The default, and where anything unreadable lands: never quietly down to 66 kbps. */
+    val HIGH: String get() = items[2].toString()
+
+    // Labels from before the split, including QUALITY's older "High", mapped onto the three.
+    private val LEGACY_ITEMS: Map<String, String> =
+        mapOf(
+            QUALITY.items[0].toString() to items[0].toString(),
+            QUALITY.items[1].toString() to items[1].toString(),
+            QUALITY.items[2].toString() to HIGH,
+            QUALITY.items[3].toString() to HIGH,
+            "High - 256kps (YT Premium)" to HIGH,
+        )
+
+    fun normalize(saved: String?): String = saved?.let { s -> items.firstOrNull { it.toString() == s }?.toString() ?: LEGACY_ITEMS[s] } ?: HIGH
+
+    fun itagOf(saved: String?): Int = itags[items.indexOfFirst { it.toString() == normalize(saved) }]
+}
+
 object VIDEO_QUALITY {
     val items: Array<CharSequence> = arrayOf("1080p", "720p", "360p")
 

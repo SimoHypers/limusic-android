@@ -3,6 +3,7 @@ package com.simohypers.limusic.data.repository
 import com.simohypers.limusic.common.ITAG
 import com.simohypers.limusic.common.MERGING_DATA_TYPE
 import com.simohypers.limusic.common.QUALITY
+import com.simohypers.limusic.common.STREAM_QUALITY
 import com.simohypers.limusic.common.VIDEO_QUALITY
 import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.mapping.toTrack
@@ -99,7 +100,7 @@ internal class StreamRepositoryImpl(
                 if (isDownloading) {
                     QUALITY.itagOf(dataStoreManager.downloadQuality.first())
                 } else {
-                    QUALITY.itagOf(dataStoreManager.quality.first())
+                    STREAM_QUALITY.itagOf(dataStoreManager.quality.first())
                 }
             val videoItag =
                 if (!muxed) {
