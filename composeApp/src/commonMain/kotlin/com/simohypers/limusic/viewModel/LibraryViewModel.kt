@@ -32,7 +32,6 @@ import com.simohypers.limusic.domain.mediaservice.handler.QueueData
 import com.simohypers.limusic.domain.mediaservice.handler.PlaylistType as QueuePlaylistType
 import com.simohypers.limusic.domain.utils.toTrack
 import com.simohypers.limusic.viewModel.base.BaseViewModel
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -245,7 +244,7 @@ class LibraryViewModel(
                     )
                 }
                 temp.reverse()
-                _recentlyAdded.value = LocalResource.Success(temp.toImmutableList())
+                _recentlyAdded.value = LocalResource.Success(temp.toList())
             }
         }
     }

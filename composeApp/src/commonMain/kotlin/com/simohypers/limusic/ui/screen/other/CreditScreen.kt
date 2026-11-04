@@ -3,13 +3,11 @@ package com.simohypers.limusic.ui.screen.other
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,27 +18,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.expect.openUrl
@@ -50,8 +39,6 @@ import com.simohypers.limusic.ui.icon.ArrowBackIosNew
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.utils.VersionManager
-import com.mikepenz.markdown.m3.Markdown
-import com.mikepenz.markdown.m3.markdownTypography
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -79,140 +66,42 @@ fun CreditScreen(
     ) {
         Spacer(modifier = Modifier.height(30.dp))
 
-        // App icon
         Image(
             painter = painterResource(Res.drawable.app_icon),
-            contentDescription = "App Icon",
+            contentDescription = null,
             modifier =
                 Modifier
-                    .size(150.dp)
+                    .size(96.dp)
                     .clip(CircleShape),
         )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // App name
-        Text(
-            text = stringResource(Res.string.app_name),
-            style = typo().titleLarge,
-            fontSize = 22.sp,
-        )
-
-        // Version
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = stringResource(Res.string.app_name), style = typo().titleLarge)
         Text(
             text = stringResource(Res.string.version_format, VersionManager.getVersionName()),
             style = typo().bodySmall,
-            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Text(
-            text = stringResource(Res.string.developer_name),
-            style = typo().bodyMedium,
-            textDecoration = TextDecoration.Underline,
-            modifier =
-                Modifier.clickable {
-                    openUrl("https://github.com/SimoHypers")
-                },
-        )
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // App description
-        Text(
-            text = stringResource(Res.string.credit_app),
-            style = typo().bodyMedium,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp),
-            textAlign = TextAlign.Start,
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            TextButton(
-                onClick = {
-                    openUrl("https://github.com/SimoHypers/Limusic")
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.Start)
-                        .padding(horizontal = 25.dp)
-                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-            ) {
-                Text(text = stringResource(Res.string.github))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // GPL-3.0 section 5(d): the original author's copyright notice stays visible in the app.
-        Text(
-            text = stringResource(Res.string.credit_based_on),
-            style = typo().bodyMedium,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp),
-            textAlign = TextAlign.Start,
-        )
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            TextButton(
-                onClick = {
-                    openUrl("https://github.com/maxrave-dev")
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.Start)
-                        .padding(horizontal = 25.dp)
-                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
-            ) {
-                Text(text = "maxrave-dev")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // README's "Legal Disclaimer & Terms of Use", bundled as files/legal_disclaimer.md: a copy,
-        // so the two are updated together.
-        val legalDisclaimer by produceState<String?>(null) {
-            value = Res.readBytes("files/legal_disclaimer.md").decodeToString()
-        }
-        legalDisclaimer?.let {
-            Markdown(
-                it,
-                typography =
-                    markdownTypography(
-                        h2 = typo().titleMedium,
-                        h3 = typo().labelSmall,
-                        text = typo().bodyMedium,
-                        paragraph = typo().bodyMedium,
-                        bullet = typo().bodyMedium,
-                        textLink = TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline)),
-                    ),
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 25.dp, vertical = 10.dp),
-            )
-        }
-
-        // Copyright text
+        // GPL-3.0 "Appropriate Legal Notices" (sections 0 and 5(d)): both copyright lines, no
+        // warranty, may be shared under the license, and where to read it. Keep all four.
         Text(
             text =
                 stringResource(Res.string.copyright, now().year.toString()) + "\n" +
-                    stringResource(Res.string.copyright_limusic, now().year.toString()),
+                    stringResource(Res.string.copyright_limusic, now().year.toString()) + "\n\n" +
+                    stringResource(Res.string.credit_license),
             style = typo().bodySmall,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp, vertical = 5.dp),
-            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp),
         )
+        TextButton(onClick = { openUrl("https://www.gnu.org/licenses/gpl-3.0.html") }) {
+            Text(text = stringResource(Res.string.view_license))
+        }
 
         // Bottom spacing
-        Spacer(modifier = Modifier.height(200.dp))
+        Spacer(modifier = Modifier.height(120.dp))
     }
     TopAppBar(
         modifier =

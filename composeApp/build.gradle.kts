@@ -129,7 +129,6 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             // Jetbrains Markdown
-            api(libs.markdown)
 
             // Blur Haze
             implementation(libs.haze)

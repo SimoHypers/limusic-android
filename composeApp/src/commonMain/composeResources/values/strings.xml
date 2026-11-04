@@ -149,7 +149,6 @@
     <string name="restore_your_data">Restore</string>
     <string name="restore_your_saved_data">Restore from a backup file.</string>
     <string name="version">Version</string>
-    <string name="github">Github</string>
     <string name="title">Title</string>
     <string name="custom_order">Custom order</string>
     <string name="album">Album</string>
@@ -236,7 +235,6 @@
     <string name="sort_by">Sort by</string>
     <string name="older_first">Older First</string>
     <string name="newer_first">Newer First</string>
-    <string name="credit_app">Limusic is a YouTube Music client for Android, the companion to the Limusic desktop app.</string>
     <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
@@ -691,7 +689,8 @@
     <string name="settings_downloads">Downloads</string>
     <string name="settings_about_hint">Version, credits, app log</string>
     <string name="developer_name" translatable="false">SimoHypers</string>
-    <string name="credit_based_on">Contains code by Tuan Minh Nguyen Duc (maxrave-dev), licensed under GPL-3.0.</string>
+    <string name="credit_license">Limusic comes with no warranty. You may share and change it under the GNU General Public License v3.</string>
+    <string name="view_license">View license</string>
     <string name="copyright_limusic" translatable="false">©%1$s SimoHypers</string>
     <string name="ltd_alone_hint">Nobody else yet. Share the code above to fill the room.</string>
     <string name="ltd_approve">Let in</string>
