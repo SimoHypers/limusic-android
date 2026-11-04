@@ -1023,6 +1023,32 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val updateBanner: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[UPDATE_BANNER] ?: TRUE
+        }
+
+    override suspend fun setUpdateBanner(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[UPDATE_BANNER] = if (enabled) TRUE else FALSE
+            }
+        }
+    }
+
+    override val betaUpdates: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[BETA_UPDATES] ?: ""
+        }
+
+    override suspend fun setBetaUpdates(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[BETA_UPDATES] = if (enabled) TRUE else FALSE
+            }
+        }
+    }
+
     override val preferredAudioLanguage =
         settingsDataStore.data.map { preferences ->
             preferences[PREFERRED_AUDIO_LANGUAGE] ?: ""
@@ -1232,6 +1258,8 @@ internal class DataStoreManagerImpl(
         val KEEP_LIBRARY_DOWNLOADED = stringPreferencesKey("keep_library_downloaded")
         val DOWNLOAD_WIFI_ONLY = stringPreferencesKey("download_wifi_only")
         val DOWNLOAD_LIKED = stringPreferencesKey("download_liked")
+        val UPDATE_BANNER = stringPreferencesKey("update_banner")
+        val BETA_UPDATES = stringPreferencesKey("beta_updates")
         val LYRICS_PROVIDERS = stringPreferencesKey("lyrics_providers")
 
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")

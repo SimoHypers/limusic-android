@@ -150,6 +150,7 @@ import limusic.composeapp.generated.resources.discord_showing_as
 import com.simohypers.limusic.ui.navigation.destination.login.LoginDestination
 import com.simohypers.limusic.ui.theme.md_theme_dark_primary
 import com.simohypers.limusic.ui.theme.typo
+import com.simohypers.limusic.updater.Updater
 import com.simohypers.limusic.utils.VersionManager
 import com.simohypers.limusic.viewModel.ImportViewModel
 import com.simohypers.limusic.viewModel.SettingAlertState
@@ -191,6 +192,16 @@ import limusic.composeapp.generated.resources.author
 import limusic.composeapp.generated.resources.auto_backup
 import limusic.composeapp.generated.resources.auto_backup_description
 import limusic.composeapp.generated.resources.download_liked
+import limusic.composeapp.generated.resources.beta_versions
+import limusic.composeapp.generated.resources.beta_versions_description
+import limusic.composeapp.generated.resources.check_for_updates
+import limusic.composeapp.generated.resources.checking_for_updates
+import limusic.composeapp.generated.resources.up_to_date
+import limusic.composeapp.generated.resources.update_available
+import limusic.composeapp.generated.resources.update_check_failed
+import limusic.composeapp.generated.resources.update_notifications
+import limusic.composeapp.generated.resources.update_notifications_description
+import limusic.composeapp.generated.resources.updates
 import limusic.composeapp.generated.resources.download_liked_description
 import limusic.composeapp.generated.resources.download_wifi_only
 import limusic.composeapp.generated.resources.download_wifi_only_description
@@ -445,6 +456,11 @@ fun SettingScreen(
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val downloadWifiOnly by viewModel.downloadWifiOnly.collectAsStateWithLifecycle()
     val downloadLiked by viewModel.downloadLiked.collectAsStateWithLifecycle()
+    val updateBanner by viewModel.updateBanner.collectAsStateWithLifecycle()
+    val betaUpdates by viewModel.betaUpdates.collectAsStateWithLifecycle()
+    // Check for updates answers in its own row, as desktop's dialog does inline.
+    var updateCheck by remember { mutableStateOf("") }
+    var checkingUpdates by remember { mutableStateOf(false) }
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
@@ -2015,6 +2031,44 @@ fun SettingScreen(
                                 onClick = {
                                     uriHandler.openUri("https://github.com/SimoHypers")
                                 },
+                            )
+                        }
+                        SettingGroup(title = stringResource(Res.string.updates)) {
+                            SettingItem(
+                                title = stringResource(Res.string.check_for_updates),
+                                subtitle = updateCheck,
+                                smallSubtitle = true,
+                                onClick = {
+                                    if (checkingUpdates) return@SettingItem
+                                    checkingUpdates = true
+                                    coroutineScope.launch {
+                                        updateCheck = getString(Res.string.checking_for_updates)
+                                        updateCheck =
+                                            runCatching { Updater.checkNow() }.fold(
+                                                onSuccess = { found ->
+                                                    if (found == null) {
+                                                        getString(Res.string.up_to_date)
+                                                    } else {
+                                                        getString(Res.string.update_available, found.version)
+                                                    }
+                                                },
+                                                onFailure = { getString(Res.string.update_check_failed, it.message ?: it.toString()) },
+                                            )
+                                        checkingUpdates = false
+                                    }
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.update_notifications),
+                                subtitle = stringResource(Res.string.update_notifications_description),
+                                smallSubtitle = true,
+                                switch = (updateBanner to { viewModel.setUpdateBanner(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.beta_versions),
+                                subtitle = stringResource(Res.string.beta_versions_description),
+                                smallSubtitle = true,
+                                switch = (betaUpdates to { viewModel.setBetaUpdates(it) }),
                             )
                         }
                         SettingGroup(title = stringResource(Res.string.developer_option)) {

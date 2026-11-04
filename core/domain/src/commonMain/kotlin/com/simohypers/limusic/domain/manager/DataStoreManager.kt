@@ -305,6 +305,16 @@ interface DataStoreManager {
 
     suspend fun setDownloadLiked(enabled: Boolean)
 
+    /** The update banner, and the quiet update check behind it. On by default. */
+    val updateBanner: Flow<String>
+
+    suspend fun setUpdateBanner(enabled: Boolean)
+
+    /** Beta versions: TRUE or FALSE once set; empty until then, which means on for an RC build. */
+    val betaUpdates: Flow<String>
+
+    suspend fun setBetaUpdates(enabled: Boolean)
+
     /**
      * Language code (e.g. "vi") of the audio track to prefer on videos that ship several — dubbed
      * podcasts, mostly. Empty means the original track. Deliberately NOT defaulted to the app

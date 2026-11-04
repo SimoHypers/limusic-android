@@ -23,6 +23,9 @@ import com.simohypers.limusic.domain.repository.CommonRepository
 import com.simohypers.limusic.domain.repository.LyricsRomanizerRepository
 import com.simohypers.limusic.domain.repository.SongRepository
 import com.simohypers.limusic.logger.Logger
+import com.simohypers.limusic.updater.Updater
+import com.simohypers.limusic.utils.VersionManager
+import com.simohypers.limusic.utils.isPrerelease
 import com.simohypers.limusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -144,6 +147,14 @@ class SettingsViewModel(
     val downloadWifiOnly: StateFlow<Boolean> = _downloadWifiOnly
     val downloadLiked: StateFlow<Boolean> =
         dataStoreManager.downloadLiked.map { it == DataStoreManager.TRUE }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val updateBanner: StateFlow<Boolean> =
+        dataStoreManager.updateBanner.map { it != DataStoreManager.FALSE }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val betaUpdates: StateFlow<Boolean> =
+        dataStoreManager.betaUpdates
+            .map { Updater.isBeta() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), isPrerelease(VersionManager.getVersionName()))
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
     private val _preferredAudioLanguage = MutableStateFlow("")
@@ -415,6 +426,20 @@ class SettingsViewModel(
 
     fun setDownloadWifiOnly(enabled: Boolean) {
         viewModelScope.launch { dataStoreManager.setDownloadWifiOnly(enabled) }
+    }
+
+    fun setUpdateBanner(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setUpdateBanner(enabled)
+            if (enabled) Updater.checkQuiet() else Updater.dismiss()
+        }
+    }
+
+    fun setBetaUpdates(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setBetaUpdates(enabled)
+            Updater.recheck()
+        }
     }
 
     fun setDownloadLiked(enabled: Boolean) {

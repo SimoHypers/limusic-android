@@ -181,6 +181,15 @@
     <string name="update_installing">Installing version %1$s</string>
     <string name="update_failed">Update failed: %1$s</string>
     <string name="close">Close</string>
+    <string name="updates">Updates</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="checking_for_updates">Checking for updates…</string>
+    <string name="up_to_date">You are using the latest version.</string>
+    <string name="update_check_failed">Update check failed: %1$s</string>
+    <string name="update_notifications">Update notifications</string>
+    <string name="update_notifications_description">Show a banner when a new version of Limusic is available.</string>
+    <string name="beta_versions">Beta versions</string>
+    <string name="beta_versions_description">Get new versions a few days early, before everyone else. They are tested less. Turning this off keeps the version you have until the next regular release passes it.</string>
     <string name="itag">Itag</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Warning</string>
