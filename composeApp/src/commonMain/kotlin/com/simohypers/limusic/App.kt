@@ -125,12 +125,15 @@ fun App(
     val isYouTubeLoggedIn by viewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val showMixForYouTab = isYouTubeLoggedIn == TRUE
 
-    val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val appearance by viewModel.appearance.collectAsStateWithLifecycle()
-    val artworkColors by viewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
+    val artworkColors by viewModel.artworkColors.collectAsStateWithLifecycle()
     val artworkColor =
         rememberArtworkColor(
-            url = (nowPlayingData?.songEntity?.thumbnails ?: nowPlayingData?.mediaItem?.metadata?.artworkUri).takeIf { artworkColors == TRUE },
+            url = nowPlayingData?.songEntity?.thumbnails ?: nowPlayingData?.mediaItem?.metadata?.artworkUri,
+            enabled = artworkColors == TRUE,
+            saved = viewModel.artworkColor,
+            onColor = viewModel::setArtworkColor,
         )
     // MiniPlayer visibility: derived, never stored.
     //
@@ -583,29 +586,41 @@ fun App(
  * The mini player has already loaded the same cover, so this is a disk-cache read.
  */
 @Composable
-private fun rememberArtworkColor(url: String?): Color? {
+private fun rememberArtworkColor(
+    url: String?,
+    enabled: Boolean,
+    // The last colour, kept by the view model: a cold start opens in it while the saved queue comes
+    // back, and a recreated activity carries on in it instead of flashing the theme's accent.
+    saved: Color?,
+    onColor: (Color?) -> Unit,
+): Color? {
     val context = LocalPlatformContext.current
-    var color by remember { mutableStateOf<Color?>(null) }
-    LaunchedEffect(url) {
-        if (url == null) {
-            color = null
-            return@LaunchedEffect
-        }
-        val image =
-            SingletonImageLoader
-                .get(context)
-                .execute(ImageRequest.Builder(context).data(url).size(ARTWORK_SEED_PX).build())
-                .image
-        // ponytail: decoded on the track change, not one track early as desktop does; prewarm the
-        // next cover if the colour visibly lands after the artwork.
-        color =
-            image?.let {
-                withContext(Dispatchers.Default) {
-                    runCatching { it.toImageBitmap().toReadableBitmap(ARTWORK_SEED_PX, ARTWORK_SEED_PX).themeColorOrNull() }.getOrNull()
+    var color by remember { mutableStateOf(saved) }
+    // Until the first track shows up, no track means the queue isn't restored yet, not nothing playing.
+    // ponytail: a saved queue that fails to come back leaves the saved colour up until something plays.
+    var sawTrack by remember { mutableStateOf(false) }
+    LaunchedEffect(url, enabled) {
+        if (!enabled || url == null) {
+            if (!enabled || sawTrack) color = null
+        } else {
+            sawTrack = true
+            val image =
+                SingletonImageLoader
+                    .get(context)
+                    .execute(ImageRequest.Builder(context).data(url).size(ARTWORK_SEED_PX).build())
+                    .image
+            // ponytail: decoded on the track change, not one track early as desktop does; prewarm the
+            // next cover if the colour visibly lands after the artwork.
+            color =
+                image?.let {
+                    withContext(Dispatchers.Default) {
+                        runCatching { it.toImageBitmap().toReadableBitmap(ARTWORK_SEED_PX, ARTWORK_SEED_PX).themeColorOrNull() }.getOrNull()
+                    }
                 }
-            }
+        }
+        onColor(color)
     }
-    return color
+    return color.takeIf { enabled }
 }
 
 private const val ARTWORK_SEED_PX = 112

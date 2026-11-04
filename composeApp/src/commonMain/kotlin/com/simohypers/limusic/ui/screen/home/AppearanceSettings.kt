@@ -165,8 +165,8 @@ import kotlin.math.roundToInt
 @Composable
 fun AppearanceSettings(sharedViewModel: SharedViewModel) {
     val look by sharedViewModel.appearance.collectAsStateWithLifecycle()
-    val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
-    val artworkColors by sharedViewModel.getArtworkColors().collectAsStateWithLifecycle(DataStoreManager.TRUE)
+    val themeMode by sharedViewModel.themeMode.collectAsStateWithLifecycle()
+    val artworkColors by sharedViewModel.artworkColors.collectAsStateWithLifecycle()
     val modeDark = isDarkTheme(themeMode)
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
     // Which font row's sheet is open (and which row a loaded file goes to): BODY, HEADING or null.

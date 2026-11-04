@@ -1,6 +1,8 @@
 package com.simohypers.limusic.viewModel
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewModelScope
 import com.simohypers.limusic.common.AppIdentity
 import com.simohypers.limusic.common.Config.DOWNLOAD_CACHE
@@ -61,6 +63,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.simohypers.limusic.common.Connectivity
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -79,6 +82,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import com.simohypers.limusic.ui.theme.Appearance
+import com.simohypers.limusic.ui.theme.parseThemeColorHex
 import kotlinx.coroutines.launch
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
 import kotlinx.coroutines.runBlocking
@@ -1205,7 +1209,10 @@ class SharedViewModel(
     // Drives the Mix for you tab: YouTube hands an anonymous session no mixes at all.
     fun getYouTubeLoggedIn() = dataStoreManager.loggedIn
 
-    fun getThemeMode() = dataStoreManager.themeMode
+    // Both start from the stored value, read once up front, so a cold start's first frame already
+    // has the user's theme instead of the defaults' crimson and dark. MainActivity's getString in
+    // onCreate has loaded the settings file by then, so the read is from memory.
+    val themeMode: StateFlow<String> = dataStoreManager.themeMode.stateInStored()
 
     /** The Appearance page's picks; before the first one, the old colour settings carried over. */
     val appearance: StateFlow<Appearance> =
@@ -1214,7 +1221,9 @@ class SharedViewModel(
             dataStoreManager.themeColorSource,
             dataStoreManager.customThemeColor,
         ) { raw, source, hex -> Appearance.parse(raw, source, hex) }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance())
+            .stateInStored()
+
+    private fun <T> Flow<T>.stateInStored(): StateFlow<T> = stateIn(viewModelScope, SharingStarted.Eagerly, runBlocking { first() })
 
     fun setAppearance(appearance: Appearance) {
         viewModelScope.launch {
@@ -1222,7 +1231,30 @@ class SharedViewModel(
         }
     }
 
-    fun getArtworkColors() = dataStoreManager.artworkColors
+    val artworkColors: StateFlow<String> = dataStoreManager.artworkColors.stateInStored()
+
+    /**
+     * The colour "Adapt colors to artwork" last took from a cover, saved so a cold start opens in the
+     * restored track's colour instead of the theme's accent while the queue and its cover load. Read
+     * only when Save playback state is on, since otherwise no track comes back for it to belong to.
+     */
+    var artworkColor: Color? =
+        runBlocking {
+            dataStoreManager
+                .getString(ARTWORK_COLOR)
+                .first()
+                ?.takeIf { dataStoreManager.saveStateOfPlayback.first() == TRUE }
+                ?.let(::parseThemeColorHex)
+        }
+        private set
+
+    fun setArtworkColor(color: Color?) {
+        if (color == artworkColor) return
+        artworkColor = color
+        viewModelScope.launch {
+            dataStoreManager.putString(ARTWORK_COLOR, color?.toArgb()?.toUInt()?.toString(16)?.padStart(8, '0').orEmpty())
+        }
+    }
 
     fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
 
@@ -1428,3 +1460,4 @@ data class NowPlayingScreenData(
 private fun String.isCanvasVideoUrl(): Boolean = contains(".mp4") || contains(".m3u8")
 
 private const val NEW_PLAYLIST_WHERE = "new_playlist_where"
+private const val ARTWORK_COLOR = "artwork_color"
