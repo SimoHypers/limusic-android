@@ -188,6 +188,11 @@
     <string name="update_check_failed">Update check failed: %1$s</string>
     <string name="update_notifications">Update notifications</string>
     <string name="update_notifications_description">Show a banner when a new version of Limusic is available.</string>
+    <string name="whats_new">What's new</string>
+    <string name="whats_new_version">Version %1$s</string>
+    <string name="whats_new_installed">installed</string>
+    <string name="whats_new_empty">No releases yet.</string>
+    <string name="whats_new_failed">Couldn't load the changelog (%1$s).</string>
     <string name="beta_versions">Beta versions</string>
     <string name="beta_versions_description">Get new versions a few days early, before everyone else. They are tested less. Turning this off keeps the version you have until the next regular release passes it.</string>
     <string name="itag">Itag</string>

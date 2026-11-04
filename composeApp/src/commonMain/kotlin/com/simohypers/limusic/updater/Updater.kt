@@ -51,10 +51,20 @@ data class UpdateState(
     val progress: Float? = null,
 )
 
+/** One release in What's new: its version, its day ("2026-11-05") and its notes as written on GitHub. */
+data class ReleaseNote(
+    val version: String,
+    val date: String,
+    val body: String,
+)
+
 @Serializable
 private data class Release(
     @SerialName("tag_name") val tag: String,
     val draft: Boolean = false,
+    val prerelease: Boolean = false,
+    val body: String? = null,
+    @SerialName("published_at") val publishedAt: String? = null,
     val assets: List<Asset> = emptyList(),
 )
 
@@ -152,6 +162,22 @@ object Updater {
         val found = look()
         if (_state.value.progress == null) _state.value = UpdateState(available = found)
         return found
+    }
+
+    // ponytail: fetched once per process, as desktop does; reopen the app for newer notes
+    private var notes: List<Release>? = null
+
+    /** What's new: the 20 newest releases, RCs only while Beta versions is on. */
+    suspend fun releaseNotes(): List<ReleaseNote> {
+        val releases =
+            notes ?: fetch("/releases?per_page=20")
+                ?.let { json.decodeFromString<List<Release>>(it) }
+                .orEmpty()
+                .also { notes = it }
+        val beta = isBeta()
+        return releases
+            .filter { !it.draft && (beta || !it.prerelease) }
+            .map { ReleaseNote(it.tag.removePrefix("v"), it.publishedAt?.substringBefore('T').orEmpty(), it.body.orEmpty()) }
     }
 
     /** After the channel changes: drop what the old one offered and ask the new one. */

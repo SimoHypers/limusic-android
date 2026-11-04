@@ -133,6 +133,7 @@ import com.simohypers.limusic.ui.icon.Smartphone
 import com.simohypers.limusic.ui.icon.Sync
 import com.simohypers.limusic.ui.navigation.destination.home.AppLogDestination
 import com.simohypers.limusic.ui.navigation.destination.home.CreditDestination
+import com.simohypers.limusic.ui.navigation.destination.home.WhatsNewDestination
 import com.simohypers.limusic.ui.navigation.destination.home.DiscordSettingsDestination
 import com.simohypers.limusic.ui.navigation.destination.home.LyricsSourcesDestination
 import com.simohypers.limusic.ui.navigation.destination.home.LastfmSettingsDestination
@@ -202,6 +203,7 @@ import limusic.composeapp.generated.resources.update_check_failed
 import limusic.composeapp.generated.resources.update_notifications
 import limusic.composeapp.generated.resources.update_notifications_description
 import limusic.composeapp.generated.resources.updates
+import limusic.composeapp.generated.resources.whats_new
 import limusic.composeapp.generated.resources.download_liked_description
 import limusic.composeapp.generated.resources.download_wifi_only
 import limusic.composeapp.generated.resources.download_wifi_only_description
@@ -2069,6 +2071,11 @@ fun SettingScreen(
                                 subtitle = stringResource(Res.string.beta_versions_description),
                                 smallSubtitle = true,
                                 switch = (betaUpdates to { viewModel.setBetaUpdates(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.whats_new),
+                                navigates = true,
+                                onClick = { navController.navigate(WhatsNewDestination) },
                             )
                         }
                         SettingGroup(title = stringResource(Res.string.developer_option)) {

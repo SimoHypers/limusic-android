@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.simohypers.limusic.ui.navigation.destination.home.AppLogDestination
 import com.simohypers.limusic.ui.navigation.destination.home.CreditDestination
+import com.simohypers.limusic.ui.navigation.destination.home.WhatsNewDestination
 import com.simohypers.limusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.simohypers.limusic.ui.navigation.destination.home.MoodDestination
 import com.simohypers.limusic.ui.navigation.destination.home.NotificationDestination
@@ -29,6 +30,7 @@ import com.simohypers.limusic.ui.screen.home.LastfmSettingsScreen
 import com.simohypers.limusic.ui.screen.home.SettingsSection
 import com.simohypers.limusic.ui.screen.other.AppLogScreen
 import com.simohypers.limusic.ui.screen.other.CreditScreen
+import com.simohypers.limusic.ui.screen.other.WhatsNewScreen
 
 fun NavGraphBuilder.homeScreenGraph(
     innerPadding: PaddingValues,
@@ -42,6 +44,12 @@ fun NavGraphBuilder.homeScreenGraph(
     }
     composable<AppLogDestination> {
         AppLogScreen(
+            paddingValues = innerPadding,
+            navController = navController,
+        )
+    }
+    composable<WhatsNewDestination> {
+        WhatsNewScreen(
             paddingValues = innerPadding,
             navController = navController,
         )
