@@ -459,10 +459,10 @@ private fun TopRow(
             Icon(state.dismissIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
         val remoteDevice = rememberRemoteDevice()
-        // Song | Video takes the middle while there is another version, as in YouTube Music.
+        // Song | Video takes the middle on a video, or a song with another version, as in YouTube Music.
         if (state.canSwitchVersion && remoteDevice == null) {
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                VersionSwitch(isVideo = state.screenData.isVideo, onSwitch = actions.onSwitchVersion)
+                VersionSwitch(isVideo = state.screenData.isVideo && state.shouldShowVideo, onSwitch = actions.onSwitchVersion)
             }
         } else Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             if (remoteDevice != null) {

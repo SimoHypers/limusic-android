@@ -196,6 +196,14 @@ class SharedViewModel(
     private val _getVideo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val getVideo: StateFlow<Boolean> = _getVideo
 
+    /**
+     * Song | Video's pick on a video: false shows the cover instead of the picture. Kept until the
+     * app closes, like desktop: someone who hides one video's picture likely wants the next one
+     * hidden too, and a lasting no is what the videos setting is for.
+     */
+    // ponytail: only the picture hides, the video stream still loads; reload audio-only if data matters.
+    val videoWanted = MutableStateFlow(true)
+
     private var _timeline =
         MutableStateFlow<TimeLine>(
             TimeLine(

@@ -173,7 +173,9 @@ fun NowPlayingScreenContent(
     // Apple Music style's quality line under the progress bar — see NowPlayingContentState.toAudioQualityLabel.
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
-    val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
+    val videosOn by sharedViewModel.getVideo.collectAsStateWithLifecycle()
+    val videoWanted by sharedViewModel.videoWanted.collectAsStateWithLifecycle()
+    val shouldShowVideo = videosOn && videoWanted
 
     // Which Now Playing style renders the content layer (Settings → Now Playing style).
     val nowPlayingStyle by sharedViewModel
@@ -613,6 +615,7 @@ fun NowPlayingScreenContent(
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
     }
+    val twin = artworkQueue.getOrNull(currentOrderIndex)?.takeIf { it.videoId == nowPlayingVideoId }?.counterpart
     val state =
         NowPlayingContentState(
             screenData = screenDataState,
@@ -642,10 +645,9 @@ fun NowPlayingScreenContent(
             audioQualityLabel = formatState.toAudioQualityLabel(),
             lyricsOffsetMs = lyricsOffsetMs.toLong(),
             videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
-            // Like desktop, only while videos are on: with them off a video plays as its sound.
-            canSwitchVersion =
-                shouldShowVideo &&
-                    artworkQueue.getOrNull(currentOrderIndex)?.takeIf { it.videoId == nowPlayingVideoId }?.counterpart != null,
+            // Like desktop, only while videos are on: with them off a video plays as its sound. A
+            // video with no other version gets it too, to show or hide its picture.
+            canSwitchVersion = videosOn && (screenDataState.isVideo || twin != null),
         )
     val actions =
         NowPlayingContentActions(
@@ -704,7 +706,17 @@ fun NowPlayingScreenContent(
                 mediaPlayerHandler.removeMediaItem(index)
             },
             onQueueItemMore = { index, track -> queueMoreFor = index to track },
-            onSwitchVersion = mediaPlayerHandler::switchVersion,
+            onSwitchVersion = {
+                // Desktop's pickVersion: the side tapped is the other one. With no other version, or
+                // on the one already playing, only the picture changes.
+                val video = !(screenDataState.isVideo && videoWanted)
+                if (twin == null || video == screenDataState.isVideo) {
+                    sharedViewModel.videoWanted.value = video
+                } else {
+                    if (video) sharedViewModel.videoWanted.value = true
+                    mediaPlayerHandler.switchVersion()
+                }
+            },
             onOpenLyricsSettings = {
                 onDismiss()
                 navController.navigate(LyricsSourcesDestination)

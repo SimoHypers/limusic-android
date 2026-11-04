@@ -318,10 +318,10 @@ fun NowPlayingContentAppleMusic(
                             .background(Color.White.copy(alpha = 0.35f)),
                 )
             }
-            // Song | Video under the grabber, on the cover's page only, while there is another version.
+            // Song | Video under the grabber, on the cover's page only, on a video or a song with another version.
             if (state.canSwitchVersion && viewState == AppleMusicView.MAIN) {
                 VersionSwitch(
-                    isVideo = state.screenData.isVideo,
+                    isVideo = state.screenData.isVideo && state.shouldShowVideo,
                     onSwitch = actions.onSwitchVersion,
                     modifier =
                         Modifier

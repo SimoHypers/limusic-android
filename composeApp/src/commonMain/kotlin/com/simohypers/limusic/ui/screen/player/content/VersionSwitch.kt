@@ -22,7 +22,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Song | Video, YouTube Music's switch between a recording's two versions (desktop #442).
- * [isVideo] is the side playing; tapping the other plays it from the same moment.
+ * [isVideo] is the side picked; tapping the other plays it from the same moment, or on a video
+ * with no song version, shows or hides its picture.
  */
 @Composable
 internal fun VersionSwitch(

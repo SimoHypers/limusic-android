@@ -365,11 +365,11 @@ private fun NowPlayingM3ExpressiveLayout(
                             contentDescription = "",
                         )
                     }
-                    // Song | Video takes the middle while there is another version, as on Classic.
+                    // Song | Video takes the middle on a video, or a song with another version, as on Classic.
                     if (state.canSwitchVersion) {
                         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                             VersionSwitch(
-                                isVideo = state.screenData.isVideo,
+                                isVideo = state.screenData.isVideo && state.shouldShowVideo,
                                 onSwitch = actions.onSwitchVersion,
                                 containerColor = colorScheme.surfaceContainerHigh,
                             )
