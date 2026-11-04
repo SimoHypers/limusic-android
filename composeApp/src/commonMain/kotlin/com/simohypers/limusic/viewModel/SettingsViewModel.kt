@@ -12,10 +12,8 @@ import com.simohypers.limusic.common.QUALITY
 import com.simohypers.limusic.common.STREAM_QUALITY
 import com.simohypers.limusic.common.SELECTED_LANGUAGE
 import com.simohypers.limusic.common.VIDEO_QUALITY
-import com.simohypers.limusic.domain.data.entities.GoogleAccountEntity
 import com.simohypers.limusic.domain.data.model.lyrics.RomanizationDictionaryState
 import com.simohypers.limusic.domain.data.player.GenericCastState
-import com.simohypers.limusic.domain.extension.toNetScapeString
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
 import com.simohypers.limusic.domain.repository.AccountRepository
@@ -24,7 +22,6 @@ import com.simohypers.limusic.domain.repository.CacheRepository
 import com.simohypers.limusic.domain.repository.CommonRepository
 import com.simohypers.limusic.domain.repository.LyricsRomanizerRepository
 import com.simohypers.limusic.domain.repository.SongRepository
-import com.simohypers.limusic.domain.utils.LocalResource
 import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,10 +47,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import com.simohypers.limusic.lastfm.isLastfmAvailable
@@ -1126,228 +1120,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setMaxSongCacheSize(size)
             getPlayerCacheLimit()
-        }
-    }
-
-    private var _googleAccounts: MutableStateFlow<LocalResource<List<GoogleAccountEntity>>> =
-        MutableStateFlow(LocalResource.Loading())
-    val googleAccounts: StateFlow<LocalResource<List<GoogleAccountEntity>>> = _googleAccounts
-
-    fun getAllGoogleAccount() {
-        Logger.d("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
-        viewModelScope.launch {
-            _googleAccounts.emit(LocalResource.Loading())
-            accountRepository.getGoogleAccounts().collectLatest { accounts ->
-                // Counts only: every account row carries the session cookie.
-                Logger.d("getAllGoogleAccount", "getAllGoogleAccount: ${accounts?.size ?: 0} saved account(s)")
-                if (!accounts.isNullOrEmpty()) {
-                    _googleAccounts.emit(LocalResource.Success(accounts))
-                } else {
-                    if (loggedIn.value == DataStoreManager.TRUE) {
-                        accountRepository
-                            .getAccountInfo(
-                                dataStoreManager.cookie.first(),
-                            ).collect {
-                                Logger.d("getAllGoogleAccount", "getAllGoogleAccount: ${it.size} account(s) from YouTube")
-                                if (it.isNotEmpty()) {
-                                    dataStoreManager.putString("AccountName", it.first().name)
-                                    dataStoreManager.putString(
-                                        "AccountThumbUrl",
-                                        it
-                                            .first()
-                                            .thumbnails
-                                            .lastOrNull()
-                                            ?.url ?: "",
-                                    )
-                                    accountRepository
-                                        .insertGoogleAccount(
-                                            GoogleAccountEntity(
-                                                email = it.first().email,
-                                                name = it.first().name,
-                                                thumbnailUrl =
-                                                    it
-                                                        .first()
-                                                        .thumbnails
-                                                        .lastOrNull()
-                                                        ?.url ?: "",
-                                                cache = accountRepository.getYouTubeCookie(),
-                                                pageId = it.first().pageId,
-                                                authUser = it.first().authUser,
-                                                isUsed = true,
-                                            ),
-                                        ).singleOrNull()
-                                        ?.let { account ->
-                                            Logger.d("getAllGoogleAccount", "inserted: $account")
-                                        }
-                                    getAllGoogleAccount()
-                                } else {
-                                    Logger.w("Auth", "YouTube: marked signed in, but the saved cookie returned no account — likely signed out or expired")
-                                    _googleAccounts.emit(LocalResource.Success(emptyList()))
-                                }
-                            }
-                    } else {
-                        _googleAccounts.emit(LocalResource.Success(emptyList()))
-                    }
-                }
-            }
-        }
-    }
-
-    suspend fun addAccount(
-        cookie: String,
-        netscapeCookie: String? = null,
-    ): Boolean {
-        val currentCookie = dataStoreManager.cookie.first()
-        val currentPageId = dataStoreManager.pageId.first()
-        val currentAuthUser = dataStoreManager.authUser.first()
-        val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
-        try {
-            runBlocking {
-                dataStoreManager.setCookie(cookie, "")
-                dataStoreManager.setLoggedIn(true)
-            }
-            return accountRepository
-                .getAccountInfo(
-                    cookie,
-                ).lastOrNull()
-                ?.takeIf {
-                    it.isNotEmpty()
-                }?.let { accountInfoList ->
-                    Logger.d("getAllGoogleAccount", "addAccount: ${accountInfoList.size} account(s)")
-                    accountRepository.getGoogleAccounts().lastOrNull()?.forEach {
-                        Logger.d("getAllGoogleAccount", "set used: start")
-                        accountRepository
-                            .updateGoogleAccountUsed(it.email, false)
-                            .singleOrNull()
-                            ?.let {
-                                Logger.d("getAllGoogleAccount", "set used: $it")
-                            }
-                    }
-                    dataStoreManager.putString("AccountName", accountInfoList.first().name)
-                    dataStoreManager.putString(
-                        "AccountThumbUrl",
-                        accountInfoList
-                            .first()
-                            .thumbnails
-                            .lastOrNull()
-                            ?.url ?: "",
-                    )
-                    val cookieItem =
-                        netscapeCookie ?: commonRepository
-                            .getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, getPackageName())
-                            .toNetScapeString()
-                    commonRepository.writeTextToFile(cookieItem, (getFileDir() + "/ytdlp-cookie.txt")).let {
-                        Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
-                    }
-                    accountInfoList.forEachIndexed { index, account ->
-                        accountRepository
-                            .insertGoogleAccount(
-                                GoogleAccountEntity(
-                                    email = account.email,
-                                    name = account.name,
-                                    thumbnailUrl =
-                                        account
-                                            .thumbnails
-                                            .lastOrNull()
-                                            ?.url ?: "",
-                                    cache = cookie,
-                                    isUsed = index == 0,
-                                    netscapeCookie = cookieItem,
-                                    pageId = account.pageId,
-                                    authUser = account.authUser,
-                                ),
-                            ).firstOrNull()
-                            ?.let {
-                                log("addAccount: inserted $it")
-                            }
-                    }
-                    dataStoreManager.setLoggedIn(true)
-                    dataStoreManager.setCookie(cookie, accountInfoList.first().pageId, accountInfoList.first().authUser)
-                    Logger.i("Auth", "YouTube: signed in, ${accountInfoList.size} account(s) on this cookie")
-                    getAllGoogleAccount()
-                    getLoggedIn()
-                    true
-                } ?: run {
-                Logger.w("Auth", "YouTube: sign-in failed, YouTube returned no account for this cookie")
-                runBlocking {
-                    dataStoreManager.setCookie(currentCookie, currentPageId, currentAuthUser)
-                    dataStoreManager.setLoggedIn(currentLoggedIn)
-                }
-                false
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Logger.e("Auth", "YouTube: sign-in failed: ${e.message}")
-            runBlocking {
-                dataStoreManager.setCookie(currentCookie, currentPageId, currentAuthUser)
-                dataStoreManager.setLoggedIn(currentLoggedIn)
-            }
-            return false
-        }
-    }
-
-    fun setUsedAccount(acc: GoogleAccountEntity?) {
-        viewModelScope.launch {
-            if (acc != null) {
-                googleAccounts.value.data?.forEach {
-                    accountRepository
-                        .updateGoogleAccountUsed(it.email, false)
-                        .singleOrNull()
-                        ?.let {
-                            Logger.d("getAllGoogleAccount", "set used: $it")
-                        }
-                }
-                dataStoreManager.putString("AccountName", acc.name)
-                dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
-                accountRepository
-                    .updateGoogleAccountUsed(acc.email, true)
-                    .singleOrNull()
-                    ?.let {
-                        Logger.d("getAllGoogleAccount", "set used: $it")
-                    }
-                acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (getFileDir() + "/ytdlp-cookie.txt")) }.let {
-                    Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
-                }
-                dataStoreManager.setCookie(acc.cache ?: "", acc.pageId, acc.authUser)
-                dataStoreManager.setLoggedIn(true)
-                Logger.i("Auth", "YouTube: switched account")
-                delay(500)
-                getAllGoogleAccount()
-                getLoggedIn()
-            } else {
-                googleAccounts.value.data?.forEach {
-                    accountRepository
-                        .updateGoogleAccountUsed(it.email, false)
-                        .singleOrNull()
-                        ?.let {
-                            Logger.d("getAllGoogleAccount", "set used: $it")
-                        }
-                }
-                dataStoreManager.putString("AccountName", "")
-                dataStoreManager.putString("AccountThumbUrl", "")
-                dataStoreManager.setLoggedIn(false)
-                dataStoreManager.setCookie("", null)
-                Logger.i("Auth", "YouTube: signed out")
-                delay(500)
-                getAllGoogleAccount()
-                getLoggedIn()
-            }
-        }
-    }
-
-    fun logOutAllYouTube() {
-        viewModelScope.launch {
-            googleAccounts.value.data?.forEach { account ->
-                accountRepository.deleteGoogleAccount(account.email)
-            }
-            dataStoreManager.putString("AccountName", "")
-            dataStoreManager.putString("AccountThumbUrl", "")
-            dataStoreManager.setLoggedIn(false)
-            dataStoreManager.setCookie("", null)
-            Logger.i("Auth", "YouTube: signed out of all accounts")
-            delay(500)
-            getAllGoogleAccount()
-            getLoggedIn()
         }
     }
 

@@ -8,7 +8,6 @@ import com.simohypers.limusic.domain.repository.AccountRepository
 import com.simohypers.limusic.kotlinytmusicscraper.YouTube
 import com.simohypers.limusic.logger.Logger
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -22,10 +21,12 @@ internal class AccountRepositoryImpl(
 ) : AccountRepository {
     override fun getYouTubeCookie() = youTube.cookie
 
+    override val authRejected: Flow<Unit> get() = youTube.authRejected
+
     override fun getAccountInfo(cookie: String): Flow<List<AccountInfo>> =
         flow {
-            youTube.cookie = cookie
-            delay(1000)
+            // Asks with this jar alone: the live session is left as it is until the caller
+            // decides to switch to it.
             youTube
                 .getAccountListWithPageId(cookie)
                 .onSuccess {

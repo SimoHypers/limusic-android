@@ -244,10 +244,6 @@ interface DataStoreManager {
 
     suspend fun setCombineLocalAndYouTubeLiked(combine: Boolean)
 
-    val shouldShowLogInRequiredAlert: Flow<String>
-
-    suspend fun setShouldShowLogInRequiredAlert(shouldShow: Boolean)
-
     val playbackSpeed: Flow<Float>
 
     fun setPlaybackSpeed(speed: Float)

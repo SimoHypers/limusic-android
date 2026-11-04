@@ -64,6 +64,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -140,6 +141,9 @@ class Ytmusic {
 
     private var cookieMap = emptyMap<String, String>()
 
+    /** YouTube turned down a request sent with the cookie: the jar may have gone stale (KI-2). */
+    val authRejected = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     var proxy: ProxyConfig? = null
         set(value) {
             if (field == value) return
@@ -170,6 +174,8 @@ class Ytmusic {
                             ?: return@handleResponseExceptionWithRequest
                     if (status == HttpStatusCode.Unauthorized || status == HttpStatusCode.Forbidden) {
                         Logger.w("Auth", "YouTube: ${request.url.host}${request.url.encodedPath} answered ${status.value}")
+                        // Only a request that carried the jar says anything about the jar.
+                        if (request.headers.contains(HttpHeaders.Cookie)) authRejected.tryEmit(Unit)
                     }
                 }
             }
@@ -221,6 +227,9 @@ class Ytmusic {
         setLogin: Boolean = false,
         isUsingReferer: Boolean = true,
         customCookie: String? = null,
+        // False for the account list: it asks what a jar can act as, so the current channel's
+        // markers would only skew the answer toward the account being replaced.
+        identity: Boolean = true,
     ) {
         contentType(ContentType.Application.Json)
         headers {
@@ -234,16 +243,21 @@ class Ytmusic {
             // The account markers only travel with the cookie: on an anonymous request they can
             // make YouTube demand the credential that is not there (desktop Limusic, transport.rs).
             if (setLogin) {
-                append("X-Goog-Authuser", authUser.toString())
-                pageId?.let {
-                    append("X-Goog-Pageid", it)
+                if (identity) {
+                    append("X-Goog-Authuser", authUser.toString())
+                    pageId?.let {
+                        append("X-Goog-Pageid", it)
+                    }
                 }
                 val cookie = customCookie ?: this@Ytmusic.cookie
                 cookie?.let { cookie ->
                     append("Cookie", cookie)
-                    if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
+                    // Signed with the jar actually sent: checking a saved account's cookie used to
+                    // carry the live account's SAPISID hash.
+                    val map = if (customCookie != null) parseCookieString(customCookie) else cookieMap
+                    if ("SAPISID" !in map || "__Secure-3PAPISID" !in map) return@let
                     val currentTime = now().toInstant(TimeZone.currentSystemDefault()).epochSeconds / 1000
-                    val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+                    val sapisidCookie = map["SAPISID"] ?: map["__Secure-3PAPISID"]
                     val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
                     Logger.d(TAG, "SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
                     append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
@@ -784,7 +798,7 @@ class Ytmusic {
 
     suspend fun getAccountSwitcherEndpoint(customCookie: String? = null) =
         httpClient.get("https://music.youtube.com/getAccountSwitcherEndpoint") {
-            ytClient(WEB_REMIX, setLogin = true, customCookie = customCookie)
+            ytClient(WEB_REMIX, setLogin = true, customCookie = customCookie, identity = false)
         }
 
     suspend fun scrapeYouTube(videoId: String) =

@@ -9,6 +9,9 @@ interface AccountRepository {
 
     fun getYouTubeCookie(): String?
 
+    /** YouTube turned down a request sent with the cookie, so the jar may need re-minting. */
+    val authRejected: Flow<Unit>
+
     fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity): Flow<Long>
 
     fun getGoogleAccounts(): Flow<List<GoogleAccountEntity>?>

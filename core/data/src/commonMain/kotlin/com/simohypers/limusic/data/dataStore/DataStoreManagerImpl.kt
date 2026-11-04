@@ -850,25 +850,6 @@ internal class DataStoreManagerImpl(
         }
     }
 
-    override val shouldShowLogInRequiredAlert =
-        settingsDataStore.data.map { preferences ->
-            preferences[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] ?: TRUE
-        }
-
-    override suspend fun setShouldShowLogInRequiredAlert(shouldShow: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (shouldShow) {
-                settingsDataStore.edit { settings ->
-                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = FALSE
-                }
-            }
-        }
-    }
-
     override val playbackSpeed =
         settingsDataStore.data.map { preferences ->
             preferences[PLAYBACK_SPEED] ?: 1.0f
@@ -1284,7 +1265,6 @@ internal class DataStoreManagerImpl(
         val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
         val KEEP_YOUTUBE_PLAYLIST_OFFLINE = stringPreferencesKey("keep_youtube_playlist_offline")
         val COMBINE_LOCAL_AND_YOUTUBE_LIKED = stringPreferencesKey("combine_local_and_youtube_liked")
-        val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
         val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")

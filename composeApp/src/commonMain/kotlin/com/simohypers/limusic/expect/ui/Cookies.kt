@@ -9,7 +9,8 @@ import androidx.compose.runtime.remember
 interface WebViewCookieManager {
     fun getCookie(url: String): String
 
-    fun removeAllCookies()
+    /** Clears the WebView's whole cookie store; [done] runs once it is really gone. */
+    fun removeAllCookies(done: () -> Unit = {})
 }
 
 expect fun createWebViewCookieManager(): WebViewCookieManager

@@ -73,74 +73,8 @@ internal class HomeRepositoryImpl(
                     .customQuery(browseId = "FEmusic_home", params = params)
                     .onSuccess { result ->
                         val list: ArrayList<HomeItem> = arrayListOf()
-                        if (result.contents
-                                ?.singleColumnBrowseResultsRenderer
-                                ?.tabs
-                                ?.get(
-                                    0,
-                                )?.tabRenderer
-                                ?.content
-                                ?.sectionListRenderer
-                                ?.contents
-                                ?.get(
-                                    0,
-                                )?.musicCarouselShelfRenderer
-                                ?.header
-                                ?.musicCarouselShelfBasicHeaderRenderer
-                                ?.strapline
-                                ?.runs
-                                ?.get(
-                                    0,
-                                )?.text != null
-                        ) {
-                            val accountName =
-                                result.contents
-                                    ?.singleColumnBrowseResultsRenderer
-                                    ?.tabs
-                                    ?.get(
-                                        0,
-                                    )?.tabRenderer
-                                    ?.content
-                                    ?.sectionListRenderer
-                                    ?.contents
-                                    ?.get(
-                                        0,
-                                    )?.musicCarouselShelfRenderer
-                                    ?.header
-                                    ?.musicCarouselShelfBasicHeaderRenderer
-                                    ?.strapline
-                                    ?.runs
-                                    ?.get(
-                                        0,
-                                    )?.text ?: ""
-                            val accountThumbUrl =
-                                result.contents
-                                    ?.singleColumnBrowseResultsRenderer
-                                    ?.tabs
-                                    ?.get(
-                                        0,
-                                    )?.tabRenderer
-                                    ?.content
-                                    ?.sectionListRenderer
-                                    ?.contents
-                                    ?.get(
-                                        0,
-                                    )?.musicCarouselShelfRenderer
-                                    ?.header
-                                    ?.musicCarouselShelfBasicHeaderRenderer
-                                    ?.thumbnail
-                                    ?.musicThumbnailRenderer
-                                    ?.thumbnail
-                                    ?.thumbnails
-                                    ?.get(
-                                        0,
-                                    )?.url
-                                    ?.replace("s88", "s352") ?: ""
-                            if (accountName != "" && accountThumbUrl != "") {
-                                dataStoreManager.putString("AccountName", accountName)
-                                dataStoreManager.putString("AccountThumbUrl", accountThumbUrl)
-                            }
-                        }
+                        // The account's name and photo come from sign-in alone (YouTubeAccounts). The
+                        // first shelf's strapline used to overwrite them, in capitals.
                         val continueParam =
                             result.contents
                                 ?.singleColumnBrowseResultsRenderer

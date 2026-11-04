@@ -156,6 +156,7 @@ import com.simohypers.limusic.viewModel.SettingAlertState
 import com.simohypers.limusic.viewModel.SettingBasicAlertState
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import com.simohypers.limusic.viewModel.SharedViewModel
+import com.simohypers.limusic.viewModel.YouTubeAccounts
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -265,7 +266,8 @@ import limusic.composeapp.generated.resources.lyrics_sources_none
 import limusic.composeapp.generated.resources.lyrics_style
 import limusic.composeapp.generated.resources.lyrics_style_apple_music
 import limusic.composeapp.generated.resources.lyrics_style_classic
-import limusic.composeapp.generated.resources.manage_your_youtube_accounts
+import limusic.composeapp.generated.resources.sign_in
+import limusic.composeapp.generated.resources.sign_in_hint
 import limusic.composeapp.generated.resources.developer_name
 import limusic.composeapp.generated.resources.monthly
 import limusic.composeapp.generated.resources.never
@@ -504,12 +506,6 @@ fun SettingScreen(
         mutableStateOf(false)
     }
 
-    // Only the section list shows the account. With no saved account this can ask YouTube.
-    if (section == null) {
-        LaunchedEffect(true) {
-            viewModel.getAllGoogleAccount()
-        }
-    }
     val pageTitle = section?.let { stringResource(it.title) } ?: stringResource(Res.string.settings)
 
     LaunchedEffect(true) {
@@ -574,12 +570,14 @@ fun SettingScreen(
                 )
                 when (section) {
                     null -> {
-                        val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle()
-                        val account = googleAccounts.data?.firstOrNull { it.isUsed }
+                        val account by koinInject<YouTubeAccounts>().active.collectAsStateWithLifecycle()
                         SettingGroup(title = null) {
+                            // Signed out, the way in: Home's header has no avatar to tap then.
                             SettingItem(
-                                title = account?.name ?: stringResource(Res.string.youtube_account),
-                                subtitle = account?.email ?: stringResource(Res.string.manage_your_youtube_accounts),
+                                title = account?.name ?: stringResource(Res.string.sign_in),
+                                subtitle =
+                                    account?.email?.takeIf { it.startsWith("@") }
+                                        ?: stringResource(if (account == null) Res.string.sign_in_hint else Res.string.youtube_account),
                                 smallSubtitle = true,
                                 leading = {
                                     AsyncImage(
@@ -592,10 +590,7 @@ fun SettingScreen(
                                     )
                                 },
                                 navigates = true,
-                                onClick = {
-                                    viewModel.getAllGoogleAccount()
-                                    showYouTubeAccountDialog = true
-                                },
+                                onClick = { showYouTubeAccountDialog = true },
                             )
                         }
                         SettingGroup(title = null) {
@@ -2056,9 +2051,8 @@ fun SettingScreen(
     }
     SettingAlertDialog(viewModel)
     if (showYouTubeAccountDialog) {
-        YouTubeAccountDialog(
-            viewModel = viewModel,
-            onAddAccount = { navController.navigate(LoginDestination) },
+        YouTubeAccountSheet(
+            onSignIn = { add -> navController.navigate(LoginDestination(addAccount = add)) },
             onDismiss = { showYouTubeAccountDialog = false },
         )
     }

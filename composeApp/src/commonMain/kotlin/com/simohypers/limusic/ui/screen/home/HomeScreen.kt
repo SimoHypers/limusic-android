@@ -45,9 +45,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -170,21 +168,17 @@ import org.koin.compose.viewmodel.koinViewModel
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.all
 import limusic.composeapp.generated.resources.all_hidden
-import limusic.composeapp.generated.resources.cancel
 import limusic.composeapp.generated.resources.chart
 import limusic.composeapp.generated.resources.commute
-import limusic.composeapp.generated.resources.do_not_show_again
 import limusic.composeapp.generated.resources.edit_home
 import limusic.composeapp.generated.resources.energize
 import limusic.composeapp.generated.resources.feel_good
 import limusic.composeapp.generated.resources.focus
-import limusic.composeapp.generated.resources.go_to_log_in_page
 import limusic.composeapp.generated.resources.good_afternoon
 import limusic.composeapp.generated.resources.good_evening
 import limusic.composeapp.generated.resources.good_morning
 import limusic.composeapp.generated.resources.good_night
 import limusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
-import limusic.composeapp.generated.resources.log_in_warning
 import limusic.composeapp.generated.resources.party
 import limusic.composeapp.generated.resources.play_all
 import limusic.composeapp.generated.resources.quick_picks
@@ -193,7 +187,6 @@ import limusic.composeapp.generated.resources.romance
 import limusic.composeapp.generated.resources.sad
 import limusic.composeapp.generated.resources.sleep
 import limusic.composeapp.generated.resources.top_artists
-import limusic.composeapp.generated.resources.warning
 import limusic.composeapp.generated.resources.what_is_best_choice_today
 import limusic.composeapp.generated.resources.workout
 import limusic.composeapp.generated.resources.youtube_account
@@ -272,7 +265,6 @@ fun HomeScreen(
     val homeListState by viewModel.homeListState.collectAsStateWithLifecycle()
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
 
-    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
 
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -292,9 +284,8 @@ fun HomeScreen(
     val cover = nowPlaying?.songEntity?.thumbnails ?: nowPlaying?.mediaItem?.metadata?.artworkUri
     var showAccounts by rememberSaveable { mutableStateOf(false) }
     if (showAccounts) {
-        YouTubeAccountDialog(
-            viewModel = koinViewModel(),
-            onAddAccount = { navController.navigate(LoginDestination) },
+        YouTubeAccountSheet(
+            onSignIn = { add -> navController.navigate(LoginDestination(addAccount = add)) },
             onDismiss = { showAccounts = false },
         )
     }
@@ -374,59 +365,6 @@ fun HomeScreen(
 //            },
 //        )
 //    }
-
-    if (shouldShowLogInAlert) {
-        var doNotShowAgain by rememberSaveable {
-            mutableStateOf(false)
-        }
-        AlertDialog(
-            title = {
-                Text(stringResource(Res.string.warning))
-            },
-            text = {
-                Column {
-                    Text(text = stringResource(Res.string.log_in_warning))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier =
-                            Modifier
-                                .clip(rounded(8.dp))
-                                .clickable {
-                                    doNotShowAgain = !doNotShowAgain
-                                }.fillMaxWidth(),
-                    ) {
-                        Checkbox(
-                            checked = doNotShowAgain,
-                            onCheckedChange = {
-                                doNotShowAgain = it
-                            },
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(stringResource(Res.string.do_not_show_again))
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.doneShowLogInAlert(doNotShowAgain)
-                    navController.navigate(LoginDestination)
-                }) {
-                    Text(stringResource(Res.string.go_to_log_in_page))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    viewModel.doneShowLogInAlert(doNotShowAgain)
-                }) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            },
-            onDismissRequest = {
-                viewModel.doneShowLogInAlert()
-            },
-        )
-    }
 
     Box {
         PullToRefreshBox(

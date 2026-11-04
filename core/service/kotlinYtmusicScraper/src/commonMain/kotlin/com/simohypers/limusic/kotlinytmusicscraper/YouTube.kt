@@ -98,6 +98,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.encodeURLParameter
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -209,6 +210,9 @@ class YouTube {
         set(value) {
             ytMusic.authUser = value
         }
+
+    /** A request sent with the cookie came back 401/403. */
+    val authRejected: SharedFlow<Unit> get() = ytMusic.authRejected
 
     /**
      * Remove proxy for client

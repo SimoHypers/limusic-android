@@ -7,13 +7,13 @@ import com.simohypers.limusic.domain.data.entities.SongEntity
 import com.simohypers.limusic.domain.data.model.home.HomeItem
 import com.simohypers.limusic.domain.data.model.library.LibraryOverview
 import com.simohypers.limusic.domain.manager.DataStoreManager
-import com.simohypers.limusic.domain.manager.DataStoreManager.Values.TRUE
 import com.simohypers.limusic.domain.repository.AccountRepository
 import com.simohypers.limusic.domain.repository.CommonRepository
 import com.simohypers.limusic.domain.repository.HomeRepository
 import com.simohypers.limusic.domain.utils.Resource
 import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.viewModel.base.BaseViewModel
+import org.koin.core.component.inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +55,8 @@ class HomeViewModel(
     private var _continuation = MutableStateFlow<String?>(null)
     val continuation: StateFlow<String?> = _continuation
 
+    private val accounts: YouTubeAccounts by inject()
+
     private val _accountInfo: MutableStateFlow<Pair<String?, String?>?> = MutableStateFlow(null)
     val accountInfo: StateFlow<Pair<String?, String?>?> = _accountInfo
 
@@ -74,8 +76,6 @@ class HomeViewModel(
     val params: StateFlow<String?> = _params
 
     // For showing alert that should log in to YouTube
-    private val _showLogInAlert: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
 
     val dataSyncId =
         dataStoreManager
@@ -104,13 +104,6 @@ class HomeViewModel(
     private val storeLock = Mutex()
 
     init {
-        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
-            runBlocking {
-                dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
-            }
-        ) {
-            _showLogInAlert.update { true }
-        }
         homeJob = Job()
         // One trigger for everything that changes what Home shows: region, language, the YouTube
         // session and the mood chip. Four collectors used to start a full reload each at launch.
@@ -126,38 +119,13 @@ class HomeViewModel(
                 .debounce(300)
                 .collectLatest { (_, _, _, chip) -> getHomeItemList(chip) }
         }
-        // Follows the saved name and picture too: sign-in writes the cookie before YouTube has
-        // answered, and its last cookie write repeats the same value, so the cookie alone misses it.
+        // The active saved account alone, as Settings shows it: name and photo are written once, at
+        // sign-in, so a half-finished write or the feed's strapline can't blank the avatar.
         viewModelScope.launch {
-            combine(
-                dataStoreManager.cookie,
-                dataStoreManager.getString("AccountName"),
-                dataStoreManager.getString("AccountThumbUrl"),
-            ) { cookie, name, thumb -> Triple(cookie, name, thumb) }
-                .distinctUntilChanged()
-                .collectLatest { (cookie, name, thumb) ->
-                    // The saved account, as Settings shows it. The "AccountName" key is also
-                    // written from the feed's first shelf strapline, which YouTube sends in capitals.
-                    val used = accountRepository.getUsedGoogleAccount().first()
-                    _accountInfo.value =
-                        if (cookie.isNullOrEmpty()) {
-                            null
-                        } else {
-                            Pair(
-                                used?.name ?: name,
-                                used?.thumbnailUrl ?: thumb,
-                            )
-                        }
-                }
-        }
-    }
-
-    fun doneShowLogInAlert(neverShowAgain: Boolean = false) {
-        viewModelScope.launch {
-            _showLogInAlert.update { false }
-            if (neverShowAgain) {
-                dataStoreManager.setShouldShowLogInRequiredAlert(false)
-            }
+            combine(dataStoreManager.cookie, accounts.active) { cookie, active ->
+                if (cookie.isEmpty()) null else Pair(active?.name, active?.thumbnailUrl)
+            }.distinctUntilChanged()
+                .collect { _accountInfo.value = it }
         }
     }
 

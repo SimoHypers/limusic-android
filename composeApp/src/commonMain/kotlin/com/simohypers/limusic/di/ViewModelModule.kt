@@ -10,7 +10,6 @@ import com.simohypers.limusic.viewModel.ImportViewModel
 import com.simohypers.limusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.simohypers.limusic.viewModel.LibraryViewModel
 import com.simohypers.limusic.viewModel.LocalPlaylistViewModel
-import com.simohypers.limusic.viewModel.LogInViewModel
 import com.simohypers.limusic.viewModel.MoodViewModel
 import com.simohypers.limusic.viewModel.MoreAlbumsViewModel
 import com.simohypers.limusic.viewModel.NotificationViewModel
@@ -23,11 +22,13 @@ import com.simohypers.limusic.viewModel.AutoEqViewModel
 import com.simohypers.limusic.viewModel.SettingsViewModel
 import com.simohypers.limusic.viewModel.SharedViewModel
 import com.simohypers.limusic.viewModel.SongSelectionViewModel
+import com.simohypers.limusic.viewModel.YouTubeAccounts
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule =
     module {
+        single { YouTubeAccounts(get(), get(), get()) }
         single {
             SharedViewModel(
                 get(),
@@ -130,11 +131,6 @@ val viewModelModule =
             PlaylistViewModel(
                 get(),
                 get(),
-                get(),
-            )
-        }
-        viewModel {
-            LogInViewModel(
                 get(),
             )
         }

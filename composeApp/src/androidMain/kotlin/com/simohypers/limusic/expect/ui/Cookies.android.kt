@@ -26,9 +26,11 @@ actual fun createWebViewCookieManager(): WebViewCookieManager =
         // getCookie is null when no cookie matches this url, even if hasCookies() is true for others.
         override fun getCookie(url: String): String = CookieManager.getInstance().getCookie(url).orEmpty()
 
-        override fun removeAllCookies() {
-            CookieManager.getInstance().removeAllCookies(null)
-            CookieManager.getInstance().flush()
+        override fun removeAllCookies(done: () -> Unit) {
+            CookieManager.getInstance().removeAllCookies {
+                CookieManager.getInstance().flush()
+                done()
+            }
         }
     }
 
