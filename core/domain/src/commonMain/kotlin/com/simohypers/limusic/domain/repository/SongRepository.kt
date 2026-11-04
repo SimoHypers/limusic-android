@@ -176,6 +176,9 @@ interface SongRepository {
      */
     suspend fun refreshLikeFromYouTube(videoId: String): Track?
 
+    /** Signed in, pick up likes made on other devices from Liked Music. At most every 30 minutes. */
+    suspend fun syncLikedMusic()
+
     /**
      * The stored song names no linked artist or no album (a card sent its artists as plain text):
      * fill them from the song's own queue row on YouTube. One request, once per song per run.

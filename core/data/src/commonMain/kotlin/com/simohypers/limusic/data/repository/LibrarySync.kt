@@ -51,11 +51,19 @@ internal class LibrarySync(
      * answer can win that race, and the next play's check (refreshLikeFromYouTube) corrects it.
      */
     suspend fun adoptLikes(tracks: List<Track>) {
+        val (liked, notLiked) = tracks.filter { it.likeStatus != null }.partition { it.likeStatus == "LIKE" }
+        adopt(liked.map { it.videoId }, notLiked.map { it.videoId })
+    }
+
+    /** [adoptLikes] by id: the account likes [liked] and not [notLiked]. */
+    suspend fun adopt(
+        liked: List<String>,
+        notLiked: List<String>,
+    ) {
         if (!loggedIn()) return
         val unsynced = mutex.withLock { read() }
-        val (liked, notLiked) = tracks.filter { it.likeStatus != null }.partition { it.likeStatus == "LIKE" }
-        localDataSource.adoptLiked(liked.map { it.videoId }, true)
-        localDataSource.adoptLiked(notLiked.map { it.videoId }.filterNot { song(it) in unsynced }, false)
+        localDataSource.adoptLiked(liked, true)
+        localDataSource.adoptLiked(notLiked.filterNot { song(it) in unsynced }, false)
     }
 
     fun keys(): Flow<Set<String>> =

@@ -96,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         startMusicService()
         deviceLink.setForeground(true)
+        viewModel.syncLikedMusic()
     }
 
     override fun onStop() {

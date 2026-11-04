@@ -251,6 +251,8 @@ internal class LocalDataSource(
         videoId: String,
     ) = databaseDao.updateLiked(liked, videoId)
 
+    suspend fun likedSongIds() = databaseDao.likedSongIds()
+
     // Chunked under SQLite's 999-variable limit on older Androids.
     suspend fun adoptLiked(
         videoIds: List<String>,

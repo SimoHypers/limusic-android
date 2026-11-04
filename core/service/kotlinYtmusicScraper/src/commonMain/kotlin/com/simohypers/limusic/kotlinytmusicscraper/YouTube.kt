@@ -120,6 +120,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerializationException
+import com.simohypers.limusic.kotlinytmusicscraper.parser.findAll
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -1156,6 +1157,8 @@ class YouTube {
 
     suspend fun getWatchInfo(videoId: String): Result<WatchInfo> =
         runCatching {
+            // Asked with "" at startup before the queue is restored; that was a request for nothing.
+            require(videoId.isNotBlank()) { "No video to check" }
             val response =
                 ytMusic
                     .next(
@@ -1167,13 +1170,13 @@ class YouTube {
                         null,
                         null,
                     ).body<NextAndroidMusicResponse>()
+            // The player bar's like button, which YouTube Music's own player draws from. Searched
+            // for, not read off one path: by 2026-11 it had moved from actions[].likeButtonRenderer
+            // into videoActionBar's segmentedLikeDislikeButtonViewModel, and the old path read null.
             val likeStatus =
                 response.playerOverlays
-                    ?.playerOverlayRenderer
-                    ?.actions
-                    ?.find { it.likeButtonRenderer != null }
-                    ?.likeButtonRenderer
-                    ?.likeStatus
+                    ?.findAll("likeStatus")
+                    ?.firstNotNullOfOrNull { (it as? JsonPrimitive)?.contentOrNull }
                     ?.toLikeStatus()
             Logger.d("YouTube", "Like status: $likeStatus")
             val row =

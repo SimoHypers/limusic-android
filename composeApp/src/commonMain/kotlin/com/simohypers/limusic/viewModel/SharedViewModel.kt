@@ -328,6 +328,13 @@ class SharedViewModel(
                 isFirstLiked = it != STATUS_DONE
             }
         }
+        // Signing in and switching channel pick up likes made elsewhere; so does coming back to
+        // the app (MainActivity.onStart). The repository keeps it to once per 30 minutes.
+        viewModelScope.launch {
+            combine(dataStoreManager.loggedIn, dataStoreManager.pageId, dataStoreManager.authUser) { a, b, c -> Triple(a, b, c) }
+                .distinctUntilChanged()
+                .collectLatest { songRepository.syncLikedMusic() }
+        }
         viewModelScope.launch {
             mediaPlayerHandler.nowPlayingState
                 .distinctUntilChangedBy {
@@ -614,6 +621,10 @@ class SharedViewModel(
                 makeToast(getString(Res.string.discord_login_failed))
             }
         }
+    }
+
+    fun syncLikedMusic() {
+        viewModelScope.launch { songRepository.syncLikedMusic() }
     }
 
     // The hearts read the local row; signed in, this brings it in line with YouTube's like. The

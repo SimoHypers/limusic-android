@@ -47,8 +47,16 @@ import kotlin.concurrent.Volatile
 import kotlinx.datetime.LocalDateTime
 import org.koin.mp.KoinPlatform.getKoin
 import com.simohypers.limusic.kotlinytmusicscraper.pages.PlaylistPage
+import com.simohypers.limusic.common.Config
+import com.simohypers.limusic.domain.repository.PlaylistRepository
+import kotlinx.coroutines.sync.Mutex
+import kotlin.time.Clock
 
 private const val TAG = "SongRepositoryImpl"
+private const val LIKED_MUSIC_SYNCED = "liked_music_synced"
+private const val LIKED_MUSIC_WALKED = "liked_music_walked"
+private const val LIKED_MUSIC_SYNC_EVERY_MS = 30 * 60 * 1000L
+private const val LIKED_MUSIC_MAX_PAGES = 50
 
 internal class SongRepositoryImpl(
     private val dataStoreManager: DataStoreManager,
@@ -545,6 +553,59 @@ internal class SongRepositoryImpl(
         if ((song.likeStatus == LikeStatus.DISLIKE.name) != (status == LikeStatus.DISLIKE)) localDataSource.updateLikeStatus(status.name, videoId)
         return row
     }
+
+    private val likedMusicSync = Mutex()
+
+    /**
+     * Likes made on another device (desktop, YouTube Music's own apps) reach the phone here. Liked
+     * Music comes back newest first, so a like made elsewhere is near the top: pages are read until
+     * one holds a song the phone already had as liked, usually the first. The first sync for an
+     * account reads the whole list, stores what the phone lacks, and unlikes what is no longer in
+     * it. After that, unlikes made elsewhere come in through page rows and the play check.
+     *
+     * The time is written before the fetch, so a failing sync waits its 30 minutes too.
+     * ponytail: capped at 50 pages (5000 likes); past that a first walk stops short and never
+     * unlikes, the same cap desktop's crawl has.
+     */
+    override suspend fun syncLikedMusic() {
+        if (!librarySync.loggedIn() || !likedMusicSync.tryLock()) return
+        try {
+            val account = "${dataStoreManager.authUser.first()}|${dataStoreManager.pageId.first()}|${dataStoreManager.getString("AccountName").first()}"
+            val now = Clock.System.now().toEpochMilliseconds()
+            val (at, syncedFor) = dataStoreManager.getString(LIKED_MUSIC_SYNCED).first()?.split(' ', limit = 2).orEmpty() + listOf("", "")
+            if (syncedFor == account && now - (at.toLongOrNull() ?: 0) < LIKED_MUSIC_SYNC_EVERY_MS) return
+            dataStoreManager.putString(LIKED_MUSIC_SYNCED, "$now $account")
+            val walked = dataStoreManager.getString(LIKED_MUSIC_WALKED).first() == account
+            val likedBefore = withContext(Dispatchers.IO) { localDataSource.likedSongIds() }.toSet()
+            val seen = mutableSetOf<String>()
+            // The page fetches already bring stored songs in line (LibrarySync.adoptLikes).
+            var page =
+                playlistRepository
+                    .getPlaylistData("LM", "", null, false)
+                    .first()
+                    .data
+                    ?.let { it.first.tracks to it.second }
+            repeat(LIKED_MUSIC_MAX_PAGES) {
+                val (tracks, next) = page ?: return
+                withContext(Dispatchers.IO) {
+                    localDataSource.insertSongs(tracks.map { it.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME) })
+                }
+                seen += tracks.map { it.videoId }
+                if (walked && tracks.any { it.videoId in likedBefore }) return
+                if (next == null) {
+                    librarySync.adopt(emptyList(), (likedBefore - seen).toList())
+                    dataStoreManager.putString(LIKED_MUSIC_WALKED, account)
+                    Logger.d(TAG, "Liked Music walked: ${seen.size} likes")
+                    return
+                }
+                page = getContinueTrack("LM", next, fromPlaylist = true).first().let { (rows, token) -> rows?.let { it to token } }
+            }
+        } finally {
+            likedMusicSync.unlock()
+        }
+    }
+
+    private val playlistRepository: PlaylistRepository by lazy { getKoin().get() }
 
     // Songs this run already asked about, so a video (which has no album) is asked once, not on
     // every menu. ponytail: unsynchronised set; a race costs one duplicate request at most.

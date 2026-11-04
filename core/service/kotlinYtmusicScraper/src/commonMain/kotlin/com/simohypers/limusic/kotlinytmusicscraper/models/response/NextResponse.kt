@@ -5,6 +5,7 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.PlaylistPanelRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.Tabs
 import com.simohypers.limusic.kotlinytmusicscraper.models.youtube.data.YouTubeDataPage
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class NextResponse(
@@ -43,28 +44,8 @@ data class NextResponse(
 
 @Serializable
 data class NextAndroidMusicResponse(
-    val playerOverlays: PlayerOverlays?,
+    /** Kept as JSON: the like is read from anywhere inside, as desktop does, not one fixed path. */
+    val playerOverlays: JsonElement? = null,
     /** The queue, for the playing track's own row and the other version it carries. */
     val contents: NextResponse.Contents? = null,
-) {
-    @Serializable
-    data class PlayerOverlays(
-        val playerOverlayRenderer: PlayerOverlayRenderer?,
-    ) {
-        @Serializable
-        data class PlayerOverlayRenderer(
-            val actions: List<Action>?,
-        ) {
-            @Serializable
-            data class Action(
-                val likeButtonRenderer: LikeButtonRenderer?,
-            ) {
-                @Serializable
-                data class LikeButtonRenderer(
-                    val likeStatus: String?,
-                    val likesAllowed: Boolean?,
-                )
-            }
-        }
-    }
-}
+)

@@ -248,6 +248,9 @@ interface DatabaseDao {
         favoriteAt: LocalDateTime? = if (liked == 1) now() else null,
     )
 
+    @Query("SELECT videoId FROM song WHERE liked = 1")
+    suspend fun likedSongIds(): List<String>
+
     /** The stored songs among [videoIds] whose heart isn't [liked] take it; see LibrarySync.adoptLikes. */
     @Query("UPDATE song SET liked = :liked, favoriteAt = :favoriteAt WHERE videoId IN (:videoIds) AND liked != :liked")
     suspend fun adoptLiked(
