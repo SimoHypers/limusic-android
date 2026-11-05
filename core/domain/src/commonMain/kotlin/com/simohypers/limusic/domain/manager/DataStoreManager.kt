@@ -272,10 +272,6 @@ interface DataStoreManager {
 
     suspend fun setCrossfadeDuration(duration: Int)
 
-    val crossfadeDjMode: Flow<String>
-
-    suspend fun setCrossfadeDjMode(enabled: Boolean)
-
     /**
      * When on, transitions *between tracks of the same album* skip the crossfade, so an album that
      * was sequenced to run continuously keeps doing so. Edges still crossfade: the last album track
@@ -494,8 +490,6 @@ interface DataStoreManager {
 
         const val EQUALIZER_TYPE_BUILT_IN = "BUILT_IN"
         const val EQUALIZER_TYPE_SYSTEM = "SYSTEM"
-
-        const val CROSSFADE_DURATION_AUTO = 0
 
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"

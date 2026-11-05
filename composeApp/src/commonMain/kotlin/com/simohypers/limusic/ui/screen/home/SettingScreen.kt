@@ -229,10 +229,7 @@ import limusic.composeapp.generated.resources.clear_thumbnail_cache
 import limusic.composeapp.generated.resources.content
 import limusic.composeapp.generated.resources.content_country
 import limusic.composeapp.generated.resources.crossfade
-import limusic.composeapp.generated.resources.crossfade_auto
 import limusic.composeapp.generated.resources.crossfade_description
-import limusic.composeapp.generated.resources.crossfade_dj_mode
-import limusic.composeapp.generated.resources.crossfade_dj_mode_description
 import limusic.composeapp.generated.resources.crossfade_duration
 import limusic.composeapp.generated.resources.crossfade_skip_album
 import limusic.composeapp.generated.resources.crossfade_skip_album_description
@@ -519,7 +516,6 @@ fun SettingScreen(
 
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
-    val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
     val crossfadeSkipAlbum by viewModel.crossfadeSkipAlbum.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
 
@@ -1192,12 +1188,7 @@ fun SettingScreen(
                                         title = stringResource(Res.string.crossfade_duration),
                                         subtitle = if (castState.isRemote) stringResource(Res.string.not_available_while_casting) else "",
                                         navigates = true,
-                                        value =
-                                            if (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) {
-                                                stringResource(Res.string.crossfade_auto)
-                                            } else {
-                                                "${crossfadeDuration / 1000}s"
-                                            },
+                                        value = "${crossfadeDuration / 1000}s",
                                         isEnable = !castState.isRemote,
                                         onClick = {
                                             viewModel.setAlertData(
@@ -1205,63 +1196,18 @@ fun SettingScreen(
                                                     title = runBlocking { getString(Res.string.crossfade_duration) },
                                                     selectOne =
                                                         SettingAlertState.SelectData(
-                                                            listSelect =
-                                                                listOf(
-                                                                    (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) to
-                                                                        runBlocking { getString(Res.string.crossfade_auto) },
-                                                                    (crossfadeDuration == 1000) to "1s",
-                                                                    (crossfadeDuration == 2000) to "2s",
-                                                                    (crossfadeDuration == 3000) to "3s",
-                                                                    (crossfadeDuration == 5000) to "5s",
-                                                                    (crossfadeDuration == 8000) to "8s",
-                                                                    (crossfadeDuration == 10000) to "10s",
-                                                                    (crossfadeDuration == 12000) to "12s",
-                                                                    (crossfadeDuration == 15000) to "15s",
-                                                                    (crossfadeDuration == 20000) to "20s",
-                                                                    (crossfadeDuration == 30000) to "30s",
-                                                                ),
+                                                            // 1-10 s, as on desktop.
+                                                            listSelect = (1..10).map { (crossfadeDuration == it * 1000) to "${it}s" },
                                                         ),
                                                     confirm =
                                                         runBlocking { getString(Res.string.change) } to { state ->
-                                                            val duration =
-                                                                when (state.selectOne?.getSelected()) {
-                                                                    runBlocking {
-                                                                        getString(
-                                                                            Res.string.crossfade_auto,
-                                                                        )
-                                                                    },
-                                                                    -> DataStoreManager.CROSSFADE_DURATION_AUTO
-                                                                    "1s" -> 1000
-                                                                    "2s" -> 2000
-                                                                    "3s" -> 3000
-                                                                    "5s" -> 5000
-                                                                    "8s" -> 8000
-                                                                    "10s" -> 10000
-                                                                    "12s" -> 12000
-                                                                    "15s" -> 15000
-                                                                    "20s" -> 20000
-                                                                    "30s" -> 30000
-                                                                    else -> 5000
-                                                                }
-                                                            viewModel.setCrossfadeDuration(duration)
+                                                            val seconds = state.selectOne?.getSelected()?.removeSuffix("s")?.toIntOrNull() ?: 5
+                                                            viewModel.setCrossfadeDuration(seconds * 1000)
                                                         },
                                                     dismiss = runBlocking { getString(Res.string.cancel) },
                                                 ),
                                             )
                                         },
-                                    )
-            //                        if (getPlatform() == Platform.Android) {
-                                    SettingItem(
-                                        title = stringResource(Res.string.crossfade_dj_mode),
-                                        subtitle =
-                                            if (castState.isRemote) {
-                                                stringResource(Res.string.not_available_while_casting)
-                                            } else {
-                                                stringResource(Res.string.crossfade_dj_mode_description)
-                                            },
-                                        smallSubtitle = true,
-                                        switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
-                                        isEnable = !castState.isRemote,
                                     )
                                     SettingItem(
                                         title = stringResource(Res.string.crossfade_skip_album),
@@ -1275,7 +1221,6 @@ fun SettingScreen(
                                         switch = ((crossfadeSkipAlbum) to { viewModel.setCrossfadeSkipAlbum(it) }),
                                         isEnable = !castState.isRemote,
                                     )
-            //                        }
                                 }
                             }
                         }

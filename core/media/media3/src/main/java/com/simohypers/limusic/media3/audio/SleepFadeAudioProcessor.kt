@@ -25,8 +25,7 @@ import java.nio.ByteOrder
  *   makes a single write cover every player at once.
  * - At full gain the samples are passed through untouched, which is every moment except the last
  *   few seconds of a sleep timer.
- * - Supports PCM 16-bit, matching [CrossfadeFilterAudioProcessor] and what the YouTube sources
- *   decode to.
+ * - Supports PCM 16-bit, which is what the YouTube sources decode to.
  */
 @UnstableApi
 class SleepFadeAudioProcessor(

@@ -944,26 +944,14 @@ internal class DataStoreManagerImpl(
 
     override val crossfadeDuration: Flow<Int> =
         settingsDataStore.data.map { preferences ->
-            preferences[CROSSFADE_DURATION] ?: 5000
+            // 1-10 s, as on desktop. Older builds stored 0 for Auto and offered up to 30 s.
+            preferences[CROSSFADE_DURATION]?.takeIf { it > 0 }?.coerceIn(1_000, 10_000) ?: 5_000
         }
 
     override suspend fun setCrossfadeDuration(duration: Int) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[CROSSFADE_DURATION] = duration
-            }
-        }
-    }
-
-    override val crossfadeDjMode: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CROSSFADE_DJ_MODE] ?: TRUE
-        }
-
-    override suspend fun setCrossfadeDjMode(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[CROSSFADE_DJ_MODE] = if (enabled) TRUE else FALSE
             }
         }
     }
@@ -1279,7 +1267,6 @@ internal class DataStoreManagerImpl(
         val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
         val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
-        val CROSSFADE_DJ_MODE = stringPreferencesKey("crossfade_dj_mode")
         val CROSSFADE_SKIP_ALBUM = stringPreferencesKey("crossfade_skip_album")
         val KEEP_LIBRARY_DOWNLOADED = stringPreferencesKey("keep_library_downloaded")
         val DOWNLOAD_WIFI_ONLY = stringPreferencesKey("download_wifi_only")
