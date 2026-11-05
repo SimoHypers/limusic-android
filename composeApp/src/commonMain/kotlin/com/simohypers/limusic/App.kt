@@ -182,6 +182,10 @@ fun App(
                 navController.navigate(
                     NotificationDestination,
                 )
+            } else if (data.scheme == "limusic" && data.host == "update") {
+                // The update notification: show the banner, even with the banner switch off.
+                viewModel.setIntent(null)
+                runCatching { Updater.checkNow() }
             } else if (data.scheme == "limusic" && data.host == "discord-auth") {
                 // Discord's authorize page sends the user back here with ?code=&state= (or ?error=).
                 viewModel.setIntent(null)

@@ -151,6 +151,7 @@ import limusic.composeapp.generated.resources.discord_showing_as
 import com.simohypers.limusic.ui.navigation.destination.login.LoginDestination
 import com.simohypers.limusic.ui.theme.md_theme_dark_primary
 import com.simohypers.limusic.ui.theme.typo
+import com.simohypers.limusic.expect.ui.rememberNotificationPermission
 import com.simohypers.limusic.updater.Updater
 import com.simohypers.limusic.utils.VersionManager
 import com.simohypers.limusic.viewModel.ImportViewModel
@@ -200,8 +201,10 @@ import limusic.composeapp.generated.resources.checking_for_updates
 import limusic.composeapp.generated.resources.up_to_date
 import limusic.composeapp.generated.resources.update_available
 import limusic.composeapp.generated.resources.update_check_failed
-import limusic.composeapp.generated.resources.update_notifications
-import limusic.composeapp.generated.resources.update_notifications_description
+import limusic.composeapp.generated.resources.update_banner
+import limusic.composeapp.generated.resources.update_banner_description
+import limusic.composeapp.generated.resources.update_notification
+import limusic.composeapp.generated.resources.update_notification_description
 import limusic.composeapp.generated.resources.updates
 import limusic.composeapp.generated.resources.whats_new
 import limusic.composeapp.generated.resources.download_liked_description
@@ -460,6 +463,9 @@ fun SettingScreen(
     val downloadLiked by viewModel.downloadLiked.collectAsStateWithLifecycle()
     val updateBanner by viewModel.updateBanner.collectAsStateWithLifecycle()
     val betaUpdates by viewModel.betaUpdates.collectAsStateWithLifecycle()
+    val updateNotification by viewModel.updateNotification.collectAsStateWithLifecycle()
+    // Without notification permission the switch reads off; turning it on asks for it.
+    val notificationPermission = rememberNotificationPermission { granted -> if (granted) viewModel.setUpdateNotification(true) }
     // Check for updates answers in its own row, as desktop's dialog does inline.
     var updateCheck by remember { mutableStateOf("") }
     var checkingUpdates by remember { mutableStateOf(false) }
@@ -2061,10 +2067,24 @@ fun SettingScreen(
                                 },
                             )
                             SettingItem(
-                                title = stringResource(Res.string.update_notifications),
-                                subtitle = stringResource(Res.string.update_notifications_description),
+                                title = stringResource(Res.string.update_banner),
+                                subtitle = stringResource(Res.string.update_banner_description),
                                 smallSubtitle = true,
                                 switch = (updateBanner to { viewModel.setUpdateBanner(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.update_notification),
+                                subtitle = stringResource(Res.string.update_notification_description),
+                                smallSubtitle = true,
+                                switch = (
+                                    (updateNotification && notificationPermission.granted) to { on ->
+                                        if (on && !notificationPermission.granted) {
+                                            notificationPermission.request()
+                                        } else {
+                                            viewModel.setUpdateNotification(on)
+                                        }
+                                    }
+                                ),
                             )
                             SettingItem(
                                 title = stringResource(Res.string.beta_versions),

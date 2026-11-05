@@ -11,6 +11,9 @@ import limusic.composeapp.generated.resources.new_singles
 import limusic.composeapp.generated.resources.playback_refused
 import limusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 import limusic.composeapp.generated.resources.youtube_write_failed
+import limusic.composeapp.generated.resources.update_notification_channel
+import limusic.composeapp.generated.resources.update_notification_text
+import limusic.composeapp.generated.resources.update_notification_title
 
 object ComposeResUtils {
     suspend fun getResString(
@@ -38,6 +41,18 @@ object ComposeResUtils {
                 getString(Res.string.new_albums)
             }
 
+            StringType.UPDATE_NOTIFICATION_TITLE -> {
+                getString(Res.string.update_notification_title, *format)
+            }
+
+            StringType.UPDATE_NOTIFICATION_TEXT -> {
+                getString(Res.string.update_notification_text)
+            }
+
+            StringType.UPDATE_NOTIFICATION_CHANNEL -> {
+                getString(Res.string.update_notification_channel)
+            }
+
             StringType.YOUTUBE_WRITE_FAILED -> {
                 getString(Res.string.youtube_write_failed)
             }
@@ -62,6 +77,9 @@ object ComposeResUtils {
         PLAYBACK_REFUSED,
         NEW_SINGLES,
         NEW_ALBUMS,
+        UPDATE_NOTIFICATION_TITLE,
+        UPDATE_NOTIFICATION_TEXT,
+        UPDATE_NOTIFICATION_CHANNEL,
         YOUTUBE_WRITE_FAILED,
         HOST_CONTROLS_PLAYBACK,
         ADDED_TO_QUEUE,

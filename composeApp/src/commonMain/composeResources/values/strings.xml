@@ -186,8 +186,13 @@
     <string name="checking_for_updates">Checking for updates…</string>
     <string name="up_to_date">You are using the latest version.</string>
     <string name="update_check_failed">Update check failed: %1$s</string>
-    <string name="update_notifications">Update notifications</string>
-    <string name="update_notifications_description">Show a banner when a new version of Limusic is available.</string>
+    <string name="update_banner">Update banner</string>
+    <string name="update_banner_description">Show a banner in the app when a new version of Limusic is available.</string>
+    <string name="update_notification">Update notification</string>
+    <string name="update_notification_description">Get a notification when a new version is out, even while Limusic is closed.</string>
+    <string name="update_notification_title">Limusic %1$s is available</string>
+    <string name="update_notification_text">Tap to update.</string>
+    <string name="update_notification_channel">App updates</string>
     <string name="whats_new">What's new</string>
     <string name="whats_new_version">Version %1$s</string>
     <string name="whats_new_installed">installed</string>

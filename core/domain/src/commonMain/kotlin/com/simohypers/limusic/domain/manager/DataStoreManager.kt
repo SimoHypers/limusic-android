@@ -310,6 +310,16 @@ interface DataStoreManager {
 
     suspend fun setUpdateBanner(enabled: Boolean)
 
+    /** The system notification for a new version, from the background check. On by default. */
+    val updateNotification: Flow<String>
+
+    suspend fun setUpdateNotification(enabled: Boolean)
+
+    /** The last version the update notification announced, so each one is announced once. */
+    val notifiedUpdate: Flow<String>
+
+    suspend fun setNotifiedUpdate(version: String)
+
     /** Beta versions: TRUE or FALSE once set; empty until then, which means on for an RC build. */
     val betaUpdates: Flow<String>
 

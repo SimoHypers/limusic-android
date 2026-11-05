@@ -3,20 +3,8 @@ package com.simohypers.limusic.utils
 import com.simohypers.limusic.BuildKonfig
 
 object VersionManager {
-    private var versionName: String? = null
-
-    fun initialize() {
-        if (versionName == null) {
-            versionName =
-                try {
-                    BuildKonfig.versionName
-                } catch (_: Exception) {
-                    String()
-                }
-        }
-    }
-
-    fun getVersionName(): String = removeDevSuffix(versionName ?: String())
+    // Read straight from the build: a background job (the update check) runs without MainActivity.
+    fun getVersionName(): String = removeDevSuffix(BuildKonfig.versionName)
 
     private fun removeDevSuffix(versionName: String): String {
         return if (versionName.endsWith("-dev")) {

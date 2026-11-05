@@ -120,7 +120,7 @@ object Updater {
         }
 
     /** The newest release above this build that has an APK for this phone, or null. */
-    private suspend fun look(): AvailableUpdate? {
+    suspend fun findUpdate(): AvailableUpdate? {
         val current = VersionManager.getVersionName()
         // Beta takes the highest of every release, prereleases included. Turned off on an RC, it
         // keeps that RC until a release passes it, as on desktop.
@@ -152,14 +152,14 @@ object Updater {
     suspend fun checkQuiet() {
         if (_state.value.available != null) return
         if (settings.updateBanner.first() == DataStoreManager.FALSE) return
-        runCatching { look() }
+        runCatching { findUpdate() }
             .onSuccess { found -> if (found != null) _state.update { it.copy(available = found) } }
             .onFailure { Logger.w(TAG, "Update check failed: ${it.message}") }
     }
 
     /** Settings > About > Check for updates: the update it found (also shown in the banner), or null; throws when the check fails. */
     suspend fun checkNow(): AvailableUpdate? {
-        val found = look()
+        val found = findUpdate()
         if (_state.value.progress == null) _state.value = UpdateState(available = found)
         return found
     }
@@ -200,7 +200,7 @@ object Updater {
 
     private suspend fun install(offered: AvailableUpdate) {
         // The banner can sit for hours; a release whose APK was replaced since has a new digest.
-        val update = runCatching { look() }.getOrNull() ?: offered
+        val update = runCatching { findUpdate() }.getOrNull() ?: offered
         _state.value = UpdateState(available = update, progress = 0f)
         val error =
             downloadAndInstallApk(update.apkUrl, update.sha256, identity.userAgent) { p ->

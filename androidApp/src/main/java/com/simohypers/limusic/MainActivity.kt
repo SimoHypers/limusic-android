@@ -49,8 +49,8 @@ import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.media3.di.setServiceActivitySession
 import com.simohypers.limusic.di.viewModelModule
 import com.simohypers.limusic.service.test.notification.NotifyWork
+import com.simohypers.limusic.service.update.UpdateCheckWorker
 import com.simohypers.limusic.utils.ComposeResUtils
-import com.simohypers.limusic.utils.VersionManager
 import com.simohypers.limusic.viewModel.SharedViewModel
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
@@ -130,7 +130,6 @@ class MainActivity : AppCompatActivity() {
         // Recreate view model to fix the issue of view model not getting data from the service
         unloadKoinModules(viewModelModule)
         loadKoinModules(viewModelModule)
-        VersionManager.initialize()
         if (viewModel.recreateActivity.value || viewModel.isServiceRunning) {
             viewModel.activityRecreateDone()
         } else {
@@ -220,6 +219,7 @@ class MainActivity : AppCompatActivity() {
             ExistingPeriodicWorkPolicy.UPDATE,
             request,
         )
+        UpdateCheckWorker.schedule(this)
         viewModel.getLocation()
 
         setContent {

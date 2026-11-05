@@ -151,6 +151,9 @@ class SettingsViewModel(
     val updateBanner: StateFlow<Boolean> =
         dataStoreManager.updateBanner.map { it != DataStoreManager.FALSE }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val updateNotification: StateFlow<Boolean> =
+        dataStoreManager.updateNotification.map { it != DataStoreManager.FALSE }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val betaUpdates: StateFlow<Boolean> =
         dataStoreManager.betaUpdates
             .map { Updater.isBeta() }
@@ -433,6 +436,10 @@ class SettingsViewModel(
             dataStoreManager.setUpdateBanner(enabled)
             if (enabled) Updater.checkQuiet() else Updater.dismiss()
         }
+    }
+
+    fun setUpdateNotification(enabled: Boolean) {
+        viewModelScope.launch { dataStoreManager.setUpdateNotification(enabled) }
     }
 
     fun setBetaUpdates(enabled: Boolean) {
