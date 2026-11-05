@@ -632,7 +632,8 @@ fun SettingScreen(
                     }
                     SettingsSection.GENERAL -> {
                         SettingGroup(title = stringResource(Res.string.content)) {
-                            SettingItem(
+                            // Hidden while English is the only language; registering a second one brings it back.
+                            if (SUPPORTED_LANGUAGE.codes.size > 1) SettingItem(
                                 title = stringResource(Res.string.language),
                                 navigates = true,
                                 value = SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US"),

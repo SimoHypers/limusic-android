@@ -49,38 +49,7 @@ android {
 
         @Suppress("UnstableApiUsage")
         androidResources {
-            localeFilters +=
-                listOf(
-                    "en",
-                    "vi",
-                    "it",
-                    "de",
-                    "ru",
-                    "tr",
-                    "fi",
-                    "pl",
-                    "pt",
-                    "fr",
-                    "es",
-                    "zh-rCN",
-                    "id",
-                    "in",
-                    "ar",
-                    "ja",
-                    "zh-rTW",
-                    "uk",
-                    "iw",
-                    "az",
-                    "hi",
-                    "th",
-                    "nl",
-                    "ko",
-                    "ca",
-                    "fa",
-                    "bg",
-                    "sv",
-                    "hr",
-                )
+            localeFilters += listOf("en") // one per language in SUPPORTED_LANGUAGE (core/common Config.kt)
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

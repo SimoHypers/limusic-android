@@ -191,6 +191,13 @@ class MainActivity : AppCompatActivity() {
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
         }
+        // A language the app no longer ships falls back to English, the UI and YouTube's hl alike:
+        // installs from before the translations were dropped would otherwise get English strings
+        // around YouTube shelf titles and dates in the old language.
+        if (getString(SELECTED_LANGUAGE) !in SUPPORTED_LANGUAGE.codes) {
+            putString(SELECTED_LANGUAGE, SUPPORTED_LANGUAGE.codes.first())
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(SUPPORTED_LANGUAGE.codes.first()))
+        }
 
         enableEdgeToEdge(
             navigationBarStyle =

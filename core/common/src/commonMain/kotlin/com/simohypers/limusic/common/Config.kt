@@ -150,79 +150,20 @@ object SUPPORTED_LOCATION {
         )
 }
 
+/**
+ * The app's UI languages; English is the source catalog and the only one shipped so far.
+ *
+ * Translations come from Weblate as `composeResources/values-<code>/strings.xml`. Registering one
+ * takes three edits: a name + code here, a `<locale>` in androidApp's `res/xml/locale_config.xml`,
+ * and the language in androidApp's `localeFilters`. The Settings Language row only shows once there
+ * are two. A stored language that is not listed here falls back to English (MainActivity).
+ */
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> =
-        arrayOf(
-            "English",
-            "Tiếng Việt",
-            "Italiano",
-            "Deutsch",
-            "Русский",
-            "Türkçe",
-            "Suomi",
-            "Polski",
-            "Português",
-            "Français",
-            "Español",
-            "简体中文 (Simplified Chinese)",
-            "Bahasa Indonesia",
-            "اللغة العربية",
-            "日本語",
-            "繁體中文 (Traditional Chinese)",
-            "Українська",
-            "עברית",
-            "Azerbaijani",
-            "हिन्दी",
-            "ภาษาไทย",
-            "Nederlands",
-            "한국어",
-            "Català",
-            "فارسی",
-            "български",
-            "Svenska",
-            "Hrvatski",
-        )
-    val codes: Array<String> =
-        arrayOf(
-            "en-US",
-            "vi-VN",
-            "it-IT",
-            "de-DE",
-            "ru-RU",
-            "tr-TR",
-            "fi-FI",
-            "pl-PL",
-            "pt-PT",
-            "fr-FR",
-            "es-ES",
-            "zh-CN",
-            "id-ID",
-            "ar-SA",
-            "ja-JP",
-            "zh-Hant-TW",
-            "uk-UA",
-            "iw-IL",
-            "az-AZ",
-            "hi-IN",
-            "th-TH",
-            "nl-NL",
-            "ko-KR",
-            "ca-ES",
-            "fa-AF",
-            "bg-BG",
-            "sv-SE",
-            "hr-HR",
-        )
+    val items: Array<CharSequence> = arrayOf("English")
+    val codes: Array<String> = arrayOf("en-US")
 
     fun getLanguageFromCode(code: String?): String {
-        val index =
-            codes.indexOf(
-                if (code == "he-IL") {
-                    "iw-IL"
-                } else {
-                    code
-                },
-            )
+        val index = codes.indexOf(code)
         Logger.d("Config", "getLanguageFromCode: $code")
         Logger.d("Config", "getLanguageFromCode: ${items.getOrNull(index)}")
         if (index == -1) {

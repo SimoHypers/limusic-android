@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="subscribers">%1$s subscribers</string>
-    <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s tracks  %2$s</string>
     <string name="view_count">%1$s views</string>
-    <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>
     <string name="liked_songs">Liked songs</string>
     <string name="liked_songs_by">By %1$s</string>
@@ -28,7 +25,6 @@
     <string name="show">Show</string>
     <string name="na_na">NA:NA</string>
     <string name="live_badge">LIVE</string>
-    <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>
     <string name="most_played">Most played</string>
     <string name="no_playlists_downloaded">No playlists downloaded</string>
@@ -105,7 +101,6 @@
     <string name="line_synced">Line Synced</string>
     <string name="unsynced">Unsynced</string>
     <string name="playlist_is_empty">Playlist is empty</string>
-    <string name="no_description">No description</string>
     <string name="in_search">in Search</string>
     <string name="clear_player_cache">Clear player cache</string>
     <string name="cancel">Cancel</string>
@@ -139,7 +134,6 @@
     <string name="singles">Singles</string>
     <string name="related_artists">Related Artists</string>
     <string name="about">About</string>
-    <string name="let_s_start_with_a_radio">LET'S START WITH A RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">LET'S PICK A PLAYLIST FOR YOU</string>
     <string name="what_is_best_choice_today">WHAT IS BEST CHOICE TODAY</string>
     <string name="chart">Chart</string>
@@ -171,10 +165,7 @@
     <string name="now_playing_upper">NOW PLAYING</string>
     <string name="language">Language</string>
     <string name="delete_song_from_playlist">Delete this song from playlist</string>
-    <string name="log_in">Log in</string>
     <string name="login_success">Login success</string>
-    <string name="login_failed">Login failed</string>
-    <string name="log_out">Log out from YouTube</string>
     <string name="playlist">Playlist</string>
     <string name="balance_media_loudness">Even out how loud tracks play, so a quiet master is not buried by the one after it.</string>
     <string name="normalize_volume">Volume normalization</string>
@@ -245,7 +236,6 @@
     <string name="sleep_timer_set_error">Please set the correct format time</string>
     <string name="sleep_timer_warning">Remove sleep timer?</string>
     <string name="yes">Yes</string>
-    <string name="welcome_back">Welcome back,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Songs you play count toward your YouTube Music history and recommendations. Only when signed in.</string>
     <string name="send_back_listening_data_to_google">Send listening history to YouTube</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
@@ -268,21 +258,17 @@
     <string name="suggest">Suggestion</string>
     <string name="reload">Reload</string>
     <string name="sort_by">Sort by</string>
-    <string name="older_first">Older First</string>
-    <string name="newer_first">Newer First</string>
     <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Play music videos</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Play the video when a track has one (music videos, lyric videos, podcasts) instead of audio only.</string>
     <string name="radio_audio_only">Audio versions in radio</string>
-    <string name="radio_audio_only_description">Radio plays a song\'s audio version instead of its music video, and skips remixes and mashups that only exist as videos. Playlists and albums are not affected.</string>
+    <string name="radio_audio_only_description">Radio plays a song's audio version instead of its music video, and skips remixes and mashups that only exist as videos. Playlists and albums are not affected.</string>
     <string name="video_quality">Video quality</string>
     <string name="add_to_queue">Add to queue</string>
     <string name="added_to_queue">Added to queue</string>
-    <string name="new_release">New release</string>
     <string name="youtube_account">YouTube Account</string>
-    <string name="manage_your_youtube_accounts">Manage your YouTube Accounts</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Shape the sound with a ten-band curve</string>
     <string name="equalizer_type">Equalizer type</string>
@@ -298,12 +284,7 @@
     <string name="equalizer_autoeq_downloading">Downloading the AutoEq profile list…</string>
     <string name="equalizer_autoeq_unavailable">Couldn't reach AutoEq. Check your connection and try again.</string>
     <string name="equalizer_autoeq_empty">No headphone matches that name</string>
-    <string name="equalizer_autoeq_failed">Couldn\'t load that profile. It needs a connection the first time.</string>
-    <string name="no_account">No account</string>
-    <string name="add_an_account">Add an account</string>
-    <string name="signed_in">Signed in</string>
-    <string name="guest">Guest</string>
-    <string name="log_out_warning">Log out from all account?</string>
+    <string name="equalizer_autoeq_failed">Couldn't load that profile. It needs a connection the first time.</string>
     <string name="play_next">Play next</string>
     <string name="codec">Codec</string>
     <string name="published_at">Published on %1$s</string>
@@ -315,8 +296,6 @@
     <string name="new_singles">New singles</string>
     <string name="new_albums">New albums</string>
     <string name="notification">Notification</string>
-    <string name="no_notification">No notification</string>
-    <string name="created_at">Created at %1$s</string>
     <string name="unknown">Unknown</string>
     <string name="theme">Theme</string>
     <string name="theme_mode_system">System</string>
@@ -351,12 +330,12 @@
     <string name="romanization_japanese_dict_failed">Couldn't download the Japanese dictionary. Check your connection and select Japanese again to retry.</string>
     <string name="custom_color">Custom color</string>
     <string name="appearance_mode">Light or dark</string>
-    <string name="appearance_mode_hint">System follows your phone\'s setting and switches with it.</string>
+    <string name="appearance_mode_hint">System follows your phone's setting and switches with it.</string>
     <string name="appearance_mode_amoled">AMOLED stays black in light mode too.</string>
     <string name="appearance_colors">Colors</string>
     <string name="appearance_accent">Accent color</string>
     <string name="appearance_accent_hint">Buttons, the seek bar and anything selected.</string>
-    <string name="appearance_accent_theme">The theme\'s own accent</string>
+    <string name="appearance_accent_theme">The theme's own accent</string>
     <string name="appearance_accent_wallpaper">From your wallpaper</string>
     <string name="appearance_accent_artwork_note">While a song plays, the accent comes from its cover. Turn off Adapt colors to artwork to see this one.</string>
     <string name="appearance_tint">Background tint</string>
@@ -369,14 +348,12 @@
     <string name="appearance_roundness">Roundness</string>
     <string name="appearance_roundness_hint">Corners of cards, sheets, buttons and artwork.</string>
     <string name="appearance_font_body">Interface font</string>
-    <string name="appearance_font_body_hint">Everything except headings.</string>
     <string name="appearance_font_heading">Heading font</string>
-    <string name="appearance_font_heading_hint">Page and section titles.</string>
-    <string name="appearance_font_theme">%1$s, the theme\'s font</string>
+    <string name="appearance_font_theme">%1$s, the theme's font</string>
     <string name="appearance_your_fonts">Your fonts</string>
     <string name="appearance_font_load">Load a font file</string>
     <string name="appearance_font_load_hint">A .ttf or .otf from your phone. It joins both font lists.</string>
-    <string name="appearance_font_load_failed">That file isn\'t a font Android can read</string>
+    <string name="appearance_font_load_failed">That file isn't a font Android can read</string>
     <string name="appearance_font_remove">Remove %1$s</string>
     <string name="artwork_colors">Adapt colors to artwork</string>
     <string name="artwork_colors_description">While a song plays, the accent and backgrounds take their color from its cover</string>
@@ -399,14 +376,12 @@
     <string name="loading_album">Loading album</string>
     <string name="starting_radio">Starting radio</string>
     <string name="updating">Updating</string>
-    <string name="go_to_log_in_page">Go to log in page</string>
-    <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can't work too. You should log in to YouTube to get better experience with Limusic.</string>
     <string name="spotify_canvas_cache">Animated artwork cache</string>
     <string name="clear_canvas_cache">Clear animated artwork cache</string>
     <string name="listening_history">Listening history</string>
     <string name="clear_listening_history">Clear listening history</string>
     <string name="clear_listening_history_description">Erase your local listening statistics and remove songs that nothing else in the app refers to</string>
-    <string name="clear_listening_history_confirm">Your listening statistics go, along with songs nothing else in the app uses. This can\'t be undone, so back up first.</string>
+    <string name="clear_listening_history_confirm">Your listening statistics go, along with songs nothing else in the app uses. This can't be undone, so back up first.</string>
     <string name="clear_listening_history_done">Listening history cleared, %1$d songs removed</string>
     <string name="proxy">Proxy</string>
     <string name="proxy_description">Route all network requests through a proxy server.</string>
@@ -417,7 +392,7 @@
     <string name="invalid_host">Invalid host</string>
     <string name="proxy_port">Proxy port</string>
     <string name="invalid_port">Invalid port</string>
-    <string name="proxy_host_message">The proxy server\'s address, like 192.168.1.2 or proxy.example.com.</string>
+    <string name="proxy_host_message">The proxy server's address, like 192.168.1.2 or proxy.example.com.</string>
     <string name="proxy_port_message">The port the proxy listens on.</string>
     <string name="proxy_username">Proxy username</string>
     <string name="proxy_password">Proxy password</string>
@@ -442,7 +417,6 @@
     <string name="shuffle_whole_queue">Shuffle the whole queue</string>
     <string name="shuffle_whole_queue_hint">Shuffle mixes the songs you added with Add to queue in with the playlist. Leave off and they play after it, in the order you added them. Play next always plays next.</string>
     <string name="continue_playing">Continue Playing</string>
-    <string name="do_not_show_again">Do not show again</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Playback speed & pitch (disabled when crossfade is enabled)]]></string>
     <string name="playback_speed">Playback speed</string>
@@ -456,7 +430,6 @@
     <string name="download_speed">Download speed:  %1$s </string>
     <string name="shuffle">Shuffle</string>
     <string name="other_version">Other versions</string>
-    <string name="shuffle_not_available">Shuffle endpoint is not available</string>
     <string name="radio_not_available">Radio Endpoint is not available</string>
     <string name="no_results_found">No results found</string>
     <string name="ai">AI</string>
@@ -634,7 +607,6 @@
     <string name="rate_lyrics">Rate lyrics</string>
     <string name="crossfading">Crossfading</string>
     <string name="search_for">Search for</string>
-    <string name="synced_playlist_cannot_change_order">Synced playlist cannot change order</string>
     <string name="bpm">BPM</string>
     <string name="key">Key</string>
     <string name="home_offline_title">Can't connect</string>
@@ -955,7 +927,7 @@
     <string name="empty_artist_liked_title">No liked songs by this artist</string>
     <string name="empty_artist_liked_hint">Songs of theirs you like show up here.</string>
     <string name="empty_followed_title">No followed artists</string>
-    <string name="empty_followed_hint">Tap Follow on an artist\'s page and they show up here.</string>
+    <string name="empty_followed_hint">Tap Follow on an artist's page and they show up here.</string>
     <string name="no_match_for">Nothing matches "%1$s"</string>
     <!-- History -->
     <string name="history">History</string>
@@ -972,7 +944,7 @@
     </plurals>
     <string name="history_empty_youtube">Nothing in your YouTube Music history yet.</string>
     <string name="history_empty_phone">Songs you play on this phone show up here.</string>
-    <string name="history_failed">Couldn\'t load your YouTube Music history.</string>
+    <string name="history_failed">Couldn't load your YouTube Music history.</string>
     <!-- New releases -->
     <string name="new_releases">New releases</string>
     <string name="new_single">New single</string>
@@ -1003,7 +975,7 @@
         <item quantity="one">%1$d playlist</item>
         <item quantity="other">%1$d playlists</item>
     </plurals>
-    <string name="mood_failed">Couldn\'t load this page.</string>
+    <string name="mood_failed">Couldn't load this page.</string>
     <string name="podcast">Podcast</string>
     <plurals name="episodes_count">
         <item quantity="one">%1$d episode</item>
@@ -1043,8 +1015,7 @@
     <string name="cancel_sign_in">Cancel sign in</string>
     <string name="signed_in_as">Signed in as %1$s</string>
     <string name="switched_to">Switched to %1$s</string>
-    <string name="session_expired_sign_in_again">That account\'s session has expired. Sign in with it again.</string>
-    <string name="sign_in_failed">Sign-in didn\'t complete. Try signing in again.</string>
-    <string name="account">Account</string>
+    <string name="session_expired_sign_in_again">That account's session has expired. Sign in with it again.</string>
+    <string name="sign_in_failed">Sign-in didn't complete. Try signing in again.</string>
     <string name="proxy_saved_restart_to_apply">Proxy saved, restart to apply</string>
 </resources>
