@@ -78,6 +78,15 @@
         <item quantity="one">%1$d song couldn't download</item>
         <item quantity="other">%1$d songs couldn't download</item>
     </plurals>
+    <plurals name="downloading_n_songs">
+        <item quantity="one">Downloading %1$d song</item>
+        <item quantity="other">Downloading %1$d songs</item>
+    </plurals>
+    <string name="n_refused_by_youtube">%1$d refused by YouTube</string>
+    <plurals name="songs_refused">
+        <item quantity="one">YouTube won't play this song</item>
+        <item quantity="other">YouTube won't play these %1$d songs</item>
+    </plurals>
     <plurals name="download_refused">
         <item quantity="one">YouTube Music won't play %1$d of the missing songs.</item>
         <item quantity="other">YouTube Music won't play %1$d of the missing songs.</item>

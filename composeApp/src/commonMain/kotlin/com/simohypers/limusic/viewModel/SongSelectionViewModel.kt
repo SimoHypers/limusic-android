@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.liked_n_songs
@@ -30,6 +31,9 @@ import limusic.composeapp.generated.resources.adding_to_playlist
 import limusic.composeapp.generated.resources.added_to_queue
 import limusic.composeapp.generated.resources.delete_song_from_playlist
 import limusic.composeapp.generated.resources.downloading
+import limusic.composeapp.generated.resources.downloading_n_songs
+import limusic.composeapp.generated.resources.n_refused_by_youtube
+import limusic.composeapp.generated.resources.songs_refused
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.error_occurred
 import limusic.composeapp.generated.resources.play_next
@@ -62,8 +66,15 @@ class SongSelectionViewModel(
         viewModelScope.launch {
             val pending = stored(tracks).filter { it.downloadState == DownloadState.STATE_NOT_DOWNLOADED }
             if (pending.isEmpty()) return@launch
-            downloadUtils.downloadTracks(pending)
-            makeToast(getString(Res.string.downloading))
+            val refused = downloadUtils.downloadTracks(pending).size
+            val queued = pending.size - refused
+            makeToast(
+                when {
+                    refused == 0 -> getString(Res.string.downloading)
+                    queued == 0 -> getPluralString(Res.plurals.songs_refused, refused, refused)
+                    else -> getPluralString(Res.plurals.downloading_n_songs, queued, queued) + " · " + getString(Res.string.n_refused_by_youtube, refused)
+                },
+            )
         }
     }
 

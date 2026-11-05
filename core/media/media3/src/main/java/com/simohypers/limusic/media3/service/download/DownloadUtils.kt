@@ -216,24 +216,25 @@ internal class DownloadUtils(
      * the song, and playback streams it next to the downloaded audio online and plays the audio
      * alone offline (MergingMediaSourceFactory.isVideoUnreachable).
      */
-    override suspend fun downloadTracks(songs: List<SongEntity>) {
-        if (songs.isEmpty()) return
+    override suspend fun downloadTracks(songs: List<SongEntity>): List<String> {
+        if (songs.isEmpty()) return emptyList()
         // A download's state lives on its song row, and a playlist page may not have saved every one.
         songRepository.insertSongs(songs)
         refusalsLoaded.join()
-        val wanted =
+        val (refused, wanted) =
             withContext(Dispatchers.Main) {
-                songs.distinctBy { it.videoId }.filter {
-                    songState(it.videoId) == DownloadState.STATE_NOT_DOWNLOADED &&
-                        PlaybackRefusals.reasonFor(it.videoId) == null &&
-                        it.videoId !in PlaybackRefusals.refusedDownloads.value
-                }
+                songs
+                    .distinctBy { it.videoId }
+                    .filter { songState(it.videoId) == DownloadState.STATE_NOT_DOWNLOADED }
+                    .partition { PlaybackRefusals.reasonFor(it.videoId) != null || it.videoId in PlaybackRefusals.refusedDownloads.value }
             }
-        if (wanted.isEmpty()) return
-        val requests = wanted.map { request(it.videoId, it.title) }
-        withContext(Dispatchers.Main) { requests.forEach(downloadManager::addDownload) }
-        // Added straight to the manager; the service only has to be up to keep them going in the background.
-        DownloadService.start(context, MusicDownloadService::class.java)
+        if (wanted.isNotEmpty()) {
+            val requests = wanted.map { request(it.videoId, it.title) }
+            withContext(Dispatchers.Main) { requests.forEach(downloadManager::addDownload) }
+            // Added straight to the manager; the service only has to be up to keep them going in the background.
+            DownloadService.start(context, MusicDownloadService::class.java)
+        }
+        return refused.map { it.videoId }
     }
 
     private fun request(
@@ -390,6 +391,7 @@ internal class DownloadUtils(
         videos.forEach(downloadManager::removeDownload)
         updateQueue()
         mainScope.launch {
+            var wasBlocked = false
             PlaybackRefusals.blocked.collect { reason ->
                 if (reason != null) {
                     downloadManager.pauseDownloads()
@@ -399,7 +401,16 @@ internal class DownloadUtils(
                         MusicDownloadService.NOTIFICATION_ID + 2,
                         downloadNotificationHelper.buildDownloadFailedNotification(context, R.drawable.baseline_error_outline_24, null, text),
                     )
+                } else if (wasBlocked) {
+                    // Lifted: a lookup got an answer again, or the user resumed (who resumes them too).
+                    NotificationUtil.setNotification(context, MusicDownloadService.NOTIFICATION_ID + 2, null)
+                    if (!userPaused) {
+                        // Refused from the background, the manager still resumes; the service comes back with the next download.
+                        runCatching { DownloadService.sendResumeDownloads(context, MusicDownloadService::class.java, false) }
+                            .onFailure { downloadManager.resumeDownloads() }
+                    }
                 }
+                wasBlocked = reason != null
                 updateQueue()
             }
         }
@@ -475,7 +486,14 @@ internal class DownloadUtils(
                 override fun onDownloadsPausedChanged(
                     downloadManager: DownloadManager,
                     downloadsPaused: Boolean,
-                ) = updateQueue()
+                ) {
+                    // The service resumes the manager when it first comes up, so a block set before
+                    // the first download of a run would not hold. Posted: this runs inside the resume.
+                    if (!downloadsPaused && PlaybackRefusals.blocked.value != null) {
+                        mainScope.launch { if (PlaybackRefusals.blocked.value != null) downloadManager.pauseDownloads() }
+                    }
+                    updateQueue()
+                }
 
                 override fun onRequirementsStateChanged(
                     downloadManager: DownloadManager,

@@ -22,6 +22,22 @@ class PlaybackRefusalsTest {
     }
 
     @Test
+    fun anAnsweredLookupLiftsTheBlock() {
+        val bot = "Sign in to confirm you're not a bot"
+        PlaybackRefusals.record("premium", "This video is only available to Music Premium members")
+        PlaybackRefusals.record("tripped", bot)
+        PlaybackRefusals.record("answered", bot)
+        PlaybackRefusals.block(bot)
+
+        PlaybackRefusals.answered("answered")
+
+        assertNull(PlaybackRefusals.blocked.value)
+        assertNull(PlaybackRefusals.reasonFor("answered"))
+        assertNull(PlaybackRefusals.reasonFor("tripped"))
+        assertEquals("This video is only available to Music Premium members", PlaybackRefusals.reasonFor("premium"))
+    }
+
+    @Test
     fun forgettingRefusedDownloadsAlsoForgetsThisRunsRefusalsOfThem() {
         PlaybackRefusals.record("gone", "This video is not available")
         PlaybackRefusals.record("other", "This video is not available")

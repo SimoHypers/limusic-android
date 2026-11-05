@@ -9,6 +9,7 @@ import com.simohypers.limusic.domain.data.model.searchResult.playlists.Playlists
 import com.simohypers.limusic.domain.data.model.searchResult.songs.Album
 import com.simohypers.limusic.domain.data.model.searchResult.songs.Artist
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
+import com.simohypers.limusic.domain.data.player.PlaybackRefusals
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.mediaservice.handler.DownloadHandler
 import com.simohypers.limusic.domain.mediaservice.handler.PlayerEvent
@@ -39,11 +40,15 @@ import kotlinx.coroutines.launch
 import limusic.composeapp.generated.resources.starting_radio
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 import limusic.composeapp.generated.resources.added_to_playlist
 import limusic.composeapp.generated.resources.added_to_queue
 import limusic.composeapp.generated.resources.added_to_youtube_playlist
 import limusic.composeapp.generated.resources.delete_song_from_playlist
 import limusic.composeapp.generated.resources.downloading
+import limusic.composeapp.generated.resources.playback_refused
+import limusic.composeapp.generated.resources.songs_refused
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.error_occurred
 import limusic.composeapp.generated.resources.play_next
@@ -277,8 +282,16 @@ class NowPlayingBottomSheetViewModel(
                 is NowPlayingBottomSheetUIEvent.Download -> {
                     // The handler writes the song's state as the download moves (or is removed).
                     if (songUIState.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                        songRepository.getSongById(songUIState.videoId).first()?.let { downloadUtils.downloadTracks(listOf(it)) }
-                        makeToast(getString(Res.string.downloading))
+                        val id = songUIState.videoId
+                        val refused = songRepository.getSongById(id).first()?.let { downloadUtils.downloadTracks(listOf(it)) }.orEmpty()
+                        makeToast(
+                            when {
+                                refused.isEmpty() -> getString(Res.string.downloading)
+                                // No reason for a refusal remembered from an earlier run.
+                                else -> PlaybackRefusals.reasonFor(id)?.let { getString(Res.string.playback_refused, it) }
+                                    ?: getPluralString(Res.plurals.songs_refused, 1, 1)
+                            },
+                        )
                     } else {
                         downloadUtils.removeDownload(songUIState.videoId)
                         makeToast(getString(Res.string.removed_download))

@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
  * for it (its own `downloadState`), however many of its songs have landed so far.
  */
 interface DownloadHandler {
-    /** Queues the songs that are neither downloaded nor in flight, as one batch. */
-    suspend fun downloadTracks(songs: List<SongEntity>)
+    /**
+     * Queues the songs that are neither downloaded nor in flight, as one batch. Returns the ids it
+     * left out because YouTube refused them (this run, or a download in an earlier one).
+     */
+    suspend fun downloadTracks(songs: List<SongEntity>): List<String>
 
     fun removeDownload(videoId: String)
 

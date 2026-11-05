@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.update
 /**
  * Videos YouTube's player refused in this run of the app, with the reason it gave ("Video
  * unavailable", a region block, a bot check). The stream repository records a refusal and clears
- * it on the next successful resolve; the stream resolver reads it to fail the track once instead
- * of letting the player retry an answer that will not change, which is a burst of requests from
- * the listener's IP for nothing.
+ * it on the next successful resolve ([answered]); the stream resolver reads it to fail the track
+ * once instead of letting the player retry an answer that will not change, which is a burst of
+ * requests from the listener's IP for nothing.
  *
  * In memory on purpose, like [LiveStreamRegistry]: a refusal can lift, and the next run asks again.
  */
@@ -24,7 +24,15 @@ object PlaybackRefusals {
         reason: String,
     ) = reasons.update { it + (videoId to reason) }
 
-    fun clear(videoId: String) = reasons.update { it - videoId }
+    /**
+     * YouTube gave this song a stream: its refusal is over, and so is any push-back on the IP, since
+     * a download asks the same way. On a fresh install the cold PoToken minter can trip a bot check
+     * that the next lookup no longer gets; a real IP flag gets no answer, so it still holds.
+     */
+    fun answered(videoId: String) {
+        reasons.update { it - videoId }
+        unblock()
+    }
 
     fun reasonFor(videoId: String): String? = reasons.value[videoId]
 
@@ -54,7 +62,8 @@ object PlaybackRefusals {
 
     /**
      * Set when YouTube pushed back on the IP itself (a bot check, a rate limit), with what it said.
-     * Downloads stop on it and ask nothing more until the user resumes them.
+     * Downloads stop on it and ask nothing more until a stream lookup gets an answer again or the user
+     * resumes them.
      */
     val blocked: StateFlow<String?> = _blocked.asStateFlow()
 
@@ -65,7 +74,7 @@ object PlaybackRefusals {
         _blocked.value = reason
     }
 
-    /** The user resumed: forget the push-back, and the songs it was recorded against. */
+    /** YouTube answered again or the user resumed: forget the push-back, and the songs it was recorded against. */
     fun unblock() {
         val reason = _blocked.value ?: return
         _blocked.value = null

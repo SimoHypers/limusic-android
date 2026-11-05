@@ -124,7 +124,7 @@ internal class StreamRepositoryImpl(
                     preferredAudioLanguage = dataStoreManager.preferredAudioLanguage.first(),
                 )
                 .onSuccess { data ->
-                    PlaybackRefusals.clear(videoId)
+                    PlaybackRefusals.answered(videoId)
                     UnreachableStreams.clear(videoId)
                     val response = data.second
                     val isLive = response.videoDetails?.isLive == true
