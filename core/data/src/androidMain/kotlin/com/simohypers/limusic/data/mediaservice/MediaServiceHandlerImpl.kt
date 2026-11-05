@@ -27,6 +27,7 @@ import com.simohypers.limusic.domain.data.player.GenericMediaItem
 import com.simohypers.limusic.domain.data.player.GenericPlaybackParameters
 import com.simohypers.limusic.domain.data.player.GenericTracks
 import com.simohypers.limusic.domain.data.player.PlayerConstants
+import com.simohypers.limusic.domain.data.player.PlaybackRefusals
 import com.simohypers.limusic.domain.data.player.PlayerError
 import com.simohypers.limusic.domain.extension.isVideo
 import com.simohypers.limusic.domain.extension.now
@@ -2028,6 +2029,20 @@ internal class MediaServiceHandlerImpl(
             else -> {
                 Logger.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
                 pushPlayerError(error)
+                // YouTube refused this song (taken down, region locked): skip it like desktop does.
+                // Not on a bot check, which refuses every song (it is what blocked holds); not past the
+                // last track, where repeat-all would spin on a queue that never plays; not as a room
+                // guest, whose host decides what plays.
+                val refusal = error.refusal
+                val skipped = q.items.getOrNull(q.current)
+                if (refusal != null && refusal != PlaybackRefusals.blocked.value && !followingRoom &&
+                    skipped != null && q.current + 1 < q.items.size
+                ) {
+                    Logger.w("Player Error", "Skipping ${skipped.videoId}: $refusal")
+                    if (isAppInForeground()) showToast(ToastType.PlaybackSkipped(skipped.title, refusal))
+                    playIndex(q.current + 1)
+                    return
+                }
                 if (isAppInForeground()) {
                     showToast(error.refusal?.let(ToastType::PlaybackRefused) ?: ToastType.PlayerError(error.errorCodeName))
                 } else {

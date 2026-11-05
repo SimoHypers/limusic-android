@@ -790,6 +790,7 @@
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
     <string name="playback_refused">YouTube won't play this song: %1$s</string>
+    <string name="playback_skipped">Skipped %1$s: %2$s</string>
     <string name="play">Play</string>
     <string name="shuffle_play">Shuffle play</string>
     <string name="edit_home">Edit Home</string>

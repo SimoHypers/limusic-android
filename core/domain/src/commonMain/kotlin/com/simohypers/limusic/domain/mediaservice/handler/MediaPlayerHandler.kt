@@ -319,6 +319,12 @@ sealed class ToastType(
         val reason: String,
     ) : ToastType(reason)
 
+    /** YouTube refused [title], so the queue moved on to the next song. */
+    data class PlaybackSkipped(
+        val title: String,
+        val reason: String,
+    ) : ToastType(reason)
+
     /** A like YouTube Music refused; the heart went back. */
     data object YouTubeWriteFailed : ToastType()
 

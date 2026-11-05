@@ -9,6 +9,7 @@ import limusic.composeapp.generated.resources.ltd_host_controls
 import limusic.composeapp.generated.resources.new_albums
 import limusic.composeapp.generated.resources.new_singles
 import limusic.composeapp.generated.resources.playback_refused
+import limusic.composeapp.generated.resources.playback_skipped
 import limusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 import limusic.composeapp.generated.resources.youtube_write_failed
 import limusic.composeapp.generated.resources.update_notification_channel
@@ -31,6 +32,10 @@ object ComposeResUtils {
 
             StringType.PLAYBACK_REFUSED -> {
                 getString(Res.string.playback_refused, *format)
+            }
+
+            StringType.PLAYBACK_SKIPPED -> {
+                getString(Res.string.playback_skipped, *format)
             }
 
             StringType.NEW_SINGLES -> {
@@ -75,6 +80,7 @@ object ComposeResUtils {
         EXPLICIT_CONTENT_BLOCKED,
         TIME_OUT_ERROR,
         PLAYBACK_REFUSED,
+        PLAYBACK_SKIPPED,
         NEW_SINGLES,
         NEW_ALBUMS,
         UPDATE_NOTIFICATION_TITLE,
