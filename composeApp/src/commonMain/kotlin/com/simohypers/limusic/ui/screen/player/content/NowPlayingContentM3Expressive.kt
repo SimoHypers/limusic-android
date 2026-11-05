@@ -838,15 +838,7 @@ internal fun ColumnScope.ExpressivePlaybackControls(
         WavySeekBar(
             progressFraction = state.sliderValue / 100f,
             isPlaying = state.controllerState.isPlaying,
-            // Classic swaps the slider color to the rainbow while
-            // crossfading (state.sliderTrackColor); tonal primary
-            // otherwise.
-            activeColor =
-                if (state.timelineState.isCrossfading) {
-                    state.sliderTrackColor
-                } else {
-                    colorScheme.primary
-                },
+            activeColor = colorScheme.primary,
             trackColor = colorScheme.secondaryContainer,
             thumbColor = colorScheme.primary,
             onSliderChange = actions.onSliderChange,

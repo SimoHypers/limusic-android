@@ -259,7 +259,7 @@ private fun ClassicLayout(
                 WavySeekBar(
                     progressFraction = state.sliderValue / 100f,
                     isPlaying = state.controllerState.isPlaying,
-                    activeColor = if (state.timelineState.isCrossfading) state.sliderTrackColor else MaterialTheme.colorScheme.primary,
+                    activeColor = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.secondaryContainer,
                     thumbColor = MaterialTheme.colorScheme.primary,
                     onSliderChange = actions.onSliderChange,

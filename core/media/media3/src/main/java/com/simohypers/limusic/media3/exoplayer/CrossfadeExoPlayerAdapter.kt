@@ -1268,7 +1268,10 @@ internal class CrossfadeExoPlayerAdapter(
             castRemotePlayer?.let { remote ->
                 return remote.duration.takeIf { it > 0 } ?: 0L
             }
-            return currentPlayer?.duration ?: cachedDuration
+            // Mid-crossfade the position is the incoming track's (see startPositionUpdates), so the
+            // length must be too: the outgoing one put the seek bar and every seek on the wrong scale.
+            val timelinePlayer = if (isCrossfading) secondaryPlayer ?: currentPlayer else currentPlayer
+            return timelinePlayer?.duration ?: cachedDuration
         }
 
     override val bufferedPosition: Long
@@ -2089,7 +2092,7 @@ internal class CrossfadeExoPlayerAdapter(
      * [triggerCrossfadeTransition]); touching them would lose the listener / detach
      * MediaSession. [localCurrentMediaItemIndex] already equals A+1, so it is kept.
      *
-     * Does NOT change [internalState], restart position updates, or seek — the caller
+     * Restarts position updates. Does NOT change [internalState] or seek: the caller
      * decides what to do next (pause in place, advance to A+2, go to previous, ...).
      */
     private fun commitIncomingAsCurrentInternal() {
@@ -2116,6 +2119,12 @@ internal class CrossfadeExoPlayerAdapter(
 
         setCrossfading(false)
         crossfadeFromIndex = -1
+
+        // The loop was stopped above and only a track load restarts it, so a caller that stays on
+        // A+1 (seek, pause then play, previous past 3s) froze the counter and never crossfaded again.
+        // It only reads positions and needs isPlaying to trigger a fade, so running it here is safe
+        // for callers that load another track next (that load restarts it anyway).
+        startPositionUpdates()
     }
 
     // ========== Internal: Track End ==========
@@ -2550,10 +2559,14 @@ internal class CrossfadeExoPlayerAdapter(
                     // Restore outgoing player's speed/pitch to natural
                     currentPlayer?.playbackParameters =
                         PlaybackParameters(internalPlaybackSpeed, internalPlaybackPitch)
-                    // Cleanup player
-                    nextPlayer.release()
-                    secondaryPlayer = null
-                    secondaryPlayerFilter = null
+                    // Cleanup player, unless pause/seek/skip mid-fade already promoted it to current
+                    // (commitIncomingAsCurrentInternal cancels this job first, and this catch only
+                    // runs afterwards). Releasing it then left the new song silent until the next track.
+                    if (currentPlayer !== nextPlayer) {
+                        nextPlayer.release()
+                        secondaryPlayer = null
+                        secondaryPlayerFilter = null
+                    }
                     setCrossfading(false)
                 }
             }

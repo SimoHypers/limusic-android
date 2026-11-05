@@ -3,13 +3,8 @@
 package com.simohypers.limusic.ui.screen.player
 
 import androidx.compose.animation.Animatable
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -57,7 +52,6 @@ import com.simohypers.limusic.extension.GradientAngle
 import com.simohypers.limusic.extension.GradientOffset
 import com.simohypers.limusic.extension.KeepScreenOn
 import com.simohypers.limusic.extension.getColorFromPalette
-import com.simohypers.limusic.extension.hsvToColor
 import com.simohypers.limusic.extension.rememberIsInPipMode
 import com.simohypers.limusic.ui.component.AddToPlaylistModalBottomSheet
 import com.simohypers.limusic.ui.component.BusyPill
@@ -492,24 +486,9 @@ fun NowPlayingScreenContent(
         }
     }
 
-    // Crossfade: RGB rainbow color cycling when transitioning between tracks
-    val infiniteTransition = rememberInfiniteTransition(label = "crossfadeRainbow")
-    val rainbowHue by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
-        label = "rainbowHue",
-    )
-    val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
-    val sliderTrackColor by animateColorAsState(
-        targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
-        animationSpec = tween(300),
-        label = "sliderCrossfadeColor",
-    )
+    // ponytail: only the unused NowPlayingContentSpotify still reads this. The crossfade rainbow it
+    // carried sat on a random pastel for the whole fade (it chased a hue that moved every frame).
+    val sliderTrackColor = Color.White
 
     // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {
