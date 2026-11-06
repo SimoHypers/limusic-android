@@ -861,7 +861,8 @@ internal fun AppleMusicMainTitleRow(
                     Modifier
                         .fillMaxWidth()
                         .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
-                        .focusable(),
+                        .focusable()
+                        .clickable { actions.onNavigateToAlbum() },
             )
             Spacer(modifier = Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

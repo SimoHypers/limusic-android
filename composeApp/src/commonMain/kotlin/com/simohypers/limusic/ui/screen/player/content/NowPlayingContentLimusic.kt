@@ -680,7 +680,7 @@ private fun TitleRow(
                 style = typo().titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.weight(1f).basicMarquee(),
+                modifier = Modifier.weight(1f).basicMarquee().clickable(onClick = actions.onNavigateToAlbum),
             )
             IconButton(onClick = { actions.onUIEvent(UIEvent.ToggleLike) }, modifier = Modifier.size(40.dp)) {
                 Icon(

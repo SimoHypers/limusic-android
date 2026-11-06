@@ -627,6 +627,17 @@ class SharedViewModel(
         viewModelScope.launch { songRepository.syncLikedMusic() }
     }
 
+    /**
+     * The playing song's album (a single is an album too), for the player's title. A song stored
+     * without one asks YouTube once, like the song menu does; a music video has none.
+     */
+    suspend fun nowPlayingAlbumId(): String? {
+        val song = mediaPlayerHandler.nowPlayingState.value.songEntity ?: return null
+        song.albumId?.takeIf { it.isNotBlank() }?.let { return it }
+        songRepository.fillMissingLinks(song.videoId)
+        return songRepository.getSongById(song.videoId).firstOrNull()?.albumId?.takeIf { it.isNotBlank() }
+    }
+
     // The hearts read the local row; signed in, this brings it in line with YouTube's like. The
     // same answer names the track's other version, for the player's Song/Video switch.
     private fun getLikeStatus(videoId: String?) {

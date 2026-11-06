@@ -144,6 +144,8 @@ class NowPlayingContentActions(
     val onSliderChangeFinished: () -> Unit,
     val onToggleControls: () -> Unit,
     val onNavigateToArtist: () -> Unit,
+    /** The title: closes the player and opens the song's album or single. */
+    val onNavigateToAlbum: () -> Unit = {},
     val onOpenListenTogether: () -> Unit,
     val onShowMoreSheet: () -> Unit,
     val onShowQueue: () -> Unit,

@@ -66,6 +66,7 @@ import com.simohypers.limusic.ui.icon.KeyboardArrowDown
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.simohypers.limusic.ui.navigation.destination.home.LyricsSourcesDestination
+import com.simohypers.limusic.ui.navigation.destination.list.AlbumDestination
 import com.simohypers.limusic.ui.navigation.destination.list.ArtistDestination
 import com.simohypers.limusic.ui.navigation.destination.player.FullscreenDestination
 import com.simohypers.limusic.ui.screen.player.content.NowPlayingContentActions
@@ -663,6 +664,14 @@ fun NowPlayingScreenContent(
                             channelId = channelId,
                         ),
                     )
+                }
+            },
+            onNavigateToAlbum = {
+                coroutineScope.launch {
+                    sharedViewModel.nowPlayingAlbumId()?.let { albumId ->
+                        onDismiss()
+                        navController.navigate(AlbumDestination(browseId = albumId))
+                    }
                 }
             },
             onOpenListenTogether = {
