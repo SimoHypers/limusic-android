@@ -450,7 +450,7 @@ internal class SongRepositoryImpl(
                             newContinuation = next.continuation
                             emit(Pair(data.toListTrack(), newContinuation))
                         }.onFailure { exception ->
-                            exception.printStackTrace()
+                            Logger.w(TAG, "getContinueTrack: $exception")
                             emit(Pair(null, null))
                         }
                 } else {
@@ -497,6 +497,8 @@ internal class SongRepositoryImpl(
                     } else {
                         videoId
                     }
+                // The player asks before a queue is restored, with no track yet: nothing to look up.
+                if (id.isBlank()) return@flow emit(null)
                 youTube
                     .getSongInfo(id)
                     .onSuccess { songInfo ->
@@ -518,7 +520,7 @@ internal class SongRepositoryImpl(
                             song,
                         )
                     }.onFailure {
-                        it.printStackTrace()
+                        Logger.w(TAG, "getSongInfo: $it")
                         emit(getSongInfoEntity(videoId).lastOrNull())
                     }
             }
@@ -676,7 +678,7 @@ internal class SongRepositoryImpl(
                         val nextContinuation = next.continuation
                         emit(Resource.Success<Pair<List<Track>, String?>>(Pair(data.toListTrack().toList(), nextContinuation)))
                     }.onFailure { exception ->
-                        exception.printStackTrace()
+                        Logger.w(TAG, "getRelatedData: $exception")
                         emit(Resource.Error<Pair<List<Track>, String?>>(exception.message.toString()))
                     }
             }
@@ -694,7 +696,7 @@ internal class SongRepositoryImpl(
                             )
                         emit(Resource.Success(Pair(items.toListTrack(), next.continuation)))
                     }.onFailure {
-                        it.printStackTrace()
+                        Logger.w(TAG, "getRadioFromEndpoint: $it")
                         emit(Resource.Error(it.message ?: "Error"))
                     }
             }

@@ -341,6 +341,6 @@ actual fun changeLanguageNative(code: String) {
         Logger.d("Language", localeList.toString())
         AppCompatDelegate.setApplicationLocales(localeList)
     } catch (e: Exception) {
-        e.printStackTrace()
+        Logger.w("SettingsViewModel", "changeLanguageNative: $e")
     }
 }

@@ -803,7 +803,7 @@ internal class DataStoreManagerImpl(
                     return@runBlocking null
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Logger.w("DataStoreManagerImpl", "getJVMProxy: $e")
                 return@runBlocking null
             }
         }

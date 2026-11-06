@@ -29,7 +29,7 @@ class AutoBackupScheduler(
         ) { enabled, frequency ->
             Pair(enabled, frequency)
         }.distinctUntilChanged().collect { (enabled, frequency) ->
-            Logger.i(TAG, "Auto backup settings changed: enabled=$enabled, frequency=$frequency")
+            Logger.d(TAG, "Auto backup settings changed: enabled=$enabled, frequency=$frequency")
 
             if (enabled == DataStoreManager.TRUE) {
                 scheduleBackup(frequency)
@@ -47,7 +47,7 @@ class AutoBackupScheduler(
             else -> 24L to TimeUnit.HOURS
         }
 
-        Logger.i(TAG, "Scheduling auto backup: interval=$intervalValue $intervalUnit")
+        Logger.d(TAG, "Scheduling auto backup: interval=$intervalValue $intervalUnit")
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -68,11 +68,11 @@ class AutoBackupScheduler(
             request
         )
 
-        Logger.i(TAG, "Auto backup scheduled successfully")
+        Logger.d(TAG, "Auto backup scheduled successfully")
     }
 
     private fun cancelBackup() {
-        Logger.i(TAG, "Cancelling auto backup")
+        Logger.d(TAG, "Cancelling auto backup")
         workManager.cancelUniqueWork(WORK_NAME)
     }
 

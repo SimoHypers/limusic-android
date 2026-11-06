@@ -204,10 +204,9 @@ internal fun parseMixedContent(
                                 ) {
                                     runCatching { artists.removeAt(artists.lastIndex) }
                                         .onSuccess {
-                                            Logger.i("parse_mixed_content", "Removed last artist")
+                                            Logger.d("parse_mixed_content", "Removed last artist")
                                         }.onFailure {
                                             Logger.e("parse_mixed_content", "Failed to remove last artist")
-                                            it.printStackTrace()
                                         }
                                 }
                                 if (ytItem != null) {
@@ -260,10 +259,9 @@ internal fun parseMixedContent(
                                 ) {
                                     runCatching { artists.removeAt(artists.lastIndex) }
                                         .onSuccess {
-                                            Logger.i("parse_mixed_content", "Removed last artist")
+                                            Logger.d("parse_mixed_content", "Removed last artist")
                                         }.onFailure {
                                             Logger.e("parse_mixed_content", "Failed to remove last artist")
-                                            it.printStackTrace()
                                         }
                                 }
                                 if (ytItem != null) {
@@ -824,10 +822,9 @@ internal fun parseNewRelease(
                     ) {
                         runCatching { artists.removeAt(artists.lastIndex) }
                             .onSuccess {
-                                Logger.i("parse_mixed_content", "Removed last artist")
+                                Logger.d("parse_mixed_content", "Removed last artist")
                             }.onFailure {
                                 Logger.e("parse_mixed_content", "Failed to remove last artist")
-                                it.printStackTrace()
                             }
                     }
                     Content(

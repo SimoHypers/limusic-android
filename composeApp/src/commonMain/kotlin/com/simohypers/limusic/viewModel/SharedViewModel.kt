@@ -961,6 +961,8 @@ class SharedViewModel(
 
     fun onUIEvent(uiEvent: UIEvent) =
         viewModelScope.launch {
+            // Who asked, for the App log's playback timeline (a slider drag would flood it).
+            if (uiEvent !is UIEvent.UpdateVolume) Logger.i("Playback", "$uiEvent from the app")
             when (uiEvent) {
                 UIEvent.Backward -> {
                     mediaPlayerHandler.onPlayerEvent(

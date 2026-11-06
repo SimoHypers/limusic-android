@@ -75,7 +75,6 @@ class AutoBackupWorker(
             }
         } catch (e: Exception) {
             Logger.e(TAG, "Auto backup failed: ${e.message}")
-            e.printStackTrace()
             Result.retry()
         }
     }

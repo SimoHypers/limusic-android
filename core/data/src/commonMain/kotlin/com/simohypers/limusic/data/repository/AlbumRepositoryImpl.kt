@@ -174,7 +174,7 @@ internal class AlbumRepositoryImpl(
                             ),
                         )
                     }.onFailure {
-                        it.printStackTrace()
+                        Logger.w(TAG, "getAlbumMore: $it")
                         emit(null)
                     }
             }

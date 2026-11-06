@@ -121,7 +121,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                 FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "mergeAudioVideoDownload: $e")
             }
             return (DownloadProgress.VIDEO_DONE)
         } else if (ReturnCode.isCancel(session.returnCode)) {
@@ -132,7 +132,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                 FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "mergeAudioVideoDownload: $e")
             }
             return (DownloadProgress.failed(session.failStackTrace ?: "Command cancelled"))
         } else {
@@ -143,7 +143,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                 FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "mergeAudioVideoDownload: $e")
             }
             return (DownloadProgress.failed(session.failStackTrace ?: "FFmpeg command failed"))
         }
@@ -169,7 +169,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             }
         } catch (e: IOException) {
-            e.printStackTrace()
+            Logger.w(TAG, "saveAudioWithThumbnail: $e")
         }
 
         val session =
@@ -182,7 +182,7 @@ actual class Extractor {
             try {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
         } else if (ReturnCode.isCancel(session.returnCode)) {
             // CANCEL
@@ -191,7 +191,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
             return (DownloadProgress.failed("Error"))
         } else {
@@ -201,7 +201,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
             return (DownloadProgress.failed("Error"))
         }
@@ -236,7 +236,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
             return (DownloadProgress.AUDIO_DONE)
         } else if (ReturnCode.isCancel(sessionInject.returnCode)) {
@@ -247,7 +247,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                 FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
             return (DownloadProgress.failed("Error"))
         } else {
@@ -258,7 +258,7 @@ actual class Extractor {
                 FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                 FileSystem.SYSTEM.delete("$filePath-limusic.mp3".toPath())
             } catch (e: IOException) {
-                e.printStackTrace()
+                Logger.w(TAG, "saveAudioWithThumbnail: $e")
             }
             return (DownloadProgress.failed("Error"))
         }

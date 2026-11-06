@@ -1,6 +1,7 @@
 package com.simohypers.limusic.data.repository
 
 import android.database.sqlite.SQLiteDatabase
+import com.simohypers.limusic.logger.Logger
 import android.database.sqlite.SQLiteDatabase.OPEN_READONLY
 import android.webkit.CookieManager
 import com.simohypers.limusic.domain.data.model.cookie.CookieItem
@@ -84,7 +85,7 @@ actual fun getCookies(url: String, packageName: String): CookieItem {
             db.close()
             CookieItem(url, cookieList)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("CommonRepositoryImpl", "getCookies: $e")
             CookieItem(url, emptyList())
         }
 }

@@ -165,7 +165,7 @@ class NewPipeUtils(
                 url,
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("NewPipeUtils", "getStreamUrl: $e")
             null
         }
 }

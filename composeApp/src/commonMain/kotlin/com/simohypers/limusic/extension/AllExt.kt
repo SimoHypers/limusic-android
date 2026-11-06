@@ -1,6 +1,7 @@
 package com.simohypers.limusic.extension
 
 import androidx.compose.runtime.Composable
+import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.domain.data.model.browse.artist.ArtistBrowse
 import com.simohypers.limusic.domain.data.model.streams.TimeLine
 import com.simohypers.limusic.domain.extension.now
@@ -124,7 +125,7 @@ fun parseTimestampToMilliseconds(timestamp: String): Double {
                     (minutes * 60 + seconds)
                 } catch (e: NumberFormatException) {
                     // Handle parsing error
-                    e.printStackTrace()
+                    Logger.w("AllExt", "parseTimestampToMilliseconds: $e")
                     return 0.0
                 }
             }
@@ -137,7 +138,7 @@ fun parseTimestampToMilliseconds(timestamp: String): Double {
                     (hours * 3600 + minutes * 60 + seconds)
                 } catch (e: NumberFormatException) {
                     // Handle parsing error
-                    e.printStackTrace()
+                    Logger.w("AllExt", "parseTimestampToMilliseconds: $e")
                     return 0.0
                 }
             }

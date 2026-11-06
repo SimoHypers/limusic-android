@@ -13,3 +13,6 @@ sealed class Platform {
 }
 
 expect fun getPlatform(): Platform
+
+/** Phone maker, model and OS version, for the App log export. */
+expect fun deviceSummary(): String

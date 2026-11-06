@@ -131,6 +131,7 @@ internal class SimpleMediaSessionCallback(
         playerCommand: Int,
     ): Int {
         Logger.d(TAG, "Player Command $playerCommand")
+        logOutsideCommand(session, controller, playerCommand)
         // The computer's remote takes next and previous itself (LinkSessionPlayer); also sending
         // them through the handler skipped two songs on the computer.
         if (session.player is LinkSessionPlayer) return super.onPlayerCommandRequest(session, controller, playerCommand)
@@ -150,6 +151,36 @@ internal class SimpleMediaSessionCallback(
         // handler above, which says so; seeking and the modes stop here.
         if (mediaPlayerHandler.followingRoom && playerCommand in HOST_ONLY_COMMANDS) return SessionResult.RESULT_ERROR_PERMISSION_DENIED
         return super.onPlayerCommandRequest(session, controller, playerCommand)
+    }
+
+    /**
+     * The App log's playback timeline says who pressed what. The app's own buttons log themselves
+     * (SharedViewModel.onUIEvent); this covers the notification, lock screen, headsets, cars, watches.
+     */
+    private fun logOutsideCommand(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        command: Int,
+    ) {
+        val what =
+            when (command) {
+                Player.COMMAND_PLAY_PAUSE -> "play/pause"
+                Player.COMMAND_STOP -> "stop"
+                Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM, Player.COMMAND_SEEK_BACK, Player.COMMAND_SEEK_FORWARD -> "seek"
+                COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> "next"
+                COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> "previous"
+                Player.COMMAND_SEEK_TO_MEDIA_ITEM -> "jump in queue"
+                else -> return
+            }
+        val who =
+            when {
+                session.isMediaNotificationController(controller) -> "the notification"
+                controller.packageName == context.packageName -> return
+                controller.packageName == "com.android.systemui" -> "system media controls"
+                controller.packageName == "com.android.bluetooth" -> "Bluetooth"
+                else -> controller.packageName
+            }
+        Logger.i("Playback", "$what from $who")
     }
 
     @UnstableApi

@@ -1,6 +1,7 @@
 package com.simohypers.limusic.data.db
 
 import androidx.room.ProvidedTypeConverter
+import com.simohypers.limusic.logger.Logger
 import androidx.room.TypeConverter
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.model.metadata.Line
@@ -27,7 +28,7 @@ class Converters {
         try {
             value?.let { json.decodeFromString<List<String>>(it) }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("Converters", "fromString: $e")
             null
         }
 
@@ -41,7 +42,7 @@ class Converters {
                 json.decodeFromString<List<Track>>(value)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("Converters", "fromStringToListTrack: $e")
             null
         }
 
@@ -64,7 +65,7 @@ class Converters {
                 json.decodeFromString<List<Line>>(value)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("Converters", "fromStringToListLine: $e")
             null
         }
 
@@ -75,7 +76,7 @@ class Converters {
                 json.decodeFromString<List<String?>>(value)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w("Converters", "fromStringNull: $e")
             null
         }
 

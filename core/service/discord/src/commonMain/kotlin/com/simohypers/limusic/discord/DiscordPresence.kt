@@ -211,7 +211,7 @@ class DiscordPresence(
         planner.noteFrame()
         if (g.presence(activity(t, cfg, planner.playing, start, end, art, badge))) {
             planner.pushed(start)
-            Logger.i(TAG, "presence pushed: ${t.videoId} playing=${planner.playing} at=${(wallNow() - start) / 1000}s bar=${end?.let { (it - start) / 1000 }}s")
+            Logger.d(TAG, "presence pushed: ${t.videoId} playing=${planner.playing} at=${(wallNow() - start) / 1000}s bar=${end?.let { (it - start) / 1000 }}s")
         } else {
             planner.forgetSent()
         }
@@ -226,7 +226,7 @@ class DiscordPresence(
         }
         planner.cleared()
         lastShownAt = monoNow()
-        Logger.i(TAG, "presence cleared")
+        Logger.d(TAG, "presence cleared")
     }
 
     private suspend fun closeIfIdle() {

@@ -1004,6 +1004,7 @@ internal class MediaServiceHandlerImpl(
                         delay(remaining - fadeMs - tailMs)
                         fadeOutForSleep(fadeMs)
                         delay(tailMs)
+                        Logger.i("Playback", "sleep timer ran out")
                         player.pause()
                         stoppedPlayback = true
                         _sleepTimerState.update {
@@ -1029,6 +1030,7 @@ internal class MediaServiceHandlerImpl(
                                 it.copy(isDone = false, timeRemaining = count)
                             }
                         }
+                        Logger.i("Playback", "sleep timer ran out")
                         player.pause()
                         stoppedPlayback = true
                         _sleepTimerState.update {
@@ -1104,6 +1106,7 @@ internal class MediaServiceHandlerImpl(
                 is SongEntity -> anyTrack.toTrack()
                 else -> return
             }
+        Logger.i("Playback", "new queue from \"${track.title}\" (${track.videoId}), $type")
         val data = pending
         pending = null
         if (track.isExplicit && dataStoreManager.explicitContentEnabled.first() == FALSE) {
@@ -1448,7 +1451,10 @@ internal class MediaServiceHandlerImpl(
         sync(reload = true, playWhenReady = true)
     }
 
-    override fun playMediaItemInMediaSource(index: Int) = playIndex(index, play = true)
+    override fun playMediaItemInMediaSource(index: Int) {
+        Logger.i("Playback", "jump to queue item ${index + 1}")
+        playIndex(index, play = true)
+    }
 
     override fun currentOrderIndex(): Int = q.current
 
@@ -1685,7 +1691,6 @@ internal class MediaServiceHandlerImpl(
                 loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
             } catch (e: Exception) {
                 Logger.e(TAG, "mayBeNormalizeVolume: ${e.message}")
-                e.printStackTrace()
             }
         }
 
@@ -1724,7 +1729,6 @@ internal class MediaServiceHandlerImpl(
                                     )
                                 } catch (e: Exception) {
                                     Logger.e(TAG, "mayBeNormalizeVolume: ${e.message}")
-                                    e.printStackTrace()
                                 }
                                 try {
                                     secondLoudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
@@ -1735,7 +1739,6 @@ internal class MediaServiceHandlerImpl(
                                     )
                                 } catch (e: Exception) {
                                     Logger.e(TAG, "mayBeNormalizeVolume: ${e.message}")
-                                    e.printStackTrace()
                                 }
                             }
                         }
@@ -1937,6 +1940,8 @@ internal class MediaServiceHandlerImpl(
         Logger.d(TAG, "Media Item Transition Media Item: ${mediaItem?.metadata?.title}")
         if (mediaItem?.mediaId != _nowPlaying.value?.mediaId) {
             _nowPlaying.value = mediaItem
+            // No reason: the adapter reports every change as AUTO. The line before this one says why.
+            Logger.i("Playback", "now playing \"${mediaItem?.metadata?.title}\" (${mediaItem?.mediaId})")
         }
         if (mediaItem?.mediaId != nowPlayingState.value.mediaItem.mediaId) {
             Logger.d(TAG, "onMediaItemTransition: ${mediaItem?.mediaId}")

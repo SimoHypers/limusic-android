@@ -238,7 +238,7 @@ internal class CommonRepositoryImpl(
                 return true
             }
         } catch (e: IOException) {
-            e.printStackTrace()
+            Logger.w("CommonRepositoryImpl", "writeTextToFile: $e")
             return false
         }
     }

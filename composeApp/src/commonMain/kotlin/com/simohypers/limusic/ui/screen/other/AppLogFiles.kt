@@ -4,15 +4,20 @@ import com.simohypers.limusic.domain.extension.epochMillisToLocalDateTime
 import com.simohypers.limusic.domain.extension.now
 import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.expect.shareImage
-import com.simohypers.limusic.getPlatform
+import com.simohypers.limusic.deviceSummary
+import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.utils.VersionManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.number
 import java.io.File
 import java.io.RandomAccessFile
 import kotlin.time.Clock
 import kotlin.time.Instant
+import org.koin.mp.KoinPlatform.getKoin
 
 // Reading back the files Logger.enableFileLogging writes: parsing, tailing and exporting.
 // The screen that shows them is AppLogScreen.
@@ -209,18 +214,57 @@ private val SECRETS =
 
 private fun redactSecrets(text: String): String = SECRETS.fold(text) { acc, (pattern, replacement) -> pattern.replace(acc, replacement) }
 
-/** Every log file, oldest first, as one redacted text file handed to [shareImage]. */
+/**
+ * The settings a bug report usually turns on, in one line. Values only, never an account, token,
+ * proxy host or id. A failed read leaves the line out rather than the export.
+ */
+private suspend fun settingsSummary(): String? =
+    runCatching {
+        val s = getKoin().get<DataStoreManager>()
+        fun Flow<String>.onOff() = map { if (it == DataStoreManager.TRUE) "on" else "off" }
+        val crossfade =
+            if (s.crossfadeEnabled.first() == DataStoreManager.TRUE) {
+                "${s.crossfadeDuration.first() / 1000} s" + if (s.crossfadeSkipAlbum.first() == DataStoreManager.TRUE) ", not in albums" else ""
+            } else {
+                "off"
+            }
+        val cache = s.maxSongCacheSize.first().let { if (it < 0) "unlimited" else "$it MB" }
+        listOf(
+            "signed in ${s.loggedIn.onOff().first()}",
+            "quality ${s.quality.first()}",
+            "download quality ${s.downloadQuality.first()}",
+            "crossfade $crossfade",
+            "normalize ${s.normalizeVolume.onOff().first()}",
+            "skip silence ${s.skipSilent.onOff().first()}",
+            "equalizer ${s.equalizerEnabled.onOff().first()}",
+            "speed ${s.playbackSpeed.first()}",
+            "pitch ${s.pitch.first()}",
+            "proxy ${s.usingProxy.onOff().first()}",
+            "downloads on Wi-Fi only ${s.downloadWifiOnly.onOff().first()}",
+            "download on like ${s.downloadLiked.onOff().first()}",
+            "keep library downloaded ${s.keepLibraryDownloaded.onOff().first()}",
+            "player cache $cache",
+            "Discord ${s.richPresenceEnabled.onOff().first()}",
+            "Last.fm ${if (s.lastfmSessionKey.first().isNotBlank()) "on" else "off"}",
+            "player style ${s.nowPlayingStyle.first().replace("SPOTIFY", "Classic")}",
+            "open player on play ${if (s.openPlayerOnPlay.first()) "on" else "off"}",
+        ).joinToString(", ")
+    }.getOrNull()
+
+/**
+ * The app log, oldest first, as one redacted text file handed to [shareImage], under a header with
+ * the version, the phone and the settings. error.log stays out: every line in it is in app.log too.
+ */
 internal suspend fun exportLog(chooserTitle: String): Boolean {
     val bytes =
         withContext(Dispatchers.IO) {
             runCatching {
+                val settings = settingsSummary()
                 buildString {
-                    appendLine("Limusic ${VersionManager.getVersionName()} · ${getPlatform().osName()}")
-                    for (name in listOf(Logger.APP_LOG, Logger.ERROR_LOG)) {
-                        appendLine()
-                        appendLine("===== $name.log =====")
-                        Logger.logFiles(name).map(::File).filter(File::exists).forEach { append(it.readText()) }
-                    }
+                    appendLine("Limusic ${VersionManager.getVersionName()} · ${deviceSummary()}")
+                    settings?.let { appendLine("Settings: $it") }
+                    appendLine()
+                    Logger.logFiles(Logger.APP_LOG).map(::File).filter(File::exists).forEach { append(it.readText()) }
                 }.let(::redactSecrets).encodeToByteArray()
             }.getOrNull()
         } ?: return false

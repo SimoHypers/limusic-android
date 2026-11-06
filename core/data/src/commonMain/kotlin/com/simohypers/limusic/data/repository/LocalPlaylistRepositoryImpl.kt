@@ -408,7 +408,7 @@ internal class LocalPlaylistRepositoryImpl(
                         emit(LocalResource.Error("List suggestions is null"))
                     }
                 }.onFailure { e ->
-                    e.printStackTrace()
+                    Logger.w(TAG, "getSuggestionsTrackForPlaylist: $e")
                     emit(LocalResource.Error(e.message ?: "Error"))
                 }
         }
@@ -451,7 +451,7 @@ internal class LocalPlaylistRepositoryImpl(
                             emit(LocalResource.Error("Empty data"))
                         }
                     }.onFailure { exception ->
-                        exception.printStackTrace()
+                        Logger.w(TAG, "reloadSuggestionPlaylist: $exception")
                         emit(LocalResource.Error(exception.message ?: "Error"))
                     }
             }
@@ -541,7 +541,7 @@ internal class LocalPlaylistRepositoryImpl(
                             emit(playlist)
                         }
                     }.onFailure { e ->
-                        e.printStackTrace()
+                        Logger.w(TAG, "getYouTubeSetVideoId: $e")
                         emit(emptyList())
                     }
             }

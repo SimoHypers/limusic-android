@@ -57,6 +57,8 @@ class LimusicApplication :
         super.onCreate()
         // First, so the rest of startup reaches the App log too (Settings → Developer option).
         Logger.enableFileLogging(File(filesDir, "logs").path)
+        // One log spans updates, so each launch says which version wrote what follows.
+        Logger.i("App", "started ${BuildConfig.VERSION_NAME}${if (BuildConfig.DEBUG) " (debug build)" else ""}")
         watchConnectivity(this)
         // IO: closing TLS sockets writes to them.
         applicationScope.launch(Dispatchers.IO) {

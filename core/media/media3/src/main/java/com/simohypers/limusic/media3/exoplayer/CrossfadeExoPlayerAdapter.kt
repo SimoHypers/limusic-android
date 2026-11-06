@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -53,6 +54,14 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 private const val TAG = "CrossfadeExoPlayerAdapter"
+
+/** The App log's playback timeline: what the player did and why, one Info line each. */
+private const val PLAYBACK = "Playback"
+
+/** A position that has not moved for this long while meant to be playing is logged as a freeze. */
+private const val FREEZE_MS = 500L
+
+private fun clock(ms: Long) = "${ms / 60_000}:${(ms / 1000 % 60).toString().padStart(2, '0')}"
 
 /**
  * ExoPlayer implementation of [MediaPlayerInterface] with crossfade support.
@@ -220,6 +229,16 @@ internal class CrossfadeExoPlayerAdapter(
 
     private val audioFocusListener =
         AudioManager.OnAudioFocusChangeListener { focusChange ->
+            // Info, so the App log shows when another app's sound paused or ducked us.
+            val what =
+                when (focusChange) {
+                    AudioManager.AUDIOFOCUS_GAIN -> "back"
+                    AudioManager.AUDIOFOCUS_LOSS -> "lost, pausing"
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> "lost for a moment, pausing"
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> "lost for a moment, ducking"
+                    else -> "changed ($focusChange)"
+                }
+            Logger.i(PLAYBACK, "audio focus $what")
             when (focusChange) {
                 AudioManager.AUDIOFOCUS_GAIN -> {
                     // Don't fight the crossfade ramp; while crossfading it owns the volume.
@@ -603,6 +622,7 @@ internal class CrossfadeExoPlayerAdapter(
                         // its position while this adapter still says paused, and play() alone does nothing.
                         if (player.playbackState == Player.STATE_IDLE) player.prepare()
                         player.play()
+                        Logger.i(PLAYBACK, "play at ${clock(player.currentPosition)}")
                         transitionToState(InternalState.PLAYING)
                         internalPlayWhenReady = true
                     } ?: Logger.w(TAG, "Play called but currentPlayer is null")
@@ -655,6 +675,7 @@ internal class CrossfadeExoPlayerAdapter(
                     InternalState.PLAYING, InternalState.READY -> {
                         currentPlayer?.let { player ->
                             player.pause()
+                            Logger.i(PLAYBACK, "pause at ${clock(player.currentPosition)}")
                             transitionToState(InternalState.PAUSED)
                             internalPlayWhenReady = false
                         }
@@ -692,7 +713,7 @@ internal class CrossfadeExoPlayerAdapter(
             // Stopping only the current player would leave the outgoing one fading out on its own.
             cancelFade()
             currentPlayer?.let { player ->
-                Logger.d(TAG, "Stop called")
+                Logger.i(PLAYBACK, "stop at ${clock(player.currentPosition)}")
                 player.stop()
                 transitionToState(InternalState.IDLE)
                 stopPositionUpdates()
@@ -717,6 +738,7 @@ internal class CrossfadeExoPlayerAdapter(
             cancelFade()
             currentPlayer?.let { player ->
                 try {
+                    Logger.i(PLAYBACK, "seek ${clock(player.currentPosition)} -> ${clock(positionMs)}")
                     player.seekTo(positionMs)
                 } catch (e: Exception) {
                     Logger.e(TAG, "Seek exception: ${e.message}", e)
@@ -1755,6 +1777,18 @@ internal class CrossfadeExoPlayerAdapter(
                     }
                 }
 
+                // ExoPlayer pauses itself here (setHandleAudioBecomingNoisy), past pause() and its log line.
+                override fun onPlayWhenReadyChanged(
+                    playWhenReady: Boolean,
+                    reason: Int,
+                ) {
+                    // It also fires while already paused (only the reason changes); still PLAYING here means it paused us.
+                    if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY) {
+                        val what = if (internalState == InternalState.PLAYING) "pause at ${clock(player.currentPosition)}" else "already paused"
+                        Logger.i(PLAYBACK, "headphones disconnected, $what")
+                    }
+                }
+
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     if (player != currentPlayer) {
                         Logger.d(TAG, "Ignoring onPlaybackStateChanged from non-current player")
@@ -2075,7 +2109,7 @@ internal class CrossfadeExoPlayerAdapter(
         fadeMs: Long,
     ) {
         val outgoing = currentPlayer ?: return
-        Logger.d(TAG, "Crossfading into track $nextIndex over ${fadeMs}ms")
+        Logger.i(PLAYBACK, "crossfade into ${playlist.getOrNull(nextIndex)?.mediaId} over ${fadeMs / 100 / 10.0} s")
         // Listener and MediaSession move before play(), as in loadAndPlayTrackInternal, so neither
         // misses the incoming player's first events.
         cleanupPlayerListenerInternal()
@@ -2185,6 +2219,7 @@ internal class CrossfadeExoPlayerAdapter(
                                 }
 
                                 if (dur > 0 && pos > 0) maybeStartCrossfade(player, pos, dur)
+                                watchFreeze(player, pos)
                             }
                         }
                     } catch (e: Exception) {
@@ -2199,6 +2234,40 @@ internal class CrossfadeExoPlayerAdapter(
     private fun stopPositionUpdates() {
         positionUpdateJob?.cancel()
         positionUpdateJob = null
+    }
+
+    // Freeze watch, fed by the position loop: where the position last moved, and when.
+    private var lastMovedPos = -1L
+    private var lastMovedAt = 0L
+    private var freezeLogged = false
+
+    /**
+     * Logs a position that stopped while the player means to play: waiting for data, or an audio
+     * output that stopped taking sound (a route change, another app's sound). Nothing else in the
+     * App log shows a stop shorter than the 10 s stuck-player error.
+     */
+    private fun watchFreeze(
+        player: ExoPlayer,
+        pos: Long,
+    ) {
+        val now = SystemClock.elapsedRealtime()
+        val meantToPlay = internalState == InternalState.PLAYING && player.playWhenReady
+        if (!meantToPlay || pos != lastMovedPos) {
+            if (freezeLogged) {
+                val ms = now - lastMovedAt
+                Logger.i(PLAYBACK, if (meantToPlay) "moving again after $ms ms" else "frozen for $ms ms, then stopped")
+            }
+            freezeLogged = false
+            lastMovedPos = pos
+            lastMovedAt = now
+            return
+        }
+        // At 0:00 the track is still loading its start, which is not a freeze.
+        if (!freezeLogged && pos > 0 && now - lastMovedAt >= FREEZE_MS) {
+            freezeLogged = true
+            val why = if (player.playbackState == Player.STATE_BUFFERING) "waiting for data" else "audio output not taking sound"
+            Logger.i(PLAYBACK, "frozen at ${clock(pos)} ($why)")
+        }
     }
 
     // ========== Internal: Precaching ==========
@@ -2239,11 +2308,12 @@ internal class CrossfadeExoPlayerAdapter(
                         val mediaItem = playlist.getOrNull(idx) ?: continue
 
                         try {
+                            // Before prepare, so it comes ahead of the lookup lines it causes.
+                            Logger.i(PLAYBACK, "preloading next: ${mediaItem.mediaId}")
                             val player = createExoPlayerInstance()
                             player.setMediaItem(mediaItem.toMedia3MediaItem())
                             player.prepare()
                             precachedPlayers[mediaItem.mediaId] = PrecachedPlayer(player, mediaItem)
-                            Logger.d(TAG, "Precached player for index $idx")
                         } catch (e: Exception) {
                             Logger.e(TAG, "Precaching error for $idx: ${e.message}")
                         }

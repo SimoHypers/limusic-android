@@ -235,7 +235,7 @@ class YouTube {
         }.onSuccess {
             ytMusic.proxy = it
         }.onFailure {
-            it.printStackTrace()
+            Logger.w(TAG, "setProxy: $it")
         }
     }
 
@@ -1964,7 +1964,7 @@ class YouTube {
                 .first { (it as? JsonPrimitive)?.content?.let(VISITOR_DATA_REGEX::containsMatchIn) == true }
                 .jsonPrimitive.content
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.w(TAG, "visitorData: $e")
             null
         }
 
@@ -2309,7 +2309,7 @@ class YouTube {
                         }.onSuccess {
                             Logger.d(TAG, "Download Video Success")
                         }.onFailure {
-                            it.printStackTrace()
+                            Logger.w(TAG, "download: $it")
                             trySend(DownloadProgress.failed(it.message ?: "Download failed"))
                         }
                     } else {
@@ -2334,12 +2334,12 @@ class YouTube {
                                 ),
                             )
                         }.onFailure { e ->
-                            e.printStackTrace()
+                            Logger.w(TAG, "download: $e")
                             trySend(DownloadProgress.failed(e.message ?: "Download failed"))
                         }
                     }
                 }.onFailure {
-                    it.printStackTrace()
+                    Logger.w(TAG, "download: $it")
                     Logger.d(TAG, "Player Response is null")
                     trySend(DownloadProgress.failed(it.message ?: "Player response is null"))
                 }

@@ -265,6 +265,7 @@ private fun provideResolvingDataSourceFactory(
             // chunk, and updateFormat is a fire-and-forget youTube.player() call with no
             // in-flight dedup, so leaving it ungated would fan out one request per 5 MiB.
             if (dataSpec.position == 0L) {
+                Logger.i("Stream", "$mediaId: audio from the download")
                 coroutineScope.launch(Dispatchers.IO) {
                     streamRepository.updateFormat(
                         if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
@@ -275,12 +276,12 @@ private fun provideResolvingDataSourceFactory(
                     )
                 }
             }
-            Logger.d("Stream", "Downloaded $mediaId")
             return@Factory dataSpec.subrange(dataSpec.uriPositionOffset, chunkLength)
         }
         if (playerCache.isFullyCached(mediaId, dataSpec.position)) {
             // See the note above: once per track, not once per chunk.
             if (dataSpec.position == 0L) {
+                Logger.i("Stream", "$mediaId: audio from the cache")
                 coroutineScope.launch(Dispatchers.IO) {
                     streamRepository.updateFormat(
                         if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
@@ -291,7 +292,6 @@ private fun provideResolvingDataSourceFactory(
                     )
                 }
             }
-            Logger.d("Stream", "Cached $mediaId")
             // Every byte is on disk right now, so CacheDataSource can serve this chunk
             // without ever reaching upstream, and the bare media id is safe as the URI.
             //
@@ -382,6 +382,7 @@ private fun provideResolvingDataSourceFactory(
             Logger.e("Stream", "Failed to resolve stream URL for $mediaId")
             throw java.io.IOException("Failed to resolve stream URL for $mediaId")
         }
+        if (dataSpec.position == 0L) Logger.i("Stream", "$mediaId: audio from the network")
         return@Factory dataSpecReturn
     }
 }

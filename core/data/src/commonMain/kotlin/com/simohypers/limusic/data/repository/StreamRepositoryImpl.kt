@@ -193,7 +193,7 @@ internal class StreamRepositoryImpl(
                     // listener's IP address.
                     Logger.i(
                         "Stream",
-                        "$videoId: ${data.third}, itag ${format?.itag} ${format?.mimeType?.substringBefore(';')}" +
+                        "$videoId: ${if (isDownloading) "for download, " else ""}${data.third}, itag ${format?.itag} ${format?.mimeType?.substringBefore(';')}" +
                             (if (muxed) ", HLS" else "") +
                             ", expires in ${response.streamingData?.expiresInSeconds}s",
                     )
@@ -280,7 +280,7 @@ internal class StreamRepositoryImpl(
                         if (it.isBotCheck) PlaybackRefusals.block(it.reason ?: it.status)
                     } else {
                         if (it.isRateLimit) PlaybackRefusals.block(PlaybackRefusals.RATE_LIMITED)
-                        it.printStackTrace()
+                        Logger.w("StreamRepositoryImpl", "getStream: $it")
                     }
                     Logger.e("Stream", "Error for $videoId: $it")
                     emit(null)
@@ -317,7 +317,7 @@ internal class StreamRepositoryImpl(
                     .onSuccess { response ->
                         emit(response)
                     }.onFailure {
-                        it.printStackTrace()
+                        Logger.w("StreamRepositoryImpl", "updateWatchTimeFull: $it")
                         emit(0)
                     }
             }
@@ -340,7 +340,7 @@ internal class StreamRepositoryImpl(
                     ).onSuccess { response ->
                         emit(response)
                     }.onFailure {
-                        it.printStackTrace()
+                        Logger.w("StreamRepositoryImpl", "updateWatchTime: $it")
                         emit(0)
                     }
             }

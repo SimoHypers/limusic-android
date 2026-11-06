@@ -1012,7 +1012,7 @@ class SettingsViewModel(
                 }
             }.onFailure {
                 withContext(Dispatchers.Main) {
-                    it.printStackTrace()
+                    Logger.w("SettingsViewModel", "backup: $it")
                     makeToast(getString(Res.string.backup_create_failed))
                 }
             }
@@ -1029,7 +1029,7 @@ class SettingsViewModel(
                     }
                 }.onFailure {
                     withContext(Dispatchers.Main) {
-                        it.printStackTrace()
+                        Logger.w("SettingsViewModel", "restore: $it")
                         makeToast(getString(Res.string.restore_failed))
                     }
                 }

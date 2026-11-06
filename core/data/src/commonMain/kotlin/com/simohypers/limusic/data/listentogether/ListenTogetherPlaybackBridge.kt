@@ -102,7 +102,7 @@ class ListenTogetherPlaybackBridge(
     fun start() {
         if (started) return
         started = true
-        Logger.i(TAG, "Playback bridge started")
+        Logger.d(TAG, "Playback bridge started")
         scope.launch { suppressCrossfadeWhileInRoom() }
         scope.launch { watchRoomForGuests() }
         scope.launch { resyncGuestOnResume() }
@@ -143,7 +143,8 @@ class ListenTogetherPlaybackBridge(
                     // through. sync_state answers with where the room actually is.
                     repository.requestSync()
                 }
-                Logger.i(TAG, if (inRoom) "Crossfade suppressed for the room" else "Crossfade restored")
+                // Leaving shows as the room's own disconnect line; "restored" on every launch was noise.
+                if (inRoom) Logger.i(TAG, "Crossfade suppressed for the room") else Logger.d(TAG, "Crossfade restored")
             }
     }
 
