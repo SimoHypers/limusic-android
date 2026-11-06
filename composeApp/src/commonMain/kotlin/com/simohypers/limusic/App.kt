@@ -96,6 +96,7 @@ import com.simohypers.limusic.updater.Updater
 import com.simohypers.limusic.utils.isAppLinkAvailable
 import com.simohypers.limusic.utils.libraryTabOf
 import com.simohypers.limusic.viewModel.SharedViewModel
+import com.simohypers.limusic.viewModel.base.BaseViewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.first
@@ -341,6 +342,12 @@ fun App(
         isInFullscreen = navBackStackEntry?.destination?.hierarchy?.any {
             it.hasRoute(FullscreenDestination::class)
         } == true
+    }
+    // Off by default on the phone; desktop always opens it.
+    LaunchedEffect(Unit) {
+        BaseViewModel.userPlays.collect {
+            if (viewModel.getOpenPlayerOnPlay().first()) isShowNowPlaylistScreen = true
+        }
     }
     LaunchedEffect(showMixForYouTab) {
         // Same for signing out of YouTube: the Mix for you tab goes away, so nobody may be left

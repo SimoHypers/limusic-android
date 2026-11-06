@@ -664,6 +664,12 @@ class SharedViewModel(
         viewModelScope.launch { dataStoreManager.setLyricsRomanized(on) }
     }
 
+    fun getOpenPlayerOnPlay() = dataStoreManager.openPlayerOnPlay
+
+    fun setOpenPlayerOnPlay(on: Boolean) {
+        viewModelScope.launch { dataStoreManager.setOpenPlayerOnPlay(on) }
+    }
+
     private suspend fun lyricsArtist(song: SongEntity): String =
         song.artistName?.firstOrNull()?.takeUnless { it.contains("Various Artists") }
             ?: mediaPlayerHandler.nowPlaying.first()?.metadata?.artist?.toString().orEmpty()

@@ -18,7 +18,9 @@ import com.simohypers.limusic.logger.LogLevel
 import com.simohypers.limusic.logger.Logger
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -110,6 +112,11 @@ abstract class BaseViewModel :
 
         /** What the app is fetching behind a closed menu, newest last, for the pill above the mini player. */
         val busyLabels: StateFlow<List<StringResource>> = waits
+
+        private val plays = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+        /** A play the user asked for (a tapped song, Play, Shuffle, a radio), for the open-player setting. */
+        val userPlays: SharedFlow<Unit> = plays
     }
 
     /** Runs [block] with the pill above the mini player saying [label]. */
@@ -187,6 +194,7 @@ abstract class BaseViewModel :
                 type = type,
                 index = index,
             )
+            plays.tryEmit(Unit)
         }
     }
 

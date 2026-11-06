@@ -406,6 +406,11 @@ interface DataStoreManager {
 
     suspend fun setLyricsRomanized(on: Boolean)
 
+    /** Settings > Appearance > Player: a tapped song, Play or Shuffle opens the full player. Off by default. */
+    val openPlayerOnPlay: Flow<Boolean>
+
+    suspend fun setOpenPlayerOnPlay(on: Boolean)
+
     val explicitContentEnabled: Flow<String>
 
     suspend fun setExplicitContentEnabled(enabled: Boolean)

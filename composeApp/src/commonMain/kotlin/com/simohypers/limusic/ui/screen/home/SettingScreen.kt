@@ -239,6 +239,8 @@ import limusic.composeapp.generated.resources.developer_option
 import limusic.composeapp.generated.resources.download_quality
 import limusic.composeapp.generated.resources.downloaded_cache
 import limusic.composeapp.generated.resources.enable_animated_artwork
+import limusic.composeapp.generated.resources.open_player_on_play
+import limusic.composeapp.generated.resources.open_player_on_play_info
 import limusic.composeapp.generated.resources.equalizer
 import limusic.composeapp.generated.resources.equalizer_description
 import limusic.composeapp.generated.resources.equalizer_type
@@ -484,6 +486,7 @@ fun SettingScreen(
     val lyricsOffsetMs by viewModel.lyricsOffsetMs.collectAsStateWithLifecycle()
     val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
     val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
+    val openPlayerOnPlay by sharedViewModel.getOpenPlayerOnPlay().collectAsStateWithLifecycle(false)
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
     val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
     val thumbnailCache by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
@@ -926,6 +929,11 @@ fun SettingScreen(
                         AppearanceSettings(sharedViewModel)
                         SettingGroup(title = stringResource(Res.string.appearance_player)) {
                             PlayerStylePicker(nowPlayingStyle, onStyle = sharedViewModel::setNowPlayingStyle)
+                            SettingItem(
+                                title = stringResource(Res.string.open_player_on_play),
+                                subtitle = stringResource(Res.string.open_player_on_play_info),
+                                switch = (openPlayerOnPlay to { sharedViewModel.setOpenPlayerOnPlay(it) }),
+                            )
                             // Shown in the Apple Music and Material 3 Expressive styles, and on artist pages.
                             SettingItem(
                                 title = stringResource(Res.string.enable_animated_artwork),
