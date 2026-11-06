@@ -140,7 +140,8 @@ fun AppLogScreen(
     var minLevel by rememberSaveable { mutableStateOf('I') }
     var query by rememberSaveable { mutableStateOf("") }
     var paused by rememberSaveable { mutableStateOf(false) }
-    // Clearing hides what came before instead of deleting it: the writer keeps the file open.
+    // Clearing empties the files (clearLogFiles). This also hides lines the writer still held in its
+    // buffer at the tap, which land in the emptied file a moment later.
     var clearedAt by rememberSaveable { mutableLongStateOf(0L) }
     // Android Studio's "Scroll to the End": a mode that keeps the newest line in view as lines
     // arrive, not a one-off jump. A person scrolling up turns it off, scrolling back to the bottom
@@ -249,6 +250,10 @@ fun AppLogScreen(
                     // Android Studio's Logcat toolbar, in its order: clear, pause, restart, stick.
                     RippleIconButton(LimusicIcons.Delete, tint = onSurface) {
                         clearedAt = nowEpochMillis()
+                        scope.launch {
+                            tailLock.withLock { clearLogFiles() }
+                            restarts++
+                        }
                     }
                     RippleIconButton(if (paused) LimusicIcons.PlayArrow else LimusicIcons.Pause, tint = onSurface) {
                         paused = !paused

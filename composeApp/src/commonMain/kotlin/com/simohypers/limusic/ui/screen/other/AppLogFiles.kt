@@ -215,6 +215,22 @@ private val SECRETS =
 private fun redactSecrets(text: String): String = SECRETS.fold(text) { acc, (pattern, replacement) -> pattern.replace(acc, replacement) }
 
 /**
+ * Deletes the log on disk, so a restart or an export starts after this. The writer keeps each live
+ * file open for appending, so those are emptied in place (its next line lands at the new end); a
+ * deleted one would leave it writing to a file nobody can open. Rolled-over files just go.
+ */
+internal suspend fun clearLogFiles() =
+    withContext(Dispatchers.IO) {
+        for (name in listOf(Logger.APP_LOG, Logger.ERROR_LOG)) {
+            for (file in Logger.logFiles(name).map(::File).filter(File::exists)) {
+                runCatching {
+                    if (file.name == "$name.log") RandomAccessFile(file, "rw").use { it.setLength(0) } else file.delete()
+                }
+            }
+        }
+    }
+
+/**
  * The settings a bug report usually turns on, in one line. Values only, never an account, token,
  * proxy host or id. A failed read leaves the line out rather than the export.
  */
