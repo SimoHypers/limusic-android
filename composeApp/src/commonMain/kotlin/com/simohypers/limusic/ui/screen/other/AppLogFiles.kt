@@ -195,8 +195,10 @@ private fun Int.pad(): String = toString().padStart(2, '0')
 internal fun nowEpochMillis(): Long = Clock.System.now().toEpochMilliseconds()
 
 /**
- * Cookies, tokens and auth headers never leave the device in an export, even though the files on
- * it are the app's own. Patterns, not a parser: a log line has no grammar to parse.
+ * Cookies, tokens, signed links and IP addresses never leave the device in an export or a bug
+ * report, both of which end up in public GitHub issues. Patterns, not a parser: a log line has no
+ * grammar to parse. Over-eager on purpose, like desktop's `diagnostics::redact`: a lost detail
+ * costs one follow-up question, a leaked SAPISID costs the user their account.
  */
 private val SECRETS =
     listOf(
@@ -210,9 +212,20 @@ private val SECRETS =
         Regex("""((?:TRUE|FALSE)\t\d+\t[^\t\r\n]+\t)[^\t\r\n]+""") to "$1[redacted]",
         // A googlevideo URL carries the listener's IP, as ip=… or as an /ip/… path segment.
         Regex("""(?i)([?&/]ip[=/])[0-9a-f:.]+""") to "$1[redacted]",
+        // Desktop's rules from here. Known secret keys lose their value however short it is; the
+        // leading class keeps a log tag (`I/PoToken: …`) from eating its own message.
+        Regex(
+            """(?im)(^|[^\w:/])(sapisidhash|sapisid|hsid|ssid|apisid|psid|sid|__secure[a-z0-9_-]*|potoken|po_token|pot|signature|sig|api_sig|session_key|session_token|sk|token|visitor_?data|data_?sync_?id|api_?key)\s*[:=]\s*"?([^\s",;&)]+)""",
+        ) to "$1$2=[redacted]",
+        // Every query string, which is where pot, sig, ip and ei live.
+        Regex("""(https?://[^\s"'<>]+?)\?[^\s"'<>]*""") to "$1?[redacted]",
+        // IPv4, but loopback stays: it is a local proxy or adb, never the listener.
+        Regex("""\b(?!127\.|0\.)(?:\d{1,3}\.){3}\d{1,3}\b""") to "[ip]",
+        // Any run of 40+ token characters is taken for a credential.
+        Regex("""[A-Za-z0-9_\-]{40,}""") to "[redacted]",
     )
 
-private fun redactSecrets(text: String): String = SECRETS.fold(text) { acc, (pattern, replacement) -> pattern.replace(acc, replacement) }
+internal fun redactSecrets(text: String): String = SECRETS.fold(text) { acc, (pattern, replacement) -> pattern.replace(acc, replacement) }
 
 /**
  * Deletes the log on disk, so a restart or an export starts after this. The writer keeps each live
@@ -267,22 +280,53 @@ private suspend fun settingsSummary(): String? =
         ).joinToString(", ")
     }.getOrNull()
 
+/** The version, the phone and the settings, above the log in an export or a bug report. */
+private suspend fun logHeader(): String =
+    buildString {
+        appendLine("Limusic ${VersionManager.getVersionName()} · ${deviceSummary()}")
+        settingsSummary()?.let { appendLine("Settings: $it") }
+        appendLine()
+    }
+
+/** app.log, oldest first. error.log stays out: every line in it is in app.log too. */
+private fun appLogText(): String = Logger.logFiles(Logger.APP_LOG).map(::File).filter(File::exists).joinToString("") { it.readText() }
+
 /**
- * The app log, oldest first, as one redacted text file handed to [shareImage], under a header with
- * the version, the phone and the settings. error.log stays out: every line in it is in app.log too.
+ * GitHub refuses an issue body over 65,536 characters, and the bug form's other fields need room
+ * next to the pasted log.
  */
+internal const val BUG_REPORT_CHARS = 50_000
+
+/**
+ * [logHeader] plus the end of the app log, redacted, at most [BUG_REPORT_CHARS]: the text a user
+ * pastes into the bug form's App log box. Null when the log can't be read.
+ */
+internal suspend fun bugReportText(): String? =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val header = redactSecrets(logHeader())
+            val budget = BUG_REPORT_CHARS - header.length
+            // Cut before redacting, so no secret is split from the key that marks it, and again
+            // after, since a short value can grow into "[redacted]".
+            header + logTail(redactSecrets(logTail(appLogText(), budget)), budget)
+        }.getOrNull()
+    }
+
+/** The end of [log] in at most [budget] characters, from the start of a line when there is one. */
+internal fun logTail(
+    log: String,
+    budget: Int,
+): String {
+    if (log.length <= budget) return log
+    val start = log.indexOf('\n', log.length - budget)
+    return if (start < 0) log.takeLast(budget) else log.substring(start + 1)
+}
+
+/** The app log as one redacted text file handed to [shareImage], under [logHeader]. */
 internal suspend fun exportLog(chooserTitle: String): Boolean {
     val bytes =
         withContext(Dispatchers.IO) {
-            runCatching {
-                val settings = settingsSummary()
-                buildString {
-                    appendLine("Limusic ${VersionManager.getVersionName()} · ${deviceSummary()}")
-                    settings?.let { appendLine("Settings: $it") }
-                    appendLine()
-                    Logger.logFiles(Logger.APP_LOG).map(::File).filter(File::exists).forEach { append(it.readText()) }
-                }.let(::redactSecrets).encodeToByteArray()
-            }.getOrNull()
+            runCatching { redactSecrets(logHeader() + appLogText()).encodeToByteArray() }.getOrNull()
         } ?: return false
     val stamp = now()
     val fileName =
@@ -290,3 +334,16 @@ internal suspend fun exportLog(chooserTitle: String): Boolean {
             "${stamp.hour.pad()}${stamp.minute.pad()}${stamp.second.pad()}.txt"
     return shareImage(bytes, fileName, chooserTitle, mimeType = "text/plain")
 }
+
+private const val NEW_ISSUE = "https://github.com/SimoHypers/limusic-android/issues/new"
+
+/**
+ * GitHub's bug form (`.github/ISSUE_TEMPLATE/bug_report.yml`) with the version and the phone filled
+ * in. GitHub prefills a form field from the query parameter named after its id.
+ */
+internal fun bugFormUrl(): String {
+    fun enc(s: String) = java.net.URLEncoder.encode(s, "UTF-8")
+    return "$NEW_ISSUE?template=bug_report.yml&version=${enc(VersionManager.getVersionName())}&phone=${enc(deviceSummary())}"
+}
+
+internal const val FEATURE_FORM_URL = "$NEW_ISSUE?template=feature_request.yml"

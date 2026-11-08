@@ -22,7 +22,7 @@ body:
     id: phone
     attributes:
       label: Which phone, and which Android version?
-      description: Skip this if you attach the app log, it has both.
+      description: Skip this if you paste the app log below, it has both.
       placeholder: Pixel 8, Android 15
 
   - type: textarea
@@ -31,8 +31,9 @@ body:
       label: App log
       description: >
         Helps the most with anything about playback, downloads or sign-in. Settings -> About ->
-        App log, tap the share button, save the file and attach it here. Cookies and tokens are
-        taken out of it; the names of songs you played stay in.
+        Report a bug copies it for you: long-press here and paste. Cookies, tokens, signed links
+        and IP addresses are taken out of it; the names of songs you played stay in.
+      render: text
 
   - type: textarea
     id: extra

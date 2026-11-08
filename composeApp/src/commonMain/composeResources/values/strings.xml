@@ -668,7 +668,12 @@
     <string name="share_lyrics_background">Background</string>
     <string name="share_lyrics_permission_denied">Storage permission is needed to save the image</string>
     <string name="move_to_play_next">Move to play next</string>
-    <string name="developer_option">Developer options</string>
+    <string name="report_problem">Report a problem</string>
+    <string name="report_bug">Report a bug</string>
+    <string name="report_bug_description">Opens the bug form on GitHub with your version and phone filled in, and copies the app log for you to paste. Cookies, tokens, signed links and IP addresses are taken out first.</string>
+    <string name="report_bug_copied">App log copied. Paste it into the App log box on the form.</string>
+    <string name="request_feature">Request a feature</string>
+    <string name="request_feature_description">Opens the idea form on GitHub.</string>
     <string name="app_log">App log</string>
     <string name="app_log_description">View, filter and export the app's log</string>
     <string name="log_errors">Errors</string>

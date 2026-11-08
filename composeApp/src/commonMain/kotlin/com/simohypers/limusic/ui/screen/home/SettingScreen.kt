@@ -167,6 +167,12 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import com.simohypers.limusic.expect.copyToClipboard
+import com.simohypers.limusic.ui.screen.other.FEATURE_FORM_URL
+import com.simohypers.limusic.ui.screen.other.bugFormUrl
+import com.simohypers.limusic.ui.screen.other.bugReportText
+import multiplatform.network.cmptoast.ToastGravity
+import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import com.simohypers.limusic.domain.mediaservice.queue.PREVENT_DUPLICATES_KEY
@@ -226,7 +232,13 @@ import limusic.composeapp.generated.resources.crossfade_skip_album
 import limusic.composeapp.generated.resources.crossfade_skip_album_description
 import limusic.composeapp.generated.resources.daily
 import limusic.composeapp.generated.resources.database
-import limusic.composeapp.generated.resources.developer_option
+import limusic.composeapp.generated.resources.log_export_failed
+import limusic.composeapp.generated.resources.report_bug
+import limusic.composeapp.generated.resources.report_bug_copied
+import limusic.composeapp.generated.resources.report_bug_description
+import limusic.composeapp.generated.resources.report_problem
+import limusic.composeapp.generated.resources.request_feature
+import limusic.composeapp.generated.resources.request_feature_description
 import limusic.composeapp.generated.resources.download_quality
 import limusic.composeapp.generated.resources.downloaded_cache
 import limusic.composeapp.generated.resources.enable_animated_artwork
@@ -2030,7 +2042,31 @@ fun SettingScreen(
                                 onClick = { navController.navigate(WhatsNewDestination) },
                             )
                         }
-                        SettingGroup(title = stringResource(Res.string.developer_option)) {
+                        SettingGroup(title = stringResource(Res.string.report_problem)) {
+                            SettingItem(
+                                title = stringResource(Res.string.report_bug),
+                                subtitle = stringResource(Res.string.report_bug_description),
+                                smallSubtitle = true,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        // The log can't ride in the URL (GitHub turns away one far
+                                        // shorter than a useful log), so it goes by the clipboard.
+                                        val report = bugReportText()
+                                        report?.let { copyToClipboard("Limusic bug report", it) }
+                                        showToast(
+                                            getString(if (report != null) Res.string.report_bug_copied else Res.string.log_export_failed),
+                                            ToastGravity.Bottom,
+                                        )
+                                        uriHandler.openUri(bugFormUrl())
+                                    }
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.request_feature),
+                                subtitle = stringResource(Res.string.request_feature_description),
+                                smallSubtitle = true,
+                                onClick = { uriHandler.openUri(FEATURE_FORM_URL) },
+                            )
                             SettingItem(
                                 title = stringResource(Res.string.app_log),
                                 subtitle = stringResource(Res.string.app_log_description),
