@@ -27,7 +27,8 @@ interface LyricsCanvasRepository {
 
     /**
      * One source alone, uncached: the source picker's preview, which also works for a source
-     * switched off. Null when it has nothing; throws when it couldn't be asked.
+     * switched off. Null when it has nothing; throws when it couldn't be asked. [searched]: title
+     * and artist were typed in the picker, not the song's own.
      */
     suspend fun previewLyrics(
         videoId: String,
@@ -36,6 +37,7 @@ interface LyricsCanvasRepository {
         artist: String,
         album: String?,
         durationSeconds: Int,
+        searched: Boolean,
     ): LyricsEntity?
 
     /** Forget one song's lyrics, a hand-picked source included. */

@@ -63,7 +63,7 @@ import limusic.composeapp.generated.resources.lyrics_about_lrclib
 import limusic.composeapp.generated.resources.lyrics_about_lyricsplus
 import limusic.composeapp.generated.resources.lyrics_about_netease
 import limusic.composeapp.generated.resources.lyrics_about_qq
-import limusic.composeapp.generated.resources.lyrics_about_simpmusic
+import limusic.composeapp.generated.resources.lyrics_about_unison
 import limusic.composeapp.generated.resources.lyrics_about_youtube
 import limusic.composeapp.generated.resources.lyrics_kind_plain
 import limusic.composeapp.generated.resources.lyrics_kind_synced
@@ -94,16 +94,16 @@ enum class LyricsKind(
 
 /** The best a source can give, as desktop's Settings badges it. */
 private val LyricsSource.bestKind
-    get() = if (this == LyricsSource.BOIDU || this == LyricsSource.LYRICSPLUS) LyricsKind.WORDS else LyricsKind.SYNCED
+    get() = if (this == LyricsSource.BOIDU || this == LyricsSource.UNISON || this == LyricsSource.LYRICSPLUS) LyricsKind.WORDS else LyricsKind.SYNCED
 
 private val LyricsSource.about
     get() =
         when (this) {
             LyricsSource.BOIDU -> Res.string.lyrics_about_boidu
+            LyricsSource.UNISON -> Res.string.lyrics_about_unison
             LyricsSource.LYRICSPLUS -> Res.string.lyrics_about_lyricsplus
             LyricsSource.LRCLIB -> Res.string.lyrics_about_lrclib
             LyricsSource.YOUTUBE -> Res.string.lyrics_about_youtube
-            LyricsSource.SIMPMUSIC -> Res.string.lyrics_about_simpmusic
             LyricsSource.NETEASE -> Res.string.lyrics_about_netease
             LyricsSource.QQ -> Res.string.lyrics_about_qq
             LyricsSource.KUGOU -> Res.string.lyrics_about_kugou

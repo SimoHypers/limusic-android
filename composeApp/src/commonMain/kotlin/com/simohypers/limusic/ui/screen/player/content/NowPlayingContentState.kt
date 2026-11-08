@@ -21,7 +21,8 @@ import com.simohypers.limusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
 
-// SimpMusic lyrics are read-only here, so nothing can be rated; the old styles still ask.
+// Lyrics are read-only here (Unison's votes need a Better Lyrics key, so the source sheet links its
+// site), so nothing can be rated; the old styles still ask.
 internal fun NowPlayingScreenData.LyricsData?.canVote(): Boolean = false
 
 // Apple Music's animated covers arrive as HLS (.m3u8) from Apple's video CDN; Spotify's canvases

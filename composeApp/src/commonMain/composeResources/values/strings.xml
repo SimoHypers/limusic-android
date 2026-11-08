@@ -802,10 +802,10 @@
     <string name="lyrics_sources_reset">Reset order</string>
     <string name="lyrics_sources_none">Every source is off, so no lyrics will be found.</string>
     <string name="lyrics_about_boidu">The Better Lyrics database. Word by word, for songs someone has looked up before.</string>
+    <string name="lyrics_about_unison">Better Lyrics' community lyrics, mostly word by word, timed to the exact video.</string>
     <string name="lyrics_about_lyricsplus">Apple Music lyrics, word by word.</string>
     <string name="lyrics_about_lrclib">Open library of synced lyrics. The widest coverage.</string>
     <string name="lyrics_about_youtube">YouTube Music's own lyrics, where they're licensed.</string>
-    <string name="lyrics_about_simpmusic">Community lyrics matched to the exact YouTube upload, intros included.</string>
     <string name="lyrics_about_netease">Large Chinese catalogue.</string>
     <string name="lyrics_about_qq">Chinese catalogue, strong on Mandopop and Cantopop.</string>
     <string name="lyrics_about_kugou">Chinese catalogue, for the rarer tracks.</string>
@@ -827,6 +827,7 @@
     <string name="lyrics_timing_value">%1$s s</string>
     <string name="lyrics_timing_reset">Reset timing</string>
     <string name="lyrics_search_open">Wrong song? Search by title</string>
+    <string name="lyrics_unison_rate">Rate these lyrics on Unison</string>
     <string name="lyrics_search_title">Title</string>
     <string name="lyrics_search_artist">Artist</string>
     <string name="lyrics_search_go">Search</string>

@@ -1,5 +1,6 @@
 package com.simohypers.limusic.lyrics
 
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -66,5 +67,31 @@ class LyricsProvidersTest {
     fun oneCueEverywhereIsPlain() {
         assertEquals("UNSYNCED", Found(parseLrc("[00:00.00]a\n[00:00.00]b")).toLyrics()!!.lyrics!!.syncType)
         assertEquals("LINE_SYNCED", Found(parseLrc("[00:00.00]a\n[00:03.00]b")).toLyrics()!!.lyrics!!.syncType)
+    }
+
+    // Unison's answer, trimmed from "Love Never Felt So Good" (FkxEE7wZ83c, 2026-11-02, desktop's
+    // fixture): the composer's TTML, word-timed. LRC and plain arrive in the same envelope.
+    @Test
+    fun unisonReadsEachFormat() {
+        fun unison(format: String, lyrics: String) =
+            unisonFound(Json.parseToJsonElement("""{"success":true,"data":{"format":"$format","lyrics":${Json.encodeToString(lyrics)}}}"""))
+
+        val ttml =
+            """<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xml:lang="en"><body dur="4:06.040"><div><p begin="0:16.929" end="0:21.439" ttm:agent="v1"><span begin="0:16.929" end="0:17.855">Baby,</span> <span begin="0:18.944" end="0:19.448">love</span></p><p begin="0:22.502" end="0:25.291" ttm:agent="v1"><span begin="0:22.502" end="0:22.773">And</span></p></div></body></tt>"""
+        val words = unison("ttml", ttml)!!
+        assertEquals("RICH_SYNCED", words.toLyrics()!!.lyrics!!.syncType)
+        assertEquals(listOf(16_929L, 22_502L), words.lines.map { it.timeMs })
+        assertEquals(18_944L, words.lines[0].words!![1].startMs)
+
+        val lrc = unison("lrc", "[00:01.00]One\n[00:02.50]Two")!!
+        assertEquals("LINE_SYNCED", lrc.toLyrics()!!.lyrics!!.syncType)
+        assertEquals(2_500L, lrc.lines[1].timeMs)
+
+        val plain = unison("plain", "One\n\nTwo\n")!!
+        assertEquals("UNSYNCED", plain.toLyrics()!!.lyrics!!.syncType)
+        assertEquals(3, plain.lines.size)
+
+        assertNull(unison("ttml", "")?.toLyrics())
+        assertNull(unisonFound(null))
     }
 }

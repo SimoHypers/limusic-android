@@ -29,13 +29,18 @@ import kotlin.io.encoding.Base64
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** What every provider is asked with. [durationSeconds] is the length of the cut playing, null when unknown. */
+/**
+ * What every provider is asked with. [durationSeconds] is the length of the cut playing, null when
+ * unknown. [searched]: title and artist were typed in the source sheet, so the video id no longer
+ * says what to look up.
+ */
 data class LyricsQuery(
     val videoId: String,
     val title: String,
     val artist: String,
     val album: String?,
     val durationSeconds: Int?,
+    val searched: Boolean = false,
 )
 
 /**
@@ -62,9 +67,9 @@ class LyricsProviders {
     ): Lyrics? =
         when (id) {
             "boidu" -> boidu(q)
+            "unison" -> unison(q)
             "lyricsplus" -> lyricsPlus(q)
             "lrclib" -> lrclib(q)
-            "simpmusic" -> simpMusic(q)
             "netease" -> netease(q)
             "qq" -> qqMusic(q)
             "kugou" -> kugou(q)
@@ -195,24 +200,24 @@ class LyricsProviders {
         return plainFound(this["plainLyrics"].str)
     }
 
-    // SimpMusic's community library, filed by videoId: the one provider matched on the upload
-    // itself, so its timings fit the cut playing, a music video's intro included. Read only.
-    private suspend fun simpMusic(q: LyricsQuery): Found? {
-        val tracks =
+    // Unison, Better Lyrics' crowdsourced lyrics, filed by video id, so timed to the upload playing.
+    // By title only for a search typed in the source sheet: a `v` miss is a 404 without trying song
+    // and artist, so asking both ways would cost a second request on every miss. Read only: a vote
+    // is signed with a per-user key, so the source sheet links the song's page on their site.
+    private suspend fun unison(q: LyricsQuery): Found? =
+        unisonFound(
             http
-                .get("https://api-lyrics.simpmusic.org/v1/${q.videoId}") { ua() }
-                .json()
-                ?.get("data")
-                .arr
-                .sortedByDescending { it["vote"].num ?: 0.0 }
-        val synced =
-            tracks.firstNotNullOfOrNull { t ->
-                listOf("richSyncLyrics", "syncedLyrics").firstNotNullOfOrNull { key ->
-                    t[key].str?.let { Found(parseElrc(it)) }?.takeIf { it.synced }
-                }
-            }
-        return synced ?: tracks.firstNotNullOfOrNull { plainFound(it["plainLyric"].str) }
-    }
+                .get("https://unison.betterlyrics.org/lyrics") {
+                    ua()
+                    if (q.searched) {
+                        parameter("song", q.title)
+                        parameter("artist", q.artist)
+                        q.durationSeconds?.takeIf { it > 0 }?.let { parameter("duration", it) }
+                    } else {
+                        parameter("v", q.videoId)
+                    }
+                }.json(),
+        )
 
     // Netease, QQ and Kugou rank remixes and edits right next to the original, so a hit is picked
     // by length (bestByDuration), not by rank.
@@ -417,6 +422,13 @@ internal fun List<LyricWord>.toRichSync(): String =
 private fun richStamp(ms: Long): String {
     fun pad(v: Long, n: Int) = v.toString().padStart(n, '0')
     return "<${pad(ms / 60_000, 2)}:${pad(ms / 1000 % 60, 2)}.${pad(ms % 1000, 3)}>"
+}
+
+/** Unison's answer: `{data: {lyrics, format}}`, format "ttml" (Apple's dialect), "lrc" or "plain". */
+internal fun unisonFound(body: JsonElement?): Found? {
+    val data = body["data"]
+    val text = data["lyrics"].str ?: return null
+    return if (data["format"].str == "plain") plainFound(text) else Found(parseLrcOrTtml(text))
 }
 
 private fun plainFound(text: String?): Found? {

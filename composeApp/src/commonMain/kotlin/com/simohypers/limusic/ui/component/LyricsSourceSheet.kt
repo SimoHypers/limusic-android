@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +59,7 @@ import com.simohypers.limusic.ui.icon.Remove
 import com.simohypers.limusic.ui.icon.Search
 import com.simohypers.limusic.ui.icon.Settings
 import com.simohypers.limusic.ui.icon.LimusicIcons
+import com.simohypers.limusic.ui.icon.OpenInNew
 import com.simohypers.limusic.ui.icon.TipsAndUpdates
 import com.simohypers.limusic.ui.icon.Undo
 import com.simohypers.limusic.ui.screen.home.LyricsKind
@@ -89,6 +91,7 @@ import limusic.composeapp.generated.resources.lyrics_timing
 import limusic.composeapp.generated.resources.lyrics_timing_hint
 import limusic.composeapp.generated.resources.lyrics_timing_reset
 import limusic.composeapp.generated.resources.lyrics_timing_value
+import limusic.composeapp.generated.resources.lyrics_unison_rate
 import limusic.composeapp.generated.resources.lyrics_unreachable
 import kotlin.math.abs
 
@@ -292,6 +295,24 @@ fun LyricsSourceSheet(
                         hit != null -> LyricsKindBadge(LyricsKind.of(hit.syncType))
                         else -> Text(stringResource(Res.string.lyrics_not_found), style = typo().bodySmall, color = colors.subtitle.copy(alpha = 0.7f))
                     }
+                }
+            }
+
+            if (lyricsData?.lyricsProvider == LyricsSource.UNISON) {
+                // Unison votes are signed with a Better Lyrics key, so they happen on its site.
+                val uriHandler = LocalUriHandler.current
+                HorizontalDivider(Modifier.padding(vertical = 6.dp), color = colors.disabled.copy(alpha = 0.4f))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(rounded(12.dp))
+                        .clickable { uriHandler.openUri("https://unison.betterlyrics.org/song/${song.videoId}") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(LimusicIcons.OpenInNew, contentDescription = null, tint = colors.subtitle, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(stringResource(Res.string.lyrics_unison_rate), style = typo().bodySmall, color = colors.subtitle)
                 }
             }
 

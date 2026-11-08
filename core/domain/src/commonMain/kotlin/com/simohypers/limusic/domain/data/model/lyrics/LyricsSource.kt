@@ -9,10 +9,10 @@ enum class LyricsSource(
     val displayName: String,
 ) {
     BOIDU("boidu", "Boidu"),
+    UNISON("unison", "Unison"),
     LYRICSPLUS("lyricsplus", "LyricsPlus"),
     LRCLIB("lrclib", "LRCLIB"),
     YOUTUBE("youtube", "YouTube Music"),
-    SIMPMUSIC("simpmusic", "SimpMusic"),
     NETEASE("netease", "Netease Cloud Music"),
     QQ("qq", "QQ Music"),
     KUGOU("kugou", "Kugou"),
@@ -24,7 +24,9 @@ enum class LyricsSource(
         /**
          * The `lyrics_providers` setting as (source, on) in the user's order: ids top to bottom,
          * `-id` for one switched off. Whatever it doesn't name (all of them on a fresh install, or a
-         * provider a later release adds) follows in the default order, switched on.
+         * provider a later release adds) follows in the default order, switched on, unless every
+         * source it names is off: someone who wanted no lyrics doesn't get a new provider asked.
+         * An id no release knows any more (`simpmusic`) is dropped.
          */
         fun order(setting: String?): List<Pair<LyricsSource, Boolean>> {
             val out = mutableListOf<Pair<LyricsSource, Boolean>>()
@@ -32,7 +34,8 @@ enum class LyricsSource(
                 val source = fromId(token.removePrefix("-")) ?: continue
                 if (out.none { it.first == source }) out += source to !token.startsWith('-')
             }
-            return out + entries.filter { s -> out.none { it.first == s } }.map { it to true }
+            val allOff = out.isNotEmpty() && out.none { it.second }
+            return out + entries.filter { s -> out.none { it.first == s } }.map { it to !allOff }
         }
 
         /** [order]'s inverse: the setting for a list in the user's order. */

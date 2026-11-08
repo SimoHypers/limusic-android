@@ -744,6 +744,7 @@ class SharedViewModel(
             artist = artist ?: lyricsArtist(song),
             album = if (title == null) song.albumName else null,
             durationSeconds = (timeline.value.total / 1000).toInt(),
+            searched = title != null,
         )
     }
 

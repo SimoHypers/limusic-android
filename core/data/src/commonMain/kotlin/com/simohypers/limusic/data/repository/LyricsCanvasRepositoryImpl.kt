@@ -140,9 +140,10 @@ internal class LyricsCanvasRepositoryImpl(
         artist: String,
         album: String?,
         durationSeconds: Int,
+        searched: Boolean,
     ): LyricsEntity? =
         withContext(Dispatchers.IO) {
-            askLyricsSource(source, LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 }))
+            askLyricsSource(source, LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 }, searched))
                 ?.toEntity(videoId, source, Clock.System.now().epochSeconds)
         }
 
