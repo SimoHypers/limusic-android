@@ -174,7 +174,7 @@ computer, or This phone to bring it back. It carries on from the same song and
 position, and only one device plays at a time.
 
 It goes through the same relay as Listen Together, so the phone and the computer
-don't need to be on the same Wi-Fi. Needs Limusic desktop 1.4.0 or newer.
+don't need to be on the same Wi-Fi.
 
 ---
 
