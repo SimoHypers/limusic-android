@@ -5,7 +5,6 @@
 **A native Android YouTube Music client. Kotlin + Jetpack Compose, ad-free.**
 
 <p align="center">
-  <a href="https://github.com/SimoHypers/limusic-android/releases/latest"><img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/SimoHypers/limusic-android/total?style=for-the-badge&label=DOWNLOADS&color=a4c400"></a>
   <a href="https://github.com/SimoHypers/limusic-android/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/SimoHypers/limusic-android?display_name=release&style=for-the-badge&color=a10935"></a>
   <img alt="License" src="https://img.shields.io/github/license/SimoHypers/limusic-android?style=for-the-badge&color=1881cc">
   <a href="https://simohypers.github.io/limusic/"><img alt="Website" src="https://img.shields.io/badge/WEBSITE-limusic-e5486e?style=for-the-badge"></a>
