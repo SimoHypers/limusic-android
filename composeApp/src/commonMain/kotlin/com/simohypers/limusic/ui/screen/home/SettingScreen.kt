@@ -12,23 +12,16 @@ import com.simohypers.limusic.ui.component.SurfaceDarkColors
 import com.simohypers.limusic.ui.icon.Check
 import com.simohypers.limusic.ui.theme.rounded
 import limusic.composeapp.generated.resources.devices_not_linked
-import limusic.composeapp.generated.resources.devices_linked_to
 import limusic.composeapp.generated.resources.devices
 import com.simohypers.limusic.ui.icon.Computer
 import com.simohypers.limusic.ui.navigation.destination.home.DevicesSettingsDestination
-import com.simohypers.limusic.domain.repository.DeviceLinkRepository
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +37,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -59,7 +51,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -260,7 +251,6 @@ import limusic.composeapp.generated.resources.invalid_host
 import limusic.composeapp.generated.resources.invalid_language_code
 import limusic.composeapp.generated.resources.invalid_port
 import limusic.composeapp.generated.resources.keep_backups
-import limusic.composeapp.generated.resources.keep_backups_format
 import limusic.composeapp.generated.resources.keep_your_youtube_playlist_offline
 import limusic.composeapp.generated.resources.keep_your_youtube_playlist_offline_description
 import limusic.composeapp.generated.resources.kill_service_on_exit
@@ -386,6 +376,7 @@ enum class SettingsSection(
     PLAYBACK(Res.string.playback, Res.string.settings_playback_hint, LimusicIcons.PlayCircle),
     LYRICS(Res.string.lyrics, Res.string.settings_lyrics_hint, LimusicIcons.Lyrics),
     INTEGRATIONS(Res.string.settings_integrations, Res.string.settings_integrations_hint, LimusicIcons.Sync),
+    DEVICES(Res.string.devices, Res.string.devices_not_linked, LimusicIcons.Computer),
     DATA(Res.string.settings_data, Res.string.settings_data_hint, LimusicIcons.DownloadForOffline),
     ABOUT(Res.string.about, Res.string.settings_about_hint, LimusicIcons.Info),
 }
@@ -624,7 +615,14 @@ fun SettingScreen(
                                     smallSubtitle = true,
                                     leading = { Icon(page.icon, contentDescription = null) },
                                     navigates = true,
-                                    onClick = { navController.navigate(SettingsSectionDestination(page.name)) },
+                                    onClick = {
+                                        // Devices has its own page already, so its row opens that page directly.
+                                        if (page == SettingsSection.DEVICES) {
+                                            navController.navigate(DevicesSettingsDestination)
+                                        } else {
+                                            navController.navigate(SettingsSectionDestination(page.name))
+                                        }
+                                    },
                                 )
                             }
                         }
@@ -1466,28 +1464,8 @@ fun SettingScreen(
                                 )
                             }
                         }
-                        val deviceLink by koinInject<DeviceLinkRepository>().link.collectAsStateWithLifecycle()
-                        SettingGroup(title = null) {
-                            SettingItem(
-                                title = stringResource(Res.string.devices),
-                                subtitle =
-                                    deviceLink.devices.firstOrNull()?.takeIf { deviceLink.paired }?.let {
-                                        stringResource(Res.string.devices_linked_to, it.name)
-                                    } ?: stringResource(Res.string.devices_not_linked),
-                                smallSubtitle = true,
-                                leading = {
-                                    Box(
-                                        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(LimusicIcons.Computer, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(22.dp))
-                                    }
-                                },
-                                navigates = true,
-                                onClick = { navController.navigate(DevicesSettingsDestination) },
-                            )
-                        }
                     }
+                    SettingsSection.DEVICES -> Unit
                     SettingsSection.DATA -> {
                         SettingGroup(title = stringResource(Res.string.settings_downloads)) {
                             SettingItem(

@@ -874,7 +874,6 @@
     <string name="sort_not_saved">Sorted, but couldn’t save it to YouTube</string>
     <string name="devices">Devices</string>
     <string name="devices_not_linked">Control Limusic on your computer from this phone</string>
-    <string name="devices_linked_to">Linked to %1$s</string>
     <string name="devices_title">Play anywhere</string>
     <string name="devices_subtitle">Your devices control each other, and the music moves between them.</string>
     <string name="devices_connect_title">Connect to your computer</string>
