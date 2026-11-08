@@ -415,7 +415,9 @@ class ListenTogetherSession(
                             },
                         position = if (p.action == PlaybackActions.SYNC_QUEUE) it.position else p.position,
                         queue = p.queue.ifEmpty { it.queue },
-                        lastActionServerTime = p.capturedAtServerTime,
+                        // sync_queue carries no time either, so the position above keeps its own.
+                        lastActionServerTime =
+                            if (p.action == PlaybackActions.SYNC_QUEUE) it.lastActionServerTime else p.capturedAtServerTime,
                     )
                 }
             }

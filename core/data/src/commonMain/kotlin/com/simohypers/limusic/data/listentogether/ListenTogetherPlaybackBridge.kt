@@ -98,6 +98,9 @@ class ListenTogetherPlaybackBridge(
     /** Whether this bridge last told the player to play; null before it has told it anything. */
     private var appliedPlaying: Boolean? = null
 
+    /** The room's play flag, position and its time, as last applied; null until the first. */
+    private var lastTransport: Triple<Boolean, Long, Long>? = null
+
     /** Idempotent: callers cannot know whether something else already started it. */
     fun start() {
         if (started) return
@@ -129,6 +132,7 @@ class ListenTogetherPlaybackBridge(
             .collect { (inRoom, isHost) ->
                 guestPaused = false
                 appliedPlaying = null
+                lastTransport = null
                 withContext(Dispatchers.Main) {
                     handler.player.crossfadeSuppressed = inRoom
                     // A guest follows the host's queue: no autoplay of its own, nothing saved.
@@ -210,8 +214,8 @@ class ListenTogetherPlaybackBridge(
                     // with the track unchanged, and is applied normally.
                     val playing = if (trackChanged && !isPlaying) lastRoomPlaying else isPlaying
                     lastRoomPlaying = playing
+                    val sameTrack = track?.id == lastAppliedTrackId
                     if (trackChanged && track != null) {
-                        val sameTrack = track.id == lastAppliedTrackId
                         lastAppliedTrackId = track.id
                         lastAppliedQueueIds = queueIds
                         // Decided BEFORE loading, not corrected afterwards: loading with a hardcoded
@@ -231,7 +235,12 @@ class ListenTogetherPlaybackBridge(
                             }
                         playTrack(track, keepPosition = startAt, playWhenReady = playing && !guestPaused)
                     }
-                    applyTransport(playing, position)
+                    // A queue-only change (the host shuffled, added, reordered) says nothing about
+                    // the playhead. Applying the room's position again seeks back to wherever the
+                    // last command put it, which after a track change is the top of the song.
+                    val transport = Triple(isPlaying, position, snapshot.positionAt)
+                    if ((trackChanged && !sameTrack) || transport != lastTransport) applyTransport(playing, position)
+                    lastTransport = transport
                 } catch (e: Exception) {
                     Logger.e(TAG, "Failed to apply remote state: ${e.message}")
                 } finally {
