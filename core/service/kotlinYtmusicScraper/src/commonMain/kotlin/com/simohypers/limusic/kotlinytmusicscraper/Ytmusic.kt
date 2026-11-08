@@ -287,7 +287,7 @@ class Ytmusic {
     /**
      * Will googlevideo serve [url] all the way to the end? Asks for its last 256 bytes, the one
      * request that tells a whole stream from one capped after its first MiB: a HEAD or an opening
-     * range passes on both (desktop Limusic's validate_stream, KNOWN-ISSUES KI-11). No client
+     * range passes on both (desktop Limusic's validate_stream). No client
      * headers, because the player sends none either. A HEAD when there is no length to aim at.
      * Null when no answer came back at all (the network), which says nothing about the stream.
      */

@@ -39,7 +39,7 @@ private const val TAG = "PoToken"
  * and po_token.html (GPL-3.0, TeamNewPipe), the recipe Metrolist uses too.
  *
  * Desktop Limusic measured every real browser engine into the integrity-token class googlevideo
- * refuses for an anonymous session (its KNOWN-ISSUES KI-1), and mints in V8 instead. This WebView
+ * refuses for an anonymous session, and mints in V8 instead. This WebView
  * (153, on the owner's phone) landed in the accepted class, 63 bytes, on all four bootstraps of
  * 2026-10-26, and its tokens made WEB_REMIX play signed in where none did without. Each bootstrap
  * logs its class, so a change there shows up in the log.
