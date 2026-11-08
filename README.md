@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./assets/banner.webp" alt="Limusic Banner" width="100%">
+
 # Limusic for Android
 
 **A native Android YouTube Music client. Kotlin + Jetpack Compose, ad-free.**
