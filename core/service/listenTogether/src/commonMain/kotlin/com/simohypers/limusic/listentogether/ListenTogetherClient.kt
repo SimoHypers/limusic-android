@@ -379,7 +379,7 @@ class ListenTogetherClient(
 
     companion object {
         /** Limusic desktop's default server, so Android and desktop land in the same rooms. */
-        const val DEFAULT_SERVER_URL = "wss://fedora-1.tail9c4985.ts.net/ws"
+        const val DEFAULT_SERVER_URL = "wss://sync.limusic.app/ws"
 
         /** Anchors the default monotonic source; see [elapsedRealtime]. */
         private val PROCESS_START = TimeSource.Monotonic.markNow()
