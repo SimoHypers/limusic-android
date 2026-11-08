@@ -132,6 +132,7 @@ fun App(
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val artworkColors by viewModel.artworkColors.collectAsStateWithLifecycle()
+    val flatProgressBar by viewModel.flatProgressBar.collectAsStateWithLifecycle()
     val artworkColor =
         rememberArtworkColor(
             url = nowPlayingData?.songEntity?.thumbnails ?: nowPlayingData?.mediaItem?.metadata?.artworkUri,
@@ -370,6 +371,7 @@ fun App(
         themeMode = themeMode,
         appearance = appearance,
         artworkColor = artworkColor,
+        flatProgressBar = flatProgressBar,
     ) {
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
         val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f

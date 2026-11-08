@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.simohypers.limusic.ui.theme.LocalFlatProgressBar
 import kotlin.math.roundToInt
 
 /**
@@ -70,7 +71,7 @@ fun WavySeekBar(
     // an internal animation towards ~0.97 and every following frame's smaller target was
     // swallowed by the guard (seen on device). A hard 0f/1f flip recomposes once, the fresh
     // lambda invalidates the node's draw cache, and the built-in spec renders the flatten.
-    val targetAmplitude = if (isPlaying && !isInteracting) 1f else 0f
+    val targetAmplitude = if (isPlaying && !isInteracting && !LocalFlatProgressBar.current) 1f else 0f
     // 0f = idle circle, 1f = dragging tall bar.
     val thumbMorph by animateFloatAsState(
         targetValue = if (isInteracting) 1f else 0f,

@@ -87,6 +87,9 @@ val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
  */
 val LocalArtworkColors = staticCompositionLocalOf { false }
 
+/** "Flat progress bar": the seek bars and the mini player ring draw a plain line, never the wave. */
+val LocalFlatProgressBar = staticCompositionLocalOf { false }
+
 /** The app's own scheme and whether it is dark, so [AppThemeContent] can undo [ForceDarkContent]. */
 private val LocalAppScheme = staticCompositionLocalOf<Pair<ColorScheme, Boolean>?> { null }
 
@@ -222,6 +225,7 @@ fun AppTheme(
     // "Adapt colors to artwork": the playing cover's colour, null while the switch is off, nothing
     // plays or the cover has no colour. Layered over the theme, which comes back untouched.
     artworkColor: Color? = null,
+    flatProgressBar: Boolean = false,
     content:
         @Composable()
         () -> Unit,
@@ -248,6 +252,7 @@ fun AppTheme(
                 LocalAppFonts provides fonts,
                 LocalAppScheme provides (colorScheme to isDark),
                 LocalArtworkColors provides (artworkColor != null),
+                LocalFlatProgressBar provides flatProgressBar,
                 content = content,
             )
         },

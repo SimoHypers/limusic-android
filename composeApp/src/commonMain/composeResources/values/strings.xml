@@ -345,6 +345,8 @@
     <string name="appearance_reset_hint">Drops your accent, tint, roundness and fonts. Keeps the theme and your loaded fonts.</string>
     <string name="appearance_player">Player</string>
     <string name="open_player_on_play">Open the player when you press play</string>
+    <string name="flat_progress_bar">Flat progress bar</string>
+    <string name="flat_progress_bar_info">A plain line instead of the wave, in the player and around the mini player's cover.</string>
     <string name="open_player_on_play_info">On, playing a song, album or playlist brings up the full player. Off, it starts playing and leaves you on the page you were browsing.</string>
     <string name="appearance_interface">Interface</string>
     <string name="appearance_roundness">Roundness</string>

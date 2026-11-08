@@ -102,6 +102,7 @@ import com.simohypers.limusic.ui.theme.AppFont
 import com.simohypers.limusic.ui.theme.Appearance
 import com.simohypers.limusic.ui.theme.DefaultNeutralHue
 import com.simohypers.limusic.ui.theme.LocalArtworkColors
+import com.simohypers.limusic.ui.theme.LocalFlatProgressBar
 import com.simohypers.limusic.ui.theme.LocalForcedDarkColorScheme
 import com.simohypers.limusic.ui.theme.LocalIsDarkTheme
 import com.simohypers.limusic.ui.theme.fontFileLabel
@@ -865,7 +866,7 @@ private fun Bar(
     height: Dp = 3.dp,
 ) = Box(Modifier.fillMaxWidth(width).height(height).background(color, CircleShape))
 
-/** Classic: cover, the sung line, title and like, the wavy bar, pill controls, a row of squares. */
+/** Classic: cover, the sung line, title and like, the seek bar, pill controls, a row of squares. */
 @Composable
 private fun ClassicSketch(s: ColorScheme) {
     Column(Modifier.fillMaxSize().background(s.background).padding(8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -875,22 +876,7 @@ private fun ClassicSketch(s: ColorScheme) {
             Box(Modifier.weight(1f)) { Bar(s.onSurface, 0.7f) }
             Icon(LimusicIcons.Favorite, null, tint = s.primary, modifier = Modifier.size(8.dp))
         }
-        Box(
-            Modifier.fillMaxWidth().height(6.dp).drawBehind {
-                val y = size.height / 2
-                val split = size.width * 0.45f
-                val path = Path().apply {
-                    moveTo(0f, y)
-                    var x = 0f
-                    while (x < split) {
-                        x += 1f
-                        lineTo(x, y + kotlin.math.sin(x / 2.5f) * 2f)
-                    }
-                }
-                drawPath(path, s.primary, style = Stroke(1.5.dp.toPx()))
-                drawLine(s.onSurfaceVariant.copy(alpha = 0.4f), Offset(split, y), Offset(size.width, y), 1.5.dp.toPx())
-            },
-        )
+        SketchSeekBar(s)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             SketchPill(s.surfaceContainerHigh, s.onSurface, LimusicIcons.SkipPrevious, Modifier.weight(1f))
             SketchPill(s.primary, s.onPrimary, LimusicIcons.PlayArrow, Modifier.weight(1.4f))
@@ -900,6 +886,28 @@ private fun ClassicSketch(s: ColorScheme) {
             repeat(4) { Box(Modifier.weight(1f).aspectRatio(1f).border(1.dp, s.outlineVariant, RoundedCornerShape(3.dp))) }
         }
     }
+}
+
+/** Classic's and M3 Expressive's seek bar (both draw WavySeekBar), flat with Flat progress bar on. */
+@Composable
+private fun SketchSeekBar(s: ColorScheme) {
+    val wavy = !LocalFlatProgressBar.current
+    Box(
+        Modifier.fillMaxWidth().height(6.dp).drawBehind {
+            val y = size.height / 2
+            val split = size.width * 0.45f
+            val path = Path().apply {
+                moveTo(0f, y)
+                var x = 0f
+                while (x < split) {
+                    x += 1f
+                    lineTo(x, if (wavy) y + kotlin.math.sin(x / 2.5f) * 2f else y)
+                }
+            }
+            drawPath(path, s.primary, style = Stroke(1.5.dp.toPx()))
+            drawLine(s.onSurfaceVariant.copy(alpha = 0.4f), Offset(split, y), Offset(size.width, y), 1.5.dp.toPx())
+        },
+    )
 }
 
 @Composable
@@ -912,16 +920,14 @@ private fun SketchPill(
     Icon(icon, null, tint = content, modifier = Modifier.size(9.dp))
 }
 
-/** M3 Expressive: the cover on a card, artist line, a thick bar, the button group, cards below. */
+/** M3 Expressive: the cover on a card, artist line, the seek bar, the button group, cards below. */
 @Composable
 private fun ExpressiveSketch(s: ColorScheme) {
     Column(Modifier.fillMaxSize().background(s.surfaceContainerLow).padding(8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).background(s.surfaceContainerHighest, RoundedCornerShape(14.dp)))
         Bar(s.onSurface, 0.75f)
         Bar(s.onSurfaceVariant, 0.5f, 2.dp)
-        Box(Modifier.fillMaxWidth().height(5.dp).background(s.surfaceContainerHighest, CircleShape)) {
-            Box(Modifier.fillMaxWidth(0.4f).fillMaxHeight().background(s.primary, CircleShape))
-        }
+        SketchSeekBar(s)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f).height(16.dp).background(s.secondaryContainer, RoundedCornerShape(8.dp, 2.dp, 2.dp, 8.dp)))
             Box(Modifier.weight(1.5f).height(20.dp).background(s.primary, RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {

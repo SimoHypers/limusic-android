@@ -242,6 +242,8 @@ import limusic.composeapp.generated.resources.request_feature_description
 import limusic.composeapp.generated.resources.download_quality
 import limusic.composeapp.generated.resources.downloaded_cache
 import limusic.composeapp.generated.resources.enable_animated_artwork
+import limusic.composeapp.generated.resources.flat_progress_bar
+import limusic.composeapp.generated.resources.flat_progress_bar_info
 import limusic.composeapp.generated.resources.open_player_on_play
 import limusic.composeapp.generated.resources.open_player_on_play_info
 import limusic.composeapp.generated.resources.equalizer
@@ -490,6 +492,7 @@ fun SettingScreen(
     val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
     val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
     val openPlayerOnPlay by sharedViewModel.getOpenPlayerOnPlay().collectAsStateWithLifecycle(false)
+    val flatProgressBar by sharedViewModel.flatProgressBar.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
     val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
     val thumbnailCache by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
@@ -939,6 +942,11 @@ fun SettingScreen(
                         AppearanceSettings(sharedViewModel)
                         SettingGroup(title = stringResource(Res.string.appearance_player)) {
                             PlayerStylePicker(nowPlayingStyle, onStyle = sharedViewModel::setNowPlayingStyle)
+                            SettingItem(
+                                title = stringResource(Res.string.flat_progress_bar),
+                                subtitle = stringResource(Res.string.flat_progress_bar_info),
+                                switch = (flatProgressBar to { sharedViewModel.setFlatProgressBar(it) }),
+                            )
                             SettingItem(
                                 title = stringResource(Res.string.open_player_on_play),
                                 subtitle = stringResource(Res.string.open_player_on_play_info),

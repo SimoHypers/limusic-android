@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen
 
+import com.simohypers.limusic.ui.theme.LocalFlatProgressBar
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -341,7 +342,8 @@ fun MiniPlayer(
                                         .align(Alignment.CenterVertically),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                // Progress rides a ring around the artwork: wavy while playing, flat when paused.
+                                // Progress rides a ring around the artwork: wavy while playing, flat when paused or with Flat progress bar on.
+                                val flat = LocalFlatProgressBar.current
                                 val ringStroke = Stroke(width = with(LocalDensity.current) { 3.dp.toPx() }, cap = StrokeCap.Round)
                                 CircularWavyProgressIndicator(
                                     progress = { animatedProgress },
@@ -352,7 +354,7 @@ fun MiniPlayer(
                                     trackStroke = ringStroke,
                                     // A raw 0/1, never a tweened value: the node animates amplitude
                                     // itself and drops new targets mid-animation (see WavySeekBar).
-                                    amplitude = { p -> if (p > 0f && isPlaying) 1f else 0f },
+                                    amplitude = { p -> if (p > 0f && isPlaying && !flat) 1f else 0f },
                                 )
                                 AsyncImage(
                                     model =
