@@ -7,9 +7,10 @@ name: Android release
 #
 # DISPATCH ONLY, ON PURPOSE. Actions caches are ref-scoped: a run reads caches from its own ref and
 # the default branch. A release-triggered run executes on the tag ref, writes a cache no later run
-# can read, and pays a cold Gradle build every time. A dispatched run executes on dev, so the cache
-# is shared, while the checkout below still pins the build to the tag. Publishing a release from
-# the GitHub UI therefore builds nothing: use scripts/release.sh, or dispatch this by hand:
+# can read, and pays a cold Gradle build every time. A dispatched run executes on master, the
+# default branch, so the cache is shared, while the checkout below still pins the build to the tag.
+# Publishing a release from the GitHub UI therefore builds nothing: use scripts/release.sh, or
+# dispatch this by hand:
 #   Actions > Android release > Run workflow > tag = v0.2.0
 #
 # Requires repo secrets:

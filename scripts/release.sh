@@ -8,15 +8,16 @@
 # prerelease and never marked Latest.
 #
 # Usage:  scripts/release.sh "$(cat notes.md)"
-# Bump version-name in gradle/libs.versions.toml, commit and push dev BEFORE running. The release
-# is tagged from origin/dev, so the preflight refuses unless HEAD is exactly that.
+# Bump version-name in gradle/libs.versions.toml on dev, fast-forward master to dev and push both
+# BEFORE running. The release is tagged from origin/master, so the preflight refuses unless HEAD is
+# exactly that.
 #
 # Requires: `gh` authed, the signing secrets set on the repo (see the workflow header).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REPO="SimoHypers/limusic-android"
-BRANCH="dev"
+BRANCH="master"
 WORKFLOW="Android release"
 NOTES="${1:-}"
 
