@@ -96,8 +96,8 @@ sealed interface ClaimResult {
 }
 
 /**
- * The device link's protocol half: a second [ListenTogetherClient] in a link room (see
- * `limusic-docs/plans/device-link.md` and desktop's `devicelink.rs`). It knows nothing about the
+ * The device link's protocol half: a second [ListenTogetherClient] in a link room (see desktop's
+ * `devicelink.rs`). It knows nothing about the
  * player; the bridge in core/data publishes through [publish] and reacts to [events].
  */
 class DeviceLinkSession(
