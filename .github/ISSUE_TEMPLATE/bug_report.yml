@@ -1,0 +1,44 @@
+name: Something is broken
+description: Report a bug. One question, the rest is optional.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What went wrong?
+      description: In your own words. What you did, and what the app did instead.
+      placeholder: I tapped play on a song and nothing happened, the mini player stayed empty.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Which version of Limusic?
+      description: Settings -> About. Skip this if you cannot find it.
+      placeholder: "1.0.0"
+
+  - type: input
+    id: phone
+    attributes:
+      label: Which phone, and which Android version?
+      description: Skip this if you attach the app log, it has both.
+      placeholder: Pixel 8, Android 15
+
+  - type: textarea
+    id: log
+    attributes:
+      label: App log
+      description: >
+        Helps the most with anything about playback, downloads or sign-in. Settings -> About ->
+        App log, tap the share button, save the file and attach it here. Cookies and tokens are
+        taken out of it; the names of songs you played stay in.
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: >
+        All optional, whatever you have. A screenshot or a screen recording, the song or
+        playlist it happened on, whether it happens every time. Drag or attach images
+        straight into this box.
