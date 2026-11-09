@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.simohypers.limusic.listentogether.ClaimResult
@@ -227,10 +229,17 @@ class DeviceLinkRepositoryImpl(
         }
     }
 
-    /** Made once per install and kept for good. */
+    private val deviceIdLock = Mutex()
+
+    /**
+     * Made once per install and kept for good. Locked: on the first link, [pair] and the open rule
+     * in init both ask at once, and two fresh ids put this phone in the room twice (issue #2).
+     */
     private suspend fun deviceId(): String =
-        dataStore.getString(KEY_DEVICE_ID).first()?.takeIf { it.isNotBlank() }
-            ?: newDeviceId().also { dataStore.putString(KEY_DEVICE_ID, it) }
+        deviceIdLock.withLock {
+            dataStore.getString(KEY_DEVICE_ID).first()?.takeIf { it.isNotBlank() }
+                ?: newDeviceId().also { dataStore.putString(KEY_DEVICE_ID, it) }
+        }
 
     private companion object {
         const val KEY_LINK = "device_link"
