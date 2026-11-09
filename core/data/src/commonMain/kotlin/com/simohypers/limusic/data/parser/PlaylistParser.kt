@@ -163,31 +163,14 @@ internal fun parsePlaylistData(
                 Logger.d("PlaylistParser", "title: $title")
                 val secondSubtitle = header.secondSubtitle?.runs
                 if (!secondSubtitle.isNullOrEmpty()) {
-                    /**
-                     * Fuck Kotlin
-                     * Ref: https://stackoverflow.com/q/48379981/20605098
-                     */
+                    // "1,100 songs" past 999: keep the digits before the word, or the
+                    // comma fails the parse and the count falls back to the first page.
                     trackCount =
-                        try {
-                            if (secondSubtitle.size >= 5) {
-                                secondSubtitle
-                                    .getOrNull(2)
-                                    ?.text
-                                    ?.split("\\s".toRegex())
-                                    ?.firstOrNull()
-                                    ?.toInt() ?: 0
-                            } else {
-                                secondSubtitle
-                                    .firstOrNull()
-                                    ?.text
-                                    ?.split("\\s".toRegex())
-                                    ?.firstOrNull()
-                                    ?.toInt() ?: 0
-                            }
-                        } catch (e: Exception) {
-                            Logger.e("PlaylistParser", "Error parsing track count: ${e.message}")
-                            0
-                        }
+                        (if (secondSubtitle.size >= 5) secondSubtitle.getOrNull(2) else secondSubtitle.firstOrNull())
+                            ?.text
+                            ?.takeWhile { !it.isLetter() }
+                            ?.filter(Char::isDigit)
+                            ?.toIntOrNull() ?: 0
                 }
                 year =
                     header.subtitle
