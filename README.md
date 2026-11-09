@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/SimoHypers/limusic-android/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/SimoHypers/limusic-android?display_name=release&style=for-the-badge&color=a10935"></a>
   <img alt="License" src="https://img.shields.io/github/license/SimoHypers/limusic-android?style=for-the-badge&color=1881cc">
-  <a href="https://simohypers.github.io/limusic/"><img alt="Website" src="https://img.shields.io/badge/WEBSITE-limusic-e5486e?style=for-the-badge"></a>
+  <a href="https://limusic.app"><img alt="Website" src="https://img.shields.io/badge/WEBSITE-limusic-e5486e?style=for-the-badge"></a>
   <a href="https://ko-fi.com/simohypers"><img alt="Support on Ko-fi" src="https://img.shields.io/badge/KO--FI-support-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white"></a>
   <br>
   <img alt="Android 8.0+" src="https://img.shields.io/badge/Android_8.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white">
