@@ -5,7 +5,8 @@ import com.simohypers.limusic.domain.data.model.account.AccountInfo
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
-    fun getAccountInfo(cookie: String): Flow<List<AccountInfo>>
+    /** The channels [cookie] can act as; null when the request failed, so nothing is known either way. */
+    fun getAccountInfo(cookie: String): Flow<List<AccountInfo>?>
 
     fun getYouTubeCookie(): String?
 
