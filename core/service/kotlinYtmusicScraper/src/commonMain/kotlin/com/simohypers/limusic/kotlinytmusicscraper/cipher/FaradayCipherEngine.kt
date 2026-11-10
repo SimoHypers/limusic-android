@@ -32,6 +32,9 @@ class FaradayCipherEngine(
      */
     private val jsThread: CoroutineDispatcher,
     private val logger: InnerTubeLogger = InnerTubeLogger.NONE,
+    /** The player id the last good `iframe_api` answer named, kept by the platform across restarts. */
+    private val savedPlayerId: () -> String? = { null },
+    private val savePlayerId: (String) -> Unit = {},
 ) {
     /** What PipePipe needs before it can ask for anything to be decoded. */
     data class PlayerInfo(
@@ -148,16 +151,29 @@ class FaradayCipherEngine(
         stores.forEach { runCatching { it.refreshAfterStreamRejection() } }
     }
 
+    /**
+     * Some IPs get `iframe_api` redirected for minutes at a time while InnerTube keeps answering
+     * (issue #5). Dropping the id then cost every web client its formats, so a failed refetch keeps
+     * the last good id, from this run or a saved one, and asks again after [PLAYER_ID_RETRY_MS]. A
+     * player that has rotated out still solves while the tables list it, and the stream probe
+     * catches one that doesn't.
+     */
     private suspend fun currentPlayerId(): String? {
         val now = Clock.System.now().toEpochMilliseconds()
         mutex.withLock {
+            if (cachedPlayerId == null) cachedPlayerId = savedPlayerId()?.takeIf(PLAYER_ID_REGEX::matches)
             cachedPlayerId?.takeIf { now - cachedPlayerIdAtMs < PLAYER_ID_TTL_MS }?.let { return it }
         }
-        val fetched = fetchPlayerId() ?: return null
+        val fetched =
+            fetchPlayerId() ?: return mutex.withLock {
+                cachedPlayerIdAtMs = now - PLAYER_ID_TTL_MS + PLAYER_ID_RETRY_MS
+                cachedPlayerId?.also { logger.w(TAG, "keeping the last player", details = mapOf("player" to it)) }
+            }
         mutex.withLock {
             cachedPlayerId = fetched
             cachedPlayerIdAtMs = Clock.System.now().toEpochMilliseconds()
         }
+        savePlayerId(fetched)
         return fetched
     }
 
@@ -174,7 +190,9 @@ class FaradayCipherEngine(
                 }
             val body = response.body
             if (body == null) {
-                logger.w(TAG, "iframe_api returned HTTP ${response.status.value}")
+                // Host and path only: a redirect's query can carry the IP.
+                val to = response.headers[HttpHeaders.Location]?.let { runCatching { Url(it).let { u -> u.host + u.encodedPath } }.getOrNull() }
+                logger.w(TAG, "iframe_api returned HTTP ${response.status.value}" + to?.let { " to $it" }.orEmpty())
                 null
             } else {
                 PLAYER_HASH_REGEX.find(body)?.groupValues?.getOrNull(1)
@@ -269,6 +287,7 @@ class FaradayCipherEngine(
         private const val MAX_IFRAME_BYTES = 512 * 1024
         private const val MAX_PLAYER_SCRIPT_BYTES = 8 * 1024 * 1024
         private const val PLAYER_ID_TTL_MS = 30 * 60 * 1000L
+        private const val PLAYER_ID_RETRY_MS = 5 * 60 * 1000L
 
         private val PLAYER_HASH_REGEX = Regex("""player\\?/([a-z0-9]{8})\\?/""")
         private val PLAYER_ID_REGEX = Regex("^[A-Za-z0-9_-]{4,32}$")

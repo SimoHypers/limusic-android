@@ -23,7 +23,7 @@ internal class AccountRepositoryImpl(
 
     override val authRejected: Flow<Unit> get() = youTube.authRejected
 
-    override fun getAccountInfo(cookie: String): Flow<List<AccountInfo>> =
+    override fun getAccountInfo(cookie: String): Flow<List<AccountInfo>?> =
         flow {
             // Asks with this jar alone: the live session is left as it is until the caller
             // decides to switch to it.
@@ -33,7 +33,7 @@ internal class AccountRepositoryImpl(
                     emit(it.map { account -> account.toDomainAccountInfo() })
                 }.onFailure {
                     Logger.e(TAG, "getAccountInfo: ${it.message}", it)
-                    emit(emptyList())
+                    emit(null)
                 }
         }.flowOn(Dispatchers.IO)
 

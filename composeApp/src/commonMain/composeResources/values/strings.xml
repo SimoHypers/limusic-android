@@ -1023,5 +1023,6 @@
     <string name="switched_to">Switched to %1$s</string>
     <string name="session_expired_sign_in_again">That account's session has expired. Sign in with it again.</string>
     <string name="sign_in_failed">Sign-in didn't complete. Try signing in again.</string>
+    <string name="account_check_failed">Couldn't reach YouTube to check that account. Try again in a bit.</string>
     <string name="proxy_saved_restart_to_apply">Proxy saved, restart to apply</string>
 </resources>

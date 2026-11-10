@@ -1,5 +1,6 @@
 package com.simohypers.limusic.kotlinytmusicscraper.extractor
 
+import android.content.Context
 import com.simohypers.limusic.kotlinytmusicscraper.cipher.FaradayCipherEngine
 import com.simohypers.limusic.kotlinytmusicscraper.cipher.InnerTubeLogLevel
 import com.simohypers.limusic.kotlinytmusicscraper.cipher.InnerTubeLogger
@@ -11,6 +12,8 @@ import dev.maxrave.pipepipe.extractor.services.youtube.YoutubeJavaScriptDecoder
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.koin.mp.KoinPlatform.getKoin
+import java.io.File
 import java.util.concurrent.Executors
 
 private const val TAG = "FaradayJsDecoder"
@@ -39,7 +42,16 @@ internal class FaradayJsDecoder : YoutubeJavaScriptDecoder {
             .asCoroutineDispatcher()
 
     /** Shared with the stream chain in YouTube.player through [Extractor.cipher]. */
-    val engine by lazy { FaradayCipherEngine(HttpClient(getEngine()), jsThread, bridgedLogger) }
+    val engine by lazy {
+        val saved = File(getKoin().get<Context>().cacheDir, "player_id.txt")
+        FaradayCipherEngine(
+            HttpClient(getEngine()),
+            jsThread,
+            bridgedLogger,
+            savedPlayerId = { runCatching { saved.readText().trim() }.getOrNull() },
+            savePlayerId = { runCatching { saved.writeText(it) } },
+        )
+    }
 
     override fun getPlayerData(videoId: String): YoutubeJavaScriptDecoder.PlayerData {
         val info =

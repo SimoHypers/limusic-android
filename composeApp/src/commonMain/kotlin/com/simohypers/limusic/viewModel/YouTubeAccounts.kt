@@ -15,6 +15,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import limusic.composeapp.generated.resources.Res
+import limusic.composeapp.generated.resources.account_check_failed
 import limusic.composeapp.generated.resources.session_expired_sign_in_again
 import limusic.composeapp.generated.resources.sign_in_failed
 import limusic.composeapp.generated.resources.signed_in_as
@@ -118,8 +119,9 @@ class YouTubeAccounts(
             val key = sapisid(cookie)
             val channels = channelsOf(cookie)
             if (key == null || channels.isNullOrEmpty()) {
-                Logger.w("Auth", "YouTube: sign-in failed, the jar lists no account")
-                toast(getString(Res.string.sign_in_failed))
+                val unanswered = key != null && channels == null
+                Logger.w("Auth", "YouTube: sign-in failed, " + if (unanswered) "the account list didn't load" else "the jar lists no account")
+                toast(getString(if (unanswered) Res.string.account_check_failed else Res.string.sign_in_failed))
                 return@op SignIn.Failed
             }
             val before = load().firstOrNull { sapisid(it.cache) == key }
@@ -154,8 +156,10 @@ class YouTubeAccounts(
                 channels?.firstOrNull { it.pageId == row.pageId && it.authUser == row.authUser }
                     ?: channels?.firstOrNull()
             if (channel == null) {
-                Logger.w("Auth", "YouTube: saved account no longer signs in")
-                toast(getString(Res.string.session_expired_sign_in_again))
+                // A failed request says nothing about the session (issue #5: a redirect loop on one IP).
+                val unanswered = sapisid(row.cache) != null && channels == null
+                Logger.w("Auth", if (unanswered) "YouTube: the account list didn't load" else "YouTube: saved account no longer signs in")
+                toast(getString(if (unanswered) Res.string.account_check_failed else Res.string.session_expired_sign_in_again))
                 return@op false
             }
             save(row.cache!!, channel, fromWebView = false)
