@@ -6,6 +6,7 @@ import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.view.KeyEvent
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -647,6 +648,17 @@ fun startService(
     context.bindService(intent, serviceConnection, BIND_AUTO_CREATE)
     Logger.d("Service", "Service started")
 }
+
+/**
+ * A media button `play` for the playback service, the intent Media3's own notification sends. Started
+ * as a foreground service it also starts the app, and with nothing loaded it resumes the saved queue
+ * (onPlaybackResumption). Only send it when there is something to play: a start that never plays
+ * misses the foreground deadline.
+ */
+@OptIn(UnstableApi::class)
+fun playButtonIntent(context: Context): Intent =
+    Intent(Intent.ACTION_MEDIA_BUTTON, null, context, SimpleMediaService::class.java)
+        .putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY))
 
 @OptIn(UnstableApi::class)
 fun stopService(context: Context) {
