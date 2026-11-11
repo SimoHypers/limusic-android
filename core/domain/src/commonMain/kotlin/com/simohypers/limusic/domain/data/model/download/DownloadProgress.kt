@@ -1,5 +1,7 @@
 package com.simohypers.limusic.domain.data.model.download
 
+import com.simohypers.limusic.domain.data.entities.SongEntity
+
 data class DownloadProgress(
     val audioDownloadProgress: Float = 0f, // 0.0 - 1.0
     val videoDownloadProgress: Float = 0f, // 0.0 - 1.0
@@ -26,7 +28,8 @@ data class DownloadCount(
 
 /**
  * A playlist or album's download: [kept] once the user asked for it, and how far its [total] songs
- * got. [refused] counts the songs YouTube would not play this run, which no retry will fetch.
+ * got. [refused] counts the songs YouTube would not play, which no retry will fetch, and
+ * [refusedSongs] is their stored rows, for saying which ones.
  */
 data class CollectionDownload(
     val kept: Boolean = false,
@@ -34,6 +37,7 @@ data class CollectionDownload(
     val downloaded: Int = 0,
     val active: Int = 0,
     val refused: Int = 0,
+    val refusedSongs: List<SongEntity> = emptyList(),
 )
 
 /**

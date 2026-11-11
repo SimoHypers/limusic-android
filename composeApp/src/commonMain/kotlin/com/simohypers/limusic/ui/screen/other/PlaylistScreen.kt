@@ -320,9 +320,12 @@ fun PlaylistScreen(
                                                 }
                                                 CollectionDownloadButton(
                                                     download = download,
+                                                    title = data.title,
+                                                    thumbnail = data.thumbnail,
                                                     onDownload = { viewModel.onUIEvent(PlaylistUIEvent.Download) },
                                                     onRemove = viewModel::removeDownload,
                                                     onDownloadMissing = viewModel::downloadMissing,
+                                                    rereadsList = true,
                                                 )
                                             }
                                             // Nothing to save: your own playlists and Liked Music are yours already.
