@@ -11,9 +11,13 @@ import com.simohypers.limusic.domain.data.model.download.DownloadProgress
 import com.simohypers.limusic.domain.data.model.streams.YouTubeWatchEndpoint
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
 import com.simohypers.limusic.domain.utils.Resource
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDateTime
 
 interface SongRepository {
@@ -196,15 +200,25 @@ interface SongRepository {
 
     fun getRadioFromEndpoint(endpoint: YouTubeWatchEndpoint): Flow<Resource<Pair<List<Track>, String?>>>
 }
+@OptIn(ExperimentalCoroutinesApi::class)
 fun SongRepository.collectionDownload(
     kept: Boolean,
-    videoIds: List<String>,
-): Flow<CollectionDownload> =
-    if (!kept || videoIds.isEmpty()) {
+    list: List<String>,
+): Flow<CollectionDownload> {
+    // A song in a playlist twice is one file: counted twice, "191 of 192" never reaches the end.
+    val videoIds = list.distinct()
+    return if (!kept || videoIds.isEmpty()) {
         flowOf(CollectionDownload(kept, videoIds.size))
     } else {
         // ponytail: a refused song is taken as not downloaded; only getStream records refusals, and a downloaded song never goes through it.
-        combine(downloadCount(videoIds), PlaybackRefusals.refusedIds) { count, refusals ->
-            CollectionDownload(true, videoIds.size, count.downloaded, count.active, videoIds.count { it in refusals })
+        // The rows are read only when the refused set changes, not on every progress tick.
+        val refused =
+            PlaybackRefusals.refusedIds
+                .map { refusals -> videoIds.filter { it in refusals } }
+                .distinctUntilChanged()
+                .flatMapLatest { ids -> if (ids.isEmpty()) flowOf(ids to emptyList()) else getSongsByListVideoId(ids).map { ids to it } }
+        combine(downloadCount(videoIds), refused) { count, (ids, songs) ->
+            CollectionDownload(true, videoIds.size, count.downloaded, count.active, ids.size, songs)
         }
     }
+}

@@ -172,6 +172,8 @@ fun AlbumScreen(
                                     ) {
                                         CollectionDownloadButton(
                                             download = download,
+                                            title = uiState.title,
+                                            thumbnail = uiState.thumbnail,
                                             onDownload = viewModel::downloadFullAlbum,
                                             onRemove = viewModel::removeDownload,
                                             onDownloadMissing = viewModel::downloadMissing,

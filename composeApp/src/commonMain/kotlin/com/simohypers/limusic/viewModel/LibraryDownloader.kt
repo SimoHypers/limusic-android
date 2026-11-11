@@ -1,6 +1,7 @@
 package com.simohypers.limusic.viewModel
 
 import com.simohypers.limusic.domain.data.entities.DownloadState.STATE_DOWNLOADED
+import com.simohypers.limusic.domain.data.entities.PlaylistEntity
 import com.simohypers.limusic.domain.data.model.browse.album.Track
 import com.simohypers.limusic.domain.data.player.PlaybackRefusals
 import com.simohypers.limusic.domain.manager.DataStoreManager
@@ -62,12 +63,16 @@ internal class LibraryDownloader : KoinComponent {
 
     private suspend fun run(): Boolean {
         var ok = true
+        val kept = mutableSetOf<String>()
         if (dataStoreManager.loggedIn.first() == DataStoreManager.TRUE) {
             val library = playlistRepository.getLibraryPlaylist().firstOrNull()
             if (library == null) ok = false
             // "SE" is Episodes for later: podcast episodes, not songs.
             val ids = listOf("LM") + library.orEmpty().map { it.browseId.removePrefix("VL") }.filter { it != "SE" }
-            ids.distinct().forEach { ok = keepPlaylist(it) && ok }
+            ids.distinct().forEach {
+                kept += it
+                ok = keepPlaylist(it) && ok
+            }
             val albums = albumRepository.getLibraryAlbums()
             if (albums == null) ok = false
             albums.orEmpty().forEach { ok = keepAlbum(it.browseId) && ok }
@@ -77,9 +82,23 @@ internal class LibraryDownloader : KoinComponent {
                 .getLikedPlaylists()
                 .first()
                 .filter { it.id.removePrefix("VL") != "LM" && !it.id.isRadioPlaylistId() }
-                .forEach { ok = keepPlaylist(it.id) && ok }
+                .forEach {
+                    kept += it.id.removePrefix("VL")
+                    ok = keepPlaylist(it.id) && ok
+                }
             albumRepository.getLikedAlbums().first().forEach { ok = keepAlbum(it.browseId) && ok }
         }
+        // Downloaded playlists outside the library: songs added to them come down too.
+        // ponytail: these don't count toward a complete pass, so one deleted on YouTube can't rerun the
+        // whole library every launch; a network blip skips them for a day.
+        playlistRepository
+            .getAllDownloadedPlaylist()
+            .first()
+            .filterIsInstance<PlaylistEntity>()
+            .map { it.id.removePrefix("VL") }
+            .filter { it !in kept && !it.isRadioPlaylistId() }
+            .distinct()
+            .forEach { keepPlaylist(it) }
         localPlaylistRepository.getAllLocalPlaylists().first().forEach { playlist ->
             if (playlist.downloadState != STATE_DOWNLOADED) localPlaylistRepository.updateLocalPlaylistDownloadState(STATE_DOWNLOADED, playlist.id)
             downloadHandler.downloadTracks(localPlaylistRepository.getFullPlaylistTracks(playlist.id))

@@ -461,6 +461,8 @@ fun LocalPlaylistScreen(
                             }
                             CollectionDownloadButton(
                                 download = download,
+                                title = uiState.title,
+                                thumbnail = uiState.thumbnail,
                                 onDownload = viewModel::downloadFullPlaylist,
                                 onRemove = viewModel::removeDownload,
                                 onDownloadMissing = viewModel::downloadMissing,

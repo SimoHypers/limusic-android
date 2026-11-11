@@ -149,6 +149,9 @@ import com.simohypers.limusic.ui.icon.CheckCircle
 import com.simohypers.limusic.ui.icon.Close
 import com.simohypers.limusic.ui.icon.ContentCopy
 import com.simohypers.limusic.ui.icon.Delete
+import com.simohypers.limusic.ui.icon.Download
+import com.simohypers.limusic.ui.icon.Error
+import com.simohypers.limusic.ui.icon.KeyboardArrowDown
 import com.simohypers.limusic.ui.icon.Done
 import com.simohypers.limusic.ui.icon.DownloadForOffline
 import com.simohypers.limusic.ui.icon.DownloadForOfflineOutlined
@@ -195,11 +198,22 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import limusic.composeapp.generated.resources.download_kept_note
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.liked_songs_count
 import limusic.composeapp.generated.resources.add_to_a_playlist
+import limusic.composeapp.generated.resources.download_missing
+import limusic.composeapp.generated.resources.download_missing_rereads
+import limusic.composeapp.generated.resources.download_progress_text
+import limusic.composeapp.generated.resources.download_refused
+import limusic.composeapp.generated.resources.failed_downloads
+import limusic.composeapp.generated.resources.failed_downloads_reason
+import limusic.composeapp.generated.resources.remove_download
+import limusic.composeapp.generated.resources.tap_again_to_remove
+import androidx.compose.material3.LinearProgressIndicator
+import com.simohypers.limusic.domain.data.model.download.CollectionDownload
 import limusic.composeapp.generated.resources.add_to_queue
 import limusic.composeapp.generated.resources.about
 import limusic.composeapp.generated.resources.album
@@ -1096,12 +1110,13 @@ private fun SongMenuHeader(
     thumbnail: String?,
     title: String,
     subtitle: String,
-    liked: Boolean,
-    onLike: () -> Unit,
+    // Null: no heart (a collection's download sheet).
+    liked: Boolean?,
+    onLike: () -> Unit = {},
 ) {
     val colors = rememberSurfaceDarkColors()
     // Flips on the tap; the song's own state catches up once the write lands.
-    var checked by remember(liked) { mutableStateOf(liked) }
+    var checked by remember(liked) { mutableStateOf(liked == true) }
     Row(
         Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1140,10 +1155,12 @@ private fun SongMenuHeader(
                 )
             }
         }
-        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-            HeartCheckBox(size = 28, checked = checked, tint = colors.content) {
-                checked = !checked
-                onLike()
+        if (liked != null) {
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                HeartCheckBox(size = 28, checked = checked, tint = colors.content) {
+                    checked = !checked
+                    onLike()
+                }
             }
         }
     }
@@ -2191,6 +2208,80 @@ fun ArtistBottomSheet(
         ) { onFollow?.let(run) }
         val shareTitle = stringResource(Res.string.share)
         ActionButton(icon = LimusicIcons.Share, text = Res.string.share) { shareUrl(shareTitle, shareLink) }
+    }
+}
+
+/**
+ * A downloaded playlist or album, from its download button: how far it got, Download missing, the
+ * songs YouTube refused (opened in place) and Remove download, which takes a second tap: a big
+ * playlist is a lookup per song to fetch again.
+ */
+@Composable
+fun CollectionDownloadSheet(
+    title: String,
+    thumbnail: String?,
+    download: CollectionDownload,
+    rereadsList: Boolean,
+    onDownloadMissing: () -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    MenuSheet(onDismiss) { run ->
+        val colors = rememberSurfaceDarkColors()
+        val accent = MaterialTheme.colorScheme.primary
+        val danger = MaterialTheme.colorScheme.error
+        val wanted = download.total - download.refused
+        SongMenuHeader(thumbnail, title, stringResource(Res.string.download_progress_text, download.downloaded, download.total), liked = null)
+        if (download.downloaded < wanted) {
+            LinearProgressIndicator(
+                progress = { download.downloaded.toFloat() / wanted.coerceAtLeast(1) },
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
+                color = accent,
+                trackColor = accent.copy(alpha = 0.16f),
+            )
+        }
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+            if (download.active == 0 && (rereadsList || download.downloaded + download.refused < download.total)) {
+                ActionButton(
+                    icon = LimusicIcons.Download,
+                    text = Res.string.download_missing,
+                    subtitle = if (rereadsList) stringResource(Res.string.download_missing_rereads) else null,
+                ) { run(onDownloadMissing) }
+            }
+            if (download.refusedSongs.isNotEmpty()) {
+                var open by remember { mutableStateOf(false) }
+                val turn by animateFloatAsState(if (open) 180f else 0f)
+                ActionButton(
+                    icon = LimusicIcons.Error,
+                    text = Res.string.failed_downloads,
+                    subtitle = pluralStringResource(Res.plurals.download_refused, download.refused, download.refused),
+                    trailing = { Icon(LimusicIcons.KeyboardArrowDown, null, Modifier.rotate(turn), tint = colors.subtitle) },
+                ) { open = !open }
+                AnimatedVisibility(open) {
+                    Column {
+                        Text(
+                            stringResource(Res.string.failed_downloads_reason),
+                            // Under the row's text: 20 row inset + 48 icon + 10 gap.
+                            Modifier.padding(start = 78.dp, end = 20.dp, bottom = 4.dp),
+                            style = typo().bodySmall,
+                            color = colors.subtitle,
+                        )
+                        // No tap: YouTube won't play them either.
+                        download.refusedSongs.forEach { song ->
+                            SongFullWidthItems(songEntity = song, isPlaying = false, modifier = Modifier)
+                        }
+                    }
+                }
+            }
+            var armed by remember { mutableStateOf(false) }
+            ActionButton(
+                icon = LimusicIcons.Delete,
+                text = if (armed) Res.string.tap_again_to_remove else Res.string.remove_download,
+                textColor = danger,
+                iconColor = danger,
+                subtitle = stringResource(Res.string.download_kept_note),
+            ) { if (armed) run(onRemove) else armed = true }
+        }
     }
 }
 

@@ -56,10 +56,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import limusic.composeapp.generated.resources.loading_playlist
 import limusic.composeapp.generated.resources.starting_radio
+import org.jetbrains.compose.resources.getPluralString
 import org.koin.core.component.inject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.auto_created_by_youtube_music
+import limusic.composeapp.generated.resources.download_nothing_missing
 import limusic.composeapp.generated.resources.downloading
+import limusic.composeapp.generated.resources.downloading_n_songs
 import limusic.composeapp.generated.resources.error
 import limusic.composeapp.generated.resources.playlist
 import limusic.composeapp.generated.resources.playlist_deleted
@@ -623,6 +626,8 @@ class PlaylistViewModel(
                 trackCount = tracks.value.size,
             )?.let {
                 playlistRepository.insertAndReplacePlaylist(it)
+                // The download count reads this row: Play all or select all refresh it too.
+                _playlistEntity.value = it
             }
         return true
     }
@@ -643,7 +648,7 @@ class PlaylistViewModel(
             getFullTracks { tracks ->
                 viewModelScope.launch {
                     playlistRepository.updatePlaylistDownloadState(id, STATE_DOWNLOADED)
-                    _playlistEntity.update { it?.copy(downloadState = STATE_DOWNLOADED, tracks = tracks.toListVideoId()) }
+                    _playlistEntity.update { it?.copy(downloadState = STATE_DOWNLOADED) }
                     downloadUtils.downloadTracks(tracks.map { it.toSongEntity() })
                 }
             }
@@ -661,11 +666,22 @@ class PlaylistViewModel(
         }
     }
 
-    /** Retries the songs of a kept playlist that are not on the phone. */
+    /**
+     * Reads the playlist again, then fetches what is not on the phone: songs added since it was
+     * downloaded and songs that failed. The stored list alone would miss the added ones.
+     */
     fun downloadMissing() {
-        val ids = playlistEntity.value?.tracks ?: return
-        viewModelScope.launch {
-            downloadUtils.downloadTracks(songRepository.getSongsByListVideoId(ids).first())
+        getFullTracks { tracks ->
+            viewModelScope.launch {
+                val d = songRepository.collectionDownload(true, tracks.toListVideoId().distinct()).first()
+                val missing = d.total - d.downloaded - d.active - d.refused
+                if (missing <= 0) {
+                    makeToast(getString(Res.string.download_nothing_missing))
+                } else {
+                    makeToast(getPluralString(Res.plurals.downloading_n_songs, missing, missing))
+                    downloadUtils.downloadTracks(tracks.map { it.toSongEntity() })
+                }
+            }
         }
     }
 
