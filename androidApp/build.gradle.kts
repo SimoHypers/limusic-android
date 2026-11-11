@@ -49,7 +49,7 @@ android {
 
         @Suppress("UnstableApiUsage")
         androidResources {
-            localeFilters += listOf("en") // one per language in SUPPORTED_LANGUAGE (core/common Config.kt)
+            localeFilters += listOf("en", "ru") // one per language in SUPPORTED_LANGUAGE (core/common Config.kt)
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

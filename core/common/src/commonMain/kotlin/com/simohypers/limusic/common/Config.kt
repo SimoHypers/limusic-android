@@ -159,8 +159,8 @@ object SUPPORTED_LOCATION {
  * are two. A stored language that is not listed here falls back to English (MainActivity).
  */
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> = arrayOf("English")
-    val codes: Array<String> = arrayOf("en-US")
+    val items: Array<CharSequence> = arrayOf("English", "Russian")
+    val codes: Array<String> = arrayOf("en-US", "ru-RU")
 
     fun getLanguageFromCode(code: String?): String {
         val index = codes.indexOf(code)
