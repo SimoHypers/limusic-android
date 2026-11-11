@@ -331,12 +331,15 @@ fun SearchScreen(
             }
     }
 
-    //On search icon click while on search screen, open keyboard. Android only feature
+    // Tapping the Search tab again starts a new search: clear the bar, focus it, open the keyboard.
+    // The old query stays one tap away in Recent searches.
     if (getPlatform() == Platform.Android) {
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
         LaunchedEffect(reloadDestination) {
             if (reloadDestination == SearchDestination::class) {
-                if (!selection.active && searchUIType == SearchUIType.EMPTY) {
+                if (!selection.active) {
+                    searchText = ""
+                    isSearchSubmitted = false
                     isExpanded = true
                     focusRequester.requestFocus()
                     keyboardController?.show()
