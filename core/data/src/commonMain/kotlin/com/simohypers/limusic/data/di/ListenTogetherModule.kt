@@ -7,6 +7,7 @@ import com.simohypers.limusic.data.listentogether.DeviceLinkRepositoryImpl
 import com.simohypers.limusic.data.listentogether.ListenTogetherPlaybackBridge
 import com.simohypers.limusic.data.listentogether.ListenTogetherPrefs
 import com.simohypers.limusic.data.listentogether.ListenTogetherRepositoryImpl
+import com.simohypers.limusic.data.listentogether.elapsedRealtime
 import com.simohypers.limusic.domain.repository.DeviceLinkRepository
 import com.simohypers.limusic.domain.repository.ListenTogetherRepository
 import com.simohypers.limusic.domain.manager.DataStoreManager
@@ -35,6 +36,7 @@ val listenTogetherModule =
                 serverUrl = {
                     runBlocking { get<DataStoreManager>().getString(ListenTogetherPrefs.SERVER_URL).first().orEmpty() }
                 },
+                elapsedRealtime = ::elapsedRealtime,
             )
         }
 
@@ -62,7 +64,7 @@ val listenTogetherModule =
         // The device link (phone remote + Continue here): its own socket, apart from Listen
         // Together's. `createdAtStart` does nothing for a module loaded this way (see Loader.kt):
         // MainActivity's onStart injects the repository, which builds and starts the bridge.
-        single { DeviceLinkSession(userAgent = get<AppIdentity>().userAgent) }
+        single { DeviceLinkSession(userAgent = get<AppIdentity>().userAgent, elapsedRealtime = ::elapsedRealtime) }
         single {
             DeviceLinkBridge(
                 session = get(),

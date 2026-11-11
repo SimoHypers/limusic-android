@@ -94,13 +94,11 @@ class ListenTogetherClient(
      */
     private val serverUrl: () -> String = { DEFAULT_SERVER_URL },
     /**
-     * MUST be monotonic — [ServerClock] compares it against itself. The default is Kotlin's own
-     * monotonic source, which needs no expect/actual; a platform with a better one (Android's
-     * `SystemClock.elapsedRealtime`, which also counts deep sleep) can pass it instead.
+     * MUST be monotonic and keep counting in deep sleep (Android's `SystemClock.elapsedRealtime`).
+     * [ServerClock] stands for the wall clock, which the player views extrapolate against: a clock
+     * that stops while the phone sleeps runs every later position ahead by the time slept.
      */
-    private val elapsedRealtime: () -> Long = {
-        PROCESS_START.elapsedNow().inWholeMilliseconds
-    },
+    private val elapsedRealtime: () -> Long,
     dispatcher: CoroutineContext = Dispatchers.Default,
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = SupervisorJob() + dispatcher
@@ -380,9 +378,6 @@ class ListenTogetherClient(
     companion object {
         /** Limusic desktop's default server, so Android and desktop land in the same rooms. */
         const val DEFAULT_SERVER_URL = "wss://sync.limusic.app/ws"
-
-        /** Anchors the default monotonic source; see [elapsedRealtime]. */
-        private val PROCESS_START = TimeSource.Monotonic.markNow()
 
         /** Desktop pings every 25s; the server's idle limit is 90s. */
         private val PING_INTERVAL = 25.seconds

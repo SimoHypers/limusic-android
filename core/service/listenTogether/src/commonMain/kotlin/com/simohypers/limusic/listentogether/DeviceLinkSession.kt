@@ -102,11 +102,13 @@ sealed interface ClaimResult {
  */
 class DeviceLinkSession(
     userAgent: String,
+    /** See [ListenTogetherClient]'s. */
+    elapsedRealtime: () -> Long,
 ) {
     /** Read by the client on every connection attempt. Empty means its default server. */
     private var server = ""
 
-    private val client = ListenTogetherClient(userAgent = userAgent, serverUrl = { server })
+    private val client = ListenTogetherClient(userAgent = userAgent, serverUrl = { server }, elapsedRealtime = elapsedRealtime)
     private val scope: CoroutineScope = client
 
     private val _state = MutableStateFlow(LinkState())
