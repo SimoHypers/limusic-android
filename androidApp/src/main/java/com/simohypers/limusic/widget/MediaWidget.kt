@@ -30,7 +30,6 @@ import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
@@ -203,14 +202,18 @@ suspend fun followMediaWidget(
         .collectLatest { MediaWidget().updateAll(context) }
 }
 
-/** Where the track is, 0..1 in the bar's 1% steps, or null with nothing loaded. */
+/** Where the track is, 0..1 in [STEPS] steps, or null with nothing loaded. */
 private val widgetProgress = MutableStateFlow<Float?>(null)
 
+/** About a pixel of the widest bar (a 5-column poster, ~1000 px at 480 dpi), so a redraw creeps instead of jumping. */
+private const val STEPS = 1000
+
 /**
- * Moves the bar while something plays. Every move redraws the whole widget, cover included, so it
- * only runs while the screen is on and a widget is placed, and redraws only when the percent
- * changes: Glance's bar has 100 steps, about one every 2 seconds for a song. A pause or a new
- * track sets it once.
+ * Moves the bar once a second while something plays: 1-2 px a second on most sizes for a song.
+ * Smoother costs too much: every redraw resends the whole widget, and measured on a Nothing Phone
+ * the launcher spends ~100 ms of CPU applying each one (11% of a core at once a second, 37% at four).
+ * So it only runs while the screen is on and a widget is placed, skips a redraw the bar wouldn't
+ * show (a long track's steps take longer than a second), and a pause or a new track sets it once.
  */
 private suspend fun tickProgress(
     context: Context,
@@ -228,7 +231,7 @@ private suspend fun tickProgress(
                             if (!handler.nowPlayingState.value.isNotEmpty()) return@withContext null
                             // Unknown while a track loads (and for a live stream): an empty bar, so the layout holds still.
                             val length = handler.getPlayerDuration()
-                            if (length <= 0) 0f else (handler.getProgress() * 100 / length).coerceIn(0, 100) / 100f
+                            if (length <= 0) 0f else (handler.getProgress() * STEPS / length).coerceIn(0, STEPS.toLong()) / STEPS.toFloat()
                         }
                     if (at != widgetProgress.value) {
                         widgetProgress.value = at
@@ -417,11 +420,12 @@ private fun Strip(
             Spacer(GlanceModifier.width(4.dp))
             Skip(ui, R.drawable.rounded_skip_next_24, MediaR.string.widget_next, ui.next, button)
         } else {
+            val controls = size.width >= 260.dp
             Column(GlanceModifier.defaultWeight().padding(horizontal = 12.dp)) {
                 Titles(ui, title = 15.sp, subtitle = 13.sp)
-                Progress(ui, above = 5.dp)
+                Progress(ui, width = size.width - 16.dp - cover - 24.dp - if (controls) button * 3 + 8.dp else button, above = 5.dp)
             }
-            if (size.width >= 260.dp) Controls(ui, button) else Play(ui, button)
+            if (controls) Controls(ui, button) else Play(ui, button)
         }
     }
 }
@@ -449,7 +453,7 @@ private fun Side(
                 Logo(ui.palette, if (tall) 26.dp else 22.dp)
             }
             Spacer(GlanceModifier.defaultWeight())
-            Progress(ui, below = 8.dp)
+            Progress(ui, width = size.width - 24.dp - cover - 14.dp, below = 8.dp)
             Controls(ui, button, spread = true)
         }
     }
@@ -461,6 +465,7 @@ private fun Stacked(
     root: GlanceModifier,
     ui: Ui,
 ) {
+    val size = LocalSize.current
     Column(root.padding(12.dp)) {
         Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Cover(ui, GlanceModifier.size(52.dp).cornerRadius(INNER), logo = 26.dp)
@@ -470,7 +475,7 @@ private fun Stacked(
             Logo(ui.palette, 20.dp)
         }
         Spacer(GlanceModifier.defaultWeight())
-        Progress(ui, below = 8.dp)
+        Progress(ui, width = size.width - 24.dp, below = 8.dp)
         Controls(ui, 44.dp, spread = true)
     }
 }
@@ -489,6 +494,7 @@ private fun Poster(
     val titled = size.height >= 180.dp
     val button = minOf(48.dp, (size.width - 36.dp) / 3)
     val inline = titled && size.width - 24.dp - (button * 3 + 12.dp) >= 72.dp
+    val bar = size.width - 24.dp
     Box(root, contentAlignment = Alignment.BottomStart) {
         Cover(ui, GlanceModifier.fillMaxSize(), logo = size.width / 3)
         Image(
@@ -514,36 +520,39 @@ private fun Poster(
                         Text(ui.subtitle, modifier = GlanceModifier.defaultWeight(), maxLines = 1, style = subtitleStyle(ui, if (big) 15.sp else 14.sp))
                         Controls(ui, button)
                     }
-                    Progress(ui, above = 6.dp)
+                    Progress(ui, width = bar, above = 6.dp)
                 } else {
                     Text(ui.subtitle, maxLines = 1, style = subtitleStyle(ui, 14.sp))
-                    Progress(ui, above = 8.dp)
+                    Progress(ui, width = bar, above = 8.dp)
                     Spacer(GlanceModifier.height(6.dp))
                     Controls(ui, button, spread = true)
                 }
             } else {
-                Progress(ui, below = 8.dp)
+                Progress(ui, width = bar, below = 8.dp)
                 Controls(ui, button, spread = true)
             }
         }
     }
 }
 
-/** A thin accent bar where the track is, with its gaps; nothing at all while the position is unknown. */
+/**
+ * A thin accent bar where the track is, with its gaps; nothing at all while nothing is loaded.
+ * Drawn as a fill of exact width on a track rather than Glance's LinearProgressIndicator, whose 100
+ * steps made it jump. [width] is the room the layout gives it, worked out from the widget's size.
+ */
 @Composable
 private fun Progress(
     ui: Ui,
+    width: Dp,
     above: Dp = 0.dp,
     below: Dp = 0.dp,
 ) {
     val at = ui.progress ?: return
     if (above > 0.dp) Spacer(GlanceModifier.height(above))
-    LinearProgressIndicator(
-        progress = at,
-        modifier = GlanceModifier.fillMaxWidth().height(4.dp).cornerRadius(2.dp),
-        color = ui.palette.of { accent },
-        backgroundColor = ui.palette.of(0.18f) { text },
-    )
+    Box(GlanceModifier.width(width).height(4.dp).cornerRadius(2.dp).background(ui.palette.of(0.18f) { text })) {
+        // Never narrower than its own round ends.
+        if (at > 0f) Box(GlanceModifier.width(maxOf(width * at, 4.dp)).height(4.dp).cornerRadius(2.dp).background(ui.palette.of { accent })) {}
+    }
     if (below > 0.dp) Spacer(GlanceModifier.height(below))
 }
 
