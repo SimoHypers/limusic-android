@@ -24,6 +24,7 @@ import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.logger.Logger
 import com.simohypers.limusic.di.viewModelModule
 import com.simohypers.limusic.service.backup.AutoBackupScheduler
+import com.simohypers.limusic.widget.followMediaWidget
 import com.simohypers.limusic.utils.NetworkFirstInterceptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,7 @@ import okio.FileSystem
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
@@ -91,6 +93,8 @@ class LimusicApplication :
 
         // initialize WorkManager
         WorkManager.initialize(this, workConfig)
+        // After WorkManager: Glance runs each widget session as a work request.
+        applicationScope.launch { followMediaWidget(this@LimusicApplication, get(), get()) }
 
         // Initialize and start AutoBackupScheduler
         autoBackupScheduler = AutoBackupScheduler(this, dataStoreManager)

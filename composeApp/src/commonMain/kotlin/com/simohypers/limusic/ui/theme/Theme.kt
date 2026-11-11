@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.hct.Hct
 import com.materialkolor.PaletteStyle
-import com.materialkolor.rememberDynamicColorScheme
+import com.materialkolor.dynamicColorScheme
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.expect.ui.SystemBarAppearanceEffect
 import com.simohypers.limusic.expect.ui.platformDynamicColorScheme
@@ -374,33 +374,44 @@ internal fun rememberThemeScheme(
     isDark: Boolean,
     artwork: Color? = null,
 ): ColorScheme {
-    val theme = appearance.theme
     val wallpaper =
-        if (theme == ThemePreset.MATERIAL_YOU || appearance.accent == Appearance.WALLPAPER) platformDynamicColorScheme(isDark) else null
+        if (appearance.theme == ThemePreset.MATERIAL_YOU || appearance.accent == Appearance.WALLPAPER) platformDynamicColorScheme(isDark) else null
+    return remember(appearance.theme, appearance.accent, appearance.hue, isDark, artwork, wallpaper?.primary, wallpaper?.onPrimary) {
+        themeScheme(appearance, isDark, wallpaper, artwork)
+    }
+}
+
+/**
+ * [rememberThemeScheme] outside composition, for the home-screen widget. [wallpaper] is the
+ * system's dynamic scheme, when the theme or the accent asks for it and the platform has one.
+ */
+fun themeScheme(
+    appearance: Appearance,
+    isDark: Boolean,
+    wallpaper: ColorScheme?,
+    artwork: Color? = null,
+): ColorScheme {
+    val theme = appearance.theme
     if (theme == ThemePreset.MATERIAL_YOU) {
         val seed = artwork ?: appearance.accentColor
         if (seed == null && wallpaper != null) return wallpaper
-        return rememberDynamicColorScheme(seedColor = seed ?: MaterialYouSeed, isDark = isDark, style = PaletteStyle.TonalSpot)
+        return dynamicColorScheme(seedColor = seed ?: MaterialYouSeed, isDark = isDark, style = PaletteStyle.TonalSpot)
     }
     val accent = artwork?.let { artworkAccent(it, isDark) } ?: appearance.accentColor?.let { userAccent(it, isDark) }
-    val wallpaperAccent = wallpaper?.primary
-    val wallpaperOn = wallpaper?.onPrimary
-    return remember(theme, appearance.hue, isDark, accent, wallpaperAccent, artwork) {
-        var scheme =
-            when (theme) {
-                ThemePreset.DEFAULT ->
-                    (if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme)
-                        .let { s -> appearance.hue?.let { s.withNeutralHue(it.toDouble()) } ?: s }
-                else -> (if (isDark) theme.dark else theme.light)!!.scheme(isDark)
-            }
-        if (accent != null) {
-            scheme = scheme.withAccent(accent, onAccent(accent), isDark)
-        } else if (wallpaperAccent != null && wallpaperOn != null) {
-            scheme = scheme.withAccent(wallpaperAccent, wallpaperOn, isDark)
+    var scheme =
+        when (theme) {
+            ThemePreset.DEFAULT ->
+                (if (isDark) LimusicDarkColorScheme else LimusicLightColorScheme)
+                    .let { s -> appearance.hue?.let { s.withNeutralHue(it.toDouble()) } ?: s }
+            else -> (if (isDark) theme.dark else theme.light)!!.scheme(isDark)
         }
-        if (artwork != null) scheme = scheme.withArtworkFills(artwork, isDark)
-        scheme
+    if (accent != null) {
+        scheme = scheme.withAccent(accent, onAccent(accent), isDark)
+    } else if (wallpaper != null) {
+        scheme = scheme.withAccent(wallpaper.primary, wallpaper.onPrimary, isDark)
     }
+    if (artwork != null) scheme = scheme.withArtworkFills(artwork, isDark)
+    return scheme
 }
 
 /**

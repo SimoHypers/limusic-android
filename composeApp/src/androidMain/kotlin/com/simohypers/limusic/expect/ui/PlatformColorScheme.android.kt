@@ -1,5 +1,6 @@
 package com.simohypers.limusic.expect.ui
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -12,9 +13,14 @@ import androidx.core.view.WindowCompat
 import com.simohypers.limusic.extension.getActivityOrNull
 
 @Composable
-actual fun platformDynamicColorScheme(isDark: Boolean): ColorScheme? {
+actual fun platformDynamicColorScheme(isDark: Boolean): ColorScheme? = wallpaperColorScheme(LocalContext.current, isDark)
+
+/** The wallpaper's scheme outside composition (the home-screen widget). */
+fun wallpaperColorScheme(
+    context: Context,
+    isDark: Boolean,
+): ColorScheme? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
-    val context = LocalContext.current
     return if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
 }
 

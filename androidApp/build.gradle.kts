@@ -165,6 +165,10 @@ dependencies {
     implementation(libs.legacy.support.v4)
     // Coroutines
     implementation(libs.coroutines.android)
+    // The home-screen widget
+    implementation(libs.glance.appwidget)
+    // ColorScheme, for the widget's theme colours: the artifact composeApp already ships.
+    implementation(libs.compose.material3)
 
 
     implementation(projects.composeApp)

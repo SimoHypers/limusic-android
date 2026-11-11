@@ -37,4 +37,14 @@
     <string name="downloads_waiting_wifi">Waiting for Wi-Fi</string>
     <string name="downloads_waiting_network">Waiting for a connection</string>
     <string name="link_playing_on">Playing on %1$s</string>
+    <!-- Home-screen widget (androidApp). Kept here, with the other media surfaces' strings, because the
+         widget's manifest label and picker description have to be Android resources. -->
+    <string name="widget_name">Now playing</string>
+    <string name="widget_description">Play, pause and skip from the home screen</string>
+    <string name="widget_nothing_playing">Nothing playing</string>
+    <string name="widget_pick_something">Tap to find something to play</string>
+    <string name="widget_play">Play</string>
+    <string name="widget_pause">Pause</string>
+    <string name="widget_next">Next</string>
+    <string name="widget_previous">Previous</string>
 </resources>
