@@ -45,6 +45,7 @@ maxrave-dev and its contributors, cut down and rebuilt to work like the desktop 
 - **Discord Rich Presence**: sign in with Discord, then tap the live card preview to choose what it shows
 - **Listen Together**: the same rooms as Limusic desktop, so phones and computers listen in sync
 - **Play anywhere**: link the phone to Limusic on your computer, control either one from the other and move the music between them
+- **Home-screen widget**: play, pause and skip without opening the app, laid out to fit the size you give it
 - **Android Auto**, lock screen and notification controls, and playback that keeps going in the background
 
 ---
@@ -128,7 +129,8 @@ Without them everything else still builds and runs.
 
 ## Lyrics
 
-Lyrics come from [Boidu](https://boidu.dev), Unison and LyricsPlus first, then
+Lyrics come from Limusic Lyrics, Limusic's own lyrics server, then
+[Boidu](https://boidu.dev), Unison and LyricsPlus, then
 [LRCLIB](https://lrclib.net), YouTube Music's own lyrics, Netease, QQ Music and
 Kugou, and synced lyrics beat plain text. Matching is keyed on the track's
 length, because popular songs exist as several cuts and the wrong one drifts out
@@ -140,7 +142,8 @@ off in **Settings -> Lyrics -> Lyrics sources**.
 
 In the Classic player's lyrics page, the source chip at the bottom shows where
 the lyrics came from. Tap it to see every provider's answer for that song, pick
-one, search by title, or nudge the timing. The pick sticks for that song.
+one, search by title, or nudge the timing. The pick sticks for that song. A lyric
+from Limusic Lyrics can be voted up or down or reported from the same sheet.
 
 ---
 
