@@ -23,4 +23,10 @@ data class LyricsEntity(
     @ColumnInfo(defaultValue = "0") val offsetMs: Int = 0,
     /** Picked by hand or nudged: kept when the provider order changes. */
     @ColumnInfo(defaultValue = "0") val pinned: Boolean = false,
+    /** Limusic Lyrics only: the service's revision, what the daily look asks about. */
+    val revision: Long? = null,
+    /** Limusic Lyrics only: "community", or the source it mirrors ("unison", "boidu", "lyricsplus"). */
+    val origin: String? = null,
+    /** Limusic Lyrics only: who synced a community lyric, oldest first, five at most. */
+    val authors: List<String>? = null,
 )

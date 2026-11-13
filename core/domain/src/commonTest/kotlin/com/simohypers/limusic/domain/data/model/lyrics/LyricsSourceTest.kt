@@ -8,15 +8,19 @@ class LyricsSourceTest {
 
     @Test
     fun orderDropsUnknownIdsAndAddsTheRest() {
-        assertEquals("boidu,unison,lyricsplus,lrclib,youtube,netease,qq,kugou", ids(null))
+        assertEquals("limusic,boidu,unison,lyricsplus,lrclib,youtube,netease,qq,kugou", ids(null))
         // SimpMusic's id, from an order saved before it went, is dropped like any unknown one.
-        assertEquals("lrclib,-boidu,unison,lyricsplus,youtube,netease,qq,kugou", ids("lrclib, -boidu,simpmusic,lrclib"))
+        // Limusic, not named yet, goes first; the rest that aren't named go last.
+        assertEquals("limusic,lrclib,-boidu,unison,lyricsplus,youtube,netease,qq,kugou", ids("lrclib, -boidu,simpmusic,lrclib"))
+        // Named, it stays where the user put it, on or off.
+        assertEquals("lrclib,limusic,boidu,unison,lyricsplus,youtube,netease,qq,kugou", ids("lrclib,limusic,boidu"))
+        assertEquals("boidu,-limusic,unison,lyricsplus,lrclib,youtube,netease,qq,kugou", ids("boidu,-limusic"))
     }
 
     @Test
     fun everySourceOffStaysOffWhenAReleaseAddsOne() {
         assertEquals(
-            "-boidu,-lyricsplus,-lrclib,-youtube,-netease,-qq,-kugou,-unison",
+            "-limusic,-boidu,-lyricsplus,-lrclib,-youtube,-netease,-qq,-kugou,-unison",
             ids("-boidu,-lyricsplus,-lrclib,-youtube,-simpmusic,-netease,-qq,-kugou"),
         )
     }

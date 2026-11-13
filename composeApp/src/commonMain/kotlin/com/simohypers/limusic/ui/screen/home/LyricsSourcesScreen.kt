@@ -58,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.lyrics_about_boidu
+import limusic.composeapp.generated.resources.lyrics_about_limusic
 import limusic.composeapp.generated.resources.lyrics_about_kugou
 import limusic.composeapp.generated.resources.lyrics_about_lrclib
 import limusic.composeapp.generated.resources.lyrics_about_lyricsplus
@@ -94,11 +95,12 @@ enum class LyricsKind(
 
 /** The best a source can give, as desktop's Settings badges it. */
 private val LyricsSource.bestKind
-    get() = if (this == LyricsSource.BOIDU || this == LyricsSource.UNISON || this == LyricsSource.LYRICSPLUS) LyricsKind.WORDS else LyricsKind.SYNCED
+    get() = if (this in setOf(LyricsSource.LIMUSIC, LyricsSource.BOIDU, LyricsSource.UNISON, LyricsSource.LYRICSPLUS)) LyricsKind.WORDS else LyricsKind.SYNCED
 
 private val LyricsSource.about
     get() =
         when (this) {
+            LyricsSource.LIMUSIC -> Res.string.lyrics_about_limusic
             LyricsSource.BOIDU -> Res.string.lyrics_about_boidu
             LyricsSource.UNISON -> Res.string.lyrics_about_unison
             LyricsSource.LYRICSPLUS -> Res.string.lyrics_about_lyricsplus

@@ -110,6 +110,8 @@ internal fun com.simohypers.limusic.lyrics.domain.Lyrics.toLyrics(): Lyrics {
                     startTimeMs = it.startTimeMs,
                     syllables = it.syllables ?: listOf(),
                     words = it.words,
+                    agent = it.agent,
+                    background = it.background,
                 ),
             )
         }

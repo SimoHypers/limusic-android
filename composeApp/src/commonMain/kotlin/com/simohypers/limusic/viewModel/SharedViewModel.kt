@@ -16,6 +16,7 @@ import com.simohypers.limusic.domain.data.entities.LocalPlaylistEntity
 import com.simohypers.limusic.domain.data.entities.LyricsEntity
 import com.simohypers.limusic.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.simohypers.limusic.domain.data.type.PlaylistType as LibraryPlaylist
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicRating
 import com.simohypers.limusic.domain.data.model.lyrics.LyricsSource
 import com.simohypers.limusic.domain.data.entities.NewFormatEntity
 import com.simohypers.limusic.domain.data.entities.SongEntity
@@ -688,17 +689,17 @@ class SharedViewModel(
             return
         }
         viewModelScope.launch {
-            val entity =
-                lyricsCanvasRepository.getLyrics(
-                    videoId = song.videoId,
-                    title = song.title,
-                    artist = lyricsArtist(song),
-                    album = song.albumName,
-                    durationSeconds = durationSeconds,
-                    order = LyricsSource.order(dataStoreManager.lyricsProviders.first()),
-                )
+            val order = LyricsSource.order(dataStoreManager.lyricsProviders.first())
+            val artist = lyricsArtist(song)
+            suspend fun fetch() = lyricsCanvasRepository.getLyrics(song.videoId, song.title, artist, song.albumName, durationSeconds, order)
+            val entity = fetch()
             if (_nowPlayingState.value?.songEntity?.videoId != song.videoId) return@launch
             showLyrics(song.videoId, entity)
+            // A cached lyric is shown at once and brought up to date behind it (Limusic Lyrics).
+            if (entity != null && lyricsCanvasRepository.recheckLyrics(song.videoId, order)) {
+                val fresh = fetch()
+                if (_nowPlayingState.value?.songEntity?.videoId == song.videoId) showLyrics(song.videoId, fresh)
+            }
         }
     }
 
@@ -720,6 +721,9 @@ class SharedViewModel(
                         lyricsProvider = LyricsSource.fromId(entity.provider),
                         offsetMs = entity.offsetMs,
                         pinned = entity.pinned,
+                        origin = entity.origin,
+                        authors = entity.authors.orEmpty(),
+                        revision = entity.revision,
                     ),
             )
         }
@@ -747,6 +751,22 @@ class SharedViewModel(
             searched = title != null,
         )
     }
+
+    /** The votes on the song's live Limusic lyric, or null when it has none. Throws LimusicException. */
+    suspend fun limusicRating(videoId: String): LimusicRating? = lyricsCanvasRepository.limusicRating(videoId)
+
+    /** Throws LimusicException; the first vote makes this install's anonymous account. */
+    suspend fun limusicVote(
+        videoId: String,
+        value: Int,
+        before: LimusicRating,
+    ): LimusicRating = lyricsCanvasRepository.limusicVote(videoId, value, before)
+
+    suspend fun limusicReport(
+        videoId: String,
+        reason: String,
+        note: String?,
+    ) = lyricsCanvasRepository.limusicReport(videoId, reason, note)
 
     /** What the cache holds for [videoId]: the lyrics on screen, for the picker to keep as they are. */
     suspend fun savedLyrics(videoId: String): LyricsEntity? = lyricsCanvasRepository.getSavedLyrics(videoId).first()
@@ -1468,6 +1488,12 @@ data class NowPlayingScreenData(
         val offsetMs: Int = 0,
         /** Source picked by hand or timing nudged. */
         val pinned: Boolean = false,
+        /** Limusic Lyrics only: "community", or the source it mirrors. */
+        val origin: String? = null,
+        /** Limusic Lyrics only: who synced a community lyric. */
+        val authors: List<String> = emptyList(),
+        /** Limusic Lyrics only: the revision on screen, which votes must match. */
+        val revision: Long? = null,
     )
 
     companion object {

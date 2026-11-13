@@ -80,6 +80,7 @@ class LimusicApplication :
                     versionName = BuildConfig.VERSION_NAME,
                     platform = "Android ${Build.VERSION.RELEASE}",
                     isDevBuild = BuildConfig.DEBUG,
+                    lyricsServer = if (BuildConfig.DEBUG) BuildKonfig.lyricsServer else "",
                 ),
             )
             loadKoinModules(viewModelModule)

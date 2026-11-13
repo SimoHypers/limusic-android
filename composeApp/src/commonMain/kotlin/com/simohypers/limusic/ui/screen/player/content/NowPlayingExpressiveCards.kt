@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.component.creditName
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -695,7 +696,7 @@ internal fun ExpressiveBelowTheFold(
                         )
                         Text(
                             text =
-                                state.screenData.lyricsData?.lyricsProvider?.displayName.orEmpty(),
+                                state.screenData.lyricsData?.creditName().orEmpty(),
                             style = typo().bodySmall,
                             textAlign = TextAlign.End,
                             modifier =

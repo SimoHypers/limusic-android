@@ -25,6 +25,8 @@ data class Lyrics(
             val syllables: List<String>? = null,
             @SerialName("words")
             val words: String,
+            val agent: String? = null,
+            val background: String? = null,
         )
     }
 }

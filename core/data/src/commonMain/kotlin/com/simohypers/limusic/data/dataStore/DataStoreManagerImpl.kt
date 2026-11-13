@@ -1170,6 +1170,19 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val limusicLyricsToken: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[LIMUSIC_LYRICS_TOKEN].orEmpty()
+        }
+
+    override suspend fun setLimusicLyricsToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LIMUSIC_LYRICS_TOKEN] = token
+            }
+        }
+    }
+
     override val lastfmSessionKey: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[LASTFM_SESSION_KEY] ?: ""
@@ -1342,6 +1355,7 @@ internal class DataStoreManagerImpl(
         val RICH_PRESENCE = stringPreferencesKey("rich_presence")
 
         val LASTFM_SESSION_KEY = stringPreferencesKey("lastfm_session_key")
+        val LIMUSIC_LYRICS_TOKEN = stringPreferencesKey("limusic_lyrics_token")
         val LASTFM_USERNAME = stringPreferencesKey("lastfm_username")
 
 

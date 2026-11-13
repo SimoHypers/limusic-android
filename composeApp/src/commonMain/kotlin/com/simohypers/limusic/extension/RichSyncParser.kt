@@ -1,5 +1,6 @@
 package com.simohypers.limusic.extension
 
+import com.simohypers.limusic.domain.data.model.metadata.Line
 import com.simohypers.limusic.domain.extension.decodeHtmlEntities
 
 /**
@@ -100,3 +101,23 @@ fun parseRichSyncWords(
         lineEndTimeMs = lineEnd,
     )
 }
+/**
+ * Which lines of a duet sit on the far side, desktop's `voices()` (Limusic Lyrics sends the singer
+ * as `agent`). Sides go by the singer's number, not by who sings first: the lowest is near, the
+ * next far, and so on in turn. Lines for everyone (`v1000`) or for nobody named stay near, and one
+ * singer alone is not a duet: empty then, so every other lyric pays nothing.
+ */
+fun farLines(lines: List<Line>): Set<Int> {
+    fun singer(agent: String?): Int? =
+        agent
+            ?.takeIf { it.length in 2..5 && it[0] == 'v' && it.drop(1).all(Char::isDigit) }
+            ?.drop(1)
+            ?.toInt()
+            ?.takeIf { it != 1000 }
+    val singers = lines.mapNotNull { singer(it.agent) }.distinct().sorted()
+    if (singers.size < 2) return emptySet()
+    return lines.indices.filterTo(mutableSetOf()) { i -> singer(lines[i].agent)?.let { singers.indexOf(it) % 2 == 1 } == true }
+}
+
+/** For a line that is only background vocals: an empty lead line for them to hang under. */
+fun ParsedRichSyncLine.emptyLead() = ParsedRichSyncLine(emptyList(), lineStartTimeMs, lineEndTimeMs)

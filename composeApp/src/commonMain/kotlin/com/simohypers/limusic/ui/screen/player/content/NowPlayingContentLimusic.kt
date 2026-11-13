@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.screen.player.content.applemusic.CoverLyricLine
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -76,7 +77,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
@@ -96,7 +96,6 @@ import com.simohypers.limusic.expect.ui.isLyricsBlurSupported
 import com.simohypers.limusic.expect.ui.toImageBitmap
 import com.simohypers.limusic.extension.elapsedLabel
 import com.simohypers.limusic.extension.lengthLabel
-import com.simohypers.limusic.ui.component.LyricText
 import com.simohypers.limusic.ui.component.rememberHolderPainter
 import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.FavoriteBorder
@@ -352,7 +351,7 @@ private fun PlayerView(
         // Cover, lyric line and title stay one group at fixed gaps; the leftover height goes
         // above the cover instead of opening a hole under the line.
         Spacer(Modifier.height(12.dp))
-        LyricLine(state)
+        CoverLyricLine(state, typo().labelSmall, MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(14.dp))
         TitleRow(state, actions)
         Spacer(Modifier.height(16.dp))
@@ -633,37 +632,6 @@ private fun ArtworkImage(
         error = rememberHolderPainter(),
         modifier = modifier.clip(ArtworkShape),
     )
-}
-
-/** The synced line playing now, under the cover, as the M3 Expressive style shows it. */
-@Composable
-private fun LyricLine(state: NowPlayingContentState) {
-    val lyrics = state.screenData.lyricsData?.lyrics
-    val synced = lyrics != null && lyrics.syncType != null && lyrics.syncType != "UNSYNCED" && lyrics.lines != null
-    val line =
-        if (!synced || state.currentLyricLineIndex < 0) {
-            ""
-        } else {
-            lyrics
-                ?.lines
-                ?.getOrNull(state.currentLyricLineIndex)
-                ?.words
-                ?.stripRichSyncTimestamps()
-                .orEmpty()
-        }
-    // Two lines that wrap instead of one that scrolls sideways; always two tall, so a short line,
-    // or a song without synced lyrics, keeps the same layout.
-    Crossfade(targetState = line, animationSpec = tween(300), label = "classicLyricLine") { text ->
-        LyricText(
-            text = text,
-            style = typo().labelSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 2,
-            minLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
 }
 
 @Composable

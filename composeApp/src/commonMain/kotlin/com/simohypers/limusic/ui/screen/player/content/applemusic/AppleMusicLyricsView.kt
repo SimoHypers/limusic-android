@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content.applemusic
 
+import com.simohypers.limusic.ui.component.creditName
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -338,5 +339,4 @@ private fun appleMusicLyricsSyncText(lyricsData: NowPlayingScreenData.LyricsData
 
 /** The provider half of the caption. Its own line — see the footer for why. */
 @Composable
-private fun appleMusicLyricsProviderText(lyricsData: NowPlayingScreenData.LyricsData): String =
-    lyricsData.lyricsProvider?.displayName.orEmpty()
+private fun appleMusicLyricsProviderText(lyricsData: NowPlayingScreenData.LyricsData): String = lyricsData.creditName()

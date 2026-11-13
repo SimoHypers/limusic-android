@@ -1,6 +1,8 @@
 package com.simohypers.limusic.domain.repository
 
 import com.simohypers.limusic.domain.data.entities.LyricsEntity
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicException
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicRating
 import com.simohypers.limusic.domain.data.model.lyrics.LyricsSource
 import com.simohypers.limusic.domain.data.model.browse.artist.ArtistEditorial
 import com.simohypers.limusic.domain.data.model.canvas.CanvasResult
@@ -39,6 +41,34 @@ interface LyricsCanvasRepository {
         durationSeconds: Int,
         searched: Boolean,
     ): LyricsEntity?
+
+    /**
+     * Bring a cached lyric up to date behind the one on screen, as desktop does: Limusic's own is
+     * asked once a day whether its revision moved, any other unpinned one once a week whether
+     * Limusic has the song by now (only where Limusic would win [order]). True when the cache no
+     * longer holds what was shown, so the caller should ask [getLyrics] again.
+     */
+    suspend fun recheckLyrics(
+        videoId: String,
+        order: List<Pair<LyricsSource, Boolean>>,
+    ): Boolean
+
+    /** The votes on the song's live Limusic lyric, or null when it has none. Throws [LimusicException]. */
+    suspend fun limusicRating(videoId: String): LimusicRating?
+
+    /** Vote on the live lyric (1, -1, or 0 to take it back). Throws [LimusicException]. */
+    suspend fun limusicVote(
+        videoId: String,
+        value: Int,
+        before: LimusicRating,
+    ): LimusicRating
+
+    /** Report the live lyric for one of `LimusicLyrics.REPORT_REASONS`. Throws [LimusicException]. */
+    suspend fun limusicReport(
+        videoId: String,
+        reason: String,
+        note: String?,
+    )
 
     /** Forget one song's lyrics, a hand-picked source included. */
     suspend fun forgetLyrics(videoId: String)
