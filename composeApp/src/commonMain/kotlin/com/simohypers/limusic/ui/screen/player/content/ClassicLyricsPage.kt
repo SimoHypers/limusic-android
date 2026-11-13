@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.component.credit
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -67,7 +68,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import limusic.composeapp.generated.resources.Res
 import limusic.composeapp.generated.resources.lyrics_find
-import limusic.composeapp.generated.resources.lyrics_from
 import limusic.composeapp.generated.resources.lyrics_none_found
 import limusic.composeapp.generated.resources.lyrics_none_found_hint
 import limusic.composeapp.generated.resources.lyrics_romanize
@@ -187,7 +187,7 @@ private fun Footer(
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(
-                        if (provider != null) stringResource(Res.string.lyrics_from, provider.displayName) else stringResource(Res.string.lyrics_find),
+                        lyricsData?.credit() ?: stringResource(Res.string.lyrics_find),
                         style = typo().labelSmall,
                         color = scheme.onSurface.copy(alpha = 0.8f),
                         maxLines = 1,

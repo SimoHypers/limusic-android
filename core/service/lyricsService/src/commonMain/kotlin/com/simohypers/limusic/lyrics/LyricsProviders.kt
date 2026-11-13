@@ -342,6 +342,8 @@ internal const val MATCH_TOLERANCE_SECS = 5.0
 internal data class LyricWord(
     val text: String,
     val startMs: Long,
+    /** Background vocals. Only Limusic Lyrics marks them. */
+    val bg: Boolean = false,
 )
 
 /** One display line; [timeMs] null when the lyrics are plain. */
@@ -350,6 +352,8 @@ internal data class LyricLine(
     val endMs: Long? = null,
     val text: String,
     val words: List<LyricWord>? = null,
+    /** The singer, `v1`, `v2`... Only Limusic Lyrics sends it. */
+    val agent: String? = null,
 )
 
 /** A provider's answer before it becomes the app's model. */
@@ -366,8 +370,9 @@ internal class Found(
 
 /**
  * Into the shape the lyrics view reads: RICH_SYNCED lines carry `<mm:ss.mmm>word` runs, one per
- * word. Null when there is nothing to show. An instrumental is one timed line, so it counts as a
- * synced answer and stops the chain the way it does in Limusic.
+ * word, background vocals in a run string of their own. Null when there is nothing to show. An
+ * instrumental is one timed line, so it counts as a synced answer and stops the chain the way it
+ * does in Limusic.
  */
 internal fun Found.toLyrics(): Lyrics? {
     if (instrumental) return lyrics("LINE_SYNCED", listOf(line("0", "♪")))
@@ -377,11 +382,12 @@ internal fun Found.toLyrics(): Lyrics? {
     return lyrics(
         syncType,
         lines.map { l ->
+            val (bg, lead) = l.words.orEmpty().partition { it.bg }
             line(
                 start = (l.timeMs ?: 0L).toString(),
-                words = if (rich && l.words != null) l.words.toRichSync() else l.text,
+                words = if (rich && l.words != null) lead.toRichSync() else l.text,
                 end = (l.endMs ?: 0L).toString(),
-            )
+            ).copy(agent = l.agent, background = bg.takeIf { rich && it.isNotEmpty() }?.toRichSync())
         },
     )
 }

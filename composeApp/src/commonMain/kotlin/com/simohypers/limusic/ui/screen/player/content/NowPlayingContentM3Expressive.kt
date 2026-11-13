@@ -1,5 +1,6 @@
 package com.simohypers.limusic.ui.screen.player.content
 
+import com.simohypers.limusic.ui.screen.player.content.applemusic.CoverLyricLine
 import com.simohypers.limusic.ui.theme.rounded
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -103,8 +104,6 @@ import com.simohypers.limusic.ui.component.ExplicitBadge
 import com.simohypers.limusic.ui.component.heartBurst
 import com.simohypers.limusic.ui.component.rememberHeartBurstState
 import com.simohypers.limusic.ui.component.rememberHolderPainter
-import com.simohypers.limusic.ui.icon.AddCircleOutline
-import com.simohypers.limusic.ui.icon.CheckCircle
 import com.simohypers.limusic.ui.icon.Favorite
 import com.simohypers.limusic.ui.icon.FavoriteBorder
 import com.simohypers.limusic.ui.icon.Headphones
@@ -474,44 +473,14 @@ private fun NowPlayingM3ExpressiveLayout(
                                         middleLayoutPaddingDp.dp,
                                     ).fillMaxWidth(),
                         ) {
-                            val inlineLyrics = state.screenData.lyricsData?.lyrics
-                            val hasSyncedLyrics =
-                                inlineLyrics != null &&
-                                    inlineLyrics.syncType != null &&
-                                    inlineLyrics.syncType != "UNSYNCED" &&
-                                    inlineLyrics.lines != null
-                            val currentLyricLineText =
-                                if (!hasSyncedLyrics ||
-                                    state.screenData.fullscreenCanvas() != null ||
-                                    state.currentLyricLineIndex < 0
-                                ) {
-                                    ""
-                                } else {
-                                    inlineLyrics
-                                        ?.lines
-                                        ?.getOrNull(state.currentLyricLineIndex)
-                                        ?.words
-                                        ?.stripRichSyncTimestamps()
-                                        .orEmpty()
-                                }
-                            Crossfade(
-                                targetState = currentLyricLineText,
-                                animationSpec = tween(durationMillis = 300),
-                                label = "inlineLyricLineExpressive",
-                            ) { lineText ->
-                                // Wraps to two lines instead of scrolling sideways.
-                                LyricText(
-                                    text = lineText,
-                                    style = typo().labelSmall,
-                                    color = colorScheme.onSurface,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 20.dp),
-                                )
-                            }
+                            // Wraps to two lines instead of scrolling sideways; word-synced lyrics sweep.
+                            CoverLyricLine(
+                                state = state,
+                                style = typo().labelSmall,
+                                color = colorScheme.onSurface,
+                                modifier = Modifier.padding(horizontal = 20.dp),
+                                hidden = state.screenData.fullscreenCanvas() != null,
+                            )
                         }
 
                         // === 6. Info block ===

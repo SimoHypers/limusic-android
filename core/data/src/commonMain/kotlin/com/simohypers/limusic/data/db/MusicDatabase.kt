@@ -43,7 +43,7 @@ import com.simohypers.limusic.domain.data.entities.analytics.PlaybackEventEntity
         AutoEqEntryEntity::class, AutoEqIndexMetaEntity::class, AutoEqCurveEntity::class,
         ArtistMotionEntity::class
     ],
-    version = 28,
+    version = 29,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3), AutoMigration(
@@ -99,7 +99,9 @@ import com.simohypers.limusic.domain.data.entities.analytics.PlaybackEventEntity
         AutoMigration(25, 27),
         AutoMigration(24, 27),
         // 28 adds the lyrics cache columns (provider, fetchedAt, offsetMs, pinned), all with defaults.
+        // 29 adds three nullable lyrics columns for Limusic Lyrics (revision, origin, authors).
         AutoMigration(27, 28),
+        AutoMigration(28, 29),
     ],
 )
 @TypeConverters(Converters::class)

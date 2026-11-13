@@ -8,6 +8,7 @@ enum class LyricsSource(
     val id: String,
     val displayName: String,
 ) {
+    LIMUSIC("limusic", "Limusic"),
     BOIDU("boidu", "Boidu"),
     UNISON("unison", "Unison"),
     LYRICSPLUS("lyricsplus", "LyricsPlus"),
@@ -26,7 +27,9 @@ enum class LyricsSource(
          * `-id` for one switched off. Whatever it doesn't name (all of them on a fresh install, or a
          * provider a later release adds) follows in the default order, switched on, unless every
          * source it names is off: someone who wanted no lyrics doesn't get a new provider asked.
-         * An id no release knows any more (`simpmusic`) is dropped.
+         * An id no release knows any more (`simpmusic`) is dropped. Limusic, our own, goes first
+         * rather than last when the setting doesn't name it, as on desktop: it holds what the
+         * three word-by-word sources hold, filed by video id.
          */
         fun order(setting: String?): List<Pair<LyricsSource, Boolean>> {
             val out = mutableListOf<Pair<LyricsSource, Boolean>>()
@@ -35,7 +38,10 @@ enum class LyricsSource(
                 if (out.none { it.first == source }) out += source to !token.startsWith('-')
             }
             val allOff = out.isNotEmpty() && out.none { it.second }
-            return out + entries.filter { s -> out.none { it.first == s } }.map { it to !allOff }
+            for (s in entries) {
+                if (out.none { it.first == s }) out.add(if (s == LIMUSIC) 0 else out.size, s to !allOff)
+            }
+            return out
         }
 
         /** [order]'s inverse: the setting for a list in the user's order. */

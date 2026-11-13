@@ -5,7 +5,35 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicException
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicRating
+import com.simohypers.limusic.domain.data.model.lyrics.LIMUSIC_REPORT_REASONS
+import com.simohypers.limusic.domain.data.model.lyrics.LIMUSIC_UNAVAILABLE
+import com.simohypers.limusic.domain.data.model.lyrics.limusicProfileUrl
+import com.simohypers.limusic.ui.icon.OutlinedFlag
+import com.simohypers.limusic.ui.icon.ThumbDown
+import com.simohypers.limusic.ui.icon.ThumbDownOutlined
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -93,6 +121,27 @@ import limusic.composeapp.generated.resources.lyrics_timing_reset
 import limusic.composeapp.generated.resources.lyrics_timing_value
 import limusic.composeapp.generated.resources.lyrics_unison_rate
 import limusic.composeapp.generated.resources.lyrics_unreachable
+import limusic.composeapp.generated.resources.cancel
+import limusic.composeapp.generated.resources.lyrics_feedback_banned
+import limusic.composeapp.generated.resources.lyrics_feedback_failed
+import limusic.composeapp.generated.resources.lyrics_feedback_gone
+import limusic.composeapp.generated.resources.lyrics_feedback_own
+import limusic.composeapp.generated.resources.lyrics_feedback_rate_limited
+import limusic.composeapp.generated.resources.lyrics_from
+import limusic.composeapp.generated.resources.lyrics_names_and
+import limusic.composeapp.generated.resources.lyrics_rate
+import limusic.composeapp.generated.resources.lyrics_report
+import limusic.composeapp.generated.resources.lyrics_report_abuse
+import limusic.composeapp.generated.resources.lyrics_report_note
+import limusic.composeapp.generated.resources.lyrics_report_send
+import limusic.composeapp.generated.resources.lyrics_report_text
+import limusic.composeapp.generated.resources.lyrics_report_timing
+import limusic.composeapp.generated.resources.lyrics_report_title
+import limusic.composeapp.generated.resources.lyrics_report_wrong_song
+import limusic.composeapp.generated.resources.lyrics_reported
+import limusic.composeapp.generated.resources.lyrics_synced_by
+import limusic.composeapp.generated.resources.lyrics_vote_down
+import limusic.composeapp.generated.resources.lyrics_vote_up
 import kotlin.math.abs
 
 /** One step of the timing nudge. A quarter second is under what anyone hears as early. */
@@ -169,7 +218,8 @@ fun LyricsSourceSheet(
     val offset = lyricsData?.offsetMs ?: 0
 
     SettingSheet(title = stringResource(Res.string.lyrics_source_title), onDismiss = onDismiss) { colors ->
-        Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState())) {
+        val scroll = rememberScrollState()
+        Column(Modifier.heightIn(max = 560.dp).scrollEdgeFade(scroll).verticalScroll(scroll)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(Res.string.lyrics_source_hint), style = typo().bodySmall, color = colors.subtitle, modifier = Modifier.weight(1f))
                 IconButton(onClick = onOpenSettings) {
@@ -230,7 +280,7 @@ fun LyricsSourceSheet(
                         Text(stringResource(Res.string.lyrics_automatic), style = typo().labelMedium, color = colors.content)
                         Text(
                             if (!pinned && lyricsData?.lyricsProvider != null) {
-                                stringResource(Res.string.lyrics_automatic_showing, lyricsData.lyricsProvider.displayName)
+                                stringResource(Res.string.lyrics_automatic_showing, lyricsData.sourceName().orEmpty())
                             } else {
                                 stringResource(Res.string.lyrics_automatic_hint)
                             },
@@ -259,6 +309,12 @@ fun LyricsSourceSheet(
                         }
                     },
                     enabled = !dead && answer !is Answer.Loading,
+                    below =
+                        if (source == LyricsSource.LIMUSIC && showing && query == null) {
+                            { LimusicFeedback(song.videoId, lyricsData, sharedViewModel, colors) }
+                        } else {
+                            null
+                        },
                     leading = {
                         // The dot is what's on screen, whether Automatic put it there or you did.
                         Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) {
@@ -395,26 +451,349 @@ fun LyricsSourceSheet(
     }
 }
 
+/**
+ * Votes and reports on the lyric Limusic Lyrics has live, while it is the one on screen, and who
+ * synced it. No sign-in: the first vote or report makes an anonymous account, silently. Votes go to
+ * the live revision, so an older one still cached here offers none until the daily look updates it.
+ */
+@Composable
+private fun LimusicFeedback(
+    videoId: String,
+    lyricsData: NowPlayingScreenData.LyricsData,
+    sharedViewModel: SharedViewModel,
+    colors: SurfaceDarkColors,
+) {
+    val scope = rememberCoroutineScope()
+    val shown = lyricsData.revision
+    var rating by remember(videoId, shown) { mutableStateOf<LimusicRating?>(null) }
+    var loading by remember(videoId, shown) { mutableStateOf(true) }
+    var busy by remember(videoId, shown) { mutableStateOf(false) }
+    // Why the last vote or report didn't go through, as the service's code.
+    var refusal by remember(videoId, shown) { mutableStateOf<String?>(null) }
+    var reportOpen by remember(videoId, shown) { mutableStateOf(false) }
+    var reason by remember(videoId, shown) { mutableStateOf<String?>(null) }
+    var note by remember(videoId, shown) { mutableStateOf("") }
+    // ponytail: lasts as long as the sheet; the service keeps one report per account and revision.
+    var reported by remember(videoId, shown) { mutableStateOf(false) }
+
+    LaunchedEffect(videoId, shown) {
+        rating =
+            try {
+                sharedViewModel.limusicRating(videoId)?.takeIf { shown == null || it.revision == shown }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+        loading = false
+    }
+
+    fun codeOf(e: Exception) = (e as? LimusicException)?.code ?: LIMUSIC_UNAVAILABLE
+
+    fun vote(clicked: Int) {
+        val before = rating ?: return
+        if (busy) return
+        val value = before.next(clicked)
+        rating = before.withVote(value)
+        busy = true
+        refusal = null
+        scope.launch {
+            try {
+                rating = sharedViewModel.limusicVote(videoId, value, before)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                rating = before
+                refusal = codeOf(e)
+            } finally {
+                busy = false
+            }
+        }
+    }
+
+    fun send() {
+        val r = reason ?: return
+        reported = true
+        reportOpen = false
+        refusal = null
+        scope.launch {
+            try {
+                sharedViewModel.limusicReport(videoId, r, note)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                reported = false
+                reportOpen = true
+                refusal = codeOf(e)
+            }
+        }
+    }
+
+    val scheme = MaterialTheme.colorScheme
+    val rated = loading || rating != null
+    if (!rated && lyricsData.authors.isEmpty()) return
+    // Lined up under the source's name: the Limusic row's second line, at the top of the sheet.
+    Column(Modifier.fillMaxWidth().padding(start = 50.dp, end = 2.dp, bottom = 6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                if (lyricsData.authors.isNotEmpty()) syncedByLinks(lyricsData.authors) else AnnotatedString(stringResource(Res.string.lyrics_rate)),
+                style = typo().bodySmall,
+                color = colors.subtitle,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            if (rated) {
+                Spacer(Modifier.width(8.dp))
+                val r = rating
+                if (r == null) {
+                    Box(Modifier.size(width = 96.dp, height = 32.dp).clip(CircleShape).background(scheme.onSurface.copy(alpha = 0.06f)))
+                } else {
+                    Row(
+                        Modifier.clip(CircleShape).border(1.dp, scheme.outlineVariant, CircleShape).background(scheme.onSurface.copy(alpha = 0.04f)),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Thumb(r.up, mine = r.myVote == 1, up = true, label = stringResource(Res.string.lyrics_vote_up)) { vote(1) }
+                        Thumb(r.down, mine = r.myVote == -1, up = false, label = stringResource(Res.string.lyrics_vote_down)) { vote(-1) }
+                    }
+                    if (!reported) {
+                        IconButton(onClick = { reportOpen = !reportOpen }, modifier = Modifier.size(40.dp)) {
+                            Icon(
+                                LimusicIcons.OutlinedFlag,
+                                contentDescription = stringResource(Res.string.lyrics_report),
+                                tint = if (reportOpen) scheme.primary else colors.subtitle,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        refusal?.let {
+            Text(stringResource(refusalText(it)), style = typo().bodySmall, color = scheme.error, modifier = Modifier.padding(top = 4.dp))
+        }
+        if (rating != null) {
+            when {
+                reportOpen -> ReportForm(reason, note, colors, onReason = { reason = it }, onNote = { note = it }, onCancel = { reportOpen = false }, onSend = ::send)
+                reported ->
+                    Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(LimusicIcons.Check, contentDescription = null, tint = scheme.primary, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(Res.string.lyrics_reported), style = typo().bodySmall, color = colors.subtitle)
+                    }
+            }
+        }
+    }
+}
+
+/** One half of the vote pill: the thumb and its count, filled and in the accent when it is mine. */
+@Composable
+private fun Thumb(
+    count: Int,
+    mine: Boolean,
+    up: Boolean,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val tint = if (mine) scheme.primary else scheme.onSurfaceVariant
+    Row(
+        Modifier
+            .height(32.dp)
+            .clip(CircleShape)
+            .background(if (mine) scheme.primary.copy(alpha = 0.14f) else Color.Transparent)
+            .toggleable(value = mine, onValueChange = { onClick() })
+            .semantics { contentDescription = label }
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Material's thumbs are one shape turned over, so the up one is the down one at 180°.
+        Icon(
+            if (mine) LimusicIcons.ThumbDown else LimusicIcons.ThumbDownOutlined,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(16.dp).then(if (up) Modifier.rotate(180f) else Modifier),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(count.toString(), style = typo().labelSmall.copy(fontWeight = FontWeight.SemiBold), color = tint)
+    }
+}
+
+@Composable
+private fun ReportForm(
+    reason: String?,
+    note: String,
+    colors: SurfaceDarkColors,
+    onReason: (String) -> Unit,
+    onNote: (String) -> Unit,
+    onCancel: () -> Unit,
+    onSend: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Column(Modifier.padding(top = 8.dp, end = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(Res.string.lyrics_report_title), style = typo().labelMedium, color = colors.content)
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            LIMUSIC_REPORT_REASONS.chunked(2).forEach { pair ->
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    pair.forEach { id ->
+                        val on = reason == id
+                        Row(
+                            Modifier
+                                .weight(1f)
+                                .clip(rounded(10.dp))
+                                .border(1.dp, if (on) scheme.primary.copy(alpha = 0.6f) else scheme.outlineVariant, rounded(10.dp))
+                                .background(if (on) scheme.primary.copy(alpha = 0.08f) else Color.Transparent)
+                                .selectable(selected = on, role = Role.RadioButton, onClick = { onReason(id) })
+                                .padding(horizontal = 10.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                Modifier.size(14.dp).border(2.dp, if (on) scheme.primary else colors.subtitle.copy(alpha = 0.5f), CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (on) Box(Modifier.size(6.dp).clip(CircleShape).background(scheme.primary))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(reportReasonText(id)), style = typo().bodySmall, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+            }
+        }
+        OutlinedTextField(
+            value = note,
+            onValueChange = { onNote(it.take(REPORT_NOTE_MAX)) },
+            placeholder = { Text(stringResource(Res.string.lyrics_report_note), style = typo().bodySmall) },
+            textStyle = typo().bodySmall,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(onSend = { if (reason != null) onSend() }),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = onCancel) { Text(stringResource(Res.string.cancel)) }
+            Spacer(Modifier.width(6.dp))
+            Button(onClick = onSend, enabled = reason != null) {
+                Icon(LimusicIcons.OutlinedFlag, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(Res.string.lyrics_report_send))
+            }
+        }
+    }
+}
+
+/** The service takes a note of at most 300 bytes; 300 characters is the field's cap, and the client clips the rest. */
+private const val REPORT_NOTE_MAX = 300
+
+private fun reportReasonText(id: String) =
+    when (id) {
+        "timing" -> Res.string.lyrics_report_timing
+        "text" -> Res.string.lyrics_report_text
+        "wrong_song" -> Res.string.lyrics_report_wrong_song
+        else -> Res.string.lyrics_report_abuse
+    }
+
+private fun refusalText(code: String) =
+    when (code) {
+        "own" -> Res.string.lyrics_feedback_own
+        "not_found" -> Res.string.lyrics_feedback_gone
+        "rate_limited" -> Res.string.lyrics_feedback_rate_limited
+        "banned" -> Res.string.lyrics_feedback_banned
+        else -> Res.string.lyrics_feedback_failed
+    }
+
+/** "Synced by carla and moss", each name a link to its profile on the website. */
+@Composable
+private fun syncedByLinks(authors: List<String>): AnnotatedString {
+    val credit = stringResource(Res.string.lyrics_synced_by, names(authors))
+    val link = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold))
+    return remember(credit, authors, link) {
+        buildAnnotatedString {
+            append(credit)
+            // Found in the sentence rather than placed by it, so a translation may order it any way.
+            var from = 0
+            authors.forEach { handle ->
+                val at = credit.indexOf(handle, from).takeIf { it >= 0 } ?: return@forEach
+                addLink(LinkAnnotation.Url(limusicProfileUrl(handle), link), at, at + handle.length)
+                from = at + handle.length
+            }
+        }
+    }
+}
+
+/** "carla", "carla and moss", "a, b and c". */
+@Composable
+private fun names(list: List<String>): String =
+    if (list.size < 2) list.firstOrNull().orEmpty() else stringResource(Res.string.lyrics_names_and, list.dropLast(1).joinToString(", "), list.last())
+
+/** The source as the credit names it: "Limusic (Unison)" for a lyric Limusic mirrors from Unison. */
+internal fun NowPlayingScreenData.LyricsData.sourceName(): String? {
+    val p = lyricsProvider ?: return null
+    // No English connective in it: the credit wraps it in "Lyrics from %1$s".
+    val mirrored = LyricsSource.fromId(origin)?.takeIf { p == LyricsSource.LIMUSIC && it != LyricsSource.LIMUSIC }
+    return if (mirrored != null) "${p.displayName} (${mirrored.displayName})" else p.displayName
+}
+
+/** The footer's credit: "Synced by carla and moss" for a community lyric, else "Lyrics from <source>". */
+@Composable
+internal fun NowPlayingScreenData.LyricsData.credit(): String? =
+    if (lyricsProvider == LyricsSource.LIMUSIC && authors.isNotEmpty()) {
+        stringResource(Res.string.lyrics_synced_by, names(authors))
+    } else {
+        sourceName()?.let { stringResource(Res.string.lyrics_from, it) }
+    }
+
+/** The credit where the caption is a bare source name (Apple Music, the M3 lyrics card). */
+@Composable
+internal fun NowPlayingScreenData.LyricsData.creditName(): String =
+    if (lyricsProvider == LyricsSource.LIMUSIC && authors.isNotEmpty()) stringResource(Res.string.lyrics_synced_by, names(authors)) else sourceName().orEmpty()
+
+/**
+ * Fades the edge the content goes on past, so a list the sheet cuts off reads as one that scrolls:
+ * the votes and Timing below nine sources were easy to miss.
+ */
+private fun Modifier.scrollEdgeFade(
+    state: ScrollState,
+    edge: Dp = 48.dp,
+) = graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }.drawWithContent {
+    drawContent()
+    val px = edge.toPx()
+    if (state.canScrollForward) {
+        drawRect(Brush.verticalGradient(listOf(Color.Black, Color.Transparent), startY = size.height - px, endY = size.height), blendMode = BlendMode.DstIn)
+    }
+    if (state.canScrollBackward) {
+        drawRect(Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = 0f, endY = px), blendMode = BlendMode.DstIn)
+    }
+}
+
 @Composable
 private fun SourceRow(
     selected: Boolean,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    // A second line that belongs to the row (Limusic's votes), inside its box but not its tap.
+    below: (@Composable () -> Unit)? = null,
     leading: @Composable () -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
             .clip(rounded(14.dp))
-            .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f) else Color.Transparent)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f) else Color.Transparent),
     ) {
-        leading()
-        Spacer(Modifier.width(10.dp))
-        content()
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled, onClick = onClick)
+                .padding(horizontal = 6.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            leading()
+            Spacer(Modifier.width(10.dp))
+            content()
+        }
+        below?.invoke()
     }
 }
 

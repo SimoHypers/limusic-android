@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
@@ -88,6 +89,8 @@ import com.simohypers.limusic.extension.LyricsStagger
 import com.simohypers.limusic.extension.ParsedRichSyncLine
 import com.simohypers.limusic.extension.animateScrollAndAnchorItemTop
 import com.simohypers.limusic.extension.animateScrollAndCentralizeItem
+import com.simohypers.limusic.extension.emptyLead
+import com.simohypers.limusic.extension.farLines
 import com.simohypers.limusic.extension.parseRichSyncWords
 import com.simohypers.limusic.ui.theme.typo
 import com.simohypers.limusic.viewModel.NowPlayingScreenData
@@ -108,16 +111,14 @@ private const val TAG = "LyricsView"
 // playback, a wedged player — can never drift further than the granularity we already live with.
 private const val PLAYHEAD_TICK_MS = 50L
 
-// A rich-synced line followed by a silence at least this long gets a row of dots standing in for
-// the instrumental, the way Apple Music marks one. Rich sync only: it is the one format that knows
-// where a line actually STOPS, so it is the one format that can tell a real pause from a line whose
-// end time was never written down.
-private const val INTERLUDE_MIN_GAP_MS = 3_000L
+/** How a line coming up reads on the Classic page, and the unsung words of the one being sung. */
+private const val UPCOMING_LINE_ALPHA = 0.7f
 
-// Three dots, each owning an equal third of the silence: the first fills over the first third, and
-// the row is full exactly as the next line begins.
-private const val INTERLUDE_DOT_COUNT = 3
-private const val INTERLUDE_DOT = "\u2022"
+/** How far into a tapped line the seek lands; under anything heard, over the seek's rounding. */
+private const val SEEK_INTO_LINE_MS = 50L
+
+// What an instrumental break shows: a note, as desktop draws a timed line with nothing sung.
+private const val BREAK_NOTE = "\u266A"
 
 // Emphasis maths ported from AMLL (applemusic-like-lyrics),
 // packages/core/src/lyric-player/dom/lyric-line.ts -> initEmphasizeAnimation. Kept to its exact
@@ -231,84 +232,24 @@ private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
 internal val LocalLyricsSungColor = staticCompositionLocalOf { Color.White }
 
 /**
- * The sheet's lines as they are RENDERED, plus the indices of the dots lines that were inserted
- * into them.
- *
- * One list, one index space. The sung line, the blur distance, the scroll target and the
- * translation lookup are all line INDICES, so a display-only list running alongside the real one
- * would leave four call sites quietly disagreeing about which line is which.
+ * The sheet's lines as they are rendered. A timed line with nothing sung (an instrumental break, as
+ * Limusic Lyrics and many LRC files mark one) shows a note, as on desktop. A gap between two lines
+ * shows nothing, also as on desktop: SimpMusic's dots in every 3 s gap flashed between held notes.
  */
-private data class DisplayLines(
-    val lines: List<Line>,
-    val interludeIndices: Set<Int>,
-)
-
-/**
- * Inserts a dots line into every silence of at least [INTERLUDE_MIN_GAP_MS] between two lines.
- *
- * The inserted line is an ordinary rich-synced [Line] carrying three dots, one timestamp each,
- * dividing the silence into equal thirds. Written as real markup rather than handled by a special
- * case in the renderer: it then goes through the same parser, the same wipe and the same layout as
- * a sung line, which is the only way its dots land on the same baseline and left edge as the words
- * above them.
- *
- * Rich sync only. It is the one format that records where a line STOPS, so it is the one format
- * that can tell a real pause from a line whose end was simply never written down.
- */
-private fun buildDisplayLines(
+private fun displayLinesOf(
     lines: List<Line>?,
     syncType: String?,
-): DisplayLines {
+): List<Line> {
     val source = lines.orEmpty()
-    if (syncType != "RICH_SYNCED" || source.size < 2) return DisplayLines(source, emptySet())
-
-    val out = ArrayList<Line>(source.size)
-    val inserted = mutableSetOf<Int>()
-    source.forEachIndexed { index, line ->
-        out += line
-        val nextStartMs = source.getOrNull(index + 1)?.startTimeMs?.toLongOrNull() ?: return@forEachIndexed
-        // The rule, literally: once the line's LAST WORD has been lit for INTERLUDE_MIN_GAP_MS and
-        // the next line still has not begun, the dots take over from there.
-        //
-        // Measured from where that word STARTS, not where it ends, and the dots begin three seconds
-        // later rather than at the end of the line. Both of those matter for the same reason: the
-        // dots become the sung line the moment they start, so starting them any earlier drags the
-        // sheet away from a word the listener is still watching light up. For those three seconds
-        // the last lyric stays the sung line, which is what it still is.
-        val lastWordStartMs =
-            parseRichSyncWords(line.words, line.startTimeMs, line.endTimeMs)
-                ?.words
-                ?.lastOrNull()
-                ?.startTimeMs
-                ?: return@forEachIndexed
-        val dotsStartMs = lastWordStartMs + INTERLUDE_MIN_GAP_MS
-        if (nextStartMs <= dotsStartMs) return@forEachIndexed
-        val interlude = interludeLine(dotsStartMs, nextStartMs) ?: return@forEachIndexed
-        inserted += out.size
-        out += interlude
-    }
-    return DisplayLines(out, inserted)
-}
-
-/** Null when a timestamp will not fit the `MM:SS.cc` shape the rich-sync parser reads. */
-private fun interludeLine(
-    startMs: Long,
-    endMs: Long,
-): Line? {
-    val stepMs = (endMs - startMs) / INTERLUDE_DOT_COUNT
-    val words =
-        buildString {
-            repeat(INTERLUDE_DOT_COUNT) { dot ->
-                append(richSyncTimestamp(startMs + stepMs * dot) ?: return null)
-                append(INTERLUDE_DOT)
-            }
+    if (syncType != "LINE_SYNCED" && syncType != "RICH_SYNCED") return source
+    return source.map { l ->
+        val start = l.startTimeMs.toLongOrNull()
+        when {
+            start == null || l.words.isNotBlank() || l.background != null -> l
+            syncType == "RICH_SYNCED" -> l.copy(words = (richSyncTimestamp(start) ?: "") + BREAK_NOTE)
+            else -> l.copy(words = BREAK_NOTE)
         }
-    return Line(
-        startTimeMs = startMs.toString(),
-        endTimeMs = endMs.toString(),
-        syllables = null,
-        words = words,
-    )
+    }
 }
 
 private fun richSyncTimestamp(ms: Long): String? {
@@ -472,6 +413,15 @@ fun LyricsView(
     // below is keyed on it rather than reading it.
     val songLyricsOffsetMs = lyricsData.offsetMs
 
+    // A tap on a line plays from it. Aimed at where the lyrics clock (the player less both offsets)
+    // reads the line's start, and a little inside it: the seek goes through a Float percentage, and
+    // landing a few ms early lit the line before it first, a flash on every tap.
+    fun seekToLine(line: Line) {
+        val total = timeLine.value.total.takeIf { it > 0 } ?: return
+        val at = (line.startTimeMs.toLongOrNull() ?: return) + globalLyricsOffsetMs + songLyricsOffsetMs + SEEK_INTO_LINE_MS
+        onLineClick(at.coerceIn(0, total).toFloat() * 100 / total)
+    }
+
     // Read here rather than taken as a parameter: all four call sites (the fullscreen sheet and
     // the three player styles) want the user's one choice, so making them each thread it through
     // would be four copies of the same lookup. Re-checked against isLyricsBlurSupported() even
@@ -512,19 +462,20 @@ fun LyricsView(
             AppleMusicLyricLineHeight.toPx() + AppleMusicLyricGap.toPx()
         }
 
-    // The lines this sheet actually renders: the sheet's own, plus a dots line inserted into every
-    // long silence. Everything below counts indices against THIS list — the sung line, the blur
-    // distance, the scroll target and the translation lookup — so the dots line is a line like any
-    // other rather than something drawn on top of one.
+    // The lines this sheet actually renders: the sheet's own, a break drawn as a note.
     val displayLines =
         remember(lyricsData.lyrics.lines, lyricsData.lyrics.syncType) {
-            buildDisplayLines(lyricsData.lyrics.lines, lyricsData.lyrics.syncType)
+            displayLinesOf(lyricsData.lyrics.lines, lyricsData.lyrics.syncType)
         }
+
+    // Limusic Lyrics' duets: the lines that sit on the far side. Empty for every other lyric.
+    val farLines = remember(displayLines) { farLines(displayLines) }
+    val duet = farLines.isNotEmpty()
 
     val timedLineIndexes =
         remember(displayLines) {
             val timed =
-                displayLines.lines
+                displayLines
                     .mapIndexedNotNull { index, line ->
                         line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
                     }
@@ -567,7 +518,7 @@ fun LyricsView(
             lyricsData.translatedLyrics?.first?.lines,
         ) {
             buildSyncedTranslatedWordsByLineIndex(
-                originalLines = displayLines.lines,
+                originalLines = displayLines,
                 translatedLines = lyricsData.translatedLyrics?.first?.lines.orEmpty(),
                 thresholdMs = 1000L,
             )
@@ -608,17 +559,11 @@ fun LyricsView(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = tailPadding),
         ) {
-            items(displayLines.lines.size) { index ->
-                val line = displayLines.lines.getOrNull(index)
-                // A dots line stands for silence, so it has nothing to translate or romanize. Worth
-                // saying out loud for the translation: that map matches by TIME, and the silence
-                // begins close enough to the line before it that it would otherwise pick up that
-                // line's translation and print it under the dots.
-                val isInterlude = index in displayLines.interludeIndices
+            items(displayLines.size) { index ->
+                val line = displayLines.getOrNull(index)
                 // Translated lyrics: synced -> precomputed map by line index, unsynced -> by index.
                 val translatedWords =
                     when {
-                        isInterlude -> null
                         lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED" ->
                             syncedTranslatedWordsByLineIndex[index]
                         else ->
@@ -643,7 +588,7 @@ fun LyricsView(
                     // while this row is plain static text. It only has to have the markers STRIPPED
                     // before romanizing, or the timestamps themselves would be transliterated.
                     val romanizedWords =
-                        if (isInterlude || romanizationLanguages.isEmpty() || !showRomanized) {
+                        if (romanizationLanguages.isEmpty() || !showRomanized) {
                             null
                         } else {
                             remember(words, romanizationLanguages, japaneseDictionaryReady) {
@@ -658,6 +603,8 @@ fun LyricsView(
                         LimusicLyricLine(
                             words = words,
                             line = line,
+                            far = index in farLines,
+                            duet = duet,
                             syncType = lyricsData.lyrics.syncType,
                             romanized = romanizedWords,
                             translated = translatedWords,
@@ -668,7 +615,7 @@ fun LyricsView(
                             textScale = textScale,
                             onClick =
                                 if (synced) {
-                                    { onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total) }
+                                    { seekToLine(line) }
                                 } else {
                                     null
                                 },
@@ -680,10 +627,13 @@ fun LyricsView(
                         when {
                             // Rich sync: parse and use RichSyncLyricsLineItem
                             lyricsData.lyrics.syncType == "RICH_SYNCED" -> {
+                                val background =
+                                    remember(line.background, line.startTimeMs, line.endTimeMs) {
+                                        line.background?.let { parseRichSyncWords(it, line.startTimeMs, line.endTimeMs) }
+                                    }
                                 val parsedLine =
-                                    remember(words, line.startTimeMs, line.endTimeMs) {
-                                        val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
-                                        result
+                                    remember(words, line.startTimeMs, line.endTimeMs, background) {
+                                        parseRichSyncWords(words, line.startTimeMs, line.endTimeMs) ?: background?.emptyLead()
                                     }
 
                                 if (parsedLine != null) {
@@ -695,6 +645,8 @@ fun LyricsView(
                                         parsedLine = parsedLine,
                                         translatedWords = translatedWords,
                                         romanizedWords = romanizedWords,
+                                        far = index in farLines,
+                                        background = background,
                                         currentTimeMs = current.current - globalLyricsOffsetMs - songLyricsOffsetMs,
                                         isCurrent = index == currentLineIndex,
                                         customFontSize = if (appleStyle) AppleMusicLyricFontSize else null,
@@ -720,7 +672,7 @@ fun LyricsView(
                                                 Modifier
                                             } else {
                                                 Modifier.clickable {
-                                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                                    seekToLine(line)
                                                 }
                                             },
                                     )
@@ -749,7 +701,7 @@ fun LyricsView(
                                         modifier =
                                             Modifier
                                                 .clickable {
-                                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                                    seekToLine(line)
                                                 },
                                     )
                                 }
@@ -782,7 +734,7 @@ fun LyricsView(
                                     modifier =
                                         Modifier
                                             .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
-                                                onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                                seekToLine(line)
                                             },
                                 )
                             }
@@ -818,7 +770,7 @@ fun LyricsView(
                                         enabled = lyricsData.lyrics.syncType == "LINE_SYNCED" ||
                                             lyricsData.lyrics.syncType == "RICH_SYNCED",
                                     ) {
-                                        onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                        seekToLine(line)
                                     },
                         ) {
                             // Blur spans the FULL width; the gutter is applied inside it. Ordered
@@ -863,7 +815,7 @@ fun LyricsView(
                                 Modifier
                                     // The row after the last line: it trails with the lines, or
                                     // the lines would run into it while they catch up.
-                                    .graphicsLayer { translationY = stagger.lagPx(displayLines.lines.size) }
+                                    .graphicsLayer { translationY = stagger.lagPx(displayLines.size) }
                                     .padding(horizontal = AppleMusicLyricPaddingX)
                                     .alpha(FOOTER_ALPHA),
                         ) {
@@ -945,6 +897,9 @@ fun LyricsLineItem(
 private fun LimusicLyricLine(
     words: String,
     line: Line,
+    // A duet's other singer, on the far side; [duet] keeps both singers off each other's edge.
+    far: Boolean,
+    duet: Boolean,
     syncType: String?,
     romanized: String?,
     translated: String?,
@@ -956,13 +911,18 @@ private fun LimusicLyricLine(
     onClick: (() -> Unit)?,
 ) {
     val ink = MaterialTheme.colorScheme.onSurface
-    val alpha by animateFloatAsState(
+    // Faded on the way out only. A line that begins is at full strength at once, so its unsung
+    // words (UPCOMING_LINE_ALPHA of the ink) read exactly as they did a frame earlier as the line
+    // coming up, and only what is sung brightens. Fading it in as well left those words at the
+    // wrong strength for 300 ms: darker than the line above (0.4 of the ink), or, tied to the
+    // fade, a flash of the whole line.
+    val faded by animateFloatAsState(
         targetValue =
             when {
                 plain -> 0.9f
                 isCurrent -> 1f
                 isPast -> 0.4f
-                else -> 0.7f
+                else -> UPCOMING_LINE_ALPHA
             },
         animationSpec = tween(300),
         label = "lyricLineAlpha",
@@ -975,9 +935,17 @@ private fun LimusicLyricLine(
             lineHeight = size * 1.3f,
             fontWeight = if (plain) FontWeight.Medium else FontWeight.Bold,
         )
+    val background =
+        if (syncType == "RICH_SYNCED" && !plain) {
+            remember(line.background, line.startTimeMs, line.endTimeMs) { line.background?.let { parseRichSyncWords(it, line.startTimeMs, line.endTimeMs) } }
+        } else {
+            null
+        }
     val parsed =
         if (syncType == "RICH_SYNCED" && !plain) {
-            remember(words, line.startTimeMs, line.endTimeMs) { parseRichSyncWords(words, line.startTimeMs, line.endTimeMs) }
+            remember(words, line.startTimeMs, line.endTimeMs, background) {
+                parseRichSyncWords(words, line.startTimeMs, line.endTimeMs) ?: background?.emptyLead()
+            }
         } else {
             null
         }
@@ -986,17 +954,18 @@ private fun LimusicLyricLine(
         Modifier
             .fillMaxWidth()
             .graphicsLayer {
-                this.alpha = alpha
+                this.alpha = if (isCurrent) 1f else faded
                 scaleX = scale
                 scaleY = scale
-                transformOrigin = TransformOrigin(0f, 0.5f)
+                transformOrigin = TransformOrigin(if (far) 1f else 0f, 0.5f)
             }.then(
                 if (onClick != null) {
                     Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
                 } else {
                     Modifier
                 },
-            ).padding(vertical = if (plain) 4.dp else 9.dp),
+            ).padding(vertical = if (plain) 4.dp else 9.dp)
+            .padding(start = if (duet && far) DUET_INSET else 0.dp, end = if (duet && !far) DUET_INSET else 0.dp),
     ) {
         if (parsed != null) {
             CompositionLocalProvider(LocalLyricsSungColor provides ink) {
@@ -1007,12 +976,14 @@ private fun LimusicLyricLine(
                     isCurrent = isCurrent,
                     customFontSize = size,
                     customPadding = 0.dp,
-                    pendingColorOverride = if (isCurrent) ink.copy(alpha = 0.4f) else ink,
+                    pendingColorOverride = if (isCurrent) ink.copy(alpha = UPCOMING_LINE_ALPHA) else ink,
                     wrappedLineSpacing = 2.dp,
+                    far = far,
+                    background = background,
                 )
             }
         } else {
-            LyricText(text = text, modifier = Modifier.fillMaxWidth(), style = style, color = ink)
+            LyricText(text = text, modifier = Modifier.fillMaxWidth(), style = style, color = ink, far = far)
         }
         if (romanized != null) {
             val sub = max(size.value * 0.62f, 11f).sp
@@ -1108,12 +1079,93 @@ fun RichSyncLyricsLineItem(
     // Apple Music passes real spacing because its lines are large enough to wrap often, and
     // FlowRow ignores the lineHeight that spaces the non-wrapped renderer's lines.
     wrappedLineSpacing: Dp = 0.dp,
+    // Limusic Lyrics: the line is the other singer's in a duet, so it sits on the far side.
+    far: Boolean = false,
+    // Limusic Lyrics: the line's background vocals, a quieter line of their own under it, swept on
+    // their own timings like any other word.
+    background: ParsedRichSyncLine? = null,
     modifier: Modifier = Modifier,
 ) {
     val playhead = rememberSmoothPlayhead(currentTimeMs, enabled = isCurrent)
     val originalWords = remember(parsedLine.words) { parsedLine.words.joinToString(" ") { it.text } }
     val lineDirection = rememberLyricLayoutDirection(originalWords)
 
+    Column(
+        modifier = modifier,
+    ) {
+        Spacer(modifier = Modifier.height(customPadding))
+
+        // Word order follows the original; subtitles share its edge but keep their own reading direction.
+        CompositionLocalProvider(LocalLayoutDirection provides lineDirection) {
+            RichSyncWords(parsedLine, playhead, currentTimeMs, isCurrent, lineDirection, customFontSize, glow, pendingColorOverride, wrappedLineSpacing, far)
+            if (background != null) {
+                // Dimmed as a group (graphicsLayer alpha), never by a translucent colour, which
+                // composites glyph by glyph and brightens wherever two glyphs overlap.
+                Box(Modifier.padding(top = 2.dp).graphicsLayer { alpha = BACKGROUND_VOCALS_ALPHA }) {
+                    RichSyncWords(
+                        background,
+                        playhead,
+                        currentTimeMs,
+                        isCurrent,
+                        lineDirection,
+                        (customFontSize ?: typo().headlineLarge.fontSize) * BACKGROUND_VOCALS_SCALE,
+                        glow,
+                        pendingColorOverride,
+                        wrappedLineSpacing,
+                        far,
+                    )
+                }
+            }
+        }
+
+        if (romanizedWords != null) {
+            LyricText(
+                text = romanizedWords,
+                alignmentText = originalWords,
+                modifier = Modifier.fillMaxWidth(),
+                style = translatedStyleOverride ?: typo().bodyMedium,
+                color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
+                far = far,
+            )
+        }
+
+        // Translated lyrics (line-level, no word sync)
+        if (translatedWords != null) {
+            LyricText(
+                text = translatedWords,
+                alignmentText = originalWords,
+                modifier = Modifier.fillMaxWidth(),
+                style = translatedStyleOverride ?: typo().bodyMedium,
+                color = translatedColorOverride ?: if (isCurrent) Color.Yellow else DimTranslatedColor,
+                far = far,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(customPadding))
+    }
+}
+
+/** In a duet, how far each singer's lines stay off the other singer's edge. */
+private val DUET_INSET = 40.dp
+
+/** How much smaller and quieter background vocals are than the lead, after desktop (0.72em, 65%). */
+private const val BACKGROUND_VOCALS_SCALE = 0.72f
+private const val BACKGROUND_VOCALS_ALPHA = 0.65f
+
+/** One run of timed words, wrapping, each lit as the playhead reaches it. */
+@Composable
+private fun RichSyncWords(
+    parsedLine: ParsedRichSyncLine,
+    playhead: State<Long>,
+    currentTimeMs: Long,
+    isCurrent: Boolean,
+    lineDirection: LayoutDirection,
+    customFontSize: TextUnit?,
+    glow: Shadow?,
+    pendingColorOverride: Color?,
+    wrappedLineSpacing: Dp,
+    far: Boolean,
+) {
     // Remembered on the LINE rather than on the clock. The previous `remember(currentTimeMs, …)`
     // rebuilt this derived state on every tick, which gave away the one thing derivedStateOf is
     // for: it notifies only when the RESULT changes. Keyed this way, the playhead can move sixty
@@ -1124,17 +1176,9 @@ fun RichSyncLyricsLineItem(
             parsedLine.words.indexOfLast { it.startTimeMs <= playhead.value }
         }
     }
-
-    Column(
-        modifier = modifier,
-    ) {
-        Spacer(modifier = Modifier.height(customPadding))
-
-        // Word order follows the original; subtitles share its edge but keep their own reading direction.
-        CompositionLocalProvider(LocalLayoutDirection provides lineDirection) {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, if (far) Alignment.End else Alignment.Start),
                 verticalArrangement =
                     if (wrappedLineSpacing > 0.dp) Arrangement.spacedBy(wrappedLineSpacing) else Arrangement.Center,
             ) {
@@ -1173,31 +1217,6 @@ fun RichSyncLyricsLineItem(
                     )
                 }
             }
-        }
-
-        if (romanizedWords != null) {
-            LyricText(
-                text = romanizedWords,
-                alignmentText = originalWords,
-                modifier = Modifier.fillMaxWidth(),
-                style = translatedStyleOverride ?: typo().bodyMedium,
-                color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
-            )
-        }
-
-        // Translated lyrics (line-level, no word sync)
-        if (translatedWords != null) {
-            LyricText(
-                text = translatedWords,
-                alignmentText = originalWords,
-                modifier = Modifier.fillMaxWidth(),
-                style = translatedStyleOverride ?: typo().bodyMedium,
-                color = translatedColorOverride ?: if (isCurrent) Color.Yellow else DimTranslatedColor,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(customPadding))
-    }
 }
 
 @Composable

@@ -35,6 +35,8 @@ internal fun LyricText(
     minLines: Int = 1,
     overflow: TextOverflow = TextOverflow.Clip,
     softWrap: Boolean = true,
+    // A duet's other singer: the text sits on the far side of its reading direction.
+    far: Boolean = false,
 ) {
     val alignmentDirection = rememberLyricLayoutDirection(alignmentText)
     val readingDirection = rememberLyricLayoutDirection(text)
@@ -44,7 +46,7 @@ internal fun LyricText(
             text = text,
             style = style.copy(textDirection = TextDirection.ContentOrLtr),
             modifier = modifier,
-            textAlign = if (alignmentDirection == LayoutDirection.Rtl) TextAlign.Right else TextAlign.Left,
+            textAlign = if ((alignmentDirection == LayoutDirection.Rtl) != far) TextAlign.Right else TextAlign.Left,
             color = color,
             maxLines = maxLines,
             minLines = minLines,

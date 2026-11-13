@@ -434,6 +434,14 @@ interface DataStoreManager {
 
     suspend fun setRichPresenceEnabled(enabled: Boolean)
 
+    /**
+     * The session of this install's anonymous Limusic Lyrics account, made by the first vote or
+     * report. Empty when there is none yet.
+     */
+    val limusicLyricsToken: Flow<String>
+
+    suspend fun setLimusicLyricsToken(token: String)
+
     /** Last.fm session key. Has no expiry — it stays valid until the user revokes it on last.fm. */
     val lastfmSessionKey: Flow<String>
 

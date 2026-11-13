@@ -1,6 +1,8 @@
 package com.simohypers.limusic.ui.screen.player.content.applemusic
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -39,7 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.ResolvedTextDirection
@@ -99,17 +105,7 @@ internal fun AppleMusicLyricStrip(
                 synced -> StripContent.Waiting
                 else -> null
             },
-        transitionSpec = {
-            // The new line rises into place as the old one rises away, a third of a line each way —
-            // the direction lyrics travel in the Lyrics tab, so the two read as the same motion.
-            val enter =
-                fadeIn(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) +
-                    slideInVertically(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) { (it * 0.35f).toInt() }
-            val exit =
-                fadeOut(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) +
-                    slideOutVertically(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) { -(it * 0.35f).toInt() }
-            (enter togetherWith exit).using(SizeTransform(clip = false))
-        },
+        transitionSpec = { lineRise() },
         label = "appleMusicLyricStrip",
         modifier =
             modifier
@@ -133,7 +129,7 @@ internal fun AppleMusicLyricStrip(
                                 if (richSynced) parseRichSyncWords(shown.line.words, shown.line.startTimeMs, shown.line.endTimeMs) else null
                             }
                         if (parsed != null) {
-                            SweptLine(parsed = parsed, playhead = playhead, typography = typography)
+                            SweptLine(parsed = parsed, playhead = playhead, style = typography.lyricStrip, unsung = UNSUNG)
                         } else {
                             StripText(text = shown.line.displayText(), typography = typography)
                         }
@@ -184,11 +180,77 @@ private fun WaitingDots() {
     }
 }
 
+/**
+ * The line being sung under the cover, in the Classic and M3 Expressive players: two lines tall
+ * whatever it holds, in the theme's colours. Word-synced lyrics light as they are sung, the way
+ * the Apple Music strip lights them, and a new line rises into place as the old one rises away.
+ * Line-synced lyrics show the whole line. [hidden] empties it (M3 Expressive under a fullscreen canvas).
+ */
+@Composable
+internal fun CoverLyricLine(
+    state: NowPlayingContentState,
+    style: TextStyle,
+    color: Color,
+    modifier: Modifier = Modifier,
+    hidden: Boolean = false,
+) {
+    val lyrics = state.screenData.lyricsData?.lyrics
+    val syncType = lyrics?.syncType
+    val synced = lyrics?.lines != null && syncType != null && syncType != "UNSYNCED"
+    val richSynced = synced && syncType == "RICH_SYNCED"
+    val line = if (synced && !hidden) lyrics.lines?.getOrNull(state.currentLyricLineIndex) else null
+    val playhead =
+        rememberSweepPlayhead(
+            rawMs = state.timelineState.current - state.lyricsOffsetMs,
+            running = line != null && richSynced && state.controllerState.isPlaying,
+        )
+    AnimatedContent(targetState = line, transitionSpec = { lineRise() }, label = "coverLyricLine", modifier = modifier.fillMaxWidth()) { shown ->
+        val parsed =
+            remember(shown, richSynced) {
+                if (richSynced && shown != null) parseRichSyncWords(shown.words, shown.startTimeMs, shown.endTimeMs) else null
+            }
+        val lineDirection = rememberLyricLayoutDirection(shown?.displayText().orEmpty())
+        CompositionLocalProvider(LocalLayoutDirection provides lineDirection) {
+            if (parsed != null) {
+                SweptLine(parsed, playhead, style.copy(color = color), unsung = color.copy(alpha = UNSUNG_ALPHA), maxLines = 2)
+            } else {
+                Text(
+                    text = shown?.displayText().orEmpty(),
+                    style = style.copy(color = color, textDirection = TextDirection.ContentOrLtr),
+                    maxLines = 2,
+                    minLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+// The new line rises into place as the old one rises away, a third of a line each way: the
+// direction lyrics travel in the Lyrics tab, so the two read as the same motion.
+private fun AnimatedContentTransitionScope<*>.lineRise(): ContentTransform {
+    val enter =
+        fadeIn(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) +
+            slideInVertically(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) { (it * 0.35f).toInt() }
+    val exit =
+        fadeOut(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) +
+            slideOutVertically(tween(LINE_CHANGE_MS, easing = FastOutSlowInEasing)) { -(it * 0.35f).toInt() }
+    return (enter togetherWith exit).using(SizeTransform(clip = false))
+}
+
+/**
+ * A word-synced line drawn twice, [unsung] and lit, the lit copy clipped to where the singer has
+ * got to. One line scrolls sideways as a marquee (the Apple Music strip); more wrap, every line
+ * above the sung one lit in full, and always take [maxLines] of height so nothing below moves.
+ */
 @Composable
 private fun SweptLine(
     parsed: ParsedRichSyncLine,
     playhead: State<Long>,
-    typography: AppleMusicTypography,
+    style: TextStyle,
+    unsung: Color,
+    maxLines: Int = 1,
 ) {
     // The words joined the way the line is shown, with each word's character range kept, so the
     // playhead can be turned into an x position on the laid-out text.
@@ -203,43 +265,53 @@ private fun SweptLine(
             }
         }
     var layout by remember(text) { mutableStateOf<TextLayoutResult?>(null) }
+    val single = maxLines == 1
     // The marquee sits on the Box, not on each Text, so the dim and bright copies scroll as one and
     // the sweep stays over the word it belongs to.
-    Box(modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)) {
+    Box(modifier = if (single) Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately) else Modifier.fillMaxWidth()) {
         Text(
             text = text,
-            style = typography.lyricStrip.copy(color = UNSUNG, textDirection = TextDirection.ContentOrLtr),
-            maxLines = 1,
-            softWrap = false,
+            style = style.copy(color = unsung, textDirection = TextDirection.ContentOrLtr),
+            maxLines = maxLines,
+            minLines = maxLines,
+            softWrap = !single,
+            overflow = if (single) TextOverflow.Clip else TextOverflow.Ellipsis,
             onTextLayout = { layout = it },
         )
         Text(
             text = text,
-            style = typography.lyricStrip.copy(textDirection = TextDirection.ContentOrLtr),
-            maxLines = 1,
-            softWrap = false,
+            style = style.copy(textDirection = TextDirection.ContentOrLtr),
+            maxLines = maxLines,
+            minLines = maxLines,
+            softWrap = !single,
+            overflow = if (single) TextOverflow.Clip else TextOverflow.Ellipsis,
             modifier =
                 Modifier.drawWithContent {
                     val measured = layout ?: return@drawWithContent
-                    val sweepX = sweepX(parsed, ranges, measured, playhead.value) ?: return@drawWithContent
-                    if (measured.getParagraphDirection(0) == ResolvedTextDirection.Rtl) {
-                        clipRect(left = sweepX) { this@drawWithContent.drawContent() }
-                    } else {
-                        clipRect(right = sweepX) { this@drawWithContent.drawContent() }
-                    }
+                    val (row, sweepX) = sweepAt(parsed, ranges, measured, playhead.value) ?: return@drawWithContent
+                    val top = if (row == 0) 0f else measured.getLineTop(row)
+                    val bottom = if (row >= measured.lineCount - 1) size.height else measured.getLineBottom(row)
+                    val rtl = measured.getParagraphDirection(0) == ResolvedTextDirection.Rtl
+                    val lit =
+                        Path().apply {
+                            if (top > 0f) addRect(Rect(0f, 0f, size.width, top))
+                            addRect(if (rtl) Rect(sweepX, top, size.width, bottom) else Rect(0f, top, sweepX, bottom))
+                        }
+                    clipPath(lit) { this@drawWithContent.drawContent() }
                 },
         )
     }
 }
 
-// Where the light has got to: every word already sung, plus the part of the current one its own
-// duration says has gone by. A word runs until the next one starts; the last runs to the line's end.
-private fun sweepX(
+// Where the light has got to, as the row it is on and its x there: every word already sung, plus
+// the part of the current one its own duration says has gone by. A word runs until the next one
+// starts; the last runs to the line's end.
+private fun sweepAt(
     parsed: ParsedRichSyncLine,
     ranges: List<IntRange>,
     layout: TextLayoutResult,
     positionMs: Long,
-): Float? {
+): Pair<Int, Float>? {
     val words = parsed.words
     val current = words.indexOfLast { it.startTimeMs <= positionMs }
     if (current < 0) return null
@@ -251,9 +323,10 @@ private fun sweepX(
             ?: (startMs + LAST_WORD_FALLBACK_MS)
     val progress = ((positionMs - startMs).toFloat() / (endMs - startMs).coerceAtLeast(1L)).coerceIn(0f, 1f)
     val lastIndex = (layout.layoutInput.text.length).coerceAtLeast(1)
-    val left = layout.getHorizontalPosition(range.first.coerceIn(0, lastIndex), usePrimaryDirection = true)
+    val first = range.first.coerceIn(0, lastIndex)
+    val left = layout.getHorizontalPosition(first, usePrimaryDirection = true)
     val right = layout.getHorizontalPosition((range.last + 1).coerceIn(0, lastIndex), usePrimaryDirection = true)
-    return left + (right - left) * progress
+    return layout.getLineForOffset(first) to left + (right - left) * progress
 }
 
 /**
@@ -310,7 +383,8 @@ private fun rememberSweepPlayhead(
 private fun Line.displayText(): String = words.stripRichSyncTimestamps()
 
 // The unsung part of a word-synced line: present enough to read ahead, clearly not lit yet.
-private val UNSUNG = Color.White.copy(alpha = 0.45f)
+private const val UNSUNG_ALPHA = 0.45f
+private val UNSUNG = Color.White.copy(alpha = UNSUNG_ALPHA)
 
 private val WAITING_DOT_SIZE = 5.dp
 private val WAITING_DOT_GAP = 4.dp

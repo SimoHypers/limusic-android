@@ -6,7 +6,17 @@ import com.simohypers.limusic.domain.data.model.browse.artist.sameArtistName
 import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.mapping.toLyrics
 import com.simohypers.limusic.domain.data.entities.LyricsEntity
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicException
+import com.simohypers.limusic.domain.data.model.lyrics.LimusicRating
+import com.simohypers.limusic.domain.data.model.lyrics.LyricsRecheck
 import com.simohypers.limusic.domain.data.model.lyrics.LyricsSource
+import com.simohypers.limusic.domain.data.model.lyrics.RECHECK_LIMUSIC_SECS
+import com.simohypers.limusic.domain.data.model.lyrics.RECHECK_OTHER_SECS
+import com.simohypers.limusic.domain.manager.DataStoreManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import com.simohypers.limusic.lyrics.LimusicLyrics
 import com.simohypers.limusic.domain.utils.toLyricsEntity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
@@ -52,7 +62,15 @@ internal class LyricsCanvasRepositoryImpl(
     private val youTube: YouTube,
     private val appleMusic: AppleMusicClient,
     private val lyricsProviders: LyricsProviders,
+    private val limusic: LimusicLyrics,
+    private val dataStoreManager: DataStoreManager,
 ) : LyricsCanvasRepository {
+    /** Hints go out behind the lyrics on screen; nothing waits on them. */
+    private val background = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** Held while an anonymous account is being made, so a vote and a report sent together make one between them. */
+    private val makingAccount = Mutex()
+
     /**
      * Video ids whose animated artwork is being searched right now, so the same track is never sent
      * to AM twice at once. Not a cancellation: the first attempt is the one that fills the cache.
@@ -89,13 +107,17 @@ internal class LyricsCanvasRepositoryImpl(
             coroutineScope {
                 // Provider i starts at i x stagger instead of after provider i-1 answers (Limusic
                 // #482), so a song with no lyrics anywhere doesn't wait on every provider in turn.
-                // Answers are still read in the user's order; a hit cancels the rest.
+                // Answers are still read in the user's order; a hit cancels the rest. Limusic takes
+                // no slot: the source after it starts alongside it, or every song Limusic doesn't
+                // hold would reach the others 300 ms later than before it led the list.
+                var slot = 0
                 val answers =
-                    sources.mapIndexed { i, source ->
+                    sources.map { source ->
+                        val wait = LYRICS_STAGGER_MS * (if (source == LyricsSource.LIMUSIC) slot else slot++)
                         async {
-                            delay(LYRICS_STAGGER_MS * i)
+                            delay(wait)
                             try {
-                                Result.success(withTimeout(LYRICS_PROVIDER_BUDGET_MS) { askLyricsSource(source, query) })
+                                Result.success(withTimeout(LYRICS_PROVIDER_BUDGET_MS) { askLyricsSource(source, query, now) })
                             } catch (e: TimeoutCancellationException) {
                                 Result.failure(e)
                             } catch (e: CancellationException) {
@@ -115,7 +137,7 @@ internal class LyricsCanvasRepositoryImpl(
                         continue
                     }
                     answered = true
-                    val entity = answer.getOrNull()?.toEntity(videoId, source, now) ?: continue
+                    val entity = answer.getOrNull() ?: continue
                     Logger.d(LYRICS_TAG, "${source.id}: ${entity.syncType}, ${entity.lines?.size} lines")
                     if (entity.syncType != "UNSYNCED") {
                         synced = entity
@@ -125,6 +147,7 @@ internal class LyricsCanvasRepositoryImpl(
                 }
                 answers.forEach { it.cancel() }
                 val found = synced ?: plain
+                found?.let { hint(it, query, order) }
                 when {
                     found != null -> localDataSource.insertLyrics(found)
                     answered -> localDataSource.insertLyrics(LyricsEntity(videoId, error = true, lines = null, syncType = null, fetchedAt = now))
@@ -143,9 +166,145 @@ internal class LyricsCanvasRepositoryImpl(
         searched: Boolean,
     ): LyricsEntity? =
         withContext(Dispatchers.IO) {
-            askLyricsSource(source, LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 }, searched))
-                ?.toEntity(videoId, source, Clock.System.now().epochSeconds)
+            askLyricsSource(source, LyricsQuery(videoId, title, artist, album, durationSeconds.takeIf { it > 0 }, searched), Clock.System.now().epochSeconds)
         }
+
+    override suspend fun recheckLyrics(
+        videoId: String,
+        order: List<Pair<LyricsSource, Boolean>>,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            val now = Clock.System.now().epochSeconds
+            val cached = localDataSource.getSavedLyrics(videoId) ?: return@withContext false
+            val kind = LyricsRecheck.due(cached, now - cached.fetchedAt, order) ?: return@withContext false
+            // Stamped before the request leaves, not when it answers: a second look at the song
+            // meanwhile finds nothing due, and it makes this one request per song per day at most.
+            localDataSource.insertLyrics(cached.copy(fetchedAt = now))
+            val answer =
+                try {
+                    limusic.get(videoId, cached.revision.takeIf { kind == LyricsRecheck.REVISION })
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logger.d(LYRICS_TAG, "limusic recheck failed: ${e.message}")
+                    null
+                }
+            // Pinned, nudged, replaced or cleared while the request was away: not the row that was due.
+            val row = localDataSource.getSavedLyrics(videoId)
+            if (row == null || row.pinned || row.provider != cached.provider || row.revision != cached.revision) return@withContext false
+            when (answer) {
+                null -> {
+                    // Offline is not "Limusic doesn't have it": a week is too long to wait on that.
+                    if (kind == LyricsRecheck.ASK) localDataSource.insertLyrics(row.copy(fetchedAt = now - RECHECK_OTHER_SECS + RECHECK_LIMUSIC_SECS))
+                    false
+                }
+                LimusicLyrics.Fresh.Same -> false
+                // A reviewer took Limusic's lyric down: the next look walks the list again.
+                LimusicLyrics.Fresh.Gone -> {
+                    if (kind == LyricsRecheck.REVISION) localDataSource.deleteLyrics(videoId)
+                    kind == LyricsRecheck.REVISION
+                }
+                is LimusicLyrics.Fresh.New -> {
+                    val new = answer.lyric.toEntity(videoId, now)
+                    localDataSource.insertLyrics(new)
+                    // A rename shows too: the credit is read when the service answers.
+                    new.lines != row.lines || new.origin != row.origin || new.authors != row.authors
+                }
+            }
+        }
+
+    override suspend fun limusicRating(videoId: String): LimusicRating? =
+        withContext(Dispatchers.IO) {
+            val token = limusicToken()
+            try {
+                limusic.rating(videoId, token)
+            } catch (e: LimusicException) {
+                // The service refuses a dead session even where one is optional: ask again as nobody.
+                if (e.code != UNAUTHORIZED || token == null) throw e
+                forgetLimusicToken(token)
+                limusic.rating(videoId, null)
+            }
+        }
+
+    override suspend fun limusicVote(
+        videoId: String,
+        value: Int,
+        before: LimusicRating,
+    ): LimusicRating = withContext(Dispatchers.IO) { asContributor { limusic.vote(videoId, value, it, before) } }
+
+    override suspend fun limusicReport(
+        videoId: String,
+        reason: String,
+        note: String?,
+    ) = withContext(Dispatchers.IO) { asContributor { limusic.report(videoId, reason, note, it) } }
+
+    private suspend fun limusicToken() = dataStoreManager.limusicLyricsToken.first().takeIf { it.isNotEmpty() }
+
+    private suspend fun forgetLimusicToken(token: String) =
+        makingAccount.withLock {
+            if (limusicToken() == token) dataStoreManager.setLimusicLyricsToken("")
+        }
+
+    /**
+     * The session there is, else a new anonymous account's, kept; true when it was just made. Never
+     * [refused] again: a session the service turned down, though one made meanwhile is used.
+     */
+    private suspend fun sessionOrNew(refused: String? = null): Pair<String, Boolean> =
+        makingAccount.withLock {
+            limusicToken()?.takeIf { it != refused }?.let { return@withLock it to false }
+            val token = limusic.anonymous()
+            dataStoreManager.setLimusicLyricsToken(token)
+            Logger.d(LYRICS_TAG, "limusic: anonymous account made")
+            token to true
+        }
+
+    /**
+     * A write as this install's account, an anonymous one made for it the first time. When the
+     * service no longer knows the session (it lasts a year), another is made and the write tried
+     * once more.
+     */
+    private suspend fun <T> asContributor(call: suspend (String) -> T): T {
+        val (token, fresh) = sessionOrNew()
+        return try {
+            call(token)
+        } catch (e: LimusicException) {
+            if (e.code != UNAUTHORIZED) throw e
+            forgetLimusicToken(token)
+            if (fresh) throw e
+            call(sessionOrNew(refused = token).first)
+        }
+    }
+
+    /**
+     * Tell Limusic Lyrics a source it mirrors had this song word by word, so it fetches the lyric
+     * itself. One per song per install, since the hit is cached after; never with the Limusic
+     * source off, which is the off switch.
+     */
+    private fun hint(
+        found: LyricsEntity,
+        q: LyricsQuery,
+        order: List<Pair<LyricsSource, Boolean>>,
+    ) {
+        val provider = found.provider ?: return
+        if (provider !in LimusicLyrics.MIRRORED || found.syncType != "RICH_SYNCED" || q.searched) return
+        if (order.none { it.first == LyricsSource.LIMUSIC && it.second }) return
+        background.launch {
+            runCatching { limusic.hint(q.videoId, provider, q.title, q.artist, q.album, q.durationSeconds) }
+                .onFailure { Logger.d(LYRICS_TAG, "limusic hint failed: ${it.message}") }
+        }
+    }
+
+    private fun LimusicLyrics.Lyric.toEntity(
+        videoId: String,
+        now: Long,
+    ): LyricsEntity =
+        lyrics.toLyrics().toLyricsEntity(videoId).copy(
+            provider = LyricsSource.LIMUSIC.id,
+            fetchedAt = now,
+            revision = revision,
+            origin = origin,
+            authors = authors.ifEmpty { null },
+        )
 
     override suspend fun forgetLyrics(videoId: String) = withContext(Dispatchers.IO) { localDataSource.deleteLyrics(videoId) }
 
@@ -158,14 +317,18 @@ internal class LyricsCanvasRepositoryImpl(
     ): LyricsEntity? = toLyrics()?.toLyricsEntity(videoId)?.copy(provider = source.id, fetchedAt = now)
 
     // YouTube Music needs the scraper, which the lyrics module doesn't have; the rest are there.
+    // Limusic goes by video id only, so a title typed in the source sheet skips it.
     private suspend fun askLyricsSource(
         source: LyricsSource,
         query: LyricsQuery,
-    ): com.simohypers.limusic.lyrics.domain.Lyrics? =
-        if (source == LyricsSource.YOUTUBE) {
-            youTube.plainLyrics(query.videoId).getOrThrow()?.takeIf { it.isNotBlank() }?.let(::parseUnsyncedLyrics)
-        } else {
-            lyricsProviders.ask(source.id, query)
+        now: Long,
+    ): LyricsEntity? =
+        when (source) {
+            LyricsSource.YOUTUBE ->
+                youTube.plainLyrics(query.videoId).getOrThrow()?.takeIf { it.isNotBlank() }?.let(::parseUnsyncedLyrics)?.toEntity(query.videoId, source, now)
+            LyricsSource.LIMUSIC ->
+                if (query.searched) null else (limusic.get(query.videoId) as? LimusicLyrics.Fresh.New)?.lyric?.toEntity(query.videoId, now)
+            else -> lyricsProviders.ask(source.id, query)?.toEntity(query.videoId, source, now)
         }
 
     /**
@@ -396,6 +559,8 @@ internal class LyricsCanvasRepositoryImpl(
 }
 
 private const val LYRICS_TAG = "Lyrics"
+
+private const val UNAUTHORIZED = "unauthorized"
 
 /** How long a "no lyrics anywhere" verdict stops the chain from asking again. */
 private const val LYRICS_MISS_TTL_SECS = 24 * 3600L

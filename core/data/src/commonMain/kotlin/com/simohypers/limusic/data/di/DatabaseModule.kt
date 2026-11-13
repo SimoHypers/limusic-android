@@ -15,6 +15,8 @@ import com.simohypers.limusic.kotlinytmusicscraper.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.dsl.module
+import com.simohypers.limusic.common.AppIdentity
+import com.simohypers.limusic.lyrics.LimusicLyrics
 import com.simohypers.limusic.lyrics.LyricsProviders
 import com.simohypers.limusic.lyrics.AppleMusicClient
 import kotlin.time.ExperimentalTime
@@ -63,6 +65,11 @@ val databaseModule =
 
         single {
             LyricsProviders()
+        }
+
+        // A debug build can point at a local copy of the server (AppIdentity.lyricsServer).
+        single {
+            LimusicLyrics(get<AppIdentity>().lyricsServer.ifBlank { LimusicLyrics.URL })
         }
 
         // Not created at start, unlike the rest: nothing needs it until someone opens the AutoEq
