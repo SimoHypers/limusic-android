@@ -46,7 +46,7 @@ val repositoryModule =
         single { LibrarySync(get(), get()) }
 
         single<AlbumRepository>(createdAtStart = true) {
-            AlbumRepositoryImpl(get(), get(), get())
+            AlbumRepositoryImpl(get(), get(), get(), get())
         }
 
         single<ArtistRepository>(createdAtStart = true) {

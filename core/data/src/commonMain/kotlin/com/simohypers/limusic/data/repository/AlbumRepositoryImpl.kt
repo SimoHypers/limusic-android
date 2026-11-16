@@ -4,17 +4,23 @@ import com.simohypers.limusic.data.db.datasource.LocalDataSource
 import com.simohypers.limusic.data.extension.getFullDataFromDB
 import com.simohypers.limusic.data.mapping.toAlbumsResult
 import com.simohypers.limusic.data.parser.parseAlbumData
+import com.simohypers.limusic.data.parser.withSongVersions
 import com.simohypers.limusic.domain.data.entities.AlbumEntity
 import com.simohypers.limusic.domain.data.entities.FollowedArtistSingleAndAlbum
 import com.simohypers.limusic.domain.data.model.browse.album.AlbumBrowse
 import com.simohypers.limusic.domain.data.model.searchResult.albums.AlbumsResult
+import com.simohypers.limusic.domain.manager.DataStoreManager
+import com.simohypers.limusic.domain.manager.DataStoreManager.Values.TRUE
 import com.simohypers.limusic.domain.repository.AlbumRepository
+import com.simohypers.limusic.domain.utils.MusicVideoType
 import com.simohypers.limusic.domain.utils.Resource
 import com.simohypers.limusic.kotlinytmusicscraper.YouTube
 import com.simohypers.limusic.kotlinytmusicscraper.models.AlbumItem
+import com.simohypers.limusic.kotlinytmusicscraper.pages.AlbumPage
 import com.simohypers.limusic.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -25,6 +31,7 @@ private const val TAG = "AlbumRepositoryImpl"
 internal class AlbumRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val dataStoreManager: DataStoreManager,
     private val librarySync: LibrarySync,
 ) : AlbumRepository {
     override fun getAllAlbums(limit: Int): Flow<List<AlbumEntity>> =
@@ -142,7 +149,7 @@ internal class AlbumRepositoryImpl(
                 youTube
                     .album(browseId, withSongs = true)
                     .onSuccess { result ->
-                        val album = parseAlbumData(result)
+                        val album = parseAlbumData(result).resolveSongVersions(result)
                         librarySync.adoptLikes(album.tracks)
                         emit(Resource.Success(album))
                     }.onFailure { e ->
@@ -151,6 +158,13 @@ internal class AlbumRepositoryImpl(
                     }
             }
         }.flowOn(Dispatchers.IO)
+
+    private suspend fun AlbumBrowse.resolveSongVersions(page: AlbumPage): AlbumBrowse {
+        if (dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == TRUE) return this
+        if (tracks.none { MusicVideoType.isVideoSong(it.videoType) }) return this
+        val audio = youTube.albumAudioSongs(audioPlaylistId, page.album).getOrNull() ?: return this
+        return withSongVersions(audio)
+    }
 
     override fun getAlbumMore(
         browseId: String,

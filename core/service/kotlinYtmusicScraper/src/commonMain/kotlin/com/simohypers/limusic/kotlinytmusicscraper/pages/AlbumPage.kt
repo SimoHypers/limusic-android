@@ -4,7 +4,9 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.Album
 import com.simohypers.limusic.kotlinytmusicscraper.models.AlbumItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.Artist
 import com.simohypers.limusic.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
+import com.simohypers.limusic.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
+import com.simohypers.limusic.kotlinytmusicscraper.models.SectionListRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.SongItem
 import com.simohypers.limusic.kotlinytmusicscraper.models.Thumbnail
 import com.simohypers.limusic.kotlinytmusicscraper.models.Thumbnails
@@ -131,3 +133,17 @@ data class AlbumPage(
         }
     }
 }
+
+internal fun albumShelfSongs(
+    contents: List<MusicShelfRenderer.Content>?,
+    album: AlbumItem,
+): List<SongItem> =
+    contents.orEmpty().mapNotNull {
+        AlbumPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer, album)
+    }
+
+internal fun albumAudioShelf(
+    contents: List<SectionListRenderer.Content>?,
+    album: AlbumItem,
+): List<SongItem> =
+    albumShelfSongs(contents?.firstNotNullOfOrNull { it.musicPlaylistShelfRenderer }?.contents, album)

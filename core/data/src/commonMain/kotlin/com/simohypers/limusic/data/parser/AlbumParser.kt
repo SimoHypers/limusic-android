@@ -31,15 +31,7 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                             name = artistItem.name,
                         )
                     },
-                duration =
-                    if (songItem.duration != null) {
-                        "%02d:%02d".format(
-                            (songItem.duration ?: 0) / 60,
-                            (songItem.duration ?: 0) % 60,
-                        )
-                    } else {
-                        ""
-                    },
+                duration = formatDuration(songItem.duration),
                 durationSeconds = songItem.duration ?: 0,
                 isAvailable = false,
                 isExplicit = songItem.explicit,
@@ -82,3 +74,6 @@ internal fun parseAlbumData(data: AlbumPage): AlbumBrowse {
         artistThumbnail = data.artistThumbnail,
     )
 }
+
+internal fun formatDuration(seconds: Int?): String =
+    if (seconds != null) "%02d:%02d".format(seconds / 60, seconds % 60) else ""
