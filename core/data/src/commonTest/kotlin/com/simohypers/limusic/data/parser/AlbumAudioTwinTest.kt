@@ -26,7 +26,7 @@ class AlbumAudioTwinTest {
     }
 
     @Test
-    fun titlesResolveTheTwinWhenThePlaylistOrderDiffers() {
+    fun aReorderedPlaylistLeavesTheShelfAlone() {
         val dust = track("Dust", "9Qpe2qlERWY", 190, MUSIC_VIDEO_TYPE_OMV)
         val whisper = track("Whisper My Name", "YhUqxWR4mnE", 223, MUSIC_VIDEO_TYPE_OMV)
 
@@ -39,7 +39,52 @@ class AlbumAudioTwinTest {
                     ),
                 ).tracks
 
-        assertEquals(listOf("spjUd9KtIbo", "g1zVw8drM5k"), resolved.map { it.videoId })
+        assertEquals(listOf("9Qpe2qlERWY", "YhUqxWR4mnE"), resolved.map { it.videoId })
+    }
+
+    @Test
+    fun aPlaylistOfADifferentLengthLeavesTheShelfAlone() {
+        val video = track("Dust", "9Qpe2qlERWY", 190, MUSIC_VIDEO_TYPE_OMV)
+
+        val resolved =
+            album(video)
+                .withSongVersions(
+                    listOf(
+                        song("Dust", "spjUd9KtIbo", 190),
+                        song("Interlude", "another", 40),
+                    ),
+                ).tracks
+                .single()
+
+        assertEquals("9Qpe2qlERWY", resolved.videoId)
+        assertNull(resolved.counterpart)
+    }
+
+    @Test
+    fun aPlaylistRowWithoutALengthKeepsTheShelfLength() {
+        val video = track("Dust", "9Qpe2qlERWY", 190, MUSIC_VIDEO_TYPE_OMV)
+
+        val resolved = album(video).withSongVersions(listOf(song("Dust", "spjUd9KtIbo", null))).tracks.single()
+
+        assertEquals("spjUd9KtIbo", resolved.videoId)
+        assertEquals("03:10", resolved.duration)
+        assertEquals(190, resolved.durationSeconds)
+    }
+
+    @Test
+    fun videosOnFlipsTheSwappedRowBackToTheVideo() {
+        val video = track("Dust", "9Qpe2qlERWY", 190, MUSIC_VIDEO_TYPE_OMV)
+
+        val resolved =
+            album(video)
+                .withSongVersions(listOf(song("Dust", "spjUd9KtIbo", 190)))
+                .withVideosPreferred()
+                .tracks
+                .single()
+
+        assertEquals("9Qpe2qlERWY", resolved.videoId)
+        assertEquals(MUSIC_VIDEO_TYPE_OMV, resolved.videoType)
+        assertEquals("spjUd9KtIbo", resolved.counterpart?.videoId)
     }
 
     @Test
@@ -114,7 +159,7 @@ class AlbumAudioTwinTest {
     private fun song(
         title: String,
         videoId: String,
-        seconds: Int,
+        seconds: Int?,
         videoType: String = MUSIC_VIDEO_TYPE_ATV,
     ) = SongItem(
         id = videoId,

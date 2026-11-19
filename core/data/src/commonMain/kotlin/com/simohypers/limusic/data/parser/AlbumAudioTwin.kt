@@ -25,6 +25,8 @@ internal fun AlbumBrowse.withSongVersions(audio: List<SongItem>): AlbumBrowse {
     )
 }
 
+internal fun AlbumBrowse.withVideosPreferred(): AlbumBrowse = this
+
 private fun Track.withAudio(audio: SongItem) =
     copy(
         videoId = audio.id,
