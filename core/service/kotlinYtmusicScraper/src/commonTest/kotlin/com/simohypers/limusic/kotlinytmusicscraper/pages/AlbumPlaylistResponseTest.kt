@@ -1,64 +1,28 @@
 package com.simohypers.limusic.kotlinytmusicscraper.pages
 
-import com.simohypers.limusic.kotlinytmusicscraper.models.AlbumItem
-import com.simohypers.limusic.kotlinytmusicscraper.models.Artist
-import com.simohypers.limusic.kotlinytmusicscraper.models.SectionListRenderer
 import com.simohypers.limusic.kotlinytmusicscraper.models.response.BrowseResponse
+import com.simohypers.limusic.kotlinytmusicscraper.parser.fromPlaylistToTrack
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AlbumAudioShelfTest {
+class AlbumPlaylistResponseTest {
     private val json =
         Json {
             ignoreUnknownKeys = true
             explicitNulls = false
         }
 
-    private val iceman =
-        AlbumItem(
-            browseId = "MPREb_LjIW4hKEFIk",
-            playlistId = "OLAK5uy_lcDE9n6x4ySCRHAQ3xhqEAeIQQXpusa4A",
-            title = "ICEMAN",
-            artists = listOf(Artist("Drake", "UCU6cE7pdJPc6DU2jSrKEsdQ")),
-            thumbnail = "",
-        )
-
     @Test
-    fun theAlbumsAudioShelfParsesAsAudioRows() {
-        val sections =
+    fun theAlbumsAudioPlaylistParsesAsAudioRows() {
+        val songs =
             json.decodeFromString<BrowseResponse>(FIXTURE)
-                .contents
-                ?.twoColumnBrowseResultsRenderer
-                ?.secondaryContents
-                ?.sectionListRenderer
-                ?.contents
-
-        val songs = albumAudioShelf(sections, iceman)
+                .fromPlaylistToTrack()
 
         assertEquals(listOf("spjUd9KtIbo"), songs.map { it.id })
         assertEquals(listOf("Dust"), songs.map { it.title })
         assertEquals(listOf(190), songs.map { it.duration })
         assertEquals(listOf("MUSIC_VIDEO_TYPE_ATV"), songs.map { it.musicVideoType })
-    }
-
-    @Test
-    fun aPageWithoutAnAudioShelfYieldsNoRows() {
-        val sections =
-            listOf(
-                SectionListRenderer.Content(
-                    musicCarouselShelfRenderer = null,
-                    musicShelfRenderer = null,
-                    musicCardShelfRenderer = null,
-                    musicPlaylistShelfRenderer = null,
-                    musicDescriptionShelfRenderer = null,
-                    musicResponsiveHeaderRenderer = null,
-                    musicEditablePlaylistDetailHeaderRenderer = null,
-                    gridRenderer = null,
-                ),
-            )
-
-        assertEquals(emptyList(), albumAudioShelf(sections, iceman))
     }
 
     private companion object {

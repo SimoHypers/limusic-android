@@ -5,6 +5,7 @@ import com.simohypers.limusic.data.extension.getFullDataFromDB
 import com.simohypers.limusic.data.mapping.toAlbumsResult
 import com.simohypers.limusic.data.parser.parseAlbumData
 import com.simohypers.limusic.data.parser.withSongVersions
+import com.simohypers.limusic.data.parser.withVideosPreferred
 import com.simohypers.limusic.domain.data.entities.AlbumEntity
 import com.simohypers.limusic.domain.data.entities.FollowedArtistSingleAndAlbum
 import com.simohypers.limusic.domain.data.model.browse.album.AlbumBrowse
@@ -16,7 +17,6 @@ import com.simohypers.limusic.domain.utils.MusicVideoType
 import com.simohypers.limusic.domain.utils.Resource
 import com.simohypers.limusic.kotlinytmusicscraper.YouTube
 import com.simohypers.limusic.kotlinytmusicscraper.models.AlbumItem
-import com.simohypers.limusic.kotlinytmusicscraper.pages.AlbumPage
 import com.simohypers.limusic.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -149,7 +149,7 @@ internal class AlbumRepositoryImpl(
                 youTube
                     .album(browseId, withSongs = true)
                     .onSuccess { result ->
-                        val album = parseAlbumData(result).resolveSongVersions(result)
+                        val album = parseAlbumData(result).resolveSongVersions()
                         librarySync.adoptLikes(album.tracks)
                         emit(Resource.Success(album))
                     }.onFailure { e ->
@@ -159,11 +159,15 @@ internal class AlbumRepositoryImpl(
             }
         }.flowOn(Dispatchers.IO)
 
-    private suspend fun AlbumBrowse.resolveSongVersions(page: AlbumPage): AlbumBrowse {
-        if (dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == TRUE) return this
+    private suspend fun AlbumBrowse.resolveSongVersions(): AlbumBrowse {
         if (tracks.none { MusicVideoType.isVideoSong(it.videoType) }) return this
-        val audio = youTube.albumAudioSongs(audioPlaylistId, page.album).getOrNull() ?: return this
-        return withSongVersions(audio)
+        val audio = youTube.albumAudioSongs(audioPlaylistId).getOrNull() ?: return this
+        val swapped = withSongVersions(audio)
+        return if (dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == TRUE) {
+            swapped.withVideosPreferred()
+        } else {
+            swapped
+        }
     }
 
     override fun getAlbumMore(

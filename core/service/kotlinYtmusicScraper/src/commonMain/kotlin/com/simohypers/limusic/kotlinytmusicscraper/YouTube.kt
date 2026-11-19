@@ -61,8 +61,6 @@ import com.simohypers.limusic.kotlinytmusicscraper.models.response.toLikeStatus
 import com.simohypers.limusic.kotlinytmusicscraper.models.response.toListAccountInfo
 import com.simohypers.limusic.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.simohypers.limusic.kotlinytmusicscraper.pages.AlbumPage
-import com.simohypers.limusic.kotlinytmusicscraper.pages.albumAudioShelf
-import com.simohypers.limusic.kotlinytmusicscraper.pages.albumShelfSongs
 import com.simohypers.limusic.kotlinytmusicscraper.pages.ArtistPage
 import com.simohypers.limusic.kotlinytmusicscraper.pages.ArtistSection
 import com.simohypers.limusic.kotlinytmusicscraper.pages.SearchAllPage
@@ -431,7 +429,7 @@ class YouTube {
                 artistThumbnail = header?.straplineThumbnail?.musicThumbnailRenderer?.getThumbnailUrl(),
                 songs =
                     if (withSongs) {
-                        albumShelfSongs(
+                        albumSongs(
                             response.contents
                                 .twoColumnBrowseResultsRenderer
                                 .secondaryContents
@@ -441,7 +439,7 @@ class YouTube {
                                 ?.musicShelfRenderer
                                 ?.contents,
                             albumItem,
-                        )
+                        ).getOrThrow()
                     } else {
                         emptyList()
                     },
@@ -513,20 +511,23 @@ class YouTube {
             )
         }
 
-    suspend fun albumAudioSongs(
-        playlistId: String,
+    suspend fun albumAudioSongs(playlistId: String): Result<List<SongItem>> =
+        runCatching {
+            ytMusic.browse(WEB_REMIX, browseId = "VL$playlistId").body<BrowseResponse>().fromPlaylistToTrack()
+        }
+
+    private fun albumSongs(
+        content: List<MusicShelfRenderer.Content>?,
         album: AlbumItem,
     ): Result<List<SongItem>> =
         runCatching {
-            val response = ytMusic.browse(WEB_REMIX, browseId = "VL$playlistId").body<BrowseResponse>()
-            albumAudioShelf(
-                response.contents
-                    ?.twoColumnBrowseResultsRenderer
-                    ?.secondaryContents
-                    ?.sectionListRenderer
-                    ?.contents,
-                album,
-            )
+            if (content == null) {
+                return@runCatching emptyList()
+            } else {
+                return@runCatching content.mapNotNull {
+                    AlbumPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer, album)
+                }
+            }
         }
 
     /**
