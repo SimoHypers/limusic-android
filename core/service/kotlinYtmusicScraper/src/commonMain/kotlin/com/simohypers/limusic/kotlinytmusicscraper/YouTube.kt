@@ -509,6 +509,25 @@ class YouTube {
             )
         }
 
+    suspend fun albumAudioSongs(playlistId: String): Result<List<SongItem>> =
+        runCatching {
+            ytMusic.browse(WEB_REMIX, browseId = "VL$playlistId").body<BrowseResponse>().fromPlaylistToTrack()
+        }
+
+    private fun albumSongs(
+        content: List<MusicShelfRenderer.Content>?,
+        album: AlbumItem,
+    ): Result<List<SongItem>> =
+        runCatching {
+            if (content == null) {
+                return@runCatching emptyList()
+            } else {
+                return@runCatching content.mapNotNull {
+                    AlbumPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer, album)
+                }
+            }
+        }
+
     /**
      * Joins every run of a description. A link run contributes its `urlEndpoint` URL rather than
      * its text, which YouTube shortens for display (`…/wiki/Ariana_...`) — the description view
@@ -524,20 +543,6 @@ class YouTube {
         Logger.d("description", description)
         return description
     }
-
-    private fun albumSongs(
-        content: List<MusicShelfRenderer.Content>?,
-        album: AlbumItem,
-    ): Result<List<SongItem>> =
-        runCatching {
-            if (content == null) {
-                return@runCatching emptyList()
-            } else {
-                return@runCatching content.mapNotNull {
-                    AlbumPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer, album)
-                }
-            }
-        }
 
     suspend fun testArtist(browseId: String): Result<ArrayList<ArtistSection>> =
         runCatching {

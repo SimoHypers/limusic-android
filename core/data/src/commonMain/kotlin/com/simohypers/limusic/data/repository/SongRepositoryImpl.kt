@@ -389,7 +389,9 @@ internal class SongRepositoryImpl(
      * a video row YouTube also shipped as a song ([SongItem.counterpart], sent to a logged-in
      * client only) is swapped for that song, and a video with no song version — a fan remix or
      * mashup — is skipped. [isRadio] gates it because the setting is deliberately radio-scoped: a
-     * playlist or album the user picked themselves must still play exactly what it contains.
+     * playlist or album the user picked themselves must still play exactly what it contains. An album
+     * resolves its shelf rows to the songs where it loads, so a row linked to a music video plays
+     * the song and keeps the video as its counterpart.
      *
      * Only entries YouTube *named* as a video count as one. A null `musicVideoType` means the
      * response never said, which is not a claim of "audio" — those are kept rather than guessed at

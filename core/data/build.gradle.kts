@@ -25,6 +25,7 @@ kotlin {
         namespace = "com.simohypers.limusic.data"
         compileSdk = 37
         minSdk = 26
+        withHostTest {}
     }
 
     room {
