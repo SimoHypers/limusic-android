@@ -523,9 +523,9 @@ class SharedViewModel(
                 }
             val playlistNameJob =
                 launch {
-                    mediaPlayerHandler.queueData.collectLatest {
+                    mediaPlayerHandler.queueData.collectLatest { queueData ->
                         _nowPlayingScreenData.update {
-                            it.copy(playlistName = it.playlistName)
+                            it.copy(playlistName = queueData?.data?.playlistName.orEmpty())
                         }
                     }
                 }
