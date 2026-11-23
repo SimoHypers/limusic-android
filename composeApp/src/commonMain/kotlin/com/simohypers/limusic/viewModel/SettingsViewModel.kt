@@ -31,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
 import com.simohypers.limusic.discord.DISCORD_CONFIG_KEY
 import com.simohypers.limusic.discord.DiscordConfig
 import com.simohypers.limusic.discord.DiscordOAuth
@@ -243,12 +242,25 @@ class SettingsViewModel(
 
     fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
 
+    private var dataCollectorsStarted = false
+
     fun getData() {
+        getPlayerCacheSize()
+        getDownloadedCacheSize()
+        getCanvasCache()
+        getEqualizer()
+        viewModelScope.launch {
+            calculateDataFraction(
+                cacheRepository,
+            )?.let {
+                _fraction.value = it
+            }
+        }
+        if (dataCollectorsStarted) return
+        dataCollectorsStarted = true
         getLocation()
         getLanguage()
         getQuality()
-        getPlayerCacheSize()
-        getDownloadedCacheSize()
         getPlayerCacheLimit()
         getLoggedIn()
         getNormalizeVolume()
@@ -259,10 +271,8 @@ class SettingsViewModel(
         getPlayVideoInsteadOfAudio()
         getRadioAudioOnly()
         getVideoQuality()
-        getEqualizer()
         getAMAnimatedArtwork()
         getUsingProxy()
-        getCanvasCache()
         getKillServiceOnExit()
         getCrossfadeEnabled()
         getCrossfadeDuration()
@@ -281,13 +291,6 @@ class SettingsViewModel(
         getAutoBackupFrequency()
         getAutoBackupMaxFiles()
         getAutoBackupLastTime()
-        viewModelScope.launch {
-            calculateDataFraction(
-                cacheRepository,
-            )?.let {
-                _fraction.value = it
-            }
-        }
     }
 
     private fun getDownloadQuality() {
@@ -301,7 +304,6 @@ class SettingsViewModel(
     fun setDownloadQuality(quality: String) {
         viewModelScope.launch {
             dataStoreManager.setDownloadQuality(quality)
-            getDownloadQuality()
         }
     }
 
@@ -322,7 +324,6 @@ class SettingsViewModel(
             if (VIDEO_QUALITY.items.contains(quality)) {
                 dataStoreManager.setVideoDownloadQuality(quality)
             }
-            getVideoDownloadQuality()
         }
     }
 
@@ -337,7 +338,6 @@ class SettingsViewModel(
     fun setKeepYouTubePlaylistOffline(keep: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setKeepYouTubePlaylistOffline(keep)
-            getKeepYouTubePlaylistOffline()
         }
     }
 
@@ -352,7 +352,6 @@ class SettingsViewModel(
     fun setCombineLocalAndYouTubeLiked(combine: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setCombineLocalAndYouTubeLiked(combine)
-            getCombineLocalAndYouTubeLiked()
         }
     }
 
@@ -367,7 +366,6 @@ class SettingsViewModel(
     fun setCrossfadeEnabled(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setCrossfadeEnabled(enabled)
-            getCrossfadeEnabled()
         }
     }
 
@@ -382,7 +380,6 @@ class SettingsViewModel(
     fun setCrossfadeDuration(duration: Int) {
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDuration(duration)
-            getCrossfadeDuration()
         }
     }
 
@@ -484,8 +481,6 @@ class SettingsViewModel(
             // would both strand the user (the toggle greys out when logged out) and let the player keep
             // a dead RPC alive (issue #2157). The existing richPresenceEnabled collector refreshes the UI.
             dataStoreManager.setRichPresenceEnabled(false)
-            delay(100)
-            getDiscordLoggedIn()
         }
     }
 
@@ -524,8 +519,6 @@ class SettingsViewModel(
     fun setDiscordRichPresenceEnabled(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setRichPresenceEnabled(enabled)
-            delay(100)
-            getDiscordRichPresenceEnabled()
         }
     }
 
@@ -540,7 +533,6 @@ class SettingsViewModel(
     fun setExplicitContentEnabled(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setExplicitContentEnabled(enabled)
-            getExplicitContentEnabled()
         }
     }
 
@@ -555,7 +547,6 @@ class SettingsViewModel(
     fun setBackupDownloaded(backupDownloaded: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setBackupDownloaded(backupDownloaded)
-            getBackupDownloaded()
         }
     }
 
@@ -571,7 +562,6 @@ class SettingsViewModel(
     fun setAutoBackupEnabled(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setAutoBackupEnabled(enabled)
-            getAutoBackupEnabled()
         }
     }
 
@@ -586,7 +576,6 @@ class SettingsViewModel(
     fun setAutoBackupFrequency(frequency: String) {
         viewModelScope.launch {
             dataStoreManager.setAutoBackupFrequency(frequency)
-            getAutoBackupFrequency()
         }
     }
 
@@ -601,7 +590,6 @@ class SettingsViewModel(
     fun setAutoBackupMaxFiles(max: Int) {
         viewModelScope.launch {
             dataStoreManager.setAutoBackupMaxFiles(max)
-            getAutoBackupMaxFiles()
         }
     }
 
@@ -654,6 +642,8 @@ class SettingsViewModel(
         }
     }
 
+    private var proxyCollectorsStarted = false
+
     private fun getUsingProxy() {
         viewModelScope.launch {
             dataStoreManager.usingProxy.collectLatest { usingProxy ->
@@ -668,13 +658,13 @@ class SettingsViewModel(
     fun setUsingProxy(usingProxy: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setUsingProxy(usingProxy)
-            getUsingProxy()
-            getProxy()
             proxyNeedsRestart()
         }
     }
 
     private fun getProxy() {
+        if (proxyCollectorsStarted) return
+        proxyCollectorsStarted = true
         viewModelScope.launch {
             val host =
                 launch {
@@ -852,7 +842,6 @@ class SettingsViewModel(
     fun changeLocation(location: String) {
         viewModelScope.launch {
             dataStoreManager.setLocation(location)
-            getLocation()
         }
     }
 
@@ -867,7 +856,6 @@ class SettingsViewModel(
     fun setPlayVideoInsteadOfAudio(playVideoInsteadOfAudio: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
-            getPlayVideoInsteadOfAudio()
         }
     }
 
@@ -906,7 +894,6 @@ class SettingsViewModel(
             if (VIDEO_QUALITY.items.contains(item)) {
                 dataStoreManager.setVideoQuality(item)
             }
-            getVideoQuality()
         }
     }
 
@@ -914,7 +901,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             log("changeQuality: $qualityItem")
             dataStoreManager.setQuality(qualityItem ?: STREAM_QUALITY.HIGH)
-            getQuality()
         }
     }
 
@@ -1049,7 +1035,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
             Logger.d("SettingsViewModel", "changeLanguage: $code")
-            getLanguage()
             changeLanguageNative(code)
         }
     }
@@ -1065,7 +1050,6 @@ class SettingsViewModel(
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setNormalizeVolume(normalizeVolume)
-            getNormalizeVolume()
         }
     }
 
@@ -1080,7 +1064,6 @@ class SettingsViewModel(
     fun setSendBackToGoogle(sendBackToGoogle: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
-            getSendBackToGoogle()
         }
     }
 
@@ -1095,7 +1078,6 @@ class SettingsViewModel(
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSkipSilent(skip)
-            getSkipSilent()
         }
     }
 
@@ -1126,7 +1108,6 @@ class SettingsViewModel(
     fun setSavedPlaybackState(savedPlaybackState: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
-            getSavedPlaybackState()
         }
     }
 
@@ -1141,7 +1122,6 @@ class SettingsViewModel(
     fun setPlayerCacheLimit(size: Int) {
         viewModelScope.launch {
             dataStoreManager.setMaxSongCacheSize(size)
-            getPlayerCacheLimit()
         }
     }
 
@@ -1284,7 +1264,6 @@ class SettingsViewModel(
     fun setAMAnimatedArtwork(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setAMAnimatedArtwork(enabled)
-            getAMAnimatedArtwork()
         }
     }
 
@@ -1301,7 +1280,6 @@ class SettingsViewModel(
     fun setKillServiceOnExit(kill: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setKillServiceOnExit(kill)
-            getKillServiceOnExit()
         }
     }
 
