@@ -17,6 +17,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.simohypers.limusic.common.MEDIA_NOTIFICATION
 import com.simohypers.limusic.domain.mediaservice.handler.MediaPlayerHandler
@@ -61,6 +62,7 @@ internal class SimpleMediaService :
     private var localButtons: List<GenericCommandButton> = emptyList()
     private var shownButtons: List<GenericCommandButton>? = null
     private var controlling = false
+    private var selfController: ListenableFuture<MediaController>? = null
 
     /** The session's player while this phone controls a linked computer (see [LinkSessionPlayer]). */
     private val linkPlayer by lazy { LinkSessionPlayer(mainLooper, deviceLink) { getString(R.string.link_playing_on, it) } }
@@ -109,6 +111,10 @@ internal class SimpleMediaService :
         // ponytail: installs from before 2026-10-30 still have the playback channel under its old id;
         // dropping it leaves one channel in Android's notification settings. Remove once testers have updated.
         getSystemService(NotificationManager::class.java)?.deleteNotificationChannel("SimpMusic Playback Notification ID")
+        // Media3 keeps a paused session in the foreground for 10 minutes by default, and a
+        // foreground notification can't be swiped away. A short grace period still covers the gap
+        // between tracks (crossfade swaps players) without pinning a paused notification.
+        setForegroundServiceTimeoutMs(PAUSED_FOREGROUND_GRACE_MS)
 
         if (mediaSession == null) {
             mediaSession =
@@ -151,8 +157,9 @@ internal class SimpleMediaService :
         }
 
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
-        val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
-        controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
+        selfController = MediaController.Builder(this, sessionToken).buildAsync().also { future ->
+            future.addListener({ future.get() }, MoreExecutors.directExecutor())
+        }
     }
 
     /** The notification's own buttons (like, shuffle, repeat, radio), when they changed. */
@@ -208,6 +215,8 @@ internal class SimpleMediaService :
 
     @UnstableApi
     override fun onDestroy() {
+        selfController?.let { MediaController.releaseFuture(it) }
+        selfController = null
         serviceScope.cancel()
         super.onDestroy()
         Logger.d("Service", "Simple Media Service Destroyed")
@@ -224,7 +233,11 @@ internal class SimpleMediaService :
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
         Logger.d("Service", "Simple Media Service Task Removed")
-        if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
+        // Nothing playing on this phone (paused or stopped) and not remote-controlling a computer:
+        // nothing to keep alive, so close down like Media3's default does. Before this, a paused
+        // session survived the swipe from recents, along with its notification.
+        val idle = !controlling && !player.isPlaying
+        if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved() || idle) {
             release()
             super.onTaskRemoved(rootIntent)
             exitProcess(0)
@@ -266,5 +279,10 @@ internal class SimpleMediaService :
         val appProcessInfo = RunningAppProcessInfo()
         ActivityManager.getMyMemoryState(appProcessInfo)
         return appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+    }
+
+    private companion object {
+        // ponytail: fixed 5 s grace; raise it if playback stops between tracks on Android 12+.
+        const val PAUSED_FOREGROUND_GRACE_MS = 5_000L
     }
 }
