@@ -351,6 +351,8 @@
     <string name="cover_lyric_romanized">Romanized lyric line</string>
     <string name="cover_lyric_romanized_info">The lyric line under the artwork shows the romanization instead of the original script, for songs in the languages picked under Lyrics romanization. The lyrics page keeps its own Romanized switch.</string>
     <string name="open_player_on_play_info">On, playing a song, album or playlist brings up the full player. Off, it starts playing and leaves you on the page you were browsing.</string>
+    <string name="show_track_quality">Show track quality</string>
+    <string name="show_track_quality_info">Show the stream's bitrate and sample rate under the seek bar in the Immersive player.</string>
     <string name="appearance_interface">Interface</string>
     <string name="appearance_roundness">Roundness</string>
     <string name="appearance_roundness_hint">Corners of cards, sheets, buttons and artwork.</string>

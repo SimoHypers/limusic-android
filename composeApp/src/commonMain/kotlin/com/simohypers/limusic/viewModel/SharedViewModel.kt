@@ -34,6 +34,7 @@ import com.simohypers.limusic.domain.extension.isSong
 import com.simohypers.limusic.domain.extension.isVideo
 import com.simohypers.limusic.domain.manager.DataStoreManager
 import com.simohypers.limusic.domain.data.model.lyrics.RomanizationLanguage
+import com.simohypers.limusic.domain.manager.DataStoreManager.Values.FALSE
 import com.simohypers.limusic.domain.manager.DataStoreManager.Values.TRUE
 import com.simohypers.limusic.domain.mediaservice.handler.ControlState
 import com.simohypers.limusic.domain.mediaservice.handler.NowPlayingTrackState
@@ -1297,6 +1298,12 @@ class SharedViewModel(
         viewModelScope.launch { dataStoreManager.putString(FLAT_PROGRESS_BAR, if (on) TRUE else "") }
     }
 
+    val showTrackQuality: StateFlow<Boolean> = dataStoreManager.getString(SHOW_TRACK_QUALITY).map { it != FALSE }.stateInStored()
+
+    fun setShowTrackQuality(on: Boolean) {
+        viewModelScope.launch { dataStoreManager.putString(SHOW_TRACK_QUALITY, if (on) TRUE else FALSE) }
+    }
+
     /**
      * The colour "Adapt colors to artwork" last took from a cover, saved so a cold start opens in the
      * restored track's colour instead of the theme's accent while the queue and its cover load. Read
@@ -1526,3 +1533,4 @@ private fun String.isCanvasVideoUrl(): Boolean = contains(".mp4") || contains(".
 private const val NEW_PLAYLIST_WHERE = "new_playlist_where"
 private const val ARTWORK_COLOR = "artwork_color"
 private const val FLAT_PROGRESS_BAR = "flat_progress_bar"
+private const val SHOW_TRACK_QUALITY = "show_track_quality"

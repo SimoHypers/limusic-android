@@ -247,6 +247,8 @@ import limusic.composeapp.generated.resources.flat_progress_bar
 import limusic.composeapp.generated.resources.flat_progress_bar_info
 import limusic.composeapp.generated.resources.open_player_on_play
 import limusic.composeapp.generated.resources.open_player_on_play_info
+import limusic.composeapp.generated.resources.show_track_quality
+import limusic.composeapp.generated.resources.show_track_quality_info
 import limusic.composeapp.generated.resources.equalizer
 import limusic.composeapp.generated.resources.equalizer_description
 import limusic.composeapp.generated.resources.equalizer_type
@@ -491,6 +493,7 @@ fun SettingScreen(
     val openPlayerOnPlay by sharedViewModel.getOpenPlayerOnPlay().collectAsStateWithLifecycle(false)
     val coverLyricRomanized by sharedViewModel.getCoverLyricRomanized().collectAsStateWithLifecycle(false)
     val flatProgressBar by sharedViewModel.flatProgressBar.collectAsStateWithLifecycle()
+    val showTrackQuality by sharedViewModel.showTrackQuality.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
     val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
     val thumbnailCache by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
@@ -959,6 +962,11 @@ fun SettingScreen(
                                 title = stringResource(Res.string.enable_animated_artwork),
                                 subtitle = stringResource(Res.string.animated_artwork_info),
                                 switch = (amAnimatedArtwork to { viewModel.setAMAnimatedArtwork(it) }),
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.show_track_quality),
+                                subtitle = stringResource(Res.string.show_track_quality_info),
+                                switch = (showTrackQuality to { sharedViewModel.setShowTrackQuality(it) }),
                             )
                         }
                     }

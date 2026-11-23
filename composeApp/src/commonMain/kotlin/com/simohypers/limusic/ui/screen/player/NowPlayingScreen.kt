@@ -174,6 +174,7 @@ fun NowPlayingScreenContent(
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
     // Immersive style's quality line under the progress bar — see NowPlayingContentState.toAudioQualityLabel.
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
+    val showTrackQuality by sharedViewModel.showTrackQuality.collectAsStateWithLifecycle()
 
     val videosOn by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     val videoWanted by sharedViewModel.videoWanted.collectAsStateWithLifecycle()
@@ -593,7 +594,7 @@ fun NowPlayingScreenContent(
             mainScrollState = mainScrollState,
             isExpanded = isExpanded,
             dismissIcon = dismissIcon,
-            audioQualityLabel = formatState.toAudioQualityLabel(),
+            audioQualityLabel = if (showTrackQuality) formatState.toAudioQualityLabel() else null,
             lyricsOffsetMs = lyricsOffsetMs.toLong(),
             videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
             // Like desktop, only while videos are on: with them off a video plays as its sound. A
