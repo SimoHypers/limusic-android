@@ -171,6 +171,12 @@ fun GenericCommandButton.toCommandButton(context: Context): CommandButton =
 
                         else -> CommandButton.ICON_REPEAT_OFF
                     },
+                ).setCustomIconResId(
+                    when (repeatMode) {
+                        RepeatState.One -> R.drawable.baseline_repeat_one_24
+                        RepeatState.All -> R.drawable.baseline_repeat_on_24
+                        else -> R.drawable.baseline_repeat_24
+                    },
                 ).setDisplayName(
                     when (repeatMode) {
                         RepeatState.One -> context.getString(R.string.repeat_one)
@@ -196,8 +202,13 @@ fun GenericCommandButton.toCommandButton(context: Context): CommandButton =
                     },
                     // Resource fallback for hosts that don't map the media3 icon
                     // constants (AA templated surface renders a gear otherwise)
-                ).setCustomIconResId(R.drawable.baseline_shuffle_24)
-                .setDisplayName(context.getString(R.string.shuffle))
+                ).setCustomIconResId(
+                    if (this.isShuffled) {
+                        R.drawable.baseline_shuffle_on_24
+                    } else {
+                        R.drawable.baseline_shuffle_24
+                    },
+                ).setDisplayName(context.getString(R.string.shuffle))
                 .setSessionCommand(
                     SessionCommand(
                         MEDIA_CUSTOM_COMMAND.SHUFFLE,

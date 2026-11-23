@@ -14,7 +14,6 @@ import androidx.media3.common.Player.COMMAND_GET_TIMELINE
 import androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT
 import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
@@ -196,17 +195,12 @@ internal class SimpleMediaSessionCallback(
             }
 
             MEDIA_CUSTOM_COMMAND.REPEAT -> {
+                scope.launch {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat)
+                }
                 if (session.player !is LinkSessionPlayer && mediaPlayerHandler.followingRoom) {
-                    scope.launch { mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat) }
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_PERMISSION_DENIED))
                 }
-                session.player.repeatMode =
-                    when (session.player.repeatMode) {
-                        ExoPlayer.REPEAT_MODE_OFF -> ExoPlayer.REPEAT_MODE_ONE
-                        ExoPlayer.REPEAT_MODE_ONE -> ExoPlayer.REPEAT_MODE_ALL
-                        ExoPlayer.REPEAT_MODE_ALL -> ExoPlayer.REPEAT_MODE_OFF
-                        else -> ExoPlayer.REPEAT_MODE_OFF
-                    }
             }
 
             MEDIA_CUSTOM_COMMAND.RADIO -> {
