@@ -397,9 +397,18 @@ fun App(
                                     modifier = Modifier.padding(horizontal = 8.dp).padding(bottom = 6.dp),
                                 )
                             }
-                            LimusicNavigationBar(navController = navController, tabs = activeBottomTabs, compact = compactNavBar) { klass ->
-                                viewModel.reloadDestination(klass)
-                            }
+                            LimusicNavigationBar(
+                                navController = navController,
+                                tabs = activeBottomTabs,
+                                compact = compactNavBar,
+                                isYouTubeLoggedIn = isYouTubeLoggedIn == TRUE,
+                                onLibraryTabRequest = { chip, _ ->
+                                    viewModel.requestLibraryTab(chip)
+                                },
+                                onReselect = { klass ->
+                                    viewModel.reloadDestination(klass)
+                                },
+                            )
                         }
                     }
                 }

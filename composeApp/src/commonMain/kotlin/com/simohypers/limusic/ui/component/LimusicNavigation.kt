@@ -23,19 +23,81 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
+import com.simohypers.limusic.common.LibraryChipType
 import com.simohypers.limusic.ui.navigation.destination.home.SettingsDestination
+import com.simohypers.limusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.simohypers.limusic.ui.navigation.destination.list.PlaylistDestination
 import com.simohypers.limusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KClass
 
-/** Position of [destination] in [tabs], or -1 when it is not one of them. */
+val BottomNavScreen.libraryChip: LibraryChipType?
+    get() = when (this) {
+        BottomNavScreen.Playlists -> LibraryChipType.LOCAL_PLAYLIST
+        BottomNavScreen.Albums -> LibraryChipType.ALBUMS
+        BottomNavScreen.Artists -> LibraryChipType.ARTISTS
+        BottomNavScreen.Songs -> LibraryChipType.SONGS
+        BottomNavScreen.Downloads -> LibraryChipType.DOWNLOADED_PLAYLIST
+        BottomNavScreen.Podcasts -> LibraryChipType.FAVORITE_PODCAST
+        else -> null
+    }
+
+fun NavBackStackEntry.matchesTab(
+    tab: BottomNavScreen,
+    isYouTubeLoggedIn: Boolean = false,
+): Boolean {
+    val dest = destination
+    return when {
+        tab == BottomNavScreen.LikedSongs -> {
+            if (isYouTubeLoggedIn) {
+                dest.hasRoute(PlaylistDestination::class) && try {
+                    toRoute<PlaylistDestination>().playlistId == "LM"
+                } catch (_: Exception) {
+                    false
+                }
+            } else {
+                dest.hasRoute(LibraryDynamicPlaylistDestination::class)
+            }
+        }
+        dest.hasRoute(LibraryDynamicPlaylistDestination::class) ->
+            tab.destination is LibraryDynamicPlaylistDestination
+        else ->
+            dest.hasRoute(tab.destination::class)
+    }
+}
+
+/** Position of [entry]'s tab in [tabs], or -1 when it is not a tab. */
+fun limusicTabIndex(
+    entry: NavBackStackEntry,
+    tabs: List<BottomNavScreen> = BottomNavScreen.allTabs,
+    isYouTubeLoggedIn: Boolean = false,
+): Int =
+    tabs.indexOfFirst { tab -> entry.matchesTab(tab, isYouTubeLoggedIn) }
+
+/** Position of [destination] in the tab bar, or -1 when it is not a tab. */
 fun limusicTabIndex(
     destination: NavDestination,
-    tabs: List<BottomNavScreen>,
-): Int = tabs.indexOfFirst { destination.hasRoute(it.destination::class) }
+    tabs: List<BottomNavScreen> = BottomNavScreen.allTabs,
+    isYouTubeLoggedIn: Boolean = false,
+): Int =
+    tabs.indexOfFirst { tab ->
+        if (tab == BottomNavScreen.LikedSongs) {
+            if (isYouTubeLoggedIn) {
+                destination.hasRoute(PlaylistDestination::class)
+            } else {
+                destination.hasRoute(LibraryDynamicPlaylistDestination::class)
+            }
+        } else if (tab.destination is LibraryDynamicPlaylistDestination) {
+            destination.hasRoute(LibraryDynamicPlaylistDestination::class)
+        } else {
+            destination.hasRoute(tab.destination::class)
+        }
+    }
 
 /**
  * Opens a tab the way tapping it does. A tab opened with a plain navigate (an app link) sits on
@@ -61,15 +123,25 @@ fun LimusicNavigationBar(
     tabs: List<BottomNavScreen>,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    currentLibraryChip: LibraryChipType = LibraryChipType.YOUR_LIBRARY,
+    isYouTubeLoggedIn: Boolean = false,
+    onLibraryTabRequest: (LibraryChipType?, Boolean) -> Unit = { _, _ -> },
     onReselect: (KClass<*>) -> Unit = {},
 ) {
     val backStack by navController.currentBackStack.collectAsState()
-    val tabEntry = backStack.indexOfLast { limusicTabIndex(it.destination, tabs) >= 0 }
-    val stackTab = backStack.getOrNull(tabEntry)?.destination?.let { limusicTabIndex(it, tabs) } ?: -1
-    // Settings and the pages opened from it belong to no tab, so none is lit there.
+    val tabEntry = backStack.indexOfLast { entry ->
+        tabs.any { tab -> entry.matchesTab(tab, isYouTubeLoggedIn) }
+    }
+    val stackTab = backStack.getOrNull(tabEntry)?.let { entry ->
+        limusicTabIndex(entry, tabs, isYouTubeLoggedIn)
+    } ?: -1
+    // Settings and the pages opened from it belong to no tab, so none is lit there (unless Settings is a bottom tab)
     val inSettings = backStack.indexOfLast { it.destination.hasRoute(SettingsDestination::class) } > tabEntry
-    val currentTab = if (inSettings) -1 else stackTab
-    val onTabRoot = backStack.lastOrNull()?.destination?.let { limusicTabIndex(it, tabs) } == currentTab
+    val isSettingsTab = tabs.any { it.destination is SettingsDestination }
+    val currentTab = if (inSettings && !isSettingsTab) -1 else stackTab
+    val onTabRoot = backStack.lastOrNull()?.let { entry ->
+        tabs.getOrNull(currentTab)?.let { tab -> entry.matchesTab(tab, isYouTubeLoggedIn) }
+    } == true
     Column(modifier) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         NavigationBar(
@@ -88,13 +160,43 @@ fun LimusicNavigationBar(
                 NavigationBarItem(
                     selected = selected,
                     onClick = {
+                        val targetDestination = if (tab == BottomNavScreen.LikedSongs && isYouTubeLoggedIn) {
+                            PlaylistDestination("LM", isYourYouTubePlaylist = true)
+                        } else {
+                            tab.destination
+                        }
+
+                        val libraryChip = tab.libraryChip
+                        if (libraryChip != null) {
+                            onLibraryTabRequest(libraryChip, true)
+                        } else {
+                            onLibraryTabRequest(null, false)
+                        }
+
+                        val targetOnStack = backStack.any { entry ->
+                            if (tab == BottomNavScreen.LikedSongs && isYouTubeLoggedIn) {
+                                entry.destination.hasRoute(PlaylistDestination::class) && try {
+                                    entry.toRoute<PlaylistDestination>().playlistId == "LM"
+                                } catch (e: Exception) {
+                                    false
+                                }
+                            } else if (tab.destination is LibraryDynamicPlaylistDestination) {
+                                entry.destination.hasRoute(LibraryDynamicPlaylistDestination::class)
+                            } else {
+                                entry.destination.hasRoute(tab.destination::class)
+                            }
+                        }
+
                         if (selected && onTabRoot) {
-                            onReselect(tab.destination::class)
+                            onReselect(targetDestination::class)
                         } else if (index == stackTab) {
                             // Restoring this tab's saved stack would bring the same page back, so pop to its root.
-                            navController.popBackStack(tab.destination, inclusive = false)
+                            navController.popBackStack(targetDestination, inclusive = false)
+                        } else if (targetOnStack) {
+                            // Target tab is already in the back stack under a sub-screen, pop back to it.
+                            navController.popBackStack(targetDestination, inclusive = false)
                         } else {
-                            navController.navigateToTab(tab.destination)
+                            navController.navigateToTab(targetDestination)
                         }
                     },
                     // Without its label the icon names the tab, for screen readers.
