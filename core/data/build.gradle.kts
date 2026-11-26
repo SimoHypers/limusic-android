@@ -25,6 +25,8 @@ kotlin {
         namespace = "com.simohypers.limusic.data"
         compileSdk = 37
         minSdk = 26
+        // Runs commonTest on the JVM, as core/common and core/domain do.
+        withHostTest {}
     }
 
     room {
