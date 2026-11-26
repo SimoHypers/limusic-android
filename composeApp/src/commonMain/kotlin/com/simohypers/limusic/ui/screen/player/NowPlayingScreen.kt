@@ -337,19 +337,26 @@ fun NowPlayingScreenContent(
     // Do NOT use mediaItem.mediaId — it carries the "Video" prefix for video items.
     val nowPlayingVideoId: String? = nowPlayingState?.track?.videoId
     // currentOrderIndex() is a plain getter over the player, NOT Compose state, so it is read
-    // inside this remember block — whose keys (the queue, and the track now playing) are exactly
-    // the two things that can move the player's position. nowPlayingState is published FROM the
-    // player's own transition callback, so by the time nowPlayingVideoId changes here the player
-    // index has already moved; reading it any earlier would sample the outgoing track.
-    val currentOrderIndex by remember(artworkQueue, nowPlayingVideoId) {
+    // inside this remember block, keyed on what can move it: the queue, the track now playing, and
+    // the handler's own index. The index key is for a queue holding one song twice: moving from one
+    // copy to the other changes neither the track nor (often) the queue's value, and without it the
+    // pager, the mini player and Immersive's "up next" stayed on the copy that had stopped.
+    // The index moves first on a jump (the handler sets it before the player loads the new track),
+    // the track first when a song ends; deriveOrderIndex checks one against the other and, in the
+    // gap, keeps the page it last showed rather than sampling the outgoing track.
+    val playerOrderIndex by mediaPlayerHandler.currentSongIndex.collectAsStateWithLifecycle()
+    val shownOrderIndex = remember { intArrayOf(-1) }
+    val currentOrderIndex by remember(artworkQueue, nowPlayingVideoId, playerOrderIndex) {
         derivedStateOf {
             deriveOrderIndex(
                 queue = artworkQueue,
                 nowPlayingVideoId = nowPlayingVideoId,
                 playerOrderIndex = mediaPlayerHandler.currentOrderIndex(),
+                previousOrderIndex = shownOrderIndex[0],
             )
         }
     }
+    SideEffect { shownOrderIndex[0] = currentOrderIndex }
     // Single PagerState — the unified ArtworkPager renders BOTH the fullscreen canvas
     // background and the centered square thumbnail in each page, so we don't need two
     // pagers + state mirroring.

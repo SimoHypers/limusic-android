@@ -30,6 +30,10 @@ import com.simohypers.limusic.domain.data.model.browse.album.Track
  * - Uses `indexOfLast`, mirroring what `MediaServiceHandlerImpl#currentOrderIndex` itself does
  *   in the one case it has no better answer either (shuffle on, where the timeline index belongs
  *   to a different order than `listTracks`).
+ * - [previousOrderIndex], the answer this gave last time, comes before the search when it still
+ *   holds the playing track. A jump moves the player's index at once but names the new track only
+ *   once it loads; in between the index points past the track still named, and the search would
+ *   hand the outgoing song's LAST copy, sending the pager to a far page and back.
  * - Coerces to `0` when the track isn't found, so the pager stays on the first slot
  *   instead of throwing during a transient queue/now-playing mismatch.
  */
@@ -37,6 +41,7 @@ internal fun deriveOrderIndex(
     queue: List<Track>,
     nowPlayingVideoId: String?,
     playerOrderIndex: Int,
+    previousOrderIndex: Int = -1,
 ): Int {
     if (queue.isEmpty()) return 0
     if (playerOrderIndex in queue.indices &&
@@ -45,6 +50,9 @@ internal fun deriveOrderIndex(
         return playerOrderIndex
     }
     if (nowPlayingVideoId.isNullOrEmpty()) return 0
+    if (previousOrderIndex in queue.indices && queue[previousOrderIndex].videoId == nowPlayingVideoId) {
+        return previousOrderIndex
+    }
     return queue
         .indexOfLast { it.videoId == nowPlayingVideoId }
         .coerceAtLeast(0)

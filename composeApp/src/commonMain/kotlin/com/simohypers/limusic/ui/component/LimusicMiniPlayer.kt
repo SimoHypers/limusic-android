@@ -116,10 +116,18 @@ fun LimusicMiniPlayer(
     val queue by remember { derivedStateOf { queueDataState?.data?.listTracks ?: emptyList() } }
     // videoId, not mediaItem.mediaId: the latter carries the "Video" prefix for video items.
     val nowPlayingVideoId: String? = nowPlaying?.track?.videoId
-    // currentOrderIndex() is not state; the keys are the two things that can move it.
-    val currentOrderIndex by remember(queue, nowPlayingVideoId) {
-        derivedStateOf { deriveOrderIndex(queue, nowPlayingVideoId, mediaPlayerHandler.currentOrderIndex()) }
+    // currentOrderIndex() is not state; the keys are the things that can move it. The handler's index
+    // is one: between two copies of a song only it changes, and without it the bar stayed on the old
+    // copy and worked a swipe's Next or Previous out from there. See NowPlayingScreenContent for the
+    // order the index and the track arrive in, and why the last shown page is passed.
+    val playerOrderIndex by mediaPlayerHandler.currentSongIndex.collectAsStateWithLifecycle()
+    val shownOrderIndex = remember { intArrayOf(-1) }
+    val currentOrderIndex by remember(queue, nowPlayingVideoId, playerOrderIndex) {
+        derivedStateOf {
+            deriveOrderIndex(queue, nowPlayingVideoId, mediaPlayerHandler.currentOrderIndex(), shownOrderIndex[0])
+        }
     }
+    SideEffect { shownOrderIndex[0] = currentOrderIndex }
     val pagerState =
         rememberPagerState(
             initialPage = currentOrderIndex.coerceAtLeast(0),
