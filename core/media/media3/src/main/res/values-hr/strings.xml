@@ -1,3 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="view_count">%1$s pregledi</string>
+    <string name="liked">Omiljeno</string>
+    <string name="like">Sviđa mi se</string>
+    <string name="download">Preuzmi</string>
+    <string name="downloaded">Preuzeto</string>
+    <string name="search">Traži</string>
+    <string name="songs">Pjesme</string>
+    <string name="playlists">Popisi za reprodukciju</string>
+    <string name="library">Zbirka</string>
+    <string name="home">Početna</string>
 </resources>
