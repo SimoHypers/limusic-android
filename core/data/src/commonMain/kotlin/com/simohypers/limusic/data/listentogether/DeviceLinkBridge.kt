@@ -257,8 +257,19 @@ class DeviceLinkBridge(
      */
     private suspend fun apply(action: RemoteAction) {
         when (action) {
-            RemoteAction.Play -> if (!handler.player.playWhenReady) handler.onPlayerEvent(PlayerEvent.PlayPause)
-            RemoteAction.Pause -> if (handler.player.playWhenReady) handler.onPlayerEvent(PlayerEvent.PlayPause)
+            // Not the PlayPause toggle: it goes by isPlaying, false while a track buffers, so a pause
+            // sent then started the music. The adapter's own play()/pause() keep its play-when-ready
+            // state; the progress loop is what the toggle would have started or stopped.
+            RemoteAction.Play ->
+                if (!handler.player.playWhenReady) {
+                    handler.player.play()
+                    handler.startProgressUpdate()
+                }
+            RemoteAction.Pause ->
+                if (handler.player.playWhenReady) {
+                    handler.player.pause()
+                    handler.stopProgressUpdate()
+                }
             RemoteAction.Next -> handler.onPlayerEvent(PlayerEvent.Next)
             RemoteAction.Previous -> handler.onPlayerEvent(PlayerEvent.Previous)
             is RemoteAction.Seek -> handler.player.seekTo(action.positionMs.coerceAtLeast(0L))
