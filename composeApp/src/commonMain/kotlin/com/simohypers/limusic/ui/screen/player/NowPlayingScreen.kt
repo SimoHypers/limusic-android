@@ -587,7 +587,8 @@ fun NowPlayingScreenContent(
         if (!isSliding) {
             sliderValue =
                 if (timelineState.total > 0L) {
-                    timelineState.current.toFloat() * 100 / timelineState.total.toFloat()
+                    // Clamped: a stale or unknown (-1) position must not push the thumb off the bar.
+                    (timelineState.current.toFloat() * 100 / timelineState.total.toFloat()).coerceIn(0f, 100f)
                 } else {
                     0f
                 }

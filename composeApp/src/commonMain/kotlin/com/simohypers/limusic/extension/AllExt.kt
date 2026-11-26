@@ -97,7 +97,9 @@ fun LocalDateTime.formatTimeAgo(): String {
  * broadcast: where playback sits in the broadcast's seek window means nothing to a listener.
  */
 @Composable
-fun TimeLine.elapsedLabel(progress: Float): String = if (isLive) "" else formatDuration((total * progress).roundToLong())
+fun TimeLine.elapsedLabel(progress: Float): String =
+    // Clamped so a position briefly past the end (or below 0) can't print more than the track's length.
+    if (isLive) "" else formatDuration((total * progress.coerceIn(0f, 1f)).roundToLong())
 
 /** The track's length under a seek bar, or LIVE for a live broadcast, which has none. */
 @Composable

@@ -368,7 +368,21 @@ class SharedViewModel(
                         metadataDurationMs.takeIf { it > 0L }
                             ?: mediaPlayerHandler.getPlayerDuration().takeIf { it > 0L }
                             ?: -1L
-                    _timeline.update { it.copy(total = seededTotal) }
+                    // The position and the buffer belong to the old track too. Left alone, they stay
+                    // until the next progress tick, and none comes while paused or buffering: a
+                    // shorter new track then shows the old position past its end ("5:00 / 3:00",
+                    // thumb and mini player line full). The player's own position is asked rather
+                    // than writing 0, because this fires only once the new song's row has loaded,
+                    // and by then the player may already sit somewhere in the new track (a restored
+                    // queue resumes mid-song). Same-track emissions never get here: the
+                    // distinctUntilChangedBy above lets only a new videoId through.
+                    _timeline.update {
+                        it.copy(
+                            total = seededTotal,
+                            current = mediaPlayerHandler.getProgress().coerceAtLeast(0L),
+                            bufferedPercent = 0,
+                        )
+                    }
                     state.songEntity?.let { track ->
                         _nowPlayingScreenData.value =
                             NowPlayingScreenData(
