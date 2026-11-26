@@ -99,6 +99,7 @@ import com.simohypers.limusic.ui.icon.Replay5
 import com.simohypers.limusic.ui.icon.LimusicIcons
 import com.simohypers.limusic.ui.icon.Subtitles
 import com.simohypers.limusic.ui.icon.SubtitlesOff
+import com.simohypers.limusic.expect.ui.PlatformBackHandler
 import com.simohypers.limusic.ui.screen.player.content.immersive.ImmersiveBottomCluster
 import com.simohypers.limusic.ui.screen.player.content.immersive.ImmersiveHeaderActions
 import com.simohypers.limusic.ui.screen.player.content.immersive.ImmersiveLyricStrip
@@ -149,6 +150,8 @@ fun NowPlayingContentImmersive(
         )
     }
     LaunchedEffect(viewState) { sharedViewModel.setLastPlayerViewTab(viewState.name) }
+    // Back leaves Lyrics or Queue for the main view before it closes the player, as in Classic.
+    PlatformBackHandler(enabled = viewState != ImmersiveView.MAIN) { viewState = ImmersiveView.MAIN }
     // The mini player's lyrics button opens this player on its Lyrics view, as Classic does.
     val lyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
     LaunchedEffect(lyricsRequested) {
