@@ -1,3 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="subscribers">%1$s pretplatnici</string>
+    <string name="view_count">%1$s pregledi</string>
+    <string name="liked">Omiljeno</string>
+    <string name="liked_songs">Omiljene pjesme</string>
+    <string name="liked_songs_by">Od %1$s</string>
+    <plurals name="liked_songs_count">
+        <item quantity="one">%1$d pjesma</item>
+        <item quantity="few">%1$d pjesme</item>
+        <item quantity="other">%1$d pjesama</item>
+    </plurals>
+    <string name="like">Sviđa mi se</string>
+    <string name="dislike">Ne sviđa mi se</string>
+    <string name="remove_dislike">Ukloni oznaku „Ne sviđa mi se“</string>
+    <string name="download">Preuzmi</string>
+    <string name="downloaded">Preuzeto</string>
+    <string name="library_downloads">Preuzimanja</string>
+    <string name="new_playlist">Novi popis za reprodukciju</string>
+    <string name="see_all">Vidi sve</string>
+    <plurals name="library_followed_count">
+        <item quantity="one">%1$d praćeni</item>
+        <item quantity="few">%1$d praćena</item>
+        <item quantity="other">%1$d praćenih</item>
+    </plurals>
+    <string name="downloading">Preuzimanje</string>
+    <string name="show">Prikaži</string>
+    <string name="live_badge">UŽIVO</string>
+    <string name="followed">Zapraćeno</string>
+    <string name="most_played">Najslušanije</string>
+    <string name="no_playlists_downloaded">Nema preuzetih popisa za reprodukciju</string>
+    <string name="your_playlists">Tvoj lokalni popis za reprodukciju</string>
+    <string name="no_playlists_added">Nema dodanog popisa za reprodukciju</string>
+    <string name="recently_added">Nedavno dodano</string>
+    <string name="restore_failed">Vraćanje nije uspjelo</string>
+    <string name="restore_success">Vraćanje uspješno</string>
+    <string name="search">Traži</string>
+    <string name="recent_searches">Nedavna pretraživanja</string>
+    <string name="songs">Pjesme</string>
+    <string name="albums">Albumi</string>
+    <string name="playlists">Popisi za reprodukciju</string>
+    <string name="artists">Izvođači</string>
+    <string name="library">Zbirka</string>
+    <string name="home">Početna</string>
+    <string name="popular">Popularno</string>
+    <string name="error">Greška</string>
+    <string name="retry">Pokušaj ponovno</string>
+    <string name="removed_download">Preuzimanje uklonjeno</string>
+    <string name="remove">Ukloni</string>
+    <string name="remove_download">Ukloni preuzimanje</string>
+    <string name="tap_again_to_remove">Klikni ponovno za uklanjanje</string>
+    <string name="failed_downloads">Neuspjela preuzimanja</string>
+    <string name="failed_downloads_reason">Obično zato što su dostupni samo uz Premium, blokirani u vašoj zemlji ili uklonjeni.</string>
+    <string name="download_nothing_missing">Ništa novo za preuzeti</string>
+    <string name="download_progress_text">%1$d of %2$d pjesme na ovom mobilnom uređaju</string>
+    <string name="download_kept_note">Pjesme i drugi sadržaji za preuzimanje ostaju</string>
+    <string name="download_missing_rereads">Također uključuje pjesme dodane nakon</string>
+    <string name="download_missing">Preuzimanje nedostaje</string>
+    <string name="downloading_progress">Preuzima se %1$d od %2$d</string>
+    <string name="download_progress_short">%1$d od %2$d</string>
+    <string name="downloads_paused_at">Pauzirano na %1$d od %2$d</string>
+    <string name="downloads_blocked_at">Pauzirao YouTube na %1$d od %2$d</string>
+    <string name="pause">Pauziraj</string>
+    <string name="resume">Nastavi</string>
+    <string name="downloaded_songs">Preuzete pjesme</string>
+    <string name="downloads_waiting_wifi">Čeka se Wi-Fi na %1$d od %2$d</string>
 </resources>
