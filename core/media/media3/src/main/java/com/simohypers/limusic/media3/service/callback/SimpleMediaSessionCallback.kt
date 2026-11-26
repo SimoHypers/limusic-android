@@ -135,20 +135,26 @@ internal class SimpleMediaSessionCallback(
         // The computer's remote takes next and previous itself (LinkSessionPlayer); also sending
         // them through the handler skipped two songs on the computer.
         if (session.player is LinkSessionPlayer) return super.onPlayerCommandRequest(session, controller, playerCommand)
-        scope.launch {
+        // Next and previous belong to the handler: it knows the 3 s rule (and its live-stream
+        // exception), that a manual skip leaves Repeat One, going back to a replaced queue and the
+        // autoplay top-up. "Previous media item" (Android Auto, some controllers) always means the
+        // song before, so it is SkipToPrevious, not Previous.
+        val skip =
             when (playerCommand) {
-                COMMAND_SEEK_TO_NEXT -> {
-                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Next)
-                }
-                COMMAND_SEEK_TO_PREVIOUS -> {
-                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Previous)
-                }
-                COMMAND_GET_TIMELINE -> {
-                }
+                COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> PlayerEvent.Next
+                COMMAND_SEEK_TO_PREVIOUS -> PlayerEvent.Previous
+                Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> PlayerEvent.SkipToPrevious
+                else -> null
             }
+        if (skip != null) {
+            scope.launch { mediaPlayerHandler.onPlayerEvent(skip) }
+            // Any result other than success makes Media3 skip running the command on the session
+            // player. Letting it run as well meant two skips at once: Previous after 3 s restarted
+            // the song and then went back a song, and Next under Repeat One restarted the old song.
+            // A Listen Together guest gets the handler's toast and nothing else.
+            return if (mediaPlayerHandler.followingRoom) SessionResult.RESULT_ERROR_PERMISSION_DENIED else SessionResult.RESULT_INFO_SKIPPED
         }
-        // A Listen Together guest is on the host's timeline. Next and previous went to the
-        // handler above, which says so; seeking and the modes stop here.
+        // A Listen Together guest is on the host's timeline: seeking and the modes stop here.
         if (mediaPlayerHandler.followingRoom && playerCommand in HOST_ONLY_COMMANDS) return SessionResult.RESULT_ERROR_PERMISSION_DENIED
         return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
