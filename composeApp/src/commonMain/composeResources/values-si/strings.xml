@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="subscribers">දායකයන් %1$s</string>
+    <string name="ltd_leave_hint_guest">ඔබට %1$s ගේ සංගීතය ඇසීම නතර වේ</string>
+    <string name="empty_downloads_title">තවම කිසිවක් බාගත කර නොමැත</string>
+    <string name="video_quality">වීඩියෝ තත්ත්වය</string>
+    <string name="notification">දැනුම්දීම</string>
+    <string name="downloading_video">වීඩියෝව බාගත කරමින්: %1$s</string>
+    <string name="log_export_failed">ලොග් ගොනුව නිර්යාත කිරීමට නොහැකි විය</string>
+    <string name="change_image">පින්තූරය වෙනස් කරන්න</string>
+</resources>
